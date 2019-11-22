@@ -7,4 +7,6 @@ To contribute to the documentation (and especially the **specifications.md**), y
 ## Code editing
 edit .gitignore file
 
+1 type of modification per commit
+
 To come soon
