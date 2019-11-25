@@ -2,7 +2,7 @@
 # DRAFT !
 Collaborative and evolutive document defining all practical specifications for the SOMORA/GROMOS harmonized retrievals. It is focused on all computer and code related details for the harmonization project.
 
-I would suggest to edit and approve a first version of this documents for the 1st part of this project (raw data -> calibrated spectra for both instruments, quality controlled) in 1-2 weeks from now (15.12.19). 
+I would suggest to edit and approve a first version of this documents for the 1st part of this project (raw data -> calibrated spectra for both instruments, quality controlled) in 1-2 weeks from now (15.12.19).
 
 ## Expectations and requirements
 ### Outputs
@@ -16,11 +16,11 @@ What we want as outputs for our retrievals:
 
 ### Sustainability and reproductibility
 We want this code to be compatible with changes in:
-* Hardware
+* Hardware<br/> 
 Especially, we have to keep in mind the changes in spectrometer to include easily the older data from the instruments.
 
-* Software
-New version of Matlab/Python
+* Software<br/>
+New version of Matlab/Python<br/>
 New version of ARTS 
 
 
