@@ -14,10 +14,15 @@ What we want as outputs for our retrievals:
 * Quality flags for both levels of data
 * Other products ?
 
-### Sustainability
+### Sustainability and reproductibility
 We want this code to be compatible with changes in:
 * Hardware
+Especially, we have to keep in mind the changes in spectrometer to include easily the older data from the instruments.
+
 * Software
+New version of Matlab/Python
+New version of ARTS 
+
 
 ### File format
 Due to its widespread utilisation and its self-documentation property, we think that all level1 and level2 should be stored in the **netCDF** (binary) format. This option also enable to use all the existing tools to have a quick look at the data (Panoply,...)
