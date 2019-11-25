@@ -5,13 +5,31 @@ Collaborative and evolutive document defining all practical specifications for t
 I would suggest to edit and approve a first version of this documents for the 1st part of this project (raw data -> calibrated spectra for both instruments, quality controlled) in 1-2 weeks from now (15.12.19).
 
 ## Expectations and requirements
+### File format
+Due to its widespread utilisation and its self-documentation property, we think that all level1 and level2 should be stored in the **netCDF** (binary) format. This option also enable to use all the existing tools to have a quick look at the data (Panoply,...)
+
+The fact that the NDACC database requires hdf5 files is an additional point for this choice of data format as the 2 are almost similar. 
+
+### Level of data
+#### Level 0
+Those are the raw data and for both GROMOS and SOMORA, are composed of:
+1. *.csv* file containing all the meta data for each measurements
+2. *.bin* file containing the raw measured spectra
+
+#### Level 1a: calibrated spectra
+For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we might consider defining a "accumulation" or "pre-integration" time for calibrating the specta (which then has to be noted in the meta data).
+
+#### Level 1b: integrated calibrated spectra
+Depending on the anaylsis, we might need different integration time and take different decision regarding what to do with the outliers. It might make sense then to do this now and not before storing the calibrated spectra. In this step, we would also include all correction that are instrument dependent.
+
+#### Level 2: Ozone profile
+The final product for our retrieval. It will also be stored as netCDF file and might include some other retrieved quantities like water-vapor for instance (if we decide to include the tropospheric correction in the retrieval).
+
 ### Outputs
-What we want as outputs for our retrievals:
-* Calibrated spectra (level1, with meta data)
-* Ozone profile (level2, with meta data)
+What we want as additionnal outputs for our retrievals:
 * Full error characterization
 * AVKs
-* Quality flags for both levels of data
+* Quality flags for every levels of data
 * Other products ?
 
 ### Sustainability and reproductibility
@@ -20,14 +38,9 @@ We want this code to be compatible with changes in:
 Especially, we have to keep in mind the changes in spectrometer to include easily the older data from the instruments.
 
 * Software<br/>
-New version of Matlab/Python<br/>
+New version of Matlab<br/>
 New version of ARTS 
 
-
-### File format
-Due to its widespread utilisation and its self-documentation property, we think that all level1 and level2 should be stored in the **netCDF** (binary) format. This option also enable to use all the existing tools to have a quick look at the data (Panoply,...)
-
-The fact that the NDACC database requires hdf5 files is an additional point for this choice of data format as the 2 are almost similar. 
 
 ### Programming language 
 
@@ -52,8 +65,8 @@ Here are the 3 possible options to use ARTS for our retrievals (from Jonas prese
 * Very close to ARTS itself
 * Manipulation of matrices is tedious
 * Need code to write and parse XML data (e.g. to make plots)
-
-The main programming language shall then be Matlab/Python because ...
+ 
+The main programming language shall then be **Matlab** because this is the language currently in use at the IAP. 
 
 ## Timeline
 Approximate timeline defined for this project (for now, focused on the first part of the project):
