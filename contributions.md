@@ -5,7 +5,7 @@ To contribute to the documentation (and especially the **specifications.md**), y
 
 
 ## Code editing
-To contribute directly to the code, please follow the next steps in order to keep things clean and ordered:
+To contribute to the code, please follow the next steps in order to keep things clean and ordered:
 
 ### If it's your first contribution:
 
