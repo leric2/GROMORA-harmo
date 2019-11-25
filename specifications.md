@@ -19,7 +19,7 @@ Those are the raw data and for both GROMOS and SOMORA, are composed of:
 #### Level 1a: calibrated spectra
 For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we might consider defining a "accumulation" or "pre-integration" time for calibrating the specta (which then has to be noted in the meta data).
 
-#### Level 1b: integrated calibrated spectra
+#### Level 1b: integrated and corrected calibrated spectra
 Depending on the anaylsis, we might need different integration time and take different decision regarding what to do with the outliers. It might make sense then to do this now and not before storing the calibrated spectra. In this step, we would also include all correction that are instrument dependent.
 
 #### Level 2: Ozone profile
