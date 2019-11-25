@@ -27,10 +27,7 @@ git commit --message="Changed temperature of LN2"
 >
 git push origin *nameOfYourNewBranch*
 
-* When you think your changes has to be included in the main code, open a pull-request by using the following command:
-
->
-git request-pull
+* When you think your changes are ready to be included in the main code, open a pull-request by using the *New Pull-Request* button on the web interface and select `to:master` and `from:nameOfYourBranch`.
 
 
 ### If it's not your first contribution:
