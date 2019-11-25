@@ -1,5 +1,5 @@
 # Specifications
-# DRAFT !
+# DRAFT
 Collaborative and evolutive document defining all practical specifications for the SOMORA/GROMOS harmonized retrievals. It is focused on all computer and code related details for the harmonization project.
 
 I would suggest to edit and approve a first version of this documents for the 1st part of this project (raw data -> calibrated spectra for both instruments, quality controlled) in 1-2 weeks from now (15.12.19).
@@ -25,7 +25,7 @@ Depending on the anaylsis, we might need different integration time and take dif
 #### Level 2: Ozone profile
 The final product for our retrieval. It will also be stored as netCDF file and might include some other retrieved quantities like water-vapor for instance (if we decide to include the tropospheric correction in the retrieval).
 
-### Outputs
+### Additional outputs
 What we want as additionnal outputs for our retrievals:
 * Full error characterization
 * AVKs
@@ -41,8 +41,8 @@ Especially, we have to keep in mind the changes in spectrometer to include easil
 New version of Matlab<br/>
 New version of ARTS 
 
-
 ### Programming language 
+The main programming language shall then be **Matlab** because this is the language currently in use at the IAP. 
 
 The last available stable version of ARTS is used for this project. This is currently (22.11.19) version 2.3 which is 3 years old. 
 The next ARTS stable version should be out Summer 2020 and therefore, we should try to have a code which is easily adaptable to a new version of ARTS (Jonas ?)
@@ -65,19 +65,16 @@ Here are the 3 possible options to use ARTS for our retrievals (from Jonas prese
 * Very close to ARTS itself
 * Manipulation of matrices is tedious
 * Need code to write and parse XML data (e.g. to make plots)
- 
-The main programming language shall then be **Matlab** because this is the language currently in use at the IAP. 
 
 ## Timeline
 Approximate timeline defined for this project (for now, focused on the first part of the project):
 
 * 15.12.19: Specifications document edited and approved by everyone
-* 31.12.19: Final draft ot the level0-level1 routines
+* 31.12.19: Final draft ot the level0-level1a routines
 * 15.01.20: Design of the quality control for level1 data.
 * 15.02.20: Investigation of the level1 data for GROMOS and SOMORA
 * 01.03.20: Start working on the level1 to level2 data
 * ...
-
 
 ## Good practice
 In order to have some coherence for this new retrieval code, here are some basic rules I would suggest to use when collaborating to the project.
