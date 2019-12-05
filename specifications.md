@@ -106,5 +106,4 @@ Git
 
 ## Code main structure and data management  (maybe put that in another file)
 **Here come some sketch for the main structure and data management that we are planning to use**
-
-<img src="https://git.iap.unibe.ch/IAP_MCH/GROSOM-harmo/src/branch/master/sketch/MockUp_GROSOM.png" width="200" height="200" />
+![MockUp for the project] (https://git.iap.unibe.ch/IAP_MCH/GROSOM-harmo/src/branch/master/sketch/MockUp_GROSOM.png)
