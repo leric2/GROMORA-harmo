@@ -1,4 +1,4 @@
-# Specifications
+
 # DRAFT
 Collaborative and evolutive document defining all practical specifications for the SOMORA/GROMOS harmonized retrievals. It is focused on all computer and code related details for the harmonization project.
 
@@ -107,3 +107,4 @@ Git
 ## Code main structure and data management  (maybe put that in another file)
 **Here come some sketch for the main structure and data management that we are planning to use**
 
+![MockUp for the project] (/sketch/MockUp_GROSOM.png)
