@@ -84,6 +84,10 @@ Every module has to make 1 (and only 1) action at a time and be named accordingl
 
 *module_doing_this_action(var1,var2,...)*
 
+Another question to be solved regarding the modules is:
+
+*Do we want to have one specific module for each instruments when needed (corrections, etc...) or do we prefer to have some switch case and the instrument's name as input ?*
+
 ### Variables 
 No hardcoded variables, except in the main module. Suggestions for naming the variables:
 
