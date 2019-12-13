@@ -26,6 +26,7 @@ Quality control for the calibrated spectra ?
 * Error code for the calibration
 
 ## Structure
+We should include the possibility to use the tipping curve calibrations done by the instruments approx. every 30 min. 
 
 
 ## How it was done in the past
