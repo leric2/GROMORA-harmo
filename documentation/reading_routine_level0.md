@@ -23,8 +23,8 @@ Quality control of the raw data
 * Instruments name ?
 
 ## Outputs
-* 1-N standardized matlab structure containing the **raw** data from 1-N instruments.
-* 1-N standardized matlab structure containing the **log** data.
+* 1 standardized matlab structure containing the **raw** data.
+* 1 standardized matlab structure containing the **log** data.
 * Error code if the raw data are not found (or only partly) for this day.
 
 ## Structure
