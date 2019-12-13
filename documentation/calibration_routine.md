@@ -1,7 +1,7 @@
 # Calibration routine
 
 ## Objective and role of this function
-Calibrate the observation from the instruments
+Calibrate the observations from the instruments against the hot and cold load on a given "calibration time".
 
 
 ### Calls from
@@ -14,17 +14,18 @@ None
 Quality control of the raw data
 
 ### Next
-Saving script for level1 data
+Quality control for the calibrated spectra ? 
 
 ## Inputs
-* raw data
-* Time period (1 day ?)
+* Raw data
+* Calibration time
 * Instruments name ?
 
 ## Outputs
+* Calibrated spectra
+* Error code for the calibration
 
 ## Structure
-
 
 
 ## How it was done in the past
