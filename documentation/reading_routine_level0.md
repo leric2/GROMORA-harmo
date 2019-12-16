@@ -23,7 +23,7 @@ Quality control of the raw data
 * Instruments name ?
 
 ## Outputs
-* 1 standardized matlab structure containing the **raw** data.
+* 1 big float32 matrix (or vector if a bit faster to read) containing the **raw** counts.
 * 1 standardized matlab structure containing the **log** data.
 * Error code if the raw data are not found (or only partly) for this day.
 
@@ -37,6 +37,10 @@ For each day, 2 files to read for each instrument:
     
 * 1 .bin daily file:
     * 32bit floating point data of size (N x #channels)
+    * Big-endian byte ordering
+    * Flipped spectra for GROMOS around the middle channel but not for SOMORA (always so ?)
+
+After some tries, the direct reading of the binary file should be alright. It would have been more convenient to map the binary file but the byte-ordering of the maps is then linked with the operating system on matlab --> best to avoid it. 
 
 ## How it was done in the past
 ### GROMOS
