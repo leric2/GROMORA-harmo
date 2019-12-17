@@ -17,10 +17,10 @@ Those are the raw data and for both GROMOS and SOMORA, are composed of:
 2. *.bin* file containing the raw measured spectra
 
 #### Level 1a: calibrated spectra
-For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we might consider defining a "accumulation" or "pre-integration" time for calibrating the specta (which then has to be noted in the meta data).
+For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we might consider defining a "accumulation" or "pre-integration" time *(variable)* for calibrating the specta (which then has to be noted in the meta data).
 
 #### Level 1b: integrated and corrected calibrated spectra
-Depending on the anaylsis, we might need different integration time and take different decision regarding what to do with the outliers. It might make sense then to do this now and not before storing the calibrated spectra. In this step, we would also include all correction that are instrument dependent.
+Depending on the anaylsis, we might need different integration time and take different decision regarding what to do with the outliers. It might make sense then to do this now and not before storing the calibrated spectra. In this step, we would also include all corrections that are instrument dependent *(outliers flagging, window correction, ? frequency shift, corrections after determination of drifts/shifts?, L1a data flagging. If we consider the baseline and the tropospheric contribution as parameters of the retrieval, they should not be corrected before)*
 
 #### Level 2: Ozone profile
 The final product for our retrieval. It will also be stored as netCDF file and might include some other retrieved quantities like water-vapor for instance (if we decide to include the tropospheric correction in the retrieval).
@@ -29,8 +29,8 @@ The final product for our retrieval. It will also be stored as netCDF file and m
 What we want as additionnal outputs for our retrievals:
 * Full error characterization
 * AVKs
-* Quality flags for every levels of data
-* Other products ?
+* Quality flags for every levels of data:  *proposition*: measurement contribution, Trec, atmospheric opacity, total cost,
+* Other products ?: *proposition by ema* residuals, measurement contribution, T profiles used, AP,
 
 ### Sustainability and reproductibility
 We want this code to be compatible with changes in:
