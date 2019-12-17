@@ -11,7 +11,8 @@ We have an object (let's call it retrievalTool) that will contain all the releva
 
 As launching a retrieval is a step-by-step "linear" operation, we do not need to edit the script effectively doing the step-by-step operation but we only need to edit the retrievalTool object. 
 
-On of the nice thing is that we can store function in this retrievalTool object, so that the retrievals can use different functions for different instruments in the case where it would be needed (see when ??). When possible, only one function with switch case shall be prefered ?
+On of the nice thing is that we can store function in this retrievalTool object, so that the retrievals can use different functions for different instruments in the case where it would be needed. This would be defined and documented in the retrievalTool structure and implemented in the main "run" function.
 
-CAUTION: what about adding an instrument ? would be nice not to edit all switch cases !!!!!!!
+CAUTION: switch cases inside functions should be avoided because it would be painfull to edit them all when a new instruments is added (or a new spectrometers for instance).
+
 
