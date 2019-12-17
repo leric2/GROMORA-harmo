@@ -98,9 +98,9 @@ No hardcoded variables, except in the main module. Suggestions for naming the va
 ### Eliane
 
 ### Eric
-Design and main contributor of the coding part
-Organisation of the project
-Git
+* Design and main contributor of the coding part
+* Organisation of the project
+* Git
 
 ### Gunter
 
@@ -109,5 +109,4 @@ Git
 ### Axel
 
 ## Code main structure and data management  (maybe put that in another file)
-**Here come some sketch for the main structure and data management that we are planning to use**
 ![MockUp for the project] (https://git.iap.unibe.ch/IAP_MCH/GROSOM-harmo/src/branch/master/sketch/MockUp_GROSOM.png)
