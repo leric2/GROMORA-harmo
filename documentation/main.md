@@ -16,3 +16,5 @@ On of the nice thing is that we can store function in this retrievalTool object,
 CAUTION: switch cases inside functions should be avoided because it would be painfull to edit them all when a new instruments is added (or a new spectrometers for instance).
 
 
+## Error handling
+Standard way of dealing with error with is to use warnings for "unexpected conditions" and errors for "fatal problems" which will stop the retrievals. 
