@@ -29,8 +29,9 @@ The final product for our retrieval. It will also be stored as netCDF file and m
 What we want as additionnal outputs for our retrievals:
 * Full error characterization
 * AVKs
-* Quality flags for every levels of data:  *proposition*: measurement contribution, Trec, atmospheric opacity, total cost,
-* Other products ?: *proposition by ema* residuals, measurement contribution, T profiles used, AP,
+* Quality flags for every levels of data:  
+* Measurement contribution, residuals, Trec, atmospheric opacity, total cost, Temperature profiles used, AP,
+* Other products ?
 
 ### Sustainability and reproductibility
 We want this code to be compatible with changes in:
