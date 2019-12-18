@@ -1,0 +1,178 @@
+netcdf wira-c_20170520 {
+
+// global attributes:
+		:site_name = "MAIDO" ;
+		:site_lat = -21.079816 ;
+		:site_lon = 55.383091 ;
+		:site_altitude = 2158LL ;
+		:site_timezone = "Indian/Reunion" ;
+		string :site_desc = "Maïdo Observatory on La Réunion (indian ocean), France" ;
+		:meteo_source = "logfile" ;
+		:bin_filename = "wira-c_20170520.bin" ;
+		:calibration_version = "1.0.4" ;
+		:tipping_version = "1.0.1" ;
+		:history = "Fri Oct 26 2018 21:00:17 +0200: Created from level0 files." ;
+
+group: errors {
+  dimensions:
+  	id = UNLIMITED ; // (624 currently)
+  	spectrometer = 2 ;
+  variables:
+  	int64 id(id) ;
+  	int64 spectrometer(spectrometer) ;
+  	short error_code(spectrometer, id) ;
+
+  // group attributes:
+  		:CalibErrorCode.OK = 0LL ;
+  		:CalibErrorCode.EMPTY = 1LL ;
+  		:CalibErrorCode.OTHER = 2LL ;
+  		:CalibErrorCode.CYCLE_INCOMPLETE = 3LL ;
+  		:CalibErrorCode.INCONSISTENT = 4LL ;
+  		:CalibErrorCode.NO_CONVERGENCE = 5LL ;
+  		:CalibErrorCode.INVALID_TSYS = 6LL ;
+  		:CalibErrorCode.TOO_MANY_INVALID = 7LL ;
+  		:CalibErrorCode.TOO_MANY_INVALID_AT_END = 8LL ;
+  		:CalibErrorCode.TB_TOO_HIGH = 9LL ;
+  		:CalibErrorCode.AMPLITUDE_TOO_SMALL = 10LL ;
+  } // group errors
+
+group: spectrometer0 {
+  dimensions:
+  	id = UNLIMITED ; // (585 currently)
+  	tag = 5 ;
+  	f = 16384 ;
+  	f_bins = 128 ;
+  variables:
+  	double air_pressure_hpa(id) ;
+  		air_pressure_hpa:_FillValue = NaN ;
+  	double ambient_temperature(id) ;
+  		ambient_temperature:_FillValue = NaN ;
+  	double azimuth(id, tag) ;
+  		azimuth:_FillValue = NaN ;
+  	double band_width(id) ;
+  		band_width:_FillValue = NaN ;
+  	double cycle(id) ;
+  		cycle:_FillValue = NaN ;
+  	double elevation(id, tag) ;
+  		elevation:_FillValue = NaN ;
+  	double f(f) ;
+  		f:_FillValue = NaN ;
+  	double f_bins(f_bins) ;
+  		f_bins:_FillValue = NaN ;
+  	double f_ddc_usrp_hz(id) ;
+  		f_ddc_usrp_hz:_FillValue = NaN ;
+  	double f_lo_hz(id) ;
+  		f_lo_hz:_FillValue = NaN ;
+  	double f_lo_usrp_hz(id) ;
+  		f_lo_usrp_hz:_FillValue = NaN ;
+  	double gain(id) ;
+  		gain:_FillValue = NaN ;
+  	double hot_load_temperature(id) ;
+  		hot_load_temperature:_FillValue = NaN ;
+  	int64 id(id) ;
+  	double rain_analog(id) ;
+  		rain_analog:_FillValue = NaN ;
+  	double relative_humidity(id) ;
+  		relative_humidity:_FillValue = NaN ;
+  	double spectra(id, tag, f) ;
+  		spectra:_FillValue = NaN ;
+  	string tag(tag) ;
+  	double tau(id, f) ;
+  		tau:_FillValue = NaN ;
+  		tau:description = "Zenith opacity obtained from tipping calibration with mean over N and S spectra." ;
+  	double tipping_tau(id, tag, f_bins) ;
+  		tipping_tau:_FillValue = NaN ;
+  		tipping_tau:description = "Zenith opacity obtained from tipping calib in individual directions." ;
+  	double tsys(id) ;
+  		tsys:_FillValue = NaN ;
+  	double usrp_hopping_used(id) ;
+  		usrp_hopping_used:_FillValue = NaN ;
+  	double valid(id, f) ;
+  		valid:_FillValue = NaN ;
+  		valid:description = "Whether calibration succeeded or not. Invalid points have been interpolated." ;
+
+  // group attributes:
+  		:spectrometer = 0LL ;
+  		:site_name = "MAIDO" ;
+  		:site_lat = -21.079816 ;
+  		:site_lon = 55.383091 ;
+  		:site_altitude = 2158LL ;
+  		:site_timezone = "Indian/Reunion" ;
+  		string :site_desc = "Maïdo Observatory on La Réunion (indian ocean), France" ;
+  		:meteo_source = "logfile" ;
+  		:bin_filename = "wira-c_20170520.bin" ;
+  		:calibration_version = "1.0.4" ;
+  		:tipping_version = "1.0.1" ;
+  		:history = "Fri Oct 26 2018 21:00:17 +0200: Created from level0 files." ;
+  } // group spectrometer0
+
+group: spectrometer1 {
+  dimensions:
+  	id = UNLIMITED ; // (585 currently)
+  	tag = 5 ;
+  	f = 16384 ;
+  	f_bins = 128 ;
+  variables:
+  	double air_pressure_hpa(id) ;
+  		air_pressure_hpa:_FillValue = NaN ;
+  	double ambient_temperature(id) ;
+  		ambient_temperature:_FillValue = NaN ;
+  	double azimuth(id, tag) ;
+  		azimuth:_FillValue = NaN ;
+  	double band_width(id) ;
+  		band_width:_FillValue = NaN ;
+  	double cycle(id) ;
+  		cycle:_FillValue = NaN ;
+  	double elevation(id, tag) ;
+  		elevation:_FillValue = NaN ;
+  	double f(f) ;
+  		f:_FillValue = NaN ;
+  	double f_bins(f_bins) ;
+  		f_bins:_FillValue = NaN ;
+  	double f_ddc_usrp_hz(id) ;
+  		f_ddc_usrp_hz:_FillValue = NaN ;
+  	double f_lo_hz(id) ;
+  		f_lo_hz:_FillValue = NaN ;
+  	double f_lo_usrp_hz(id) ;
+  		f_lo_usrp_hz:_FillValue = NaN ;
+  	double gain(id) ;
+  		gain:_FillValue = NaN ;
+  	double hot_load_temperature(id) ;
+  		hot_load_temperature:_FillValue = NaN ;
+  	int64 id(id) ;
+  	double rain_analog(id) ;
+  		rain_analog:_FillValue = NaN ;
+  	double relative_humidity(id) ;
+  		relative_humidity:_FillValue = NaN ;
+  	double spectra(id, tag, f) ;
+  		spectra:_FillValue = NaN ;
+  	string tag(tag) ;
+  	double tau(id, f) ;
+  		tau:_FillValue = NaN ;
+  		tau:description = "Zenith opacity obtained from tipping calibration with mean over N and S spectra." ;
+  	double tipping_tau(id, tag, f_bins) ;
+  		tipping_tau:_FillValue = NaN ;
+  		tipping_tau:description = "Zenith opacity obtained from tipping calib in individual directions." ;
+  	double tsys(id) ;
+  		tsys:_FillValue = NaN ;
+  	double usrp_hopping_used(id) ;
+  		usrp_hopping_used:_FillValue = NaN ;
+  	double valid(id, f) ;
+  		valid:_FillValue = NaN ;
+  		valid:description = "Whether calibration succeeded or not. Invalid points have been interpolated." ;
+
+  // group attributes:
+  		:spectrometer = 1LL ;
+  		:site_name = "MAIDO" ;
+  		:site_lat = -21.079816 ;
+  		:site_lon = 55.383091 ;
+  		:site_altitude = 2158LL ;
+  		:site_timezone = "Indian/Reunion" ;
+  		string :site_desc = "Maïdo Observatory on La Réunion (indian ocean), France" ;
+  		:meteo_source = "logfile" ;
+  		:bin_filename = "wira-c_20170520.bin" ;
+  		:calibration_version = "1.0.4" ;
+  		:tipping_version = "1.0.1" ;
+  		:history = "Fri Oct 26 2018 21:00:17 +0200: Created from level0 files." ;
+  } // group spectrometer1
+}
