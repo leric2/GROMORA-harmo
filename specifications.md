@@ -1,8 +1,8 @@
 
-# DRAFT
+# Specifications
 Collaborative and evolutive document defining all practical specifications for the SOMORA/GROMOS harmonized retrievals. It is focused on all computer and code related details for the harmonization project.
 
-I would suggest to edit and approve a first version of this documents for the 1st part of this project (raw data -> calibrated spectra for both instruments, quality controlled) in 1-2 weeks from now (15.12.19).
+After discussion of the 18.12.19, we agreed on the main principles (file format, calibration time) for the 1st part of this project (raw data -> calibrated spectra for both instruments).
 
 ## Expectations and requirements
 ### File format
@@ -17,7 +17,7 @@ Those are the raw data and for both GROMOS and SOMORA, are composed of:
 2. *.bin* file containing the raw measured spectra
 
 #### Level 1a: calibrated spectra
-For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we might consider defining a "accumulation" or "pre-integration" time *(variable)* for calibrating the specta (which then has to be noted in the meta data).
+For every calibration cycle, we store and save the raw calibrated spectra in a dedicated netCDF file (without removing outliers). Also, according to the stability of the hot and cold load, we define a "calibration" time for calibrating the specta (which then has to be noted in the meta data).
 
 #### Level 1b: integrated and corrected calibrated spectra
 Depending on the anaylsis, we might need different integration time and take different decision regarding what to do with the outliers. It might make sense then to do this now and not before storing the calibrated spectra. In this step, we would also include all corrections that are instrument dependent *(outliers flagging, window correction, ? frequency shift, corrections after determination of drifts/shifts?, L1a data flagging. If we consider the baseline and the tropospheric contribution as parameters of the retrieval, they should not be corrected before)*
@@ -73,6 +73,7 @@ Approximate timeline defined for this project (for now, focused on the first par
 * 15.12.19: Specifications document edited and approved by everyone
 * 31.12.19: Final draft ot the level0-level1a routines
 * 15.01.20: Design of the quality control for level1 data.
+* 24.01.20: Visit of Eliane, ideally working routine from raw data to netCDF level1a.
 * 15.02.20: Investigation of the level1 data for GROMOS and SOMORA
 * 01.03.20: Start working on the level1 to level2 data
 * ...
