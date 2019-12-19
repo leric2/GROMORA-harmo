@@ -16,7 +16,7 @@ Reading routine level0
 Calibration
 
 ## Inputs
-* 1 standardized matlab structure containing the **raw** data.
+* 1 big float32 matrix containing the **raw** data.
 * 1 standardized matlab structure containing the **log** data.
 
 ## Outputs
