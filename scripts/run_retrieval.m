@@ -1,20 +1,21 @@
-function run_retrieval(retrievalTool,date)
+function run_retrieval(retrievalTool,dateStr)
 % First example for a run function
-assert(ischar(date))
+assert(ischar(dateStr))
 
-file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09', date];
+% Check here that all required files are filled for retrievalTool !!
+% ...
+
+file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', dateStr];
+errorLevel0_1a=struct();
 
 try
-    [log,rawSpectra,readingLevel0Error]=retrievalTool.read_level0(file);
-catch
-    
+    [log,rawSpectra]=retrievalTool.read_level0(file);
+catch ME
+    errorLevel0_1a.readingRawData=ME.identifier;
 end
-% 
-% try
-%     [qualityLevel0]=retrievalTool.check_level0(log,rawSpectra);
-% catch
-%     
-% end
+
+errorLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,errorLevel0_1a);
+
 % 
 % switch retrievalTool.instrumentName
 %     case 'GROMOS'
