@@ -60,7 +60,7 @@ for n = 1:N
     name(name=='.')='_'; 
     name(name==' ')='_'; 
     if length(name)<2 continue; end; 
-    disp(name)
+    %disp(name)
     log = setfield(log, name, x(n,:));
 end
 
@@ -83,12 +83,15 @@ else
     channels=D.bytes/4 /M; % 4 bytes for each floating point value
 end
 
-% read complete binary data in one array (huge!)
+% read complete binary data in one vector
 if nargout>1
-    fid = fopen( [file '.bin'], 'r', 'b');
-    rawSpectra = fread(fid, [M,channels], 'float32');
+    fid = fopen( [file '.bin'], 'r', 'ieee-be');
+    rawSpectra = fread(fid, [1,M*channels], 'float32=>float32');
     fclose(fid);
 end
+
+% we want a line vector for the following
+%rawSpectraG=rawSpectraG';
 
 log.x = x; 
 log.header = header; 

@@ -16,37 +16,56 @@ function errorLevel0_1a = check_level0_generic(log,rawSpectra,retrievalTool,erro
 % Revisions
 
 % Compare size of the log and raw spectra for this day
-[m,n] = size(rawSpectra);
 mLog = size(log.x,2);
+
+% Check if the size of the binary is consistent with the log
+w=whos('rawSpectra');
 try
-    assert(mLog==m,'consistency:rawSpectraNotCorrespondingLog');
+    assert(w.bytes()==(mLog*retrievalTool.numberOfChannels*retrievalTool.bytesPerValue),'consistency:unconsistentBinarySize','Size of the binary unconsistent');
 catch ME
+    switch ME.identifier
+        case 'consistency:unconsistentBinarySize'
+            errorLevel0_1a.size=ME.identifier;
+        otherwise
+            rethrow(ME)
+    end
     errorLevel0_1a.size=ME.identifier;
 end
 
 % Check the number of channels
-try
-    assert(n==retrievalTool.numberOfChannels,'consistency:numberOfChannel');
-catch ME
-    errorLevel0_1a.nChannels=ME.identifier;
-end
+% n=
+% try
+%     assert(n==retrievalTool.numberOfChannels,'consistency:numberOfChannel');
+% catch ME
+%     errorLevel0_1a.nChannels=ME.identifier;
+% end
 
 % Number of tipping curve calibration for this day
 nTipping=sum(log.Tipping_Curve_active==1)/retrievalTool.tippingSize;
 
 try
-    assert(((nTipping<retrievalTool.numberOfTippingCurveExpected+retrievalTool.toleranceTippingCurves)&&(nTipping>retrievalTool.numberOfTippingCurveExpected-retrievalTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve');
+    assert(((nTipping<retrievalTool.numberOfTippingCurveExpected+retrievalTool.toleranceTippingCurves)&&(nTipping>retrievalTool.numberOfTippingCurveExpected-retrievalTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve','Number of Tipping unconsistent');
 catch ME
-    errorLevel0_1a.nTipping=ME.identifier;
+    switch ME.identifier
+        case 'consistency:numberTippingCurve'
+            errorLevel0_1a.nTipping=ME.identifier;
+        otherwise
+            rethrow(ME)
+    end
 end
 
 % Approximate number of cycles completed for this day
 nCycles=sum(log.Tipping_Curve_active==0)/6;
 
 try
-    assert((nCycles<retrievalTool.numberOfCyclesExpected+retrievalTool.toleranceNumberCycles)&&(nCycles>retrievalTool.numberOfCyclesExpected-retrievalTool.toleranceNumberCycles),'consistency:numberCycles');
+    assert(((nCycles<retrievalTool.numberOfCyclesExpected+retrievalTool.toleranceNumberCycles)&&(nCycles>retrievalTool.numberOfCyclesExpected-retrievalTool.toleranceNumberCycles)),'consistency:numberCycles','Number of cycles unconsistent');
 catch ME
-    errorLevel0_1a.nCycles=ME.identifier;
+    switch ME.identifier
+        case 'consistency:numberCycles'
+            errorLevel0_1a.nCycles=ME.identifier;
+        otherwise
+            rethrow(ME)
+    end
 end
 end
 
