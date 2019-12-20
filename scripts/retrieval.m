@@ -6,7 +6,7 @@ instrumentName='SOMORA';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
-dateStr='2019_10_01';
+dateStr='2019_10_02';
 
 % Import default tools for running a retrieval for a given instrument
 % retrievalTool=import_default_retrievalTool(instrumentName);         TODO
@@ -20,6 +20,7 @@ retrievalTool.instrumentName=instrumentName;
 
 % Valid properties for all instruments
 retrievalTool.bytesPerValue=4;
+retrievalTool.rawSpectraPlot=true;
 
 % Path definition (for local computer)
 if (instrumentName=='GROMOS')
@@ -50,7 +51,7 @@ elseif (instrumentName=='SOMORA')
 end
 
 % Reading routine to use for the raw data
-retrievalTool.read_level0=@(file) read_level0_generic(file);
+retrievalTool.read_level0=@(file,retrievalTool) read_level0_generic(file,retrievalTool);
 
 % Quality check for the raw data
 retrievalTool.check_level0= @(log,rawSpectra,retrievalTool,errorLevel0_1a) check_level0_generic(log,rawSpectra,retrievalTool,errorLevel0_1a);
@@ -58,6 +59,9 @@ retrievalTool.check_level0= @(log,rawSpectra,retrievalTool,errorLevel0_1a) check
 % Reformatting the raw spectra into a matrix (numberOfSpectra x
 % numberOfChannels)
 retrievalTool.reformat_spectra=@(rawSpectra,log,retrievalTool) reformat_spectra_generic(rawSpectra,log,retrievalTool);
+
+retrievalTool.plot_raw_spectra=@(rawSpectra) plot_raw_spectra_generic(rawSpectra,2e4,20);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain
 run_retrieval(retrievalTool,dateStr)

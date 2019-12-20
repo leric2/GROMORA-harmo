@@ -1,4 +1,4 @@
-function errorLevel0_1a = check_level0_generic(log,rawSpectra,retrievalTool,errorLevel0_1a)
+function warningLevel0_1a = check_level0_generic(log,rawSpectra,retrievalTool,warningLevel0_1a)
 % 
 % Quality check for the raw spectra (level0 data)
 % 
@@ -25,11 +25,11 @@ try
 catch ME
     switch ME.identifier
         case 'consistency:unconsistentBinarySize'
-            errorLevel0_1a.size=ME.identifier;
+            warningLevel0_1a.size=ME.identifier;
         otherwise
             rethrow(ME)
     end
-    errorLevel0_1a.size=ME.identifier;
+    warningLevel0_1a.size=ME.identifier;
 end
 
 % Check the number of channels
@@ -48,7 +48,8 @@ try
 catch ME
     switch ME.identifier
         case 'consistency:numberTippingCurve'
-            errorLevel0_1a.nTipping=ME.identifier;
+            warningLevel0_1a.nTipping=ME.identifier;
+            warning(ME.identifier)
         otherwise
             rethrow(ME)
     end
@@ -62,7 +63,8 @@ try
 catch ME
     switch ME.identifier
         case 'consistency:numberCycles'
-            errorLevel0_1a.nCycles=ME.identifier;
+            warningLevel0_1a.nCycles=ME.identifier;
+            warning(ME.identifier,'consistency:numberCycles')
         otherwise
             rethrow(ME)
     end

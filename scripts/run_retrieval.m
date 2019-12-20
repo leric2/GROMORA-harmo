@@ -10,22 +10,23 @@ assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not fou
 
 % Initialize structure containing the error that are non fatal for the
 % retrieval
-errorLevel0_1a=struct();
+warningLevel0_1a=struct();
 
 % SHOULD WE PUT THE TRY/CATCH INSIDE THE FUNCTIONS ?
 try
-    [log,rawSpectra]=retrievalTool.read_level0(file);
+    [log,rawSpectra]=retrievalTool.read_level0(file,retrievalTool);
 catch ME
-    errorLevel0_1a.readingRawData=ME.identifier;
+    warningLevel0_1a.readingRawData=ME.identifier;
+    error(ME.identifier,'Problem while reading the file')
 end
 
 if ~strcmp(retrievalTool.instrumentName,'GROMOS') 
     log=retrievalTool.harmonize_log(log);
 end
 
-errorLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,errorLevel0_1a);
+warningLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,warningLevel0_1a);
 
-if not(numel(fieldnames(errorLevel0_1a))==0)
+if not(numel(fieldnames(warningLevel0_1a))==0)
     disp('Houston, we have a problem already!')
 end
 
@@ -33,7 +34,8 @@ end
 try
     rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
 catch ME
-    errorLevel0_1a.reformattingSpectra=ME.identifier;
+    warningLevel0_1a.reformattingSpectra=ME.identifier;
+    error(ME.identifier,'Problem reformatting the spectra')
 end
 
 % when needed, flip it !
@@ -41,10 +43,22 @@ if retrievalTool.flipped_spectra
     try
         rawSpectra=retrievalTool.flip_spectra(rawSpectra);
     catch ME
-        errorLevel0_1a.flippingSpectra=ME.identifier;
+        warningLevel0_1a.flippingSpectra=ME.identifier;
+        warning(ME.identifier)
     end
 end
 
+% Option for plotting the raw spectra (to be improved...)
+if retrievalTool.rawSpectraPlot
+    try
+        retrievalTool.plot_raw_spectra(rawSpectra);
+    catch ME
+        warningLevel0_1a.plottingRawSpectra=ME.identifier;
+        warning(ME.identifier)
+    end
+end
+
+disp(warningLevel0_1a)
 
 % 
 % 

@@ -1,4 +1,4 @@
-function [log,rawSpectra] = read_level0_generic(file)
+function [log,rawSpectra] = read_level0_generic(file,retrievalTool)
 % [log,rawSpectra,readingLevel0Error] = read_level0_generic(file)
 %
 % Reads houskeeping and binary data of the universal IAP data format
@@ -80,18 +80,18 @@ D = dir([file '.bin']);
 if isempty(D)
     rawSpectra=NaN;
 else
-    channels=D.bytes/4 /M; % 4 bytes for each floating point value
+    theoreticalNumberDataEntries=D.bytes/retrievalTool.numberOfChannels/4;    % 4 bytes for each floating point value
 end
 
 % read complete binary data in one vector
 if nargout>1
     fid = fopen( [file '.bin'], 'r', 'ieee-be');
-    rawSpectra = fread(fid, [1,M*channels], 'float32=>float32');
+    rawSpectra = fread(fid ,retrievalTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
 
 % we want a line vector for the following
-%rawSpectraG=rawSpectraG';
+rawSpectra=rawSpectra';
 
 log.x = x; 
 log.header = header; 
