@@ -64,7 +64,7 @@ for n = 1:N
     log = setfield(log, name, x(n,:));
 end
 
-% calculate time in [s]
+% calculate time in [h]
 if isfield(log, {'Hour' 'Minute' 'Second'})
     log.t = log.Hour + log.Minute/60 + log.Second/3600;
 end

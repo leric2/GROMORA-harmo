@@ -21,6 +21,9 @@ retrievalTool.instrumentName=instrumentName;
 % Valid properties for all instruments
 retrievalTool.bytesPerValue=4;
 retrievalTool.rawSpectraPlot=true;
+retrievalTool.indiceCold=0;
+retrievalTool.indiceAntenna=1;
+retrievalTool.indiceHot=2;
 
 % Path definition (for local computer)
 if (instrumentName=='GROMOS')
