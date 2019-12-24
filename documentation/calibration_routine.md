@@ -22,28 +22,33 @@ Quality control for the calibrated spectra ?
 * Instruments name ?
 
 ## Outputs
-* Calibrated spectra
+* Calibrated spectra in a structure
 * Error code for the calibration
 
 ## Structure
-Here, two main approaches can be taken:
-1. An object-oriented approach:
+For the calibration, I have started simple and decided to go with a step-by-step method similar to what was done in the past. For now, I implemented it sothat we can use two different methods:
+* calibrate all individual cycles (2-1-0-0-1-2) of a given day
+* regroup invidual cycle into "calibration cycle" every x minutes (for instance 10)
 
-Defining a set of tools that can are useful for calibrating a radiometer. For instance, we can think of defining different calibration method for the various instruments.
+Both are running for both instruments but the following points will have to be checked/discussed:
 
-2. A more classical, step-by-step approach as was done previously
+### To check:
+* Are the calibrated spectra alright ? --> think about how to check thah now
 
-....
+### To discuss:
+* For now, I have decided to use only **complete individual cycle** as valid cycle, is it sufficient ?
+* Angles are checked to include only spectra that have right pointing angle for hot/antenna/cold.
+* Implementation of a quality check based on Tsys/std(Tsyss)/THot/std(THot)/numberOfAvgSpectra/... ?
+* What do we need as outputs from the calibration ?
+    * Tb
+    * Time of the calibration
+    * Number of individual (and valid) cycles considered in the calibration
+    * Tsys and std(Tsys)
+    * THot and std(THot)
+    * Antenna pointing angle for every calibration/individual cycles ?
+    * ...
 
-We should include the possibility to use the tipping curve calibrations done by the instruments approx. every 30 min (not exactly the same for GROMOS and SOMORA).
-
-
-## How it was done in the past
-### GROMOS
-
-
-### SOMORA
-
+We should also include the possibility to use the tipping curve calibrations done by the instruments approx. every 30 min (not exactly the same for GROMOS and SOMORA).
 
 ## Questions remaining
 ### Temperature
