@@ -9,21 +9,14 @@ dateEnd='2019_10_02';
 dateStr='2019_10_02';
 
 % Import default tools for running a retrieval for a given instrument
-% retrievalTool=import_default_retrievalTool(instrumentName);         TODO
+retrievalTool=import_default_retrievalTool(instrumentName);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Editing the retrievalTool
+% Editing the retrievalTool for this particular retrieval:
 retrievalTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
 
-% Name of the instrument
-retrievalTool.instrumentName=instrumentName;
-
 % Valid properties for all instruments
-retrievalTool.bytesPerValue=4;
 retrievalTool.rawSpectraPlot=true;
-retrievalTool.indiceCold=0;
-retrievalTool.indiceAntenna=1;
-retrievalTool.indiceHot=2;
 retrievalTool.calibrationTime=10;
 retrievalTool.calibratedSpectraPlot=true;
 
@@ -31,36 +24,10 @@ retrievalTool.calibratedSpectraPlot=true;
 if (instrumentName=='GROMOS')
     retrievalTool.rawFileFolder='/scratch/GROMOS_rawData/2019/';
     retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
-    retrievalTool.numberOfChannels=32768;
-    retrievalTool.numberOfTippingCurveExpected=48;
-    retrievalTool.toleranceTippingCurves=2;
-    retrievalTool.elevationAngleAntenna=40;
-    retrievalTool.elevationAngleCold=-84;
-    retrievalTool.elevationAngleHot=160;
-    retrievalTool.elevationAngleTolerance=5;
-    % Considering the expected number of tipping curve:
-    retrievalTool.numberOfCyclesExpected=1500;
-    retrievalTool.toleranceNumberCycles=15;
-    retrievalTool.tippingSize=27;
-    retrievalTool.flipped_spectra=true;
-    retrievalTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
     
 elseif (instrumentName=='SOMORA')
     retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
     retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA';
-    retrievalTool.numberOfChannels=16384;
-    retrievalTool.numberOfTippingCurveExpected=48;
-    retrievalTool.toleranceTippingCurves=2;
-    retrievalTool.tippingSize=5;
-    retrievalTool.elevationAngleAntenna=38;
-    retrievalTool.elevationAngleCold=90;
-    retrievalTool.elevationAngleHot=-180;
-    retrievalTool.elevationAngleTolerance=5;
-    retrievalTool.numberOfCyclesExpected=NaN;
-    retrievalTool.toleranceNumberCycles=NaN;
-    retrievalTool.flipped_spectra=false;
-    % The log needs to be harmonized, for now taking gromos as basis
-    retrievalTool.harmonize_log=@(log) harmonize_log_somora(log);
 end
 
 % Reading routine to use for the raw data

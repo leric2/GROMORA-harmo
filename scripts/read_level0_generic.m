@@ -85,7 +85,7 @@ end
 
 % read complete binary data in one vector
 if nargout>1
-    fid = fopen( [file '.bin'], 'r', 'ieee-be');
+    fid = fopen( [file '.bin'], 'r', retrievalTool.binaryType);
     rawSpectra = fread(fid ,retrievalTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
