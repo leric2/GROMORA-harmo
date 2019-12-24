@@ -24,6 +24,8 @@ retrievalTool.rawSpectraPlot=true;
 retrievalTool.indiceCold=0;
 retrievalTool.indiceAntenna=1;
 retrievalTool.indiceHot=2;
+retrievalTool.calibrationTime=10;
+retrievalTool.calibratedSpectraPlot=true;
 
 % Path definition (for local computer)
 if (instrumentName=='GROMOS')
@@ -32,6 +34,10 @@ if (instrumentName=='GROMOS')
     retrievalTool.numberOfChannels=32768;
     retrievalTool.numberOfTippingCurveExpected=48;
     retrievalTool.toleranceTippingCurves=2;
+    retrievalTool.elevationAngleAntenna=40;
+    retrievalTool.elevationAngleCold=-84;
+    retrievalTool.elevationAngleHot=160;
+    retrievalTool.elevationAngleTolerance=5;
     % Considering the expected number of tipping curve:
     retrievalTool.numberOfCyclesExpected=1500;
     retrievalTool.toleranceNumberCycles=15;
@@ -46,6 +52,10 @@ elseif (instrumentName=='SOMORA')
     retrievalTool.numberOfTippingCurveExpected=48;
     retrievalTool.toleranceTippingCurves=2;
     retrievalTool.tippingSize=5;
+    retrievalTool.elevationAngleAntenna=38;
+    retrievalTool.elevationAngleCold=90;
+    retrievalTool.elevationAngleHot=-180;
+    retrievalTool.elevationAngleTolerance=5;
     retrievalTool.numberOfCyclesExpected=NaN;
     retrievalTool.toleranceNumberCycles=NaN;
     retrievalTool.flipped_spectra=false;
@@ -63,7 +73,9 @@ retrievalTool.check_level0= @(log,rawSpectra,retrievalTool,errorLevel0_1a) check
 % numberOfChannels)
 retrievalTool.reformat_spectra=@(rawSpectra,log,retrievalTool) reformat_spectra_generic(rawSpectra,log,retrievalTool);
 
-retrievalTool.plot_raw_spectra=@(rawSpectra) plot_raw_spectra_generic(rawSpectra,2e4,20);
+retrievalTool.plot_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(rawSpectra,lowerLim,upperLim,N);
+
+retrievalTool.calibrate =@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain

@@ -48,25 +48,35 @@ if retrievalTool.flipped_spectra
     end
 end
 
-% Option for plotting the raw spectra (to be improved...)
+% Option for plotting spectra (to be improved...)
 if retrievalTool.rawSpectraPlot
     try
-        retrievalTool.plot_raw_spectra(rawSpectra);
+        retrievalTool.plot_spectra(rawSpectra,0,2e4,20);
     catch ME
-        warningLevel0_1a.plottingRawSpectra=ME.identifier;
-        warning(ME.identifier)
+        warningLevel0_1a.plottingSpectra=ME.identifier;
+        warning(ME.identifier,'s')
     end
 end
 
 disp(warningLevel0_1a)
 
-% 
-% 
-% try
-%     []=retrievalTool.calibrate_data(rawSpectra);
-% catch
-%     
-% end
+try
+    calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'time');
+catch
+    warningLevel0_1a.calibrate=ME.identifier;
+    warning(ME.identifier)
+end
+
+% Option for plotting spectra (to be improved...)
+if retrievalTool.calibratedSpectraPlot
+    try
+        retrievalTool.plot_spectra(calibratedSpectra.Tb,100,350,25);
+    catch ME
+        warningLevel0_1a.plottingSpectra=ME.identifier;
+        warning(ME.identifier,'Problem Plotting')
+    end
+end
+
 % 
 % try
 %     [savingLevel0Error]=retrievalTool.save_calibrated_data(retrievalTool.level1Folder);
