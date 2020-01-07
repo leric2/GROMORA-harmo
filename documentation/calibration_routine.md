@@ -37,7 +37,7 @@ Both are running for both instruments but the following points will have to be c
 
 ### To discuss:
 * For now, I have decided to use only **complete individual cycle** as valid cycle, is it sufficient ?
-* Angles are checked to include only spectra that have right pointing angle for hot/antenna/cold.
+* Angles are checked to include **only** spectra that have right pointing angle for hot/antenna/cold. Should we keep it like that or should we keep all spectra and flag the calibration when some angle are wrong ?
 * Implementation of a quality check based on Tsys/std(Tsyss)/THot/std(THot)/numberOfAvgSpectra/... ?
 * What do we need as outputs from the calibration ?
     * Tb
