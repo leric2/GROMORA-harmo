@@ -6,7 +6,7 @@ function calibratedSpectra = calibrate_generic(rawSpectra,log,retrievalTool,TCol
 %calType='time';
 
 % CalibrationTime in Minute
-calibrationTime=retrievalTool.calibrationTime;
+calibTime=retrievalTool.calibrationTime;
 
 % We define a complete cycle as 2-1-0-0-1-2:
 hotIndCompleteCycle=find_completed_cycle(log,retrievalTool);
@@ -53,7 +53,7 @@ calibratedSpectra=struct();
 
 switch calType
     case 'time'
-        timeThresh=0:calibrationTime/60:24;
+        timeThresh=0:calibTime/60:24;
         
         % Storing the indices specific to each calibration cycle in a new
         % structure because by separating by time, we do not have the same
@@ -81,7 +81,8 @@ switch calType
         % We need to loop through the calibration cycles because the number of averaged
         % spectra might be different between each calibration cycle.
         for i=1:nCalibrationCycles
-            calibratedSpectra(i).startTime=log.t(indices(i).ind(1,1));
+            calibratedSpectra(i).startInd=indices(i).ind(1,1);
+            calibratedSpectra(i).calibrationTime=calibTime;
             
             ih=reshape(indices(i).ind([1,6],:),[],1);
             ia=reshape(indices(i).ind([2,5],:),[],1);
@@ -99,9 +100,31 @@ switch calType
             calibratedSpectra(i).nAvgSpectraAntenna=length(ia)-sum(all(isnan(rawSpectra(ia,:)),1));
             calibratedSpectra(i).nAvgSpectraCold=length(ic)-sum(all(isnan(rawSpectra(ic,:)),1));
             
+            % Here we store the complete list of indices that were
+            % considered in this calibration cycle. It enables us to
+            % retrieve all log data later and make the quality checks in a
+            % dedicated functions.
+            
+            % We take only the spectra that are not 100% NaN...
+            if sum(all(isnan(rawSpectra(ih,:)),1))==0
+                calibratedSpectra(i).hotInd=ih;
+            else
+                % TODO
+            end
+            if sum(all(isnan(rawSpectra(ia,:)),1))==0
+                calibratedSpectra(i).antennaInd=ia;
+            else
+                % TODO
+            end
+            if sum(all(isnan(rawSpectra(ic,:)),1))==0
+                calibratedSpectra(i).coldInd=ic;
+            else
+                % TODO
+            end
+            
             % Mean and stdDev Temperature of the system for this cycle
-            calibratedSpectra(i).Tsys=nanmean(log.FE_T_Sys(reshape(indices(i).ind,[],1)));
-            calibratedSpectra(i).stdTSys=nanstd(log.FE_T_Sys(reshape(indices(i).ind,[],1)));
+            %calibratedSpectra(i).Tsys=nanmean(log.FE_T_Sys(reshape(indices(i).ind,[],1)));
+            %calibratedSpectra(i).stdTSys=nanstd(log.FE_T_Sys(reshape(indices(i).ind,[],1)));
             
             % Mean Antenna counts for each cycle (nCalibrationCycles x #channels)
             rsHot=nanmean(rawSpectra(ih,:),1);
