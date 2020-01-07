@@ -3,12 +3,7 @@ For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/
 ## Format
 It was agreed to use the netCDF format for storing all levels of our data. There are 4 different types of base format for netCDF which can be divided between the ***netCDF classic base format*** and the enhanced ***netCDF-4/HDF5***.
 
-The ***netCDF classic data format*** include:
-* CDF-1
-* CDF-2
-* CDF-5
-
-From version 4.0, the ***netCDF-4/HDF5*** is using HDF5 as a storage layer (which make it readable by HDF5) and offers different advantages compared to the older classical format in terms of dimensions, group definitions, etc... This is the base format that we will use for storing the level1a and the rest of the relevant data. 
+The ***netCDF classic base format*** include CDF-1, CDF-2 and CDF-5. From version 4.0, the ***netCDF-4/HDF5*** is using HDF5 format as a storage layer (which make it readable by HDF5) and offers different advantages compared to the older classical format in terms of dimensions, group definitions, etc... This is the base format that we will use for storing the level1a and the rest of the relevant data. 
 
 ## Data Model
 netCDF classic dataset is stored as a single file containing 2 parts:
