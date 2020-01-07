@@ -20,6 +20,8 @@ catch ME
     error(ME.identifier,'Problem while reading the file')
 end
 
+% The raw log file from each instrument is different and we should try to
+% harmonize it as much as possible.
 if ~strcmp(retrievalTool.instrumentName,'GROMOS') 
     log=retrievalTool.harmonize_log(log);
 end
