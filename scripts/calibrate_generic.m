@@ -91,8 +91,8 @@ switch calType
             % Computing some useful quantities for this cycles:
             % Mean hot temperature for this cycle as well as its standard
             % deviation:
-            calibratedSpectra(i).THot=nanmean(100*log.AI_0(reshape(indices(i).ind,[],1))); 
-            calibratedSpectra(i).stdTHot=nanstd(100*log.AI_0(reshape(indices(i).ind,[],1)));
+            calibratedSpectra(i).THot=nanmean(log.T_Hot(reshape(indices(i).ind,[],1))); 
+            calibratedSpectra(i).stdTHot=nanstd(log.T_Hot(reshape(indices(i).ind,[],1)));
             
             % Number of hot/cold/antenna averaged spectra for this cycle
             % Considering all spectra that are not 100% NaN ... 
@@ -135,6 +135,7 @@ switch calType
             calibratedSpectra(i).Tb = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntenna-rsCold)./(rsHot-rsCold);
         end
     case 'all'
+        % TODO
         % If no calibration time is provided, we calibrate every cycle
         % (2-1-0-0-1-2) and we don't need to loop
         indices=[validStartIndices; validStartIndices+1; validStartIndices+2; validStartIndices+3; validStartIndices+4; validStartIndices+5];
@@ -153,7 +154,7 @@ switch calType
         
         % Mean hot counts for each cycle (nCalibrationCycles x #channels)
         rsHot=nanmean(cat(3,rawSpectra(ih(1,:),:),rawSpectra(ih(2,:),:)),3);
-        THot=nanmean(100*log.AI_0(indices),1);
+        THot=nanmean(100*log.T_Hot(indices),1);
         
         % Mean cold counts for each cycle (nCalibrationCycles x #channels)
         rsCold=nanmean(cat(3,rawSpectra(ic(1,:),:),rawSpectra(ic(2,:),:)),3);
@@ -185,19 +186,21 @@ end
         extendedPos=[log.Position -9999 -9999 -9999 -9999 -9999];
         firstIndCompleteCycle=hotInd((extendedPos(hotInd+1)==indAntenna & extendedPos(hotInd+2)==indCold & extendedPos(hotInd+3)==indCold & extendedPos(hotInd+4)==indAntenna & extendedPos(hotInd+5)==indHot));
     end
-%     function indices = find_indice(log,type,retrievalTool)
-%         switch type
-%             case 'cold'
-%                 ind=retrievalTool.indiceCold;
-%             case 'hot'
-%                 ind=retrievalTool.indiceHot;
-%             case 'antenna' 
-%                 ind=retrievalTool.indiceAntenna;
-%             otherwise
-%             error('No valid type of indices provided')
-%         end
-%         indices=find(log.Position==ind & log.Tipping_Curve_active==0);
-%     end   
+
+    % UNUSED
+    function indices = find_indice(log,type,retrievalTool)
+        switch type
+            case 'cold'
+                ind=retrievalTool.indiceCold;
+            case 'hot'
+                ind=retrievalTool.indiceHot;
+            case 'antenna' 
+                ind=retrievalTool.indiceAntenna;
+            otherwise
+            error('No valid type of indices provided')
+        end
+        indices=find(log.Position==ind & log.Tipping_Curve_active==0);
+    end   
 
 end
 
