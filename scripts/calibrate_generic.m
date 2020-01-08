@@ -90,7 +90,8 @@ switch calType
             
             % Computing some useful quantities for this cycles:
             % Mean hot temperature for this cycle as well as its standard
-            % deviation:
+            % deviation:          
+            
             calibratedSpectra(i).THot=nanmean(log.T_Hot(reshape(indices(i).ind,[],1))); 
             calibratedSpectra(i).stdTHot=nanstd(log.T_Hot(reshape(indices(i).ind,[],1)));
             
@@ -154,7 +155,8 @@ switch calType
         
         % Mean hot counts for each cycle (nCalibrationCycles x #channels)
         rsHot=nanmean(cat(3,rawSpectra(ih(1,:),:),rawSpectra(ih(2,:),:)),3);
-        THot=nanmean(100*log.T_Hot(indices),1);
+        THot=nanmean(log.T_Hot(indices),1);
+        stdTHot=nanstd(log.T_Hot(indices),1);
         
         % Mean cold counts for each cycle (nCalibrationCycles x #channels)
         rsCold=nanmean(cat(3,rawSpectra(ic(1,:),:),rawSpectra(ic(2,:),:)),3);
@@ -163,16 +165,19 @@ switch calType
         Tb = TCold + (THot-TCold)'.*(rsAntenna-rsCold)./(rsHot-rsCold);
         
         % Mean System Temperature for each cycle
-        Tsys=nanmean(log.FE_T_Sys(indices),1);
+        %Tsys=nanmean(log.FE_T_Sys(indices),1);
         % Std deviation of System Temperature for each cycle
-        stdTSys=nanstd(log.FE_T_Sys(indices),1);
+        %stdTSys=nanstd(log.FE_T_Sys(indices),1);
         
         calibratedSpectra=struct();
         % And we fill the final structure for the calibrated spectra
         for i=1:nCalibrationCycles
+            calibratedSpectra(i).hotInd=ih(:,i);
+            calibratedSpectra(i).antennaInd=ia(:,i);
+            calibratedSpectra(i).coldInd=ic(:,i);
             calibratedSpectra(i).Tb=Tb(i,:);
-            calibratedSpectra(i).Tsys=Tsys(i,:);
-            calibratedSpectra(i).stdTSys=stdTSys(i,:);
+            calibratedSpectra(i).THot=THot(i);
+            calibratedSpectra(i).stdTHot=stdTHot(i);
         end
 end
 

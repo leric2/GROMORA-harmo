@@ -2,7 +2,7 @@
 clear; close all; clc;
 
 
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
@@ -16,8 +16,8 @@ retrievalTool=import_default_retrievalTool(instrumentName);
 retrievalTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
 
 % Valid properties for all instruments
-retrievalTool.rawSpectraPlot=true;
-retrievalTool.calibrationTime=10;
+retrievalTool.rawSpectraPlot=false;
+retrievalTool.calibrationTime=30;
 retrievalTool.calibratedSpectraPlot=true;
 
 % Path definition (for local computer)
@@ -27,7 +27,7 @@ if (instrumentName=='GROMOS')
     
 elseif (instrumentName=='SOMORA')
     retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
-    retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA';
+    retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
 end
 
 % Reading routine to use for the raw data
@@ -47,6 +47,8 @@ retrievalTool.plot_calibrated_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_spe
 retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType);
 
 retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
+
+retrievalTool.save_level1a=@(retrievalTool,calibratedSpectra,dateStr) save_level1a_generic(retrievalTool,calibratedSpectra,dateStr);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain

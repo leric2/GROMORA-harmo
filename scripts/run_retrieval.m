@@ -28,9 +28,8 @@ end
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible.
-if ~strcmp(retrievalTool.instrumentName,'GROMOS') 
-    log=retrievalTool.harmonize_log(log);
-end
+log=retrievalTool.harmonize_log(log);
+
 
 % Quality check of the raw data:
 warningLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,warningLevel0_1a);
@@ -81,7 +80,7 @@ end
 % Option for plotting spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
     try
-        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,25);
+        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,10);
     catch ME
         warningLevel0_1a.plottingSpectra=ME.identifier;
         warning(ME.identifier,'Problem Plotting')
@@ -100,7 +99,7 @@ end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 try
-    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,calibratedSpectra);
+    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,calibratedSpectra,dateStr);
 catch ME
     warningLevel0_1a.savingSpectra=ME.identifier;
     warning(ME.identifier,'Problem when saving the calibrated spectra')
