@@ -44,6 +44,10 @@ for i = 1:size(calibratedSpectra,2)
         calibratedSpectra(i).systemTemperatureFlag=0;
     end
     
+    % Liquid Nitrogen
+    
+    
+    
     % Other variables ????
     calibratedSpectra(i).TempRoom=nanmean(log.AI_1(ind))*100;
     calibratedSpectra(i).TempOut=nanmean(log.AI_7(ind))*100;

@@ -20,6 +20,7 @@ switch instrumentName
         retrievalTool.siteName='Bern';
         retrievalTool.lon=7.44;
         retrievalTool.lat=46.95;
+        retrievalTool.altitude=560;
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.elevationAngleAntenna=40;

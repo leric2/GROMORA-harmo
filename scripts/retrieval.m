@@ -48,7 +48,7 @@ retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_
 
 retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
 
-retrievalTool.save_level1a=@(retrievalTool,calibratedSpectra,dateStr) save_level1a_generic(retrievalTool,calibratedSpectra,dateStr);
+retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,dateStr) save_level1a_generic(retrievalTool,log,calibratedSpectra,dateStr);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain

@@ -99,7 +99,7 @@ end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 try
-    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,calibratedSpectra,dateStr);
+    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,dateStr);
 catch ME
     warningLevel0_1a.savingSpectra=ME.identifier;
     warning(ME.identifier,'Problem when saving the calibrated spectra')
