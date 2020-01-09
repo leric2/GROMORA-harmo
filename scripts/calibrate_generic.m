@@ -2,8 +2,8 @@ function calibratedSpectra = calibrate_generic(rawSpectra,log,retrievalTool,TCol
 %CALIBRATE_GENERIC Summary of this function goes here
 %   Detailed explanation goes here
 
-% Calibration type
-%calType='time';
+% Calibration version
+calibVersion='1.0.0';
 
 % CalibrationTime in Minute
 calibTime=retrievalTool.calibrationTime;
@@ -59,14 +59,14 @@ switch calType
         % structure because by separating by time, we do not have the same
         % number of individual cycle per calibration cycle
         indices=struct();
-        for i = 1:length(timeThresh)-1
+        for i = 1:length(timeThresh)-2
             cond=startingTimes>timeThresh(i) & startingTimes<timeThresh(i+1);
             indice=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
             indices(i).ind=indice;
         end
         cond=startingTimes>timeThresh(length(timeThresh)-1);
         lastIndices=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
-        indices(length(timeThresh)).ind=lastIndices;
+        indices(length(timeThresh)-1).ind=lastIndices;
         
         nCalibrationCycles=length(indices);
         % Based on the starting times, we will then group the cycles together to
@@ -81,6 +81,7 @@ switch calType
         % We need to loop through the calibration cycles because the number of averaged
         % spectra might be different between each calibration cycle.
         for i=1:nCalibrationCycles
+            calibratedSpectra(i).calibrationVersion=calibVersion;
             calibratedSpectra(i).startInd=indices(i).ind(1,1);
             calibratedSpectra(i).calibrationTime=calibTime;
             
@@ -172,6 +173,7 @@ switch calType
         calibratedSpectra=struct();
         % And we fill the final structure for the calibrated spectra
         for i=1:nCalibrationCycles
+            calibratedSpectra(i).calibrationVersion=calibVersion;
             calibratedSpectra(i).hotInd=ih(:,i);
             calibratedSpectra(i).antennaInd=ia(:,i);
             calibratedSpectra(i).coldInd=ic(:,i);
