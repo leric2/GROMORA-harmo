@@ -15,9 +15,15 @@ retrievalTool.indiceHot=2;
 
 switch instrumentName
     case 'GROMOS'
+        retrievalTool.dataLocation='BERN';
+        retrievalTool.PI_NAME='Murk;Axel';
+        retrievalTool.PI_AFFILIATION='Universtiy of Bern;UBERN';
+        retrievalTool.PI_ADDRESS='Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland';
+        retrievalTool.PI_EMAIL='axel.murk@iap.unibe.ch'; 
+        retrievalTool.dataSource='MWR.O3_UBERN';
         
         retrievalTool.numberOfChannels=32768;
-        retrievalTool.siteName='Bern';
+        
         retrievalTool.lon=7.44;
         retrievalTool.lat=46.95;
         retrievalTool.altitude=560;
@@ -38,7 +44,13 @@ switch instrumentName
         retrievalTool.harmonize_log=@(log) harmonize_log_gromos(log);
         
     case 'SOMORA'
-        retrievalTool.siteName='Payerne';
+        retrievalTool.dataLocation='PAYERNE';
+        retrievalTool.PI_NAME='';
+        retrievalTool.PI_AFFILIATION='Swiss Meteorological Institute;MCH';
+        retrievalTool.PI_ADDRESS='';
+        retrievalTool.PI_EMAIL=''; 
+        retrievalTool.dataSource='MWR.O3_MCH';
+        
         retrievalTool.lon=6.95;
         retrievalTool.lat=46.82;
         retrievalTool.altitude=491;

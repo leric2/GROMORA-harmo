@@ -2,7 +2,7 @@
 clear; close all; clc;
 
 
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
@@ -17,7 +17,7 @@ retrievalTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
 
 % Valid properties for all instruments
 retrievalTool.rawSpectraPlot=false;
-retrievalTool.calibrationTime=30;
+retrievalTool.calibrationTime=60;
 retrievalTool.calibratedSpectraPlot=true;
 
 % Path definition (for local computer)

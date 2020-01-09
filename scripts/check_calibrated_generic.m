@@ -45,9 +45,7 @@ for i = 1:size(calibratedSpectra,2)
     end
     
     % Liquid Nitrogen
-    
-    
-    
+
     % Other variables ????
     calibratedSpectra(i).TempRoom=nanmean(log.AI_1(ind))*100;
     calibratedSpectra(i).TempOut=nanmean(log.AI_7(ind))*100;
@@ -58,8 +56,33 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).stdTempWindow=std(log.AI_3(ind)*100);
     
     % saved the start and stop time for this calibration cycle
-    calibratedSpectra(i).dateStart=log.x(1:6,ih(1));
-    calibratedSpectra(i).dateStop=log.x(1:6,ih(end));
+    calibratedSpectra(i).dateStart=log.x(1:6,ih(1))';
+    calibratedSpectra(i).dateStop=log.x(1:6,ih(end))';
+    
+    % As we are always using daily raw files:
+    calibratedSpectra(i).year=log.Year(1);
+    calibratedSpectra(i).month=log.Month(1);
+    calibratedSpectra(i).day=log.Day(1);
+    
+    if log.Month(1) < 10
+        m = ['0' num2str(log.Month(1))];
+    else
+        m = num2str(log.Month(1));
+    end
+    
+    if log.Day(1) < 10
+        d = ['0' num2str(log.Day(1))];
+    else
+        d = num2str(log.Day(1));
+    end
+    
+    calibratedSpectra(i).date=[num2str(log.Year(1)) '_' m '_' d];
+    
+    % as well as the "mean time" of the day  /OR USE MEDIAN ?
+    meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
+    calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(2000,1,1);
+
+    calibratedSpectra(i).timeOfDay=mean(log.t(ih(1):ih(end)));
 end
 
 end
