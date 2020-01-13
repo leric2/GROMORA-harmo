@@ -5,11 +5,7 @@ function feedback = save_level1a_generic(retrievalTool,log,calibratedSpectra,dat
 % Saving level1a into netCDF file
 % We are using the netcdf package because it offers far more flexibility
 % for the writing.
-
-calibrationVersion=0; % TODO as input of this function
-
 locationLevel1a=retrievalTool.level1Folder;
-
 
 % Some additional variables to save in every netCDF files:
 softwareVersion=log.SW_version(1);
@@ -93,6 +89,7 @@ for t = 1:length(calibratedSpectra)
     h5writeatt(filename,'/','RAW_DATA',log.file);
     h5writeatt(filename,'/','RAW_DATA_SOFTWARE_VERSION',num2str(log.SW_version(1)));
     h5writeatt(filename,'/','CALIBRATION_VERSION',calibratedSpectra(1).calibrationVersion);
+    h5writeatt(filename,'/','RAW_FILE_COMMENT',log.comment);
     
     % Geolocation attributes
     h5writeatt(filename,'/','DATA_START_DATE',datestr(calibratedSpectra(t).dateStart,'yyyymmddTHHMMSSZ'));
@@ -105,6 +102,7 @@ for t = 1:length(calibratedSpectra)
     h5writeatt(filename,'/','FILE_GENERATION_DATE',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
     
     h5writeatt(filename,'/','RAW_FILENAME','');
+    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Writing hdf5 variables

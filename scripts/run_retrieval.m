@@ -77,16 +77,6 @@ catch ME
     warning(ME.identifier,'Problem when doing the calibration')
 end
 
-% Option for plotting spectra (to be improved...)
-if retrievalTool.calibratedSpectraPlot
-    try
-        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,10);
-    catch ME
-        warningLevel0_1a.plottingSpectra=ME.identifier;
-        warning(ME.identifier,'Problem Plotting')
-    end
-end
-
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file
 try
@@ -94,6 +84,16 @@ try
 catch ME
     warningLevel0_1a.check_calibrated=ME.identifier;
     warning(ME.identifier,'Problem when checking the calibrated spectra')
+end
+
+% Option for plotting spectra (to be improved...)
+if retrievalTool.calibratedSpectraPlot
+    try
+        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,50);
+    catch ME
+        warningLevel0_1a.plottingSpectra=ME.identifier;
+        warning(ME.identifier,'Problem Plotting')
+    end
 end
 
 %%
