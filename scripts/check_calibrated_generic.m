@@ -17,23 +17,17 @@ for i = 1:size(calibratedSpectra,2)
         calibratedSpectra(i).NumberOfIndicesForEachCaseFlag=0;
     end
     
-    % Antenna angle check
-    calibratedSpectra(i).meanAngleAntenna=mean(log.Elevation_Angle(ia));
-    calibratedSpectra(i).stdAngleAntenna=std(log.Elevation_Angle(ia));
-    
-    if ((calibratedSpectra(i).meanAngleAntenna>retrievalTool.elevationAngleAntenna-retrievalTool.elevationAngleTolerance) || (calibratedSpectra(i).meanAngleAntenna<retrievalTool.elevationAngleAntenna+retrievalTool.elevationAngleTolerance))
-        calibratedSpectra(i).angleFlag=1;
-    else
-        calibratedSpectra(i).angleFlag=0;
-    end
-    
-    % Hot load check (already computed during calibration)
-    if (calibratedSpectra(i).stdTHot>10)
-        calibratedSpectra(i).hotLoadFlag=1;
-    else
-        calibratedSpectra(i).hotLoadFlag=0;
-    end
-        
+%     % Antenna angle check
+%     calibratedSpectra(i).meanAngleAntenna=mean(log.Elevation_Angle(ia));
+%     calibratedSpectra(i).stdAngleAntenna=std(log.Elevation_Angle(ia));
+%     
+%     if ((calibratedSpectra(i).meanAngleAntenna>retrievalTool.elevationAngleAntenna-retrievalTool.elevationAngleTolerance) || (calibratedSpectra(i).meanAngleAntenna<retrievalTool.elevationAngleAntenna+retrievalTool.elevationAngleTolerance))
+%         calibratedSpectra(i).angleFlag=1;
+%     else
+%         calibratedSpectra(i).angleFlag=0;
+%     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % System Temperature
     % Tsys
     calibratedSpectra(i).Tsys=nanmean(log.FE_T_Sys(ind));
     calibratedSpectra(i).stdTSys=nanstd(log.FE_T_Sys(ind));
@@ -44,6 +38,7 @@ for i = 1:size(calibratedSpectra,2)
         calibratedSpectra(i).systemTemperatureFlag=0;
     end
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Liquid Nitrogen
 
     % Other variables ????
@@ -55,9 +50,12 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).stdTempOut=std(log.AI_7(ind)*100);
     calibratedSpectra(i).stdTempWindow=std(log.AI_3(ind)*100);
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % saved the start and stop time for this calibration cycle
-    calibratedSpectra(i).dateStart=log.x(1:6,ih(1))';
-    calibratedSpectra(i).dateStop=log.x(1:6,ih(end))';
+    % Correspond to the first sky measurements taken into account for the
+    % mean calibrated spectra.
+    calibratedSpectra(i).dateStart=log.x(1:6,ia(1))';
+    calibratedSpectra(i).dateStop=log.x(1:6,ia(end))';
     
     % As we are always using daily raw files:
     calibratedSpectra(i).year=log.Year(1);
@@ -82,7 +80,7 @@ for i = 1:size(calibratedSpectra,2)
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(2000,1,1);
 
-    calibratedSpectra(i).timeOfDay=mean(log.t(ih(1):ih(end)));
+    calibratedSpectra(i).timeOfDay=mean(log.t(ia(1):ia(end)));
 end
 
 end

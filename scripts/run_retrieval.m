@@ -71,7 +71,7 @@ end
 % Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 try
-    calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'time');
+    calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
 catch ME
     warningLevel0_1a.calibrate=ME.identifier;
     warning(ME.identifier,'Problem when doing the calibration')

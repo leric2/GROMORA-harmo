@@ -41,8 +41,11 @@ switch instrumentName
         retrievalTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
         retrievalTool.THotUnit='degreeC';
         % Harmonizing GROMOS log (for units)
-        retrievalTool.harmonize_log=@(log) harmonize_log_gromos(log);
+        retrievalTool.harmonize_log=@(log) harmonize_log_gromos(log);  
         
+        % Calibration outlier management
+        retrievalTool.threshNumRawSpectraHot=0.05*retrievalTool.numberOfChannels;
+        retrievalTool.threshNumRawSpectraCold=0.05*retrievalTool.numberOfChannels;
     case 'SOMORA'
         retrievalTool.dataLocation='PAYERNE';
         retrievalTool.PI_NAME='';
@@ -68,5 +71,9 @@ switch instrumentName
         % The log needs to be harmonized, for now taking gromos as basis
         retrievalTool.harmonize_log=@(log) harmonize_log_somora(log);
         retrievalTool.THotUnit='K';
+        
+        % Calibration outlier management
+        retrievalTool.threshNumRawSpectraHot=0.05*retrievalTool.numberOfChannels;
+        retrievalTool.threshNumRawSpectraCold=0.05*retrievalTool.numberOfChannels;
 end
 

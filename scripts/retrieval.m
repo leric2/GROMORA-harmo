@@ -2,7 +2,7 @@
 clear; close all; clc;
 
 
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
