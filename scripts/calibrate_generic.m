@@ -1,6 +1,24 @@
 function calibratedSpectra = calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType)
-%CALIBRATE_GENERIC Summary of this function goes herecalibratedSpectra
-%   Detailed explanation goes here
+%==========================================================================
+% NAME          | CALIBRATE_GENERIC Summary of this function goes herecalibratedSpectra
+% TYPE          |
+% AUTHOR(S)     |
+% CREATION      |
+%               |
+% ABSTRACT      | Completing and quality checking each calibration cycle
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS:
+%               |
+%               | OUTPUTS:
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 
 % Calibration version
 calibVersion='1.0.0';
@@ -9,7 +27,10 @@ calibVersion='1.0.0';
 calibTime=retrievalTool.calibrationTime;
 
 % We define a complete cycle as 2-1-0-0-1-2:
-hotIndCompleteCycle=find_completed_cycle(log,retrievalTool);
+%hotIndCompleteCycle=find_completed_cycle(log,retrievalTool);
+hotIndices=find(log.Position==retrievalTool.indiceHot & log.Tipping_Curve_active==0);
+antennaIndices=find(log.Position==retrievalTool.indiceAntenna & log.Tipping_Curve_active==0);
+coldIndices=find(log.Position==retrievalTool.indiceCold & log.Tipping_Curve_active==0);
 
 % Now we read cycle Up and Down separately:
 [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(log,retrievalTool);
@@ -19,20 +40,17 @@ hotIndCompleteCycle=find_completed_cycle(log,retrievalTool);
 % ia=reshape([hotIndCompleteCycle+1;hotIndCompleteCycle+4],[],1);
 % ic=reshape([hotIndCompleteCycle+2;hotIndCompleteCycle+3],[],1);
 
-% Remove cycles with wrong angles  
-validStartIndices=hotIndCompleteCycle;                  % TODO / REMOVE
-validStartUp=firstIndHalfUp;
-validStartDown=firstIndHalfDown;
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % Time interval for the calibration
 
 % Starting time for the complete cycle (will be the basis for separating
 % the cycles according to calibrationTime). 
-startingTimes=log.t(validStartIndices);
-startingTimesUp=log.t(validStartUp);
-startingTimesDown=log.t(validStartDown);
+startingTimesHot=log.t(hotIndices);
+startingTimesCold=log.t(coldIndices);
+startingTimesAntennaAll=log.t(antennaIndices);
+startingTimesUp=log.t(firstIndHalfUp);
+startingTimesDown=log.t(firstIndHalfDown);
 
 timeThresh=0:calibTime/60:24;
 
@@ -41,24 +59,36 @@ timeThresh=0:calibTime/60:24;
 % number of individual cycle per calibration cycle
 indices=struct();
 for i = 1:length(timeThresh)-2
-    cond=startingTimes>timeThresh(i) & startingTimes<timeThresh(i+1);
+    condAntenna=startingTimesAntennaAll>timeThresh(i) & startingTimesAntennaAll<timeThresh(i+1);
+    condHot=startingTimesHot>timeThresh(i) & startingTimesHot<timeThresh(i+1);
+    condCold=startingTimesCold>timeThresh(i) & startingTimesCold<timeThresh(i+1);
+    
     condUp=startingTimesUp>timeThresh(i) & startingTimesUp<timeThresh(i+1);
     condDown=startingTimesDown>timeThresh(i) & startingTimesDown<timeThresh(i+1);
     
-    indice=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
-    indices(i).ind=indice;
+    %indice=[validStartIndices(condHot); validStartIndices(condHot)+1; validStartIndices(condHot)+2; validStartIndices(condHot)+3; validStartIndices(condHot)+4; validStartIndices(condHot)+5];
+    indices(i).validAntenna=antennaIndices(condAntenna);
+    indices(i).validHot=hotIndices(condHot);
+    indices(i).validCold=coldIndices(condCold);
     
-    indices(i).validColdStartUp=[validStartUp(condUp); validStartUp(condUp)+1; validStartUp(condUp)+2];
-    indices(i).validHotStartDown=[validStartDown(condDown); validStartDown(condDown)+1; validStartDown(condDown)+2];
+    %indices(i).ind=indice;
+    
+    indices(i).validColdStartUp=[firstIndHalfUp(condUp); firstIndHalfUp(condUp)+1; firstIndHalfUp(condUp)+2];
+    indices(i).validHotStartDown=[firstIndHalfDown(condDown); firstIndHalfDown(condDown)+1; firstIndHalfDown(condDown)+2];
 end
-cond=startingTimes>timeThresh(length(timeThresh)-1);
+condAntenna=startingTimesAntennaAll>timeThresh(length(timeThresh)-1);
+condHot=startingTimesHot>timeThresh(length(timeThresh)-1);
+condCold=startingTimesCold>timeThresh(length(timeThresh)-1);
 condUp=startingTimesUp>timeThresh(length(timeThresh)-1);
 condDown=startingTimesDown>timeThresh(length(timeThresh)-1);
 
-lastIndices=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
-indices(length(timeThresh)-1).ind=lastIndices;
-indices(length(timeThresh)-1).validColdStartUp=[validStartUp(condUp); validStartUp(condUp)+1; validStartUp(condUp)+2];;
-indices(length(timeThresh)-1).validHotStartDown=[validStartDown(condDown); validStartDown(condDown)+1; validStartDown(condDown)+2];
+%lastIndices=[validStartIndices(condHot); validStartIndices(condHot)+1; validStartIndices(condHot)+2; validStartIndices(condHot)+3; validStartIndices(condHot)+4; validStartIndices(condHot)+5];
+%indices(length(timeThresh)-1).ind=lastIndices;
+indices(length(timeThresh)-1).validAntenna=antennaIndices(condAntenna);
+indices(length(timeThresh)-1).validHot=hotIndices(condHot);
+indices(length(timeThresh)-1).validCold=coldIndices(condCold);
+indices(length(timeThresh)-1).validColdStartUp=[firstIndHalfUp(condUp); firstIndHalfUp(condUp)+1; firstIndHalfUp(condUp)+2];
+indices(length(timeThresh)-1).validHotStartDown=[firstIndHalfDown(condDown); firstIndHalfDown(condDown)+1; firstIndHalfDown(condDown)+2];
 
 calibratedSpectra=struct();
 
@@ -69,8 +99,8 @@ nCalibrationCycles=length(indices);
 % Outlier detection for hot and cold raw spectra as well as for their pointing
 % angle
 for i=1:nCalibrationCycles
-    ih=reshape(indices(i).ind([1,6],:),[],1);
-    ic=reshape(indices(i).ind([3,4],:),[],1);
+    ih=reshape(indices(i).validHot,[],1);
+    ic=reshape(indices(i).validCold,[],1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Checking and removing any spurious angle for hot and cold load
@@ -78,12 +108,16 @@ for i=1:nCalibrationCycles
     coldAngleCheck=~(log.Elevation_Angle(ic)==retrievalTool.elevationAngleCold);
     
     if sum(hotAngleCheck>0)
-        ih=ih(hotAngleCheck);
-        calibratedSpectra(i).hotAngleWrong=sum(hotAngleCheck);
+        ih=ih(~hotAngleCheck);
+        calibratedSpectra(i).hotAngleRemoved=sum(hotAngleCheck);
+    else
+        calibratedSpectra(i).hotAngleRemoved=0;
     end
     if sum(coldAngleCheck>0)
-        ic=ic(coldAngleCheck);
-        calibratedSpectra(i).coldAngleWrong=sum(coldAngleCheck);
+        ic=ic(~coldAngleCheck);
+        calibratedSpectra(i).coldAngleRemoved=sum(coldAngleCheck);
+    else
+        calibratedSpectra(i).coldAngleRemoved=0;
     end
     
     initSizeHot=length(ih);
@@ -128,14 +162,14 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).stdColdSpectra=nanstd(rawSpectra(ic,:),1);
     
     % Hot temperature corresponding to the hot spectra (to all spectra ?)
-    calibratedSpectra(i).THot=nanmean(log.T_Hot(ih));
-    calibratedSpectra(i).stdTHot=nanstd(log.T_Hot(ih));
+    calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(ih));
+    calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(ih));
     
     % Hot load check flag
     if (calibratedSpectra(i).stdTHot>retrievalTool.hotTemperatureStdThreshold)
-        calibratedSpectra(i).hotLoadFlag=1;
+        calibratedSpectra(i).hotLoadOK=0;
     else
-        calibratedSpectra(i).hotLoadFlag=0;
+        calibratedSpectra(i).hotLoadOK=1;
     end
     
     %plot(meanRawCountsHot)
@@ -155,23 +189,36 @@ switch calType
         % well the avg calibrated spectra. 
         
         for i=1:nCalibrationCycles
+            calibratedSpectra(i).calibrationVersion=calibVersion;
+            calibratedSpectra(i).calibrationTime=calibTime;
+            
+            % All antenna measurements
+            ia=reshape(indices(i).validAntenna,[],1);
+            
+            % Antenna measurements inside a half cycle
             iaUp=reshape(indices(i).validColdStartUp(2,:),[],1);
             iaDown=reshape(indices(i).validHotStartDown(2,:),[],1);
             
             % Checking for NaN in the antenna spectra and keeping only complete
             % spectra for the calibration:
+            ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
             iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
             iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
             
             % Saving the indices for the Antenna
-            calibratedSpectra(i).antennaInd=sort([iaUp; iaDown]);
+            calibratedSpectra(i).antennaInd=ia;
             calibratedSpectra(i).antennaIndUp=iaUp;
             calibratedSpectra(i).antennaIndDown=iaDown;
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
-            angleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)<retrievalTool.elevationAngleTolerance;
-            calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(angleCheck);
+            antennaAngleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)>retrievalTool.elevationAngleTolerance;
+            if any(antennaAngleCheck)==1
+                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
+            else
+                calibratedSpectra(i).antennaAngleRemoved=0;
+            end
+            calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
@@ -203,7 +250,7 @@ switch calType
             
             calibratedSpectra(i).TbAll = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             % Angle flag
-            calibratedSpectra(i).antennaAngleFlagAll=angleCheck';
+            % calibratedSpectra(i).antennaAngleFlagAll=angleCheck';
             
             calibratedSpectra(i).TbUpAll = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntennaUpAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             % Angle flag
@@ -216,6 +263,9 @@ switch calType
             % And the standard deviation of final Tb
             calibratedSpectra(i).stdTb=nanstd(calibratedSpectra(i).TbAll);
             
+            calibratedSpectra(i).meanFromTbAll=mean(calibratedSpectra(i).TbAll);
+            calibratedSpectra(i).meanFromTbUpAll=mean(calibratedSpectra(i).TbUpAll);
+            calibratedSpectra(i).meanFromTbDownAll=mean(calibratedSpectra(i).TbDownAll);
             % For the future: propagate the initial uncertainties into the
             % calibration formula.
         end
@@ -244,8 +294,8 @@ switch calType
             % Computing some useful quantities for this cycles:
             % Mean hot temperature for this cycle as well as its standard
             % deviation:
-            calibratedSpectra(i).THot=nanmean(log.T_Hot(reshape(indices(i).ind,[],1))); 
-            calibratedSpectra(i).stdTHot=nanstd(log.T_Hot(reshape(indices(i).ind,[],1)));
+            calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(reshape(indices(i).ind,[],1))); 
+            calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(reshape(indices(i).ind,[],1)));
             
             % Number of hot/cold/antenna averaged spectra for this cycle
             % Considering all spectra that are not 100% NaN ... 
@@ -340,8 +390,8 @@ switch calType
         
         % Mean hot counts for each cycle (nCalibrationCycles x #channels)
         rsHot=nanmean(cat(3,rawSpectra(ih(1,:),:),rawSpectra(ih(2,:),:)),3);
-        THot=nanmean(log.T_Hot(indicesAll),1);
-        stdTHot=nanstd(log.T_Hot(indicesAll),1);
+        THot=nanmean(log.T_Hot_Absorber(indicesAll),1);
+        stdTHot=nanstd(log.T_Hot_Absorber(indicesAll),1);
         
         % Mean cold counts for each cycle (nCalibrationCycles x #channels)
         rsCold=nanmean(cat(3,rawSpectra(ic(1,:),:),rawSpectra(ic(2,:),:)),3);
@@ -374,12 +424,12 @@ switch calType
         % number of individual cycle per calibration cycle
         avgIndices=struct();
         for i = 1:length(timeThresh)-2
-            cond=startingTimes>timeThresh(i) & startingTimes<timeThresh(i+1);
-            indice=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
+            condHot=startingTimesHot>timeThresh(i) & startingTimesHot<timeThresh(i+1);
+            indice=[validStartIndices(condHot); validStartIndices(condHot)+1; validStartIndices(condHot)+2; validStartIndices(condHot)+3; validStartIndices(condHot)+4; validStartIndices(condHot)+5];
             avgIndices(i).ind=indice;
         end
-        cond=startingTimes>timeThresh(length(timeThresh)-1);
-        lastIndices=[validStartIndices(cond); validStartIndices(cond)+1; validStartIndices(cond)+2; validStartIndices(cond)+3; validStartIndices(cond)+4; validStartIndices(cond)+5];
+        condHot=startingTimesHot>timeThresh(length(timeThresh)-1);
+        lastIndices=[validStartIndices(condHot); validStartIndices(condHot)+1; validStartIndices(condHot)+2; validStartIndices(condHot)+3; validStartIndices(condHot)+4; validStartIndices(condHot)+5];
         avgIndices(length(timeThresh)-1).ind=lastIndices;
         
         nCalibrationCycles=length(avgIndices);
@@ -398,8 +448,8 @@ switch calType
         
         % Mean hot counts for each cycle (nCalibrationCycles x #channels)
         rsHot=nanmean(cat(3,rawSpectra(ih(1,:),:),rawSpectra(ih(2,:),:)),3);
-        THot=nanmean(log.T_Hot(indices),1);
-        stdTHot=nanstd(log.T_Hot(indices),1);
+        THot=nanmean(log.T_Hot_Absorber(indices),1);
+        stdTHot=nanstd(log.T_Hot_Absorber(indices),1);
         
         % Mean cold counts for each cycle (nCalibrationCycles x #channels)
         rsCold=nanmean(cat(3,rawSpectra(ic(1,:),:),rawSpectra(ic(2,:),:)),3);

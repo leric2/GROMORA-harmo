@@ -1,5 +1,24 @@
 function run_retrieval(retrievalTool,dateStr)
-%%
+%==========================================================================
+% NAME          | 
+% TYPE          |
+% AUTHOR(S)     |
+% CREATION      |
+%               |
+% ABSTRACT      |
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS:
+%               |
+%               | OUTPUTS:
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 % First example for a run function
 assert(ischar(dateStr),'Please enter the date in the right format')
 
@@ -89,13 +108,12 @@ end
 % Option for plotting spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
     try
-        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,50);
+        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,10);
     catch ME
         warningLevel0_1a.plottingSpectra=ME.identifier;
         warning(ME.identifier,'Problem Plotting')
     end
 end
-
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 try
@@ -106,6 +124,7 @@ catch ME
 end
 
 disp(warningLevel0_1a)
+
 %     
 % end
 % 

@@ -1,5 +1,24 @@
 function plot_raw_spectra_generic(Spectra,lowerLim,upperLim,N)
-% Just for a first look
+%==========================================================================
+% NAME          | 
+% TYPE          |
+% AUTHOR(S)     |
+% CREATION      |
+%               |
+% ABSTRACT      |
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS:
+%               |
+%               | OUTPUTS:
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 
 % plotting a spectra every N measurements 
 l=floor(linspace(1,size(Spectra,1),N));

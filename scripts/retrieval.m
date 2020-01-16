@@ -1,8 +1,27 @@
-% Main script for launching retrieval
+%==========================================================================
+% NAME          | retrieval.m
+% TYPE          | Main script for launching the retrieval
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 12.2019
+%               |
+% ABSTRACT      |
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS:
+%               |
+%               | OUTPUTS:
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 clear; close all; clc;
 
 
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
@@ -50,6 +69,7 @@ retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_cali
 
 retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,dateStr) save_level1a_generic(retrievalTool,log,calibratedSpectra,dateStr);
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain
 run_retrieval(retrievalTool,dateStr)

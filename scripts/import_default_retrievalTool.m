@@ -1,6 +1,27 @@
 function retrievalTool = import_default_retrievalTool(instrumentName)
-%IMPORT_DEFAULT_RETRIEVALTOOL Summary of this function goes here
-%   Detailed explanation goes here
+%==========================================================================
+% NAME          | import_default_retrievalTool(instrumentName)
+% TYPE          | Function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
+%               |
+% ABSTRACT      | 
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS: * instrumentName: name of the instrument as a
+%               | string (ex: 'GROMOS')
+%               |
+%               | OUTPUTS: * retrievalTool: the default toolbox for
+%               | launching a retrieval for this instrument.
+%               | 
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 retrievalTool = struct();
 
 % Name of the instrument
@@ -12,6 +33,18 @@ retrievalTool.binaryType='ieee-be';
 retrievalTool.indiceCold=0;
 retrievalTool.indiceAntenna=1;
 retrievalTool.indiceHot=2;
+
+retrievalTool.hotTemperatureStdThreshold=10;
+
+% minimum number of indices (h-a-c) we want in a calibration cycle for it
+% to be valid
+retrievalTool.minNumberOfIndicePerCycle=15;
+
+retrievalTool.numberOfAquisitionSpectraHot=60000;
+retrievalTool.numberOfAquisitionSpectraAntenna=120000;
+retrievalTool.numberOfAquisitionSpectraCold=120000;
+
+retrievalTool.systemTempMaxStd=10;
 
 switch instrumentName
     case 'GROMOS'
@@ -62,8 +95,8 @@ switch instrumentName
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.tippingSize=5;
         retrievalTool.elevationAngleAntenna=38;
-        retrievalTool.elevationAngleCold=90;
-        retrievalTool.elevationAngleHot=-180;
+        retrievalTool.elevationAngleCold=-90;
+        retrievalTool.elevationAngleHot=180;
         retrievalTool.elevationAngleTolerance=5;
         retrievalTool.numberOfCyclesExpected=NaN;
         retrievalTool.toleranceNumberCycles=NaN;

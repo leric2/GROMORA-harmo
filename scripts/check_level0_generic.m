@@ -1,6 +1,25 @@
 function warningLevel0_1a = check_level0_generic(log,rawSpectra,retrievalTool,warningLevel0_1a)
+%==========================================================================
+% NAME          | 
+% TYPE          |
+% AUTHOR(S)     |
+% CREATION      |
+%               |
+% ABSTRACT      | 
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS:
+%               |
+%               | OUTPUTS:
+%               |
+% CALLS         |
+%               |
+%               |
+%               |
+
+%==========================================================================
 % 
-% Quality check for the raw spectra (level0 data)
 % 
 %
 % INPUT
