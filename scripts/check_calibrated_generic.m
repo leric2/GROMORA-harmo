@@ -145,7 +145,7 @@ for i = 1:size(calibratedSpectra,2)
     % as well as the "mean time" of the calibration cycle
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    calibratedSpectra(i).meanDatetimeUnit='days since 01.01.1970';
+    calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01';
     calibratedSpectra(i).calendar='prolepticIsoCalendar';
     calibratedSpectra(i).timeOfDay=mean(log.t(ia(1):ia(end)));
    

@@ -1,4 +1,4 @@
-function run_retrieval(retrievalTool,dateStr)
+function run_retrieval(retrievalTool)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -20,13 +20,14 @@ function run_retrieval(retrievalTool,dateStr)
 
 %==========================================================================
 % First example for a run function
-assert(ischar(dateStr),'Please enter the date in the right format')
+assert(ischar(retrievalTool.dateStr),'Please enter the date in the right format')
 
 % Check here that all required fields are filled in retrievalTool !!
 retrievalTool_complete(retrievalTool)
 
-file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', dateStr];
+file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
 assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not found')
+disp(['Calibrating: ' retrievalTool.dateStr])
 
 % Initialize structure containing the error that are non fatal for the
 % retrieval
@@ -105,10 +106,10 @@ catch ME
     warning(ME.identifier,'Problem when checking the calibrated spectra')
 end
 
-% Option for plotting spectra (to be improved...)
+% Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
     try
-        retrievalTool.plot_calibrated_spectra(calibratedSpectra,0,350,10);
+        retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,10);
     catch ME
         warningLevel0_1a.plottingSpectra=ME.identifier;
         warning(ME.identifier,'Problem Plotting')
@@ -117,12 +118,13 @@ end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 try
-    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,dateStr);
+    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra);
 catch ME
     warningLevel0_1a.savingSpectra=ME.identifier;
     warning(ME.identifier,'Problem when saving the calibrated spectra')
 end
 
+disp('Warning Level0-1a :')
 disp(warningLevel0_1a)
 
 %     

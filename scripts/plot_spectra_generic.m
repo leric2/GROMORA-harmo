@@ -1,4 +1,4 @@
-function plot_spectra_generic(calibratedSpectra,lowerLim,upperLim,N)
+function plot_spectra_generic(retrievalTool,calibratedSpectra,lowerLim,upperLim,N)
 % Just for a first look
 
 % plotting a spectra every N measurements 
@@ -18,5 +18,7 @@ for i=1:N
     hold on
 end
 legend(TOD)
+
+saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' calibratedSpectra(1).date],'jpg')
 end
 

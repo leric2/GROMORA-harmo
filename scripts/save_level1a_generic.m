@@ -1,4 +1,4 @@
-function feedback = save_level1a_generic(retrievalTool,log,calibratedSpectra,dateStr)
+function feedback = save_level1a_generic(retrievalTool,log,calibratedSpectra)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -37,7 +37,7 @@ commentRawFile=log.comment;
 
 % Here LOOOP in all calibration cycle
 for t = 1:length(calibratedSpectra)
-    filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
+    filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.dateStr '_' sprintf('%02d',t) '.nc'];
     %filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
     %title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
     
@@ -55,27 +55,43 @@ for t = 1:length(calibratedSpectra)
     
     % ncwrite(filename,'Tb',calibratedSpectra(1).Tb)
     
-    % First create time variable (enable 'netcdf4' format)
-    nccreate(filename,'/SDS/TIME','Dimensions',{'start_time',Inf},'Datatype','double','Format','netcdf4');
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     % Create the different dataset
     % Scientific Dataset (SDS)
-    nccreate(filename,'/SDS/BRIGTHNESS_TEMPERATURE','Dimensions',{'start_time',Inf,'f',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999);
-    nccreate(filename,'/SDS/MEAN_THOT','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/STD_THOT','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/MEAN_TSYS','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/STD_TSYS','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/CALIBRATION_TIME','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/MEAN_ANGLE_ANTENNA','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
+    % First create coordinates variable (enable 'netcdf4' format)
+    nccreate(filename,'/SDS/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
+    nccreate(filename,'/SDS/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
     
-    nccreate(filename,'/SDS/MEAN_TROOM','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
-    nccreate(filename,'/SDS/MEAN_TOUT','Dimensions',{'start_time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/year','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/SDS/month','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/SDS/day','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/SDS/timeOfDay','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+    %nccreate(filename,'/SDS/startTime','Dimensions',{'time',Inf},'Datatype','char','FillValue','NA');
+    %nccreate(filename,'/SDS/stopTime','Dimensions',{'time',Inf},'Datatype','char','FillValue','NA');
+    
+    nccreate(filename,'/SDS/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/SDS/meanTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/STD_THOT','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/MEAN_TSYS','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/STD_TSYS','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/CALIBRATION_TIME','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/MEAN_ANGLE_ANTENNA','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    
+    nccreate(filename,'/SDS/MEAN_TROOM','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/MEAN_TOUT','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
     
     % Flags and error
-    nccreate(filename,'/ERROR/TIME','Dimensions',{'start_time',Inf},'Datatype','double')
+    nccreate(filename,'/error/time','Dimensions',{'time',Inf},'Datatype','double')
+    nccreate(filename,'/error/error','Dimensions',{'error',length(calibratedSpectra(t).errorVector)},'Datatype','double')
+    
     % We input a (1xerrorVectorSize) int vector to identify the errors
-    nccreate(filename,'/ERROR/CALIBRATION_ERROR','Dimensions',{'start_time',Inf,'error',length(calibratedSpectra(t).errorVector)},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/error/calibration_error','Dimensions',{'error',length(calibratedSpectra(t).errorVector),'time',Inf},'Datatype','double','FillValue',-9999)
+    
+    % Group for debugging variables:
+    %nccreate(filename,'/debug/cycle_id','Dimensions',{'cycle_id',Inf},'Datatype','double')
+    %nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+    
+    %nccreate(filename,'/debug/cycle_time','Dimensions',{'cycle_id',Inf},'Datatype','double','FillValue',-9999)
     
     % Writing the GLOBAL attributes of the files
     %varid = netcdf.getConstant('NC_GLOBAL');
@@ -115,11 +131,6 @@ for t = 1:length(calibratedSpectra)
     ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',retrievalTool.lat);
     ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',retrievalTool.lon);
     ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',retrievalTool.altitude);
-    ncwriteatt(filename,'/','DATETIME',calibratedSpectra(t).meanDatetime);
-    ncwriteatt(filename,'/','YEAR',calibratedSpectra(t).year);
-    ncwriteatt(filename,'/','MONTH',calibratedSpectra(t).month);
-    ncwriteatt(filename,'/','DAY',calibratedSpectra(t).day);
-    ncwriteatt(filename,'/','TIMEOFDAY',calibratedSpectra(t).timeOfDay);
     
     % Global file attributes
     ncwriteatt(filename,'/','FILE_NAME',filename);
@@ -128,28 +139,38 @@ for t = 1:length(calibratedSpectra)
     ncwriteatt(filename,'/','RAW_FILENAME','');
     
     % Writing the attributes of the groups
-    % Error group
-    ncwriteatt(filename,'/ERROR','sufficientNumberOfIndices','');
-    ncwriteatt(filename,'/ERROR','systemTemperatureOK','');
-    ncwriteatt(filename,'/ERROR','hotAngleRemoved','');
-    ncwriteatt(filename,'/ERROR','coldAngleRemoved','');
-    ncwriteatt(filename,'/ERROR','antennaAngleRemoved','');
-    ncwriteatt(filename,'/ERROR','LN2SensorsOK','');
-    ncwriteatt(filename,'/ERROR','LN2LevelOK','');
-    ncwriteatt(filename,'/ERROR','hotLoadOK','');
-    ncwriteatt(filename,'/ERROR','FFT_adc_overload_OK','');
+    % error group
+    ncwriteatt(filename,'/error','sufficientNumberOfIndices','');
+    ncwriteatt(filename,'/error','systemTemperatureOK','');
+    ncwriteatt(filename,'/error','hotAngleRemoved','');
+    ncwriteatt(filename,'/error','coldAngleRemoved','');
+    ncwriteatt(filename,'/error','antennaAngleRemoved','');
+    ncwriteatt(filename,'/error','LN2SensorsOK','');
+    ncwriteatt(filename,'/error','LN2LevelOK','');
+    ncwriteatt(filename,'/error','hotLoadOK','');
+    ncwriteatt(filename,'/error','FFT_adc_overload_OK','');
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Writing netCDF variables
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Writing the SDS variable
-    ncwrite(filename,'/SDS/TIME',calibratedSpectra(t).meanDatetime);
-    ncwriteatt(filename,'/SDS/TIME','units',calibratedSpectra(t).meanDatetimeUnit);
-    ncwriteatt(filename,'/SDS/TIME','calendar',calibratedSpectra(t).calendar);
+    ncwrite(filename,'/SDS/time',calibratedSpectra(t).meanDatetime);
+    ncwriteatt(filename,'/SDS/time','units',calibratedSpectra(t).meanDatetimeUnit);
+    ncwriteatt(filename,'/SDS/time','calendar',calibratedSpectra(t).calendar);
     
-    ncwrite(filename,'/SDS/BRIGTHNESS_TEMPERATURE',calibratedSpectra(t).Tb);
-    ncwrite(filename,'/SDS/MEAN_THOT',calibratedSpectra(t).THot);
+    ncwrite(filename,'/SDS/channel_idx',1:retrievalTool.numberOfChannels);
+    
+    ncwrite(filename,'/SDS/year',calibratedSpectra(t).year);
+    ncwrite(filename,'/SDS/month',calibratedSpectra(t).month);
+    ncwrite(filename,'/SDS/day',calibratedSpectra(t).day);
+    ncwrite(filename,'/SDS/timeOfDay',calibratedSpectra(t).timeOfDay);
+    
+    %ncwrite(filename,'/SDS/startTime',datestr(calibratedSpectra(t).dateStart,'yyyymmddTHHMMSSZ'));
+    %ncwrite(filename,'/SDS/stopTime',datestr(calibratedSpectra(t).dateStop,'yyyymmddTHHMMSSZ'));
+    
+    ncwrite(filename,'/SDS/Tb',calibratedSpectra(t).Tb');
+    ncwrite(filename,'/SDS/meanTHot',calibratedSpectra(t).THot);
     ncwrite(filename,'/SDS/STD_THOT',calibratedSpectra(t).stdTHot);
     ncwrite(filename,'/SDS/MEAN_TSYS',calibratedSpectra(t).Tsys);
     ncwrite(filename,'/SDS/STD_TSYS',calibratedSpectra(t).stdTSys);
@@ -160,11 +181,20 @@ for t = 1:length(calibratedSpectra)
     ncwrite(filename,'/SDS/MEAN_TOUT',calibratedSpectra(t).TempOut)
     
     % Writing the errors variables
-    ncwrite(filename,'/ERROR/TIME',calibratedSpectra(t).meanDatetime);
-    ncwriteatt(filename,'/ERROR/TIME','units',calibratedSpectra(t).meanDatetimeUnit);
-    ncwriteatt(filename,'/ERROR/TIME','calendar',calibratedSpectra(t).calendar);
+    ncwrite(filename,'/error/time',calibratedSpectra(t).meanDatetime);
+    ncwriteatt(filename,'/error/time','units',calibratedSpectra(t).meanDatetimeUnit);
+    ncwriteatt(filename,'/error/time','calendar',calibratedSpectra(t).calendar);
     
-    ncwrite(filename,'/ERROR/CALIBRATION_ERROR',calibratedSpectra(t).errorVector);
+    ncwrite(filename,'/error/error',(1:length(calibratedSpectra(t).errorVector)));
+    ncwrite(filename,'/error/calibration_error',calibratedSpectra(t).errorVector');
+    
+     
+    % Writing the debug variables
+    %ncwrite(filename,'/debug/cycle_id',);
+   
+    %ncwrite(filename,'/debug/cycle_time',);
+    %ncwrite(filename,'/debug/Tb_all',);
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Variables attributes
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -179,6 +209,11 @@ for t = 1:length(calibratedSpectra)
     % Tb
     attrVal.Tb = {'Tb',...
         'Brightness Temperature',...
+        'K',...
+        ''};
+    
+    attrVal.meanThot = {'meanTHot',...
+        'Temperature of the hot load',...
         'K',...
         ''};
     
@@ -221,8 +256,8 @@ for t = 1:length(calibratedSpectra)
     
     for i=1:length(attrName)
         %ncwriteatt(filename,'/LATITUDE.INSTRUMENT',attrName{i},attrVal.Latitude{i});
-        %ncwriteatt(filename,'/LONGITUDE.INSTRUMENT',attrName{i},attrVal.Longitude{i});
-        ncwriteatt(filename,'/SDS/BRIGTHNESS_TEMPERATURE',attrName{i},attrVal.Tb{i});
+        ncwriteatt(filename,'/SDS/Tb',attrName{i},attrVal.Tb{i});
+        ncwriteatt(filename,'/SDS/meanTHot',attrName{i},attrVal.Tb{i});
     end
     
     %ncwriteatt(filename,'/SDS/BRIGTHNESS_TEMPERATURE','VAR_UNITS','K');

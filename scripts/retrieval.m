@@ -25,10 +25,12 @@ instrumentName='SOMORA';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
-dateStr='2019_10_03';
+dateStr='2019_01_03';
 
 % Import default tools for running a retrieval for a given instrument
 retrievalTool=import_default_retrievalTool(instrumentName);
+
+retrievalTool.dateStr=dateStr;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Editing the retrievalTool for this particular retrieval:
@@ -61,17 +63,17 @@ retrievalTool.reformat_spectra=@(rawSpectra,log,retrievalTool) reformat_spectra_
 
 retrievalTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
 
-retrievalTool.plot_calibrated_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(rawSpectra,lowerLim,upperLim,N);
+retrievalTool.plot_calibrated_spectra=@(retrievalTool,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim,N);
 
 retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType);
 
 retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
 
-retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,dateStr) save_level1a_generic(retrievalTool,log,calibratedSpectra,dateStr);
+retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra) save_level1a_generic(retrievalTool,log,calibratedSpectra);
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running the retrieval with the defined toolchain
-run_retrieval(retrievalTool,dateStr)
+run_retrieval(retrievalTool)
 
 

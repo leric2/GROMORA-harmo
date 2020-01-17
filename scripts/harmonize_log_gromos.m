@@ -41,6 +41,11 @@ function log = harmonize_log_gromos(log)
 % Hot temperature is in °C:
 log.T_Hot_Absorber=log.T_Hot+273.15;
 
+
+log.LN2_Sensors_OK = log.LN2_Relay;
+
+log.LN2_Level_OK = log.LN2_above_High & ~(log.LN2_above_Low);
+    
 % log.T_Room;
 
 end
