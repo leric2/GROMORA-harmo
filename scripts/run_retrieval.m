@@ -27,7 +27,7 @@ retrievalTool_complete(retrievalTool)
 
 file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
 assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not found')
-disp(['Calibrating: ' retrievalTool.dateStr])
+disp(['Reading: ' retrievalTool.dateStr])
 
 % Initialize structure containing the error that are non fatal for the
 % retrieval
@@ -90,6 +90,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp(['Calibrating: ' retrievalTool.dateStr])
 try
     calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
 catch ME
@@ -117,6 +118,7 @@ if retrievalTool.calibratedSpectraPlot
 end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
+disp(['Saving Level 1a: ' retrievalTool.dateStr])
 try
     savingLevel0Error=retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra);
 catch ME

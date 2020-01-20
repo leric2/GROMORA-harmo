@@ -21,11 +21,11 @@
 clear; close all; clc;
 
 
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 dateStart='2019_10_01';
 dateEnd='2019_10_02';
 
-dateStr='2019_01_03';
+dateStr='2019_10_03';
 
 % Import default tools for running a retrieval for a given instrument
 retrievalTool=import_default_retrievalTool(instrumentName);
@@ -43,7 +43,8 @@ retrievalTool.calibratedSpectraPlot=true;
 
 % Path definition (for local computer)
 if (instrumentName=='GROMOS')
-    retrievalTool.rawFileFolder='/scratch/GROMOS_rawData/2019/';
+    %retrievalTool.rawFileFolder='/scratch/GROMOS_rawData/2019/';
+    retrievalTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
     retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
     
 elseif (instrumentName=='SOMORA')
@@ -69,7 +70,7 @@ retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_
 
 retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
 
-retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra) save_level1a_generic(retrievalTool,log,calibratedSpectra);
+retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra) save_level1a_daily(retrievalTool,log,calibratedSpectra);
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

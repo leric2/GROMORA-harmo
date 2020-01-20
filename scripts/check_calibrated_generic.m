@@ -35,6 +35,22 @@ for i = 1:size(calibratedSpectra,2)
         calibratedSpectra(i).sufficientNumberOfIndices=0;
     end
     
+    % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
+    %calibratedSpectra(i).effectiveCalibrationTimeHot=length(ih)*retrievalTool.calibTimeHot;
+    %calibratedSpectra(i).effectiveCalibrationTimeAntenna=length(ia)*retrievalTool.calibTimeAntenna;
+    %calibratedSpectra(i).effectiveCalibrationTimeCold=length(ic)*retrievalTool.calibTimeCold;
+    %calibratedSpectra(i).effectiveCalibrationTime=calibratedSpectra(i).effectiveCalibrationTimeHot+calibratedSpectra(i).effectiveCalibrationTimeAntenna+calibratedSpectra(i).effectiveCalibrationTimeCold;
+    
+    % Frequency vector
+    calibratedSpectra(i).f0=retrievalTool.centerFreq;
+    bw=retrievalTool.instrumentBandwidth;
+    nChannel=retrievalTool.numberOfChannels;
+    df=bw/nChannel;
+    lc=log.Spectr_line_center(1);
+    calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).f0-df*(0:lc-1)),calibratedSpectra(i).f0+df*(1:nChannel-lc));
+    calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
+    %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Antenna angle
     calibratedSpectra(i).meanAngleAntenna=mean(log.Elevation_Angle(ia));

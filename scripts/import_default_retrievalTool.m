@@ -28,6 +28,7 @@ retrievalTool = struct();
 retrievalTool.instrumentName=instrumentName;
 
 % Valid properties for all instruments
+retrievalTool.lightSpeed=299792458;
 retrievalTool.bytesPerValue=4;
 retrievalTool.binaryType='ieee-be';
 retrievalTool.indiceCold=0;
@@ -48,6 +49,7 @@ retrievalTool.systemTempMaxStd=10;
 
 switch instrumentName
     case 'GROMOS'
+        % Meta data
         retrievalTool.dataLocation='BERN';
         retrievalTool.PI_NAME='Murk;Axel';
         retrievalTool.PI_AFFILIATION='Universtiy of Bern;UBERN';
@@ -55,16 +57,21 @@ switch instrumentName
         retrievalTool.PI_EMAIL='axel.murk@iap.unibe.ch'; 
         retrievalTool.dataSource='MWR.O3_UBERN';
         
+        % Instrument data
         retrievalTool.numberOfChannels=32768;
+        retrievalTool.centerFreq=1.421750400e11;
+        retrievalTool.instrumentBandwidth=1e9;
         
         retrievalTool.lon=7.44;
         retrievalTool.lat=46.95;
         retrievalTool.altitude=560;
+        
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.elevationAngleAntenna=40;
         retrievalTool.elevationAngleCold=-84;
         retrievalTool.elevationAngleHot=160;
+        
         retrievalTool.elevationAngleTolerance=5;
         % Considering the expected number of tipping curve:
         retrievalTool.numberOfCyclesExpected=1500;
@@ -87,10 +94,14 @@ switch instrumentName
         retrievalTool.PI_EMAIL=''; 
         retrievalTool.dataSource='MWR.O3_MCH';
         
+        retrievalTool.numberOfChannels=16384;
+        retrievalTool.centerFreq=1.4217504e11;
+        retrievalTool.instrumentBandwidth=1e9;
+        
         retrievalTool.lon=6.95;
         retrievalTool.lat=46.82;
         retrievalTool.altitude=491;
-        retrievalTool.numberOfChannels=16384;
+        
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.tippingSize=5;
