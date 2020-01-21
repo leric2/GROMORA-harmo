@@ -31,6 +31,7 @@ for i = 1:size(calibratedSpectra,2)
     % calibration cycle should be more than a certain threshold
     if ((length(ih)>retrievalTool.minNumberOfIndicePerCycle) || (length(ia) > retrievalTool.minNumberOfIndicePerCycle) || (length(ic)>retrievalTool.minNumberOfIndicePerCycle))
         calibratedSpectra(i).sufficientNumberOfIndices=1;
+        warning('number of spectra low');
     else
         calibratedSpectra(i).sufficientNumberOfIndices=0;
     end
@@ -161,9 +162,11 @@ for i = 1:size(calibratedSpectra,2)
     % as well as the "mean time" of the calibration cycle
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01';
+    calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
     calibratedSpectra(i).calendar='prolepticIsoCalendar';
     calibratedSpectra(i).timeOfDay=mean(log.t(ia(1):ia(end)));
+    
+    %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
    
 end
 

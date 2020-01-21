@@ -136,8 +136,8 @@ for i=1:nCalibrationCycles
     %mrdHot=(rawSpectra(ih,:)-meanRawCountsHot)./meanRawCountsHot > threshHot;
     %mrdCold=(rawSpectra(ic,:)-meanRawCountsCold)./meanRawCountsCold > threshCold;
     
-    medStdDevThreshHot=abs((rawSpectra(ih,:)-medianRawCountsHot))>2*nanstd(rawSpectra(ih,:),1);
-    medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>2*nanstd(rawSpectra(ic,:),1);
+    medStdDevThreshHot=abs((rawSpectra(ih,:)-medianRawCountsHot))>retrievalTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:),1);
+    medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>retrievalTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
     
     ih=ih(sum(medStdDevThreshHot,2)<retrievalTool.threshNumRawSpectraHot);
     ic=ic(sum(medStdDevThreshCold,2)<retrievalTool.threshNumRawSpectraCold);

@@ -22,10 +22,10 @@ clear; close all; clc;
 
 
 instrumentName='GROMOS';
-dateStart='2019_10_01';
-dateEnd='2019_10_02';
+%dateStart='2019_10_01';
+%dateEnd='2019_10_02';
 
-dateStr='2019_10_03';
+dateStr='2019_02_01';
 
 % Import default tools for running a retrieval for a given instrument
 retrievalTool=import_default_retrievalTool(instrumentName);
@@ -38,7 +38,7 @@ retrievalTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
 
 % Valid properties for all instruments
 retrievalTool.rawSpectraPlot=false;
-retrievalTool.calibrationTime=30;
+retrievalTool.calibrationTime=10;
 retrievalTool.calibratedSpectraPlot=true;
 
 % Path definition (for local computer)
@@ -52,6 +52,11 @@ elseif (instrumentName=='SOMORA')
     retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
 end
 
+retrievalTool.saveAllCycles=1;
+
+retrievalTool.hotSpectraNumberOfStdDev=3;
+retrievalTool.coldSpectraNumberOfStdDev=3;
+
 % Reading routine to use for the raw data
 retrievalTool.read_level0=@(file,retrievalTool) read_level0_generic(file,retrievalTool);
 
@@ -61,6 +66,7 @@ retrievalTool.check_level0=@(log,rawSpectra,retrievalTool,errorLevel0_1a) check_
 % Reformatting the raw spectra into a matrix (numberOfSpectra x
 % numberOfChannels)
 retrievalTool.reformat_spectra=@(rawSpectra,log,retrievalTool) reformat_spectra_generic(rawSpectra,log,retrievalTool);
+
 
 retrievalTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
 
