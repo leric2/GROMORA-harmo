@@ -5,9 +5,9 @@ It was agreed to use the netCDF format for storing all levels of our data. There
 
 The ***netCDF classic base format*** include CDF-1, CDF-2 and CDF-5. From version 4.0, the ***netCDF-4/HDF5*** is using HDF5 format as a storage layer (which make it readable by HDF5) and offers different advantages compared to the older classical format in terms of dimensions, group definitions, etc... This is the base format that we will use for storing the level1a and the rest of the relevant data. 
 
-After some time looking at the writing of netCDF file from matlab, there are a few points that emerged which bring the following question:
-* As already said, netCDF-4 is using HDF5 as its base format and using this format is therefore very similar as using directly HDF5 file format. What is not however, is the documentation about the Matlab high-level functions for writing and reading those files. Indeed, making groups of data inside a file (nice tool allowed for both netCDF-4 and HDF5) is not well documented for netCDF-4 high-level functions. For us, it is clearly not a problem as we could just use some low-level functions existing in Matlab to deal with it, but it might reduce the compatibility with other users and maybe we should consider using directly HDF5 format then ?
-* I suggest that we use directly the GEOMS standards used by the NDACC for the level1a data ? https://gs614-avdc1-pz.gsfc.nasa.gov/index.php?site=2024100160
+After some time looking at the writing of netCDF file from matlab, there are a few points that emerged:
+* As already said, netCDF-4 is using HDF5 as its base format and using this format is therefore very similar as using directly HDF5 file format. What is not however, is the documentation about the Matlab high-level functions for writing and reading those files. Indeed, making groups of data inside a file (nice tool allowed for both netCDF-4 and HDF5) is not well documented for netCDF-4 high-level functions but this should not be a problem in our case. 
+* GEOMS standards used by the NDACC : https://gs614-avdc1-pz.gsfc.nasa.gov/index.php?site=2024100160. I think that those are not so nice and that we shoud better stick with the cf conventions (see later).
 
 ## Data Model
 netCDF classic dataset is stored as a single file containing 2 parts:
@@ -20,10 +20,9 @@ It represents either a real physical quantity or index other quantities. It has 
 ### Variables
 Array of values of the same type. It has a name, a data type and a shape (described by its list of dimensions).
 
-It can have attributes.
 
 #### Coordinate variables
-These are one-dimensional variable with the same name as its dimension. 
+These are one-dimensional variable with the same name as their dimension. 
 
 ### Attributes
 These are the metadata and store information about the data. They can be either ***global*** and store information about the dataset or ***local*** for a specific variable.  
