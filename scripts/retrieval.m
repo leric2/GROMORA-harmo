@@ -1,18 +1,22 @@
 %==========================================================================
 % NAME          | retrieval.m
-% TYPE          | Main script for launching the retrieval
+% TYPE          | Script
 % AUTHOR(S)     | Eric Sauvageat
-% CREATION      | 12.2019
+% CREATION      | 01.2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | Main script for launching the calibration of MW
+%               | radiometer data. The whole point of this script is to
+%               | generate a retrievalTool structure containing every
+%               | information needed for the calibration before running it
+%               | sequentially. 
 %               | 
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | 
 %               |
-%               | OUTPUTS:
+%               | 
 %               |
-% CALLS         |
+% CALLS         | run_retrieval.m
 %               |
 %               |
 %               |
@@ -20,10 +24,10 @@
 %==========================================================================
 clear; close all; clc;
 
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_08_01','yyyy_mm_dd'):datenum('2019_08_05','yyyy_mm_dd');
+dates=datenum('2018_05_08','yyyy_mm_dd'):datenum('2018_05_08','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -58,14 +62,14 @@ for k = 1:numel(dates)
     retrievalTool.rawSpectraPlot=false;
     retrievalTool.calibratedSpectraPlot=true;
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Selecting the functions that will be used for processing this retrieval
     %
     % Reading routine to use for the raw data
     retrievalTool.read_level0=@(file,retrievalTool) read_level0_generic(file,retrievalTool);
     
     % Quality check for the raw data
-    retrievalTool.check_level0=@(log,rawSpectra,retrievalTool,errorLevel0_1a) check_level0_generic(log,rawSpectra,retrievalTool,errorLevel0_1a);
+    retrievalTool.check_level0=@(log,rawSpectra,retrievalTool) check_level0_generic(log,rawSpectra,retrievalTool);
     
     % Reformatting of the raw spectra into a matrix (numberOfSpectra x
     % numberOfChannels)
@@ -74,16 +78,20 @@ for k = 1:numel(dates)
     % Plotting some raw spectra:
     retrievalTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
     
-    retrievalTool.plot_calibrated_spectra=@(retrievalTool,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim,N);
-    
+    % Function to use for doing the calibration:
     retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType);
     
+    % Plot some calibrated spectra:
+    retrievalTool.plot_calibrated_spectra=@(retrievalTool,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim,N);
+    
+    % Function for quality check of the calibrated spectra
     retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
     
-    retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra) save_level1a_daily(retrievalTool,log,calibratedSpectra);
+    % Function saving the calibrated spectra into netCDF file
+    retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain
-    run_retrieval(retrievalTool)
+    % run_retrieval(retrievalTool)
 end
 

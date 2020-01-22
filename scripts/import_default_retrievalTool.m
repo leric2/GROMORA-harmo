@@ -69,7 +69,7 @@ switch instrumentName
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.elevationAngleAntenna=40;
-        retrievalTool.elevationAngleCold=-84;
+        retrievalTool.elevationAngleCold=-85;
         retrievalTool.elevationAngleHot=160;
         
         retrievalTool.elevationAngleTolerance=5;
@@ -102,7 +102,7 @@ switch instrumentName
         retrievalTool.lat=46.82;
         retrievalTool.altitude=491;
         
-        retrievalTool.numberOfTippingCurveExpected=48;
+        retrievalTool.numberOfTippingCurveExpected=4;
         retrievalTool.toleranceTippingCurves=2;
         
         retrievalTool.numberOfCyclesExpected=3940;

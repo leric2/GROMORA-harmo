@@ -71,6 +71,15 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanAngleAntenna=mean(log.Elevation_Angle(ia));
     calibratedSpectra(i).stdAngleAntenna=std(log.Elevation_Angle(ia));
     
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Hot load check flag
+    if (calibratedSpectra(i).stdTHot>retrievalTool.hotTemperatureStdThreshold)
+        calibratedSpectra(i).hotLoadOK=0;
+    else
+        calibratedSpectra(i).hotLoadOK=1;
+    end
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
     % Tsys

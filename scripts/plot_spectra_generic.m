@@ -1,6 +1,6 @@
 function plot_spectra_generic(retrievalTool,calibratedSpectra,lowerLim,upperLim,N)
 % Just for a first look
-
+try
 % plotting a spectra every N measurements 
 l=floor(linspace(1,size(calibratedSpectra,2),N));
 
@@ -23,6 +23,12 @@ end
 legend(TOD)
 
 saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' calibratedSpectra(1).date],'jpg')
-close
+
+% close
+
+catch ME
+    warning(ME.identifier,'Problem Plotting')
+end
+
 end
 

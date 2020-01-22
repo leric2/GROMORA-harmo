@@ -1,8 +1,8 @@
 function run_retrieval(retrievalTool)
 %==========================================================================
-% NAME          | 
-% TYPE          |
-% AUTHOR(S)     |
+% NAME          | run_retrieval.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
 % CREATION      |
 %               |
 % ABSTRACT      |
@@ -30,105 +30,85 @@ assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not fou
 disp(['Starting the calibration process for ' retrievalTool.instrumentName ': ' retrievalTool.dateStr])
 disp('Reading level0 data...')
 
-% Initialize structure containing the error that are non fatal for the
-% retrieval
-warningLevel0_1a=struct();
-
-% SHOULD WE PUT THE TRY/CATCH INSIDE THE FUNCTIONS ?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading raw data
-try
-    [log,rawSpectra]=retrievalTool.read_level0(file,retrievalTool);
-catch ME
-    warningLevel0_1a.readingRawData=ME.identifier;
-    error(ME.identifier,'Problem while reading the file')
-end
+[log,rawSpectra]=retrievalTool.read_level0(file,retrievalTool);
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible.
 log=retrievalTool.harmonize_log(log);
 
 % Quality check of the raw data:
-warningLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,warningLevel0_1a);
+warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
 
 % Reformat the raw spectra from vector to matrix
-try
-    rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
-catch ME
-    warningLevel0_1a.reformattingSpectra=ME.identifier;
-    error(ME.identifier,'Problem reformatting the spectra')
-end
+rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
 
 % when needed, flip it !
 if retrievalTool.flipped_spectra
-    try
-        rawSpectra=retrievalTool.flip_spectra(rawSpectra);
-    catch ME
-        warningLevel0_1a.flippingSpectra=ME.identifier;
-        error(ME.identifier)
-    end
+    rawSpectra=retrievalTool.flip_spectra(rawSpectra);
 end
 
 % Option for plotting spectra (to be improved...)
 if retrievalTool.rawSpectraPlot
-    try
-        retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,20);
-    catch ME
-        warningLevel0_1a.plottingSpectra=ME.identifier;
-        error(ME.identifier,'s')
-    end
+    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,10);
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Calibrating...')
-try
-    calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
-catch ME
-    warningLevel0_1a.calibrate=ME.identifier;
-    error(ME.identifier,'Problem when doing the calibration')
-end
+
+calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
 
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file
-try
-    calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpectra);
-catch ME
-    warningLevel0_1a.check_calibrated=ME.identifier;
-    error(ME.identifier,'Problem when checking the calibrated spectra')
-end
+calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpectra);
+
 
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
-    try
-        retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,10);
-    catch ME
-        warningLevel0_1a.plottingSpectra=ME.identifier;
-        error(ME.identifier,'Problem Plotting')
-    end
+    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,10);
 end
 
-% clear rawSpectra;
+%%
+% Clearing some variables for space
+clear rawSpectra;
 
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
-try
-    retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra);
-catch ME
-    warningLevel0_1a.savingSpectra=ME.identifier;
-    warning(ME.identifier,'Problem when saving the calibrated spectra')
-end
+retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,warningLevel0);
 
 disp('Warning Level0-1a :')
-disp(warningLevel0_1a)
+disp(warningLevel0)
 
-%     
-% end
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Level 1a to level 1b
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % 
-% end
-% 
+%
+%
+%
+%
+
+% read_level1a()
+
+% plot_hourly_spectra()
+
+
+
+
+
+
+
+
+
+
