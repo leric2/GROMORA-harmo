@@ -143,7 +143,7 @@ for i=1:nCalibrationCycles
     ic=ic(sum(medStdDevThreshCold,2)<retrievalTool.threshNumRawSpectraCold);
     
     calibratedSpectra(i).spuriousHotSpectra=initSizeHot-length(ih);
-    calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic);
+    calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic);  
     
     % Number of spectra left:
     calibratedSpectra(i).hotSpectraRemaining=length(ih);
@@ -220,7 +220,7 @@ switch calType
             end
             calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
             calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
-            
+
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
             calibratedSpectra(i).calibrationType='standard';

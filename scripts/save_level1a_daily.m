@@ -1,4 +1,4 @@
-function feedback = save_level1a_daily(retrievalTool,log,calibratedSpectra)
+function save_level1a_daily(retrievalTool,log,calibratedSpectra)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -75,8 +75,8 @@ nccreate(filename,'/spectrometer1/lon','Datatype','single','FillValue',-9999);
 nccreate(filename,'/spectrometer1/alt','Datatype','single','FillValue',-9999);
 nccreate(filename,'/spectrometer1/azimuthAngle','Datatype','single','FillValue',-9999);
 
-%nccreate(filename,'/spectrometer1/startTime','Dimensions',{'time',Inf},'Datatype','float','FillValue','NA');
-%nccreate(filename,'/spectrometer1/stopTime','Dimensions',{'time',Inf},'Datatype','char','FillValue','NA');
+nccreate(filename,'/spectrometer1/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -87,6 +87,7 @@ nccreate(filename,'/spectrometer1/calibrationTime','Dimensions',{'time',Inf},'Da
 nccreate(filename,'/spectrometer1/meanAngleAntenna','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 % Flags and flags
@@ -118,8 +119,15 @@ ncwrite(filename,'/spectrometer1/lon',retrievalTool.lon);
 ncwrite(filename,'/spectrometer1/alt',retrievalTool.altitude);
 %ncwrite(filename,'/spectrometer1/azimuthAngle', ??);
 
-%ncwrite(filename,'/spectrometer1/startTime',char(startTimeInt8)');
-%ncwrite(filename,'/spectrometer1/stopTime',datestr(calibratedSpectra(t).dateStop,'yyyymmddTHHMMSSZ'));
+ncwrite(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.datetimeStart]);  
+ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
+
+ncwrite(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.datetimeStop]);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
 ncwrite(filename,'/spectrometer1/Tb',Tb');
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
@@ -130,6 +138,7 @@ ncwrite(filename,'/spectrometer1/calibrationTime',[calibratedSpectra.calibration
 ncwrite(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
 
 ncwrite(filename,'/spectrometer1/TRoom',[calibratedSpectra.TempRoom]);
+ncwrite(filename,'/spectrometer1/stdTRoom',[calibratedSpectra.stdTempRoom]);
 ncwrite(filename,'/spectrometer1/TOut',[calibratedSpectra.TempOut]);
 
 % Writing the errors variables
@@ -153,17 +162,6 @@ ncwriteatt(filename,'/','name',retrievalTool.PI_NAME);
 ncwriteatt(filename,'/','institution',retrievalTool.PI_AFFILIATION);
 ncwriteatt(filename,'/','contact',retrievalTool.PI_ADDRESS);
 ncwriteatt(filename,'/','mail',retrievalTool.PI_EMAIL);
-% ncwriteatt(filename,'/','DO_NAME','');
-% ncwriteatt(filename,'/','DO_AFFILIATION','');
-% ncwriteatt(filename,'/','DO_ADDRESS','');
-% ncwriteatt(filename,'/','DO_EMAIL','');
-% ncwriteatt(filename,'/','DS_NAME','');
-% ncwriteatt(filename,'/','DS_AFFILIATION','');
-% ncwriteatt(filename,'/','DS_ADDRESS','');
-% ncwriteatt(filename,'/','DS_EMAIL','');
-% Dataset attributes
-%ncwriteatt(filename,'/','DATA_DISCIPLINE','ATMOSPHERIC.PHYSICS');
-%ncwriteatt(filename,'/','DATA_GROUP','EXPERIMENTAL;...');
 
 ncwriteatt(filename,'/','history','');
 ncwriteatt(filename,'/','references','');
@@ -176,8 +174,10 @@ ncwriteatt(filename,'/','calibrated_version',calibratedSpectra(1).calibrationVer
 ncwriteatt(filename,'/','raw_file_comment',log.comment);
 
 % Geolocation attributes
-ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
-ncwriteatt(filename,'/','data_stop_date',datestr(calibratedSpectra(end).dateStop,'yyyymmddTHHMMSSZ'));
+%ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
+%ncwriteatt(filename,'/','data_stop_date',datestr(calibratedSpectra(end).dateStop,'yyyymmddTHHMMSSZ'));
+ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).dateStart);
+ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).dateStop);
 %ncwriteatt(filename,'/','DATA_FILE_VERSION','');
 %ncwriteatt(filename,'/','DATA_RULES_OF_USE','');
 
@@ -285,6 +285,11 @@ attrVal.TRoom = {'TRoom',...
     'K',...
     'mean room temperature'};
 
+attrVal.stdTRoom = {'stdTRoom',...
+    '',...
+    'K',...
+    'standard deviation of room temperature'};
+
 attrVal.TOut = {'TOut',...
     '',...
     'K',...
@@ -304,6 +309,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/calibrationTime',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/meanAngleAntenna',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
+    ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
 end
 
@@ -350,6 +356,5 @@ if retrievalTool.saveAllCycles
     ncwrite(filename,'/debug/Tb_all',TbAll');
 end
 
-feedback=0;
-
+disp(['File saved as: ' filename])
 end

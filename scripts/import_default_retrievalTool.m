@@ -39,7 +39,7 @@ retrievalTool.hotTemperatureStdThreshold=10;
 
 % minimum number of indices (h-a-c) we want in a calibration cycle for it
 % to be valid
-retrievalTool.minNumberOfIndicePerCycle=15;
+retrievalTool.minNumberOfIndicePerCycle=5;
 
 retrievalTool.numberOfAquisitionSpectraHot=60000;
 retrievalTool.numberOfAquisitionSpectraAntenna=120000;
@@ -75,7 +75,7 @@ switch instrumentName
         retrievalTool.elevationAngleTolerance=5;
         % Considering the expected number of tipping curve:
         retrievalTool.numberOfCyclesExpected=1500;
-        retrievalTool.toleranceNumberCycles=15;
+        retrievalTool.toleranceNumberCycles=0.01*retrievalTool.numberOfCyclesExpected;
         retrievalTool.tippingSize=27;
         retrievalTool.flipped_spectra=true;
         retrievalTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
@@ -104,13 +104,16 @@ switch instrumentName
         
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
+        
+        retrievalTool.numberOfCyclesExpected=3940;
+        retrievalTool.toleranceNumberCycles=0.01*retrievalTool.numberOfCyclesExpected;
+        
         retrievalTool.tippingSize=5;
         retrievalTool.elevationAngleAntenna=38;
         retrievalTool.elevationAngleCold=-90;
         retrievalTool.elevationAngleHot=180;
         retrievalTool.elevationAngleTolerance=5;
-        retrievalTool.numberOfCyclesExpected=NaN;
-        retrievalTool.toleranceNumberCycles=NaN;
+
         retrievalTool.flipped_spectra=false;
         % The log needs to be harmonized, for now taking gromos as basis
         retrievalTool.harmonize_log=@(log) harmonize_log_somora(log);

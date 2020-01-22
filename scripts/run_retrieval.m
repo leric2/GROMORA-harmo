@@ -27,7 +27,8 @@ retrievalTool_complete(retrievalTool)
 
 file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
 assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not found')
-disp(['Reading: ' retrievalTool.dateStr])
+disp(['Starting the calibration process for ' retrievalTool.instrumentName ': ' retrievalTool.dateStr])
+disp('Reading level0 data...')
 
 % Initialize structure containing the error that are non fatal for the
 % retrieval
@@ -50,14 +51,8 @@ end
 % harmonize it as much as possible.
 log=retrievalTool.harmonize_log(log);
 
-
 % Quality check of the raw data:
 warningLevel0_1a=retrievalTool.check_level0(log,rawSpectra,retrievalTool,warningLevel0_1a);
-
-% Check if the raw data are good
-if not(numel(fieldnames(warningLevel0_1a))==0)
-    disp('Houston, we have a problem already!')
-end
 
 % Reformat the raw spectra from vector to matrix
 try
@@ -73,7 +68,7 @@ if retrievalTool.flipped_spectra
         rawSpectra=retrievalTool.flip_spectra(rawSpectra);
     catch ME
         warningLevel0_1a.flippingSpectra=ME.identifier;
-        warning(ME.identifier)
+        error(ME.identifier)
     end
 end
 
@@ -83,19 +78,19 @@ if retrievalTool.rawSpectraPlot
         retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,20);
     catch ME
         warningLevel0_1a.plottingSpectra=ME.identifier;
-        warning(ME.identifier,'s')
+        error(ME.identifier,'s')
     end
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(['Calibrating: ' retrievalTool.dateStr])
+disp('Calibrating...')
 try
     calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
 catch ME
     warningLevel0_1a.calibrate=ME.identifier;
-    warning(ME.identifier,'Problem when doing the calibration')
+    error(ME.identifier,'Problem when doing the calibration')
 end
 
 % Quality check of the calibrated spectra
@@ -104,7 +99,7 @@ try
     calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpectra);
 catch ME
     warningLevel0_1a.check_calibrated=ME.identifier;
-    warning(ME.identifier,'Problem when checking the calibrated spectra')
+    error(ME.identifier,'Problem when checking the calibrated spectra')
 end
 
 % Option for plotting and saving spectra (to be improved...)
@@ -113,14 +108,17 @@ if retrievalTool.calibratedSpectraPlot
         retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,10);
     catch ME
         warningLevel0_1a.plottingSpectra=ME.identifier;
-        warning(ME.identifier,'Problem Plotting')
+        error(ME.identifier,'Problem Plotting')
     end
 end
+
+% clear rawSpectra;
+
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
-disp(['Saving Level 1a: ' retrievalTool.dateStr])
+disp('Saving Level 1a...')
 try
-    savingLevel0Error=retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra);
+    retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra);
 catch ME
     warningLevel0_1a.savingSpectra=ME.identifier;
     warning(ME.identifier,'Problem when saving the calibrated spectra')

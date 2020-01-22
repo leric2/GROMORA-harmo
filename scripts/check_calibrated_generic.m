@@ -31,12 +31,26 @@ for i = 1:size(calibratedSpectra,2)
     % calibration cycle should be more than a certain threshold
     if ((length(ih)>retrievalTool.minNumberOfIndicePerCycle) || (length(ia) > retrievalTool.minNumberOfIndicePerCycle) || (length(ic)>retrievalTool.minNumberOfIndicePerCycle))
         calibratedSpectra(i).sufficientNumberOfIndices=1;
-        warning('number of spectra low');
     else
         calibratedSpectra(i).sufficientNumberOfIndices=0;
+        warning('number of spectra low');
     end
     
     % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
+    effectiveTime=0;
+    %if i<size(calibratedSpectra,2)
+    for l= 1:length(ind)-1
+        effectiveTime=effectiveTime+(log.t(ind(l+1))-log.t(ind(l)))*60;
+    end
+    % adding the last time if possible
+    if i<size(calibratedSpectra,2)
+        effectiveTime=effectiveTime+(log.t(ind(l+1)+1)-log.t(ind(l+1)));
+    else
+        % TODO
+        effectiveTime=effectiveTime;
+    end
+    calibratedSpectra(i).effectiveCalibrationTime=effectiveTime;
+      
     %calibratedSpectra(i).effectiveCalibrationTimeHot=length(ih)*retrievalTool.calibTimeHot;
     %calibratedSpectra(i).effectiveCalibrationTimeAntenna=length(ia)*retrievalTool.calibTimeAntenna;
     %calibratedSpectra(i).effectiveCalibrationTimeCold=length(ic)*retrievalTool.calibTimeCold;
@@ -137,8 +151,11 @@ for i = 1:size(calibratedSpectra,2)
     % Save the start and stop time for this calibration cycle
     % Correspond to the first sky measurements taken into account for the
     % mean calibrated spectra.
-    calibratedSpectra(i).dateStart=log.x(1:6,ia(1))';
-    calibratedSpectra(i).dateStop=log.x(1:6,ia(end))';
+    calibratedSpectra(i).dateStart=datestr(log.x(1:6,ia(1))','yyyymmddTHHMMSSZ');
+    calibratedSpectra(i).dateStop=datestr(log.x(1:6,ia(end))','yyyymmddTHHMMSSZ');
+    
+    calibratedSpectra(i).datetimeStart=datenum(calibratedSpectra(i).dateStart,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
+    calibratedSpectra(i).datetimeStop=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
     
     % As we are always using daily raw files:
     calibratedSpectra(i).year=log.Year(1);
@@ -161,6 +178,7 @@ for i = 1:size(calibratedSpectra,2)
     
     % as well as the "mean time" of the calibration cycle
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
+    
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
     calibratedSpectra(i).calendar='prolepticIsoCalendar';

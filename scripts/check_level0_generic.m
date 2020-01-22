@@ -76,7 +76,6 @@ end
 
 % Approximate number of cycles completed for this day
 nCycles=sum(log.Tipping_Curve_active==0)/6;
-
 try
     assert(((nCycles<retrievalTool.numberOfCyclesExpected+retrievalTool.toleranceNumberCycles)&&(nCycles>retrievalTool.numberOfCyclesExpected-retrievalTool.toleranceNumberCycles)),'consistency:numberCycles','Number of cycles unconsistent');
 catch ME
