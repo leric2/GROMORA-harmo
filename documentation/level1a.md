@@ -20,7 +20,6 @@ It represents either a real physical quantity or index other quantities. It has 
 ### Variables
 Array of values of the same type. It has a name, a data type and a shape (described by its list of dimensions).
 
-
 #### Coordinate variables
 These are one-dimensional variable with the same name as their dimension. 
 

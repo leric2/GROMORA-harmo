@@ -1,0 +1,184 @@
+netcdf GROMOS_level1a_2019_02_01 {
+
+// global attributes:
+		:title = "Brightness temperature measured by ground-based radiometer" ;
+		:location = "BERN" ;
+		:source = "MWR.O3_UBERN" ;
+		:name = "Murk;Axel" ;
+		:institution = "Universtiy of Bern;UBERN" ;
+		:contact = "Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland" ;
+		:mail = "axel.murk@iap.unibe.ch" ;
+		:history = "" ;
+		:references = "" ;
+		:comment = "" ;
+		:rawData = "/mnt/instrumentdata/gromos/FFTS/2019/GROMOS09_2019_02_01" ;
+		:raw_data_software_version = "20180220" ;
+		:calibrated_version = "1.0.0" ;
+		:raw_file_comment = "" ;
+		:data_start_date = "20190201T000021Z" ;
+		:data_stop_date = "20190201T235945Z" ;
+		:filename = "/home/esauvageat/Documents/GROSOM/Level1/GROMOS/GROMOS_level1a_2019_02_01.nc" ;
+		:creation_date = "20200122T104008Z" ;
+		:rawFilename = "" ;
+		:featureType = "timeSeries" ;
+
+group: spectrometer1 {
+  dimensions:
+  	time = UNLIMITED ; // (144 currently)
+  	channel_idx = 32768 ;
+  variables:
+  	double time(time) ;
+  		time:units = "days since 1970-01-01 00:00:00" ;
+  		time:calendar = "prolepticIsoCalendar" ;
+  		time:description = "mean time of the measurements for this cycle" ;
+  	int64 channel_idx(channel_idx) ;
+  		channel_idx:_FillValue = -9999LL ;
+  	int64 year(time) ;
+  		year:_FillValue = -9999LL ;
+  	int64 month(time) ;
+  		month:_FillValue = -9999LL ;
+  	int64 day(time) ;
+  		day:_FillValue = -9999LL ;
+  	double timeOfDay(time) ;
+  		timeOfDay:_FillValue = -9999. ;
+  		timeOfDay:long_name = "TOD" ;
+  		timeOfDay:standard_name = "" ;
+  		timeOfDay:units = "day" ;
+  		timeOfDay:description = "Time of the day" ;
+  	float lat ;
+  		lat:_FillValue = -9999.f ;
+  		lat:long_name = "station latitude" ;
+  		lat:standard_name = "latitude" ;
+  		lat:units = "degree_north" ;
+  		lat:description = "latitude defined according to WGS84" ;
+  	float lon ;
+  		lon:_FillValue = -9999.f ;
+  		lon:long_name = "station longitude" ;
+  		lon:standard_name = "longitude" ;
+  		lon:units = "degree_north" ;
+  		lon:description = "longitude defined according to WGS84" ;
+  	float alt ;
+  		alt:_FillValue = -9999.f ;
+  		alt:long_name = "station altitude" ;
+  		alt:standard_name = "altitude" ;
+  		alt:units = "m" ;
+  		alt:description = "above see level" ;
+  	float azimuthAngle ;
+  		azimuthAngle:_FillValue = -9999.f ;
+  		azimuthAngle:long_name = "azimuth angle" ;
+  		azimuthAngle:standard_name = "sensor_zenith_angle" ;
+  		azimuthAngle:units = "degree" ;
+  		azimuthAngle:description = "reference direction is NORTH" ;
+  	double firstSkyTime(time) ;
+  		firstSkyTime:_FillValue = -9999. ;
+  		firstSkyTime:units = "days since 1970-01-01 00:00:00" ;
+  		firstSkyTime:calendar = "prolepticIsoCalendar" ;
+  		firstSkyTime:description = "start time of the first sky measurements in this cycle" ;
+  	double lastSkyTime(time) ;
+  		lastSkyTime:_FillValue = -9999. ;
+  		lastSkyTime:units = "days since 1970-01-01 00:00:00" ;
+  		lastSkyTime:calendar = "prolepticIsoCalendar" ;
+  		lastSkyTime:description = "stop time of the first sky measurements in this cycle" ;
+  	double Tb(time, channel_idx) ;
+  		Tb:_FillValue = -9999. ;
+  		Tb:long_name = "Tb" ;
+  		Tb:standard_name = "brightness_temperature" ;
+  		Tb:units = "K" ;
+  		Tb:description = "calibrated brightness temperature for this cycle" ;
+  	double THot(time) ;
+  		THot:_FillValue = -9999. ;
+  		THot:long_name = "THot" ;
+  		THot:standard_name = "" ;
+  		THot:units = "K" ;
+  		THot:description = "Mean temperature of the hot load" ;
+  	double stdTHot(time) ;
+  		stdTHot:_FillValue = -9999. ;
+  		stdTHot:long_name = "stdTHot" ;
+  		stdTHot:standard_name = "" ;
+  		stdTHot:units = "K" ;
+  		stdTHot:description = "standard deviation of the hot load temperature" ;
+  	double TSys(time) ;
+  		TSys:_FillValue = -9999. ;
+  		TSys:long_name = "TSys" ;
+  		TSys:standard_name = "" ;
+  		TSys:units = "K" ;
+  		TSys:description = "mean system temperature" ;
+  	double stdTSys(time) ;
+  		stdTSys:_FillValue = -9999. ;
+  		stdTSys:long_name = "stdTSys" ;
+  		stdTSys:standard_name = "standard deviation of the system temperature" ;
+  		stdTSys:units = "K" ;
+  		stdTSys:description = "" ;
+  	double calibrationTime(time) ;
+  		calibrationTime:_FillValue = -9999. ;
+  		calibrationTime:long_name = "calibrationTime" ;
+  		calibrationTime:standard_name = "" ;
+  		calibrationTime:units = "min" ;
+  		calibrationTime:description = "Time used for calibrating the spectra" ;
+  	double meanAngleAntenna(time) ;
+  		meanAngleAntenna:_FillValue = -9999. ;
+  		meanAngleAntenna:long_name = "meanAngleAntenna" ;
+  		meanAngleAntenna:standard_name = "elevation_angle" ;
+  		meanAngleAntenna:units = "degree" ;
+  		meanAngleAntenna:description = "mean elevation angle of the antenna during this cycle" ;
+  	double TRoom(time) ;
+  		TRoom:_FillValue = -9999. ;
+  		TRoom:long_name = "TRoom" ;
+  		TRoom:standard_name = "" ;
+  		TRoom:units = "K" ;
+  		TRoom:description = "mean room temperature" ;
+  	double stdTRoom(time) ;
+  		stdTRoom:_FillValue = -9999. ;
+  		stdTRoom:long_name = "stdTRoom" ;
+  		stdTRoom:standard_name = "" ;
+  		stdTRoom:units = "K" ;
+  		stdTRoom:description = "standard deviation of room temperature" ;
+  	double TOut(time) ;
+  		TOut:_FillValue = -9999. ;
+  		TOut:long_name = "TOut" ;
+  		TOut:standard_name = "" ;
+  		TOut:units = "K" ;
+  		TOut:description = "mean outside temperaure" ;
+  } // group spectrometer1
+
+group: flags {
+  dimensions:
+  	time = UNLIMITED ; // (144 currently)
+  	flags = 9 ;
+  variables:
+  	double time(time) ;
+  		time:units = "days since 1970-01-01 00:00:00" ;
+  		time:calendar = "prolepticIsoCalendar" ;
+  		time:description = "mean time of the measurements for this cycle" ;
+  	int64 flags(flags) ;
+  	int64 calibration_flags(time, flags) ;
+  		calibration_flags:_FillValue = -9999LL ;
+  		calibration_flags:errorCode_1 = "sufficientNumberOfIndices" ;
+  		calibration_flags:errorCode_2 = "systemTemperatureOK" ;
+  		calibration_flags:errorCode_3 = "hotAngleRemoved" ;
+  		calibration_flags:errorCode_4 = "coldAngleRemoved" ;
+  		calibration_flags:errorCode_5 = "antennaAngleRemoved" ;
+  		calibration_flags:errorCode_6 = "LN2SensorsOK" ;
+  		calibration_flags:errorCode_7 = "LN2LevelOK" ;
+  		calibration_flags:errorCode_8 = "hotLoadOK" ;
+  		calibration_flags:errorCode_9 = "FFT_adc_overload_OK" ;
+
+  // group attributes:
+  		:description = "Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes" ;
+  } // group flags
+
+group: debug {
+  dimensions:
+  	cycle_id = UNLIMITED ; // (2992 currently)
+  	channel_idx = 32768 ;
+  variables:
+  	int64 cycle_id(cycle_id) ;
+  	int64 channel_idx(channel_idx) ;
+  		channel_idx:_FillValue = -9999LL ;
+  	int64 calibration_cycle_number(cycle_id) ;
+  		calibration_cycle_number:_FillValue = -9999LL ;
+  	float Tb_all(cycle_id, channel_idx) ;
+  		Tb_all:_FillValue = -9999.f ;
+  } // group debug
+}
+

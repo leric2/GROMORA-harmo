@@ -37,17 +37,42 @@ For the calibration (level0 - level1a), this is executing the following steps:
 8. calibrating
 9. check and add information to the calibrated spectra
 10. plot the calibrated spectra
-11. save the calibrated spectra in netCDF
-
-### Questions
+11. save the calibrated spectra in netCDF daily file
 
 ### Error and warning management
-TODO
+Standard way of dealing with error with is to use warnings for "unexpected conditions" and errors for "fatal problems" which will stop the scripts.
 
-Standard way of dealing with error with is to use warnings for "unexpected conditions" and errors for "fatal problems" which will stop the retrievals. 
+In our case, we want 
 
-### Output parameters
-TODECIDE
+### Questions about calibration
+1. Is calibration routine OK (method) ? Is there a way to check it ?
+
+2. Is the outlier detection OK ? For now, we remove all kind of spectra that have a wrong pointing angle (thresholds ?). For hot and cold spectra, we also check that these are not containing too many channels beyond the median +- n*sigma for the calibration cycle. 
+
+2. Include tipping curve calibration (approx. every 30 minutes) as additionnal information ? Make some proper error propagation in the calibration formula ?
+
+3. Thot and Tcold to choose ? (see level1a.md)
+
+4. What other quality flags do we want to add for the calibration cycle ?
+
+5. 
+### Output parameters to save as netCDF
+
+
+
+### Future perspectives
+
+In my opinion, there are different ways we can take for the following steps of the projects:
+1. Improve the calibration routine, for instance by including the tipping curves
+
+2. Calibrate the whole time series for both instrument
+
+3. Go to level 1b data
+    * Select good calibrated spectra ? Based on what ? flags ? Tb values ?
+    * Channel outliers: boxcar filter, absolute value of Tb, value of transmittance ? --> replaced with interpolation ?
+    * Windows corrections ?
+    * Integration of the calibrated spectra on 1h
+    * Continue with Matlab
 
 ## Suggestion (old)
 Take a sort of "object oriented" approach for launching the retrievals. 
