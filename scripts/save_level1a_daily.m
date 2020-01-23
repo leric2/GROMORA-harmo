@@ -1,4 +1,4 @@
-function save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0)
+function retrievalTool = save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0)
 %==========================================================================
 % NAME          | save_level1a_daily.m
 % TYPE          | function
@@ -48,6 +48,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now write daily level 1a file
 filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.dateStr '.nc'];
+retrievalTool.filenameLevel1a=filename;
+
 %filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
 %title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
 

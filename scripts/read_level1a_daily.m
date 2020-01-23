@@ -1,6 +1,6 @@
-function read_level1a_daily(retrievalTool)
+function correctedSpectra = read_level1a_daily(retrievalTool)
 %==========================================================================
-% NAME          | read.m
+% NAME          | read_level1a_daily.m
 % TYPE          | function
 % AUTHOR(S)     | Eric Sauvageat
 % CREATION      | 01.2020
@@ -21,47 +21,25 @@ function read_level1a_daily(retrievalTool)
 %==========================================================================
 %
 %
-% Saving level1a into DAILY netCDF file
-% We are using the netcdf package because it offers far more flexibility
-% for the writing.
-locationLevel1a=retrievalTool.level1Folder;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Here LOOOP in all calibration cycle and write every variable into daily vector
-% of matrices
-
-%initialize some variable (only the matrices)
-channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
-Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
-
-error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-
-for t = 1:length(calibratedSpectra)
-    channelId(t,:)=1:retrievalTool.numberOfChannels;
-    Tb(t,:)=calibratedSpectra(t).Tb;
-    
-    error(t,:)=1:length(calibratedSpectra(1).errorVector);
-    errorCalib(t,:)=calibratedSpectra(t).errorVector;
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Now write daily level 1a file
+% filename:
 filename=retrievalTool.filenameLevel1a;
-%filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
-%title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read the different dataset and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % Scientific Dataset (spectrometer1,2,...)
-%%%%%%%%%%%%%%%%%
 % the variables linked with the calibration
-ncread(filename,'/spectrometer1/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
 
-calibratedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
-calibratedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
+correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
+correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
+correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
+correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
+correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
+
+correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
+correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
+
 % ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
 % ncread(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);
 % ncread(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
@@ -85,12 +63,11 @@ calibratedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
 
 % Writing the spectrometer1 variable
 % Coordinate variables, directly adding the attributes
-ncread(filename,'/spectrometer1/time',[calibratedSpectra.meanDatetime]);
-ncreadatt(filename,'/spectrometer1/time','units',calibratedSpectra(1).meanDatetimeUnit);
-ncreadatt(filename,'/spectrometer1/time','calendar',calibratedSpectra(1).calendar);
-ncreadatt(filename,'/spectrometer1/time','description','mean time of the measurements for this cycle');
+correctedSpectra.meanTime = ncread(filename,'/spectrometer1/time')';
+correctedSpectra.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
+correctedSpectra.timeCalendar= ncreadatt(filename,'/spectrometer1/time','calendar');
 
-ncread(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
+correctedSpectra.channelID = ncread(filename,'/spectrometer1/channel_idx')';
 
 % some variable for better identifying the time period of the measurements
 % ncread(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
@@ -98,12 +75,12 @@ ncread(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
 % ncread(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
 % ncread(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
 
-ncread(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.datetimeStart]);  
+correctedSpectra.firstSkyTime=ncread(filename,'/spectrometer1/firstSkyTime')';  
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','calendar',calibratedSpectra(1).calendar);
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-ncread(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.datetimeStop]);
+correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/lastSkyTime')';
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');

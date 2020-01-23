@@ -61,6 +61,7 @@ for k = 1:numel(dates)
     
     retrievalTool.rawSpectraPlot=false;
     retrievalTool.calibratedSpectraPlot=true;
+    retrievalTool.hourlyCalibratedSpectraPlot=true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Selecting the functions that will be used for processing this retrieval
@@ -89,6 +90,12 @@ for k = 1:numel(dates)
     
     % Function saving the calibrated spectra into netCDF file
     retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0);
+    
+    % Function reading the daily calibrated spectra from netCDF file
+    retrievalTool.read_level1a = @(retrievalTool) read_level1a_daily(retrievalTool);
+    
+    %
+    retrievalTool.plot_hourly_spectra = @(retrievalTool,rawSpectra,lowerLim,upperLim) plot_hourly_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain

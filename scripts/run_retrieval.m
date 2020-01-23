@@ -81,7 +81,7 @@ clear rawSpectra;
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
-retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,warningLevel0);
+retrievalTool = retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,warningLevel0);
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)
@@ -99,11 +99,21 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 %
 %
 
-% read_level1a()
+correctedSpectra=retrievalTool.read_level1a(retrievalTool);
 
-% plot_hourly_spectra()
+correctedSpectra.freq=calibratedSpectra.freq;
+correctedSpectra.date=calibratedSpectra(1).date;
 
+% Option for plotting hourly spectra (to be improved...)
+if retrievalTool.hourlyCalibratedSpectraPlot
+    retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
+end
 
+% get_meteo_data()
+
+% window_correction()
+
+% tropospheric_correction
 
 
 
