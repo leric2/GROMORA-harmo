@@ -99,15 +99,15 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 %
 %
 
-correctedSpectra=retrievalTool.read_level1a(retrievalTool);
-
-correctedSpectra.freq=calibratedSpectra.freq;
-correctedSpectra.date=calibratedSpectra(1).date;
-
-% Option for plotting hourly spectra (to be improved...)
-if retrievalTool.hourlyCalibratedSpectraPlot
-    retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
-end
+% correctedSpectra=retrievalTool.read_level1a(retrievalTool);
+% 
+% correctedSpectra.freq=calibratedSpectra.freq;
+% correctedSpectra.date=calibratedSpectra(1).date;
+% 
+% % Option for plotting hourly spectra (to be improved...)
+% if retrievalTool.hourlyCalibratedSpectraPlot
+%     retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
+% end
 
 % get_meteo_data()
 

@@ -21,6 +21,7 @@ for i=1:N
     hold on
 end
 legend(TOD)
+title([calibratedSpectra(1).date(1:4) '-' calibratedSpectra(1).date(6:7) '-' calibratedSpectra(1).date(9:10)])
 
 saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' calibratedSpectra(1).date],'jpg')
 

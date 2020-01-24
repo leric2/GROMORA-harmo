@@ -69,7 +69,7 @@ switch instrumentName
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
         retrievalTool.elevationAngleAntenna=40;
-        retrievalTool.elevationAngleCold=-85;
+        retrievalTool.elevationAngleCold=-84;
         retrievalTool.elevationAngleHot=160;
         
         retrievalTool.elevationAngleTolerance=5;

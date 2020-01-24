@@ -27,7 +27,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2018_05_08','yyyy_mm_dd'):datenum('2018_05_08','yyyy_mm_dd');
+dates=datenum('2019_10_01','yyyy_mm_dd'):datenum('2019_10_01','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -54,7 +54,7 @@ for k = 1:numel(dates)
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
     end
     
-    retrievalTool.saveAllCycles=0;
+    retrievalTool.saveAllCycles=1;
     
     retrievalTool.hotSpectraNumberOfStdDev=3;
     retrievalTool.coldSpectraNumberOfStdDev=3;
@@ -99,6 +99,6 @@ for k = 1:numel(dates)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain
-    % run_retrieval(retrievalTool)
+    run_retrieval(retrievalTool)
 end
 
