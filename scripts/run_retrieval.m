@@ -30,7 +30,6 @@ assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not fou
 disp(['Starting the calibration process for ' retrievalTool.instrumentName ': ' retrievalTool.dateStr])
 disp('Reading level0 data...')
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,21 +98,23 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 %
 %
 
-% correctedSpectra=retrievalTool.read_level1a(retrievalTool);
+correctedSpectra=retrievalTool.read_level1a(retrievalTool);
 % 
-% correctedSpectra.freq=calibratedSpectra.freq;
+
 % correctedSpectra.date=calibratedSpectra(1).date;
 % 
-% % Option for plotting hourly spectra (to be improved...)
-% if retrievalTool.hourlyCalibratedSpectraPlot
-%     retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
-% end
+% Option for plotting hourly spectra (to be improved...)
+if retrievalTool.hourlyCalibratedSpectraPlot
+    retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
+end
 
-% get_meteo_data()
+correctedSpectra=retrievalTool.get_meteo_data(correctedSpectra,retrievalTool);
 
 % window_correction()
 
 % tropospheric_correction
+
+% sideband correction ?
 
 
 

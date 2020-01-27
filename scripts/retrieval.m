@@ -45,13 +45,16 @@ for k = 1:numel(dates)
     
     % Path definition (for local computer)
     if (instrumentName=='GROMOS')
-        retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
-        %retrievalTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        %retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
+        retrievalTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
+        retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         
     elseif (instrumentName=='SOMORA')
         retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
+        % TOCHANGE
+        retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
     end
     
     retrievalTool.saveAllCycles=1;
@@ -97,8 +100,11 @@ for k = 1:numel(dates)
     %
     retrievalTool.plot_hourly_spectra = @(retrievalTool,rawSpectra,lowerLim,upperLim) plot_hourly_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim);
     
+    % TO CHANGE FOR SOMORA
+    retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain
-    run_retrieval(retrievalTool)
+    %run_retrieval(retrievalTool)
 end
 

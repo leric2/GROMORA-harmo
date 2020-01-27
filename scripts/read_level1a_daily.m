@@ -28,27 +28,28 @@ filename=retrievalTool.filenameLevel1a;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read the different dataset and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Scientific Dataset (spectrometer1,2,...)
+% Scientific Dataset (aquirisFFT,2,...)
 % the variables linked with the calibration
 
-correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
-correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
-correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
-correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
-correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
+correctedSpectra.Tb=ncread(filename,'/aquirisFFT/Tb')';
+correctedSpectra.freq=ncread(filename,'/aquirisFFT/frequencies')';
+correctedSpectra.THot=ncread(filename,'/aquirisFFT/THot')';
+correctedSpectra.stdTHot=ncread(filename,'/aquirisFFT/stdTHot')';
+correctedSpectra.TSys=ncread(filename,'/aquirisFFT/TSys')';
+correctedSpectra.stdTSys=ncread(filename,'/aquirisFFT/stdTSys')';
 
-correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
-correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
+correctedSpectra.calibrationTime=ncread(filename,'/aquirisFFT/calibrationTime')';
+correctedSpectra.effectiveCalibrationTime=ncread(filename,'/aquirisFFT/effectiveCalibrationTime')';
 
-% ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
-% ncread(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);
-% ncread(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
-% ncread(filename,'/spectrometer1/calibrationTime',[calibratedSpectra.calibrationTime]);
-% ncread(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
+% ncread(filename,'/aquirisFFT/stdTHot',[calibratedSpectra.stdTHot]);
+% ncread(filename,'/aquirisFFT/TSys',[calibratedSpectra.Tsys]);
+% ncread(filename,'/aquirisFFT/stdTSys',[calibratedSpectra.stdTSys]);
+% ncread(filename,'/aquirisFFT/calibrationTime',[calibratedSpectra.calibrationTime]);
+% ncread(filename,'/aquirisFFT/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
 % 
-% ncread(filename,'/spectrometer1/TRoom',[calibratedSpectra.TempRoom]);
-% ncread(filename,'/spectrometer1/stdTRoom',[calibratedSpectra.stdTempRoom]);
-% ncread(filename,'/spectrometer1/TOut',[calibratedSpectra.TempOut]);
+% ncread(filename,'/aquirisFFT/TRoom',[calibratedSpectra.TempRoom]);
+% ncread(filename,'/aquirisFFT/stdTRoom',[calibratedSpectra.stdTempRoom]);
+% ncread(filename,'/aquirisFFT/TOut',[calibratedSpectra.TempOut]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
@@ -61,30 +62,29 @@ correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effect
 % ncread(filename,'/flags/calibration_flags',errorCalib');
 % 
 
-% Writing the spectrometer1 variable
+% Writing the aquirisFFT variable
 % Coordinate variables, directly adding the attributes
-correctedSpectra.meanTime = ncread(filename,'/spectrometer1/time')';
-correctedSpectra.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
-correctedSpectra.timeCalendar= ncreadatt(filename,'/spectrometer1/time','calendar');
+correctedSpectra.meanTime = ncread(filename,'/aquirisFFT/time')';
+correctedSpectra.timeUnit = ncreadatt(filename,'/aquirisFFT/time','units');
+correctedSpectra.timeCalendar= ncreadatt(filename,'/aquirisFFT/time','calendar');
 
-correctedSpectra.channelID = ncread(filename,'/spectrometer1/channel_idx')';
+correctedSpectra.channelID = ncread(filename,'/aquirisFFT/channel_idx')';
 
 % some variable for better identifying the time period of the measurements
-% ncread(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
-% ncread(filename,'/spectrometer1/month',int64([calibratedSpectra.month]));
-% ncread(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
-% ncread(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
+correctedSpectra.year=ncread(filename,'/aquirisFFT/year');
+correctedSpectra.month= ncread(filename,'/aquirisFFT/month');
+correctedSpectra.day = ncread(filename,'/aquirisFFT/day');
+% ncread(filename,'/aquirisFFT/timeOfDay',[calibratedSpectra.timeOfDay]);
 
-correctedSpectra.firstSkyTime=ncread(filename,'/spectrometer1/firstSkyTime')';  
-% ncreadatt(filename,'/spectrometer1/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
-% ncreadatt(filename,'/spectrometer1/firstSkyTime','calendar',calibratedSpectra(1).calendar);
-% ncreadatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
+correctedSpectra.firstSkyTime=ncread(filename,'/aquirisFFT/firstSkyTime')';  
+% ncreadatt(filename,'/aquirisFFT/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+% ncreadatt(filename,'/aquirisFFT/firstSkyTime','calendar',calibratedSpectra(1).calendar);
+% ncreadatt(filename,'/aquirisFFT/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/lastSkyTime')';
-% ncreadatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
-% ncreadatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
-% ncreadatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
-
+correctedSpectra.lastSkyTime=ncread(filename,'/aquirisFFT/lastSkyTime')';
+% ncreadatt(filename,'/aquirisFFT/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+% ncreadatt(filename,'/aquirisFFT/lastSkyTime','calendar',calibratedSpectra(1).calendar);
+% ncreadatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
 disp(['File read : ' filename])
 end

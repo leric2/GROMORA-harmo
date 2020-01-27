@@ -61,10 +61,12 @@ switch instrumentName
         retrievalTool.numberOfChannels=32768;
         retrievalTool.centerFreq=1.421750400e11;
         retrievalTool.instrumentBandwidth=1e9;
+        retrievalTool.LOFreq=1.45875e11;
         
         retrievalTool.lon=7.44;
         retrievalTool.lat=46.95;
         retrievalTool.altitude=560;
+        retrievalTool.azimuthAngle=45;
         
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
@@ -97,10 +99,12 @@ switch instrumentName
         retrievalTool.numberOfChannels=16384;
         retrievalTool.centerFreq=1.4217504e11;
         retrievalTool.instrumentBandwidth=1e9;
+        retrievalTool.LOFreq=1.4927504e11; %TOCHECK
         
         retrievalTool.lon=6.95;
         retrievalTool.lat=46.82;
         retrievalTool.altitude=491;
+        retrievalTool.azimuthAngle=-9999;
         
         retrievalTool.numberOfTippingCurveExpected=4;
         retrievalTool.toleranceTippingCurves=2;

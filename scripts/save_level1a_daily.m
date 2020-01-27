@@ -33,6 +33,7 @@ locationLevel1a=retrievalTool.level1Folder;
 %initialize some variable (only the matrices)
 channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
 Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
+frequencyVector=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 
 error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
 errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
@@ -40,6 +41,7 @@ errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).erro
 for t = 1:length(calibratedSpectra)
     channelId(t,:)=1:retrievalTool.numberOfChannels;
     Tb(t,:)=calibratedSpectra(t).Tb;
+    frequencyVector(t,:)=calibratedSpectra(t).freq;
     
     error(t,:)=1:length(calibratedSpectra(1).errorVector);
     errorCalib(t,:)=calibratedSpectra(t).errorVector;
@@ -61,45 +63,46 @@ end
 % Create the different dataset and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Scientific Dataset (spectrometer1,2,...)
+% Scientific Dataset (aquirisFFT,2,...)
 
 % First create coordinates variable (enable 'netcdf4' format)
 % 
-nccreate(filename,'/spectrometer1/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
-nccreate(filename,'/spectrometer1/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
+nccreate(filename,'/aquirisFFT/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
 % these are scalar variables as they do not vary in time
-nccreate(filename,'/spectrometer1/lat','Datatype','single','FillValue',-9999);
-nccreate(filename,'/spectrometer1/lon','Datatype','single','FillValue',-9999);
-nccreate(filename,'/spectrometer1/alt','Datatype','single','FillValue',-9999);
-nccreate(filename,'/spectrometer1/azimuthAngle','Datatype','single','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/lat','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/lon','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/alt','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/azimuthAngle','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 
 % some variable for better identifying the time period of the measurements
-nccreate(filename,'/spectrometer1/year','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
-nccreate(filename,'/spectrometer1/month','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
-nccreate(filename,'/spectrometer1/day','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
-nccreate(filename,'/spectrometer1/timeOfDay','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/year','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/month','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/day','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/timeOfDay','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
-nccreate(filename,'/spectrometer1/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration
-nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
-nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/calibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/meanAngleAntenna','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/aquirisFFT/frequencies','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/calibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/meanAngleAntenna','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/aquirisFFT/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
@@ -113,54 +116,55 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibr
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing netCDF variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Writing the spectrometer1 variable
+% Writing the aquirisFFT variable
 % Coordinate variables, directly adding the attributes
-ncwrite(filename,'/spectrometer1/time',[calibratedSpectra.meanDatetime]);
-ncwriteatt(filename,'/spectrometer1/time','units',calibratedSpectra(1).meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/time','calendar',calibratedSpectra(1).calendar);
-ncwriteatt(filename,'/spectrometer1/time','description','mean time of the measurements for this cycle');
+ncwrite(filename,'/aquirisFFT/time',[calibratedSpectra.meanDatetime]);
+ncwriteatt(filename,'/aquirisFFT/time','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/aquirisFFT/time','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/aquirisFFT/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
 
-ncwrite(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
+ncwrite(filename,'/aquirisFFT/channel_idx',1:retrievalTool.numberOfChannels);
 
 %%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
 % these are scalar variables as they do not vary in time
-ncwrite(filename,'/spectrometer1/lat',retrievalTool.lat);
-ncwrite(filename,'/spectrometer1/lon',retrievalTool.lon);
-ncwrite(filename,'/spectrometer1/alt',retrievalTool.altitude);
-%ncwrite(filename,'/spectrometer1/azimuthAngle', ??);
+ncwrite(filename,'/aquirisFFT/lat',ones(length(calibratedSpectra),1)*retrievalTool.lat);
+ncwrite(filename,'/aquirisFFT/lon',ones(length(calibratedSpectra),1)*retrievalTool.lon);
+ncwrite(filename,'/aquirisFFT/alt',ones(length(calibratedSpectra),1)*retrievalTool.altitude);
+ncwrite(filename,'/aquirisFFT/azimuthAngle',ones(length(calibratedSpectra),1)*retrievalTool.azimuthAngle);
 
 % some variable for better identifying the time period of the measurements
-ncwrite(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
-ncwrite(filename,'/spectrometer1/month',int64([calibratedSpectra.month]));
-ncwrite(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
-ncwrite(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
+ncwrite(filename,'/aquirisFFT/year',int64([calibratedSpectra.year]));
+ncwrite(filename,'/aquirisFFT/month',int64([calibratedSpectra.month]));
+ncwrite(filename,'/aquirisFFT/day',int64([calibratedSpectra.day]));
+ncwrite(filename,'/aquirisFFT/timeOfDay',[calibratedSpectra.timeOfDay]);
 
-ncwrite(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.datetimeStart]);  
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',calibratedSpectra(1).calendar);
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
+ncwrite(filename,'/aquirisFFT/firstSkyTime',[calibratedSpectra.datetimeStart]);  
+ncwriteatt(filename,'/aquirisFFT/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/aquirisFFT/firstSkyTime','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/aquirisFFT/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.datetimeStop]);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
+ncwrite(filename,'/aquirisFFT/lastSkyTime',[calibratedSpectra.datetimeStop]);
+ncwriteatt(filename,'/aquirisFFT/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/aquirisFFT/lastSkyTime','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration
-ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
+ncwrite(filename,'/aquirisFFT/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
 
-ncwrite(filename,'/spectrometer1/Tb',Tb');
-ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
-ncwrite(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
-ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);
-ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
-ncwrite(filename,'/spectrometer1/calibrationTime',[calibratedSpectra.calibrationTime]);
-ncwrite(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/aquirisFFT/Tb',Tb');
+ncwrite(filename,'/aquirisFFT/frequencies',calibratedSpectra(1).freq);
+ncwrite(filename,'/aquirisFFT/THot',[calibratedSpectra.THot]);
+ncwrite(filename,'/aquirisFFT/stdTHot',[calibratedSpectra.stdTHot]);
+ncwrite(filename,'/aquirisFFT/TSys',[calibratedSpectra.Tsys]);
+ncwrite(filename,'/aquirisFFT/stdTSys',[calibratedSpectra.stdTSys]);
+ncwrite(filename,'/aquirisFFT/calibrationTime',60*[calibratedSpectra.calibrationTime]);
+ncwrite(filename,'/aquirisFFT/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
 
-ncwrite(filename,'/spectrometer1/TRoom',[calibratedSpectra.TempRoom]);
-ncwrite(filename,'/spectrometer1/stdTRoom',[calibratedSpectra.stdTempRoom]);
-ncwrite(filename,'/spectrometer1/TOut',[calibratedSpectra.TempOut]);
+ncwrite(filename,'/aquirisFFT/TRoom',[calibratedSpectra.TempRoom]);
+ncwrite(filename,'/aquirisFFT/stdTRoom',[calibratedSpectra.stdTempRoom]);
+ncwrite(filename,'/aquirisFFT/TOut',[calibratedSpectra.TempOut]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
@@ -239,10 +243,10 @@ ncwriteatt(filename,'/flags/calibration_flags','errorCode_9','FFT_adc_overload_O
 % Attribute name (CF convention)
 attrName={'long_name','standard_name','units','description'};
 
-%Attributes for the spectrometer1 variables (CF convention)
+%Attributes for the aquirisFFT variables (CF convention)
 attrVal.tod = {'TOD',...
     '',...
-    'day',...
+    'hour',...
     'Time of the day'};
 
 attrVal.lat = {'station latitude',...
@@ -252,7 +256,7 @@ attrVal.lat = {'station latitude',...
 
 attrVal.lon = {'station longitude',...
     'longitude',...
-    'degree_north',...
+    'degree_east',...
     'longitude defined according to WGS84'};
 
 attrVal.alt = {'station altitude',...
@@ -261,19 +265,24 @@ attrVal.alt = {'station altitude',...
     'above see level'};
 
 attrVal.azimuth = {'azimuth angle',...
-    'sensor_zenith_angle',...
+    'sensor_azimuth_angle',...
     'degree',...
-    'reference direction is NORTH'};
+    'angle measured clockwise positive, 0 deg is northwise'};
 
 attrVal.effCalTime = {'effective calibration time',...
     'calibration_time',...
-    'min',...
+    'second',...
     'still to improve'};
 
 attrVal.Tb = {'Tb',...
     'brightness_temperature',...
     'K',...
     'calibrated brightness temperature for this cycle'};
+
+attrVal.freq = {'frequencies',...
+    'frequencies',...
+    'Hz',...
+    'frequency vector for the spectrometer'};
 
 attrVal.THot = {'THot',...
     '',...
@@ -321,22 +330,23 @@ attrVal.TOut = {'TOut',...
     'mean outside temperaure'};
 
 for i=1:length(attrName)
-    ncwriteatt(filename,'/spectrometer1/timeOfDay',attrName{i},attrVal.tod{i});
-    ncwriteatt(filename,'/spectrometer1/lat',attrName{i},attrVal.lat{i});
-    ncwriteatt(filename,'/spectrometer1/lon',attrName{i},attrVal.lon{i});
-    ncwriteatt(filename,'/spectrometer1/alt',attrName{i},attrVal.alt{i});
-    ncwriteatt(filename,'/spectrometer1/azimuthAngle',attrName{i},attrVal.azimuth{i});
-    ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
-    ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
-    ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
-    ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
-    ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
-    ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
-    ncwriteatt(filename,'/spectrometer1/calibrationTime',attrName{i},attrVal.calibrationTime{i});
-    ncwriteatt(filename,'/spectrometer1/meanAngleAntenna',attrName{i},attrVal.meanAngleAntenna{i});
-    ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
-    ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
-    ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
+    ncwriteatt(filename,'/aquirisFFT/timeOfDay',attrName{i},attrVal.tod{i});
+    ncwriteatt(filename,'/aquirisFFT/lat',attrName{i},attrVal.lat{i});
+    ncwriteatt(filename,'/aquirisFFT/lon',attrName{i},attrVal.lon{i});
+    ncwriteatt(filename,'/aquirisFFT/alt',attrName{i},attrVal.alt{i});
+    ncwriteatt(filename,'/aquirisFFT/azimuthAngle',attrName{i},attrVal.azimuth{i});
+    ncwriteatt(filename,'/aquirisFFT/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
+    ncwriteatt(filename,'/aquirisFFT/Tb',attrName{i},attrVal.Tb{i});
+    ncwriteatt(filename,'/aquirisFFT/frequencies',attrName{i},attrVal.freq{i});
+    ncwriteatt(filename,'/aquirisFFT/THot',attrName{i},attrVal.THot{i});
+    ncwriteatt(filename,'/aquirisFFT/stdTHot',attrName{i},attrVal.stdTHot{i});
+    ncwriteatt(filename,'/aquirisFFT/TSys',attrName{i},attrVal.TSys{i});
+    ncwriteatt(filename,'/aquirisFFT/stdTSys',attrName{i},attrVal.stdTSys{i});
+    ncwriteatt(filename,'/aquirisFFT/calibrationTime',attrName{i},attrVal.calibrationTime{i});
+    ncwriteatt(filename,'/aquirisFFT/meanAngleAntenna',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/aquirisFFT/TRoom',attrName{i},attrVal.TRoom{i});
+    ncwriteatt(filename,'/aquirisFFT/stdTRoom',attrName{i},attrVal.stdTRoom{i});
+    ncwriteatt(filename,'/aquirisFFT/TOut',attrName{i},attrVal.TOut{i});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

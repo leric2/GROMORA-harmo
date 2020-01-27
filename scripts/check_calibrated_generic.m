@@ -58,9 +58,10 @@ for i = 1:size(calibratedSpectra,2)
     
     % Frequency vector
     calibratedSpectra(i).f0=retrievalTool.centerFreq;
+    calibratedSpectra(i).LOFreq=retrievalTool.LOFreq;
     bw=retrievalTool.instrumentBandwidth;
     nChannel=retrievalTool.numberOfChannels;
-    df=bw/nChannel;
+    df=bw/(nChannel-1); % TOCHECK
     lc=log.Spectr_line_center(1);
     calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).f0-df*(0:lc-1)),calibratedSpectra(i).f0+df*(1:nChannel-lc));
     calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
@@ -82,7 +83,7 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
-    % Tsys
+    % Tsys from the log
     calibratedSpectra(i).Tsys=nanmean(log.FE_T_Sys(ind));
     calibratedSpectra(i).stdTSys=nanstd(log.FE_T_Sys(ind));
     
@@ -185,13 +186,14 @@ for i = 1:size(calibratedSpectra,2)
     
     calibratedSpectra(i).date=[num2str(log.Year(1)) '_' m '_' d];
     
-    % as well as the "mean time" of the calibration cycle
-    meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ih(1):ih(end)))/24,'HH:MM:SS')];
+    % as well as the "mean time" of the calibration cycle (mean of all
+    % antenna measurements)
+    meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ia))/24,'HH:MM:SS')];
     
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
-    calibratedSpectra(i).calendar='prolepticIsoCalendar';
-    calibratedSpectra(i).timeOfDay=mean(log.t(ia(1):ia(end)));
+    calibratedSpectra(i).calendar='standard';
+    calibratedSpectra(i).timeOfDay=mean(log.t(ia));
     
     %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
    
