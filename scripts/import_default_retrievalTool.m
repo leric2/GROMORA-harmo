@@ -59,7 +59,7 @@ switch instrumentName
         
         % Instrument data
         retrievalTool.numberOfChannels=32768;
-        retrievalTool.centerFreq=1.421750400e11;
+
         retrievalTool.instrumentBandwidth=1e9;
         retrievalTool.LOFreq=1.45875e11;
         
@@ -97,7 +97,7 @@ switch instrumentName
         retrievalTool.dataSource='MWR.O3_MCH';
         
         retrievalTool.numberOfChannels=16384;
-        retrievalTool.centerFreq=1.4217504e11;
+
         retrievalTool.instrumentBandwidth=1e9;
         retrievalTool.LOFreq=1.4927504e11; %TOCHECK
         

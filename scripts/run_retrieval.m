@@ -46,6 +46,8 @@ warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
 % Reformat the raw spectra from vector to matrix
 rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
 
+
+%% TO CHECK IF RIGHT
 % when needed, flip it !
 if retrievalTool.flipped_spectra
     rawSpectra=retrievalTool.flip_spectra(rawSpectra);
@@ -53,7 +55,7 @@ end
 
 % Option for plotting spectra (to be improved...)
 if retrievalTool.rawSpectraPlot
-    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,10);
+    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,48);
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,27 +96,38 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 %
 % 
 %
-%
-%
-%
 
-correctedSpectra=retrievalTool.read_level1a(retrievalTool);
-% 
+if 0
+    calibratedSpectra=retrievalTool.read_level1a(retrievalTool);
+end
 
 % correctedSpectra.date=calibratedSpectra(1).date;
 % 
+
+calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
+
+
 % Option for plotting hourly spectra (to be improved...)
 if retrievalTool.hourlyCalibratedSpectraPlot
-    retrievalTool.plot_hourly_spectra(retrievalTool,correctedSpectra,50,350)
+    retrievalTool.plot_hourly_spectra(retrievalTool,calibratedSpectra,50,350)
 end
 
-correctedSpectra=retrievalTool.get_meteo_data(correctedSpectra,retrievalTool);
+% checking the quality of the channels and flagging the potential bad ones
+% (we do not remove any)
+calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool);
+
+% Check calibrated spectra to identify the good ones for integration
+
+% Integrate the "good" spectra
+%retrievalTool.integrate_calibrated_spectra()
 
 % window_correction()
 
-% tropospheric_correction
+calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
 
 % sideband correction ?
+
+
 
 
 

@@ -21,12 +21,12 @@ function correctedSpectra = get_meteo_data_unibe(correctedSpectra,retrievalTool)
 
 %==========================================================================
 
-
-if correctedSpectra.meanTime > (datenum(2017,08,10)-datenum(1970,1,1));
+if datetime(correctedSpectra(1).year,correctedSpectra(1).month,correctedSpectra(1).day) > datetime(2017,08,10)
+    % First reading the Meteo dataset for this day
     dateStringMeteo=[retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)];
     meteoDataFile=[retrievalTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
     
-    % Reading meteo data and transforming it into matlab structure
+    % Transforming it into matlab structure
     T=readtable(meteoDataFile);
     meteoData=table2struct(T);
     
@@ -34,21 +34,21 @@ if correctedSpectra.meanTime > (datenum(2017,08,10)-datenum(1970,1,1));
         meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-datenum(1970,1,1);
     end
     
+    % Storing interesting variable into vectors
     airTempVec=[meteoData.air_temperature];
     relHumVect=[meteoData.rel_humidity];
+    airPVec=[meteoData.air_pressure];
     
-    meanTemp=ones(length(correctedSpectra.meanTime),1)*NaN;
-    meanHumi=ones(length(correctedSpectra.meanTime),1)*NaN;
-    
-    for i = 1:length(correctedSpectra.meanTime)
-        rowInd=([meteoData.dateTime]>correctedSpectra.firstSkyTime(i)) & ([meteoData.dateTime]<correctedSpectra.lastSkyTime(i));
+    for t=1:length(correctedSpectra)
         
-        meanTemp(i)=nanmean(airTempVec(rowInd));
-        meanHumi(i)=nanmean(relHumVect(rowInd));
+        % Selecting the interesting values for each calibration cycle:
+        rowInd=([meteoData.dateTime]>correctedSpectra(t).datetimeStart) & ([meteoData.dateTime]<correctedSpectra(t).datetimeStop);
+
+        correctedSpectra(t).meanAirTemperature=nanmean(airTempVec(rowInd));
+        correctedSpectra(t).meanRelHumidity=nanmean(relHumVect(rowInd));
+        correctedSpectra(t).meanAirPressure=nanmean(airPVec(rowInd));
     end
-    
-    correctedSpectra.meanTemperature=meanTemp;
-    correctedSpectra.meanRelHumidity=meanHumi;
 else
     disp('format of meteo data changed before the 10th of August 2017') 
+    
 end

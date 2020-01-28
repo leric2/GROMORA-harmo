@@ -57,13 +57,13 @@ for i = 1:size(calibratedSpectra,2)
     %calibratedSpectra(i).effectiveCalibrationTime=calibratedSpectra(i).effectiveCalibrationTimeHot+calibratedSpectra(i).effectiveCalibrationTimeAntenna+calibratedSpectra(i).effectiveCalibrationTimeCold;
     
     % Frequency vector
-    calibratedSpectra(i).f0=retrievalTool.centerFreq;
-    calibratedSpectra(i).LOFreq=retrievalTool.LOFreq;
+    calibratedSpectra(i).observationFreq=retrievalTool.observationFreq;
+    calibratedSpectra(i).LOFreqTot=retrievalTool.LOFreqTot;
     bw=retrievalTool.instrumentBandwidth;
     nChannel=retrievalTool.numberOfChannels;
-    df=bw/(nChannel-1); % TOCHECK
-    lc=log.Spectr_line_center(1);
-    calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).f0-df*(0:lc-1)),calibratedSpectra(i).f0+df*(1:nChannel-lc));
+    df=bw/(nChannel+1); % TOCHECK
+    % lc=log.Spectr_line_center(1);
+    calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).LOFreqTot-df*(0:retrievalTool.DCChannel-1)),calibratedSpectra(i).LOFreqTot+df*(1:nChannel-retrievalTool.DCChannel));
     calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
     %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
     

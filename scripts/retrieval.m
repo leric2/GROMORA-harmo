@@ -27,7 +27,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_10_01','yyyy_mm_dd'):datenum('2019_10_01','yyyy_mm_dd');
+dates=datenum('2019_08_01','yyyy_mm_dd'):datenum('2019_08_01','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -43,6 +43,8 @@ for k = 1:numel(dates)
     
     retrievalTool.calibrationTime=10;
     
+    retrievalTool.observationFreq=1.4217504e11;
+    
     % Path definition (for local computer)
     if (instrumentName=='GROMOS')
         %retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
@@ -50,11 +52,26 @@ for k = 1:numel(dates)
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         
+        retrievalTool.fLO1=1.45875e11;
+        retrievalTool.fLO2=3.6e9;
+        
+        % This one should correspond to the DC channel
+        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2;
+        retrievalTool.DCChannel=16384; %=Nchannel/2 ??
+        
     elseif (instrumentName=='SOMORA')
         retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
         % TOCHANGE
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        
+        retrievalTool.fLO1=1.4217504e11;
+        retrievalTool.fLO2=0;
+        
+        % This one should correspond to the DC channel
+        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2;
+        retrievalTool.DCChannel=8193; %=Nchannel/2 ??
+        
     end
     
     retrievalTool.saveAllCycles=1;
@@ -102,6 +119,8 @@ for k = 1:numel(dates)
     
     % TO CHANGE FOR SOMORA
     retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
+    
+    retrievalTool.checking_channel_quality= @(calibratedSpectra,retrievalTool) checking_channel_quality_gromos(calibratedSpectra,retrievalTool);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain

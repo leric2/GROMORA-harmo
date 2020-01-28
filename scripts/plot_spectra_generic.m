@@ -8,7 +8,7 @@ TOD={};
 
 figure();
 for i=1:N
-    plot(calibratedSpectra(l(i)).freq/1e9,calibratedSpectra(l(i)).Tb)
+    plot(calibratedSpectra(l(i)).freq/1e9,calibratedSpectra(l(i)).Tb);
     %plot(calibratedSpectra(i).meanFromTbUpAll)
     %hold on
     %plot(calibratedSpectra(i).meanFromTbDownAll)
