@@ -1,4 +1,4 @@
-function [log,rawSpectra] = read_level0_generic(file,retrievalTool)
+function [log,rawSpectra] = read_level0_generic(retrievalTool)
 % [log,rawSpectra,readingLevel0Error] = read_level0_generic(file)
 %
 % Reads houskeeping and binary data of the universal IAP data format
@@ -27,7 +27,7 @@ function [log,rawSpectra] = read_level0_generic(file,retrievalTool)
 % Revisions
 % 2011-03-04    A. Murk (first issue)
 
-
+file=retrievalTool.file;
 % initialize return value
 log.file = file;
 log.comment = [];

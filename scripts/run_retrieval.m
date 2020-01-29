@@ -25,8 +25,7 @@ assert(ischar(retrievalTool.dateStr),'Please enter the date in the right format'
 % Check here that all required fields are filled in retrievalTool !!
 retrievalTool_complete(retrievalTool)
 
-file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
-assert(exist([file '.txt'],'file') && exist([file '.bin'],'file'),'Files not found')
+assert(exist([retrievalTool.file '.txt'],'file') && exist([retrievalTool.file '.bin'],'file'),'Files not found')
 disp(['Starting the calibration process for ' retrievalTool.instrumentName ': ' retrievalTool.dateStr])
 disp('Reading level0 data...')
 
@@ -34,7 +33,7 @@ disp('Reading level0 data...')
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading raw data
-[log,rawSpectra]=retrievalTool.read_level0(file,retrievalTool);
+[log,rawSpectra]=retrievalTool.read_level0(retrievalTool);
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible.
