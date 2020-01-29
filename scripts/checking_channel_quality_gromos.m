@@ -19,7 +19,7 @@ function calibratedSpectra = checking_channel_quality_gromos(calibratedSpectra,r
 %               |
 
 %==========================================================================
-retrievalTool.TbMax=220;
+retrievalTool.TbMax=300;
 
 retrievalTool.TbMin=20;
 
@@ -47,6 +47,7 @@ for t = 1:length(calibratedSpectra)
     indCyclesGood(abs(calibratedSpectra(t).Tb-TbFiltered)>retrievalTool.boxCarThreshold)=0;
     
     calibratedSpectra(t).channelsQuality=indCyclesGood;
+    
 end
 
 

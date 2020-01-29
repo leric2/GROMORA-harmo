@@ -44,7 +44,7 @@ if datetime(correctedSpectra(1).year,correctedSpectra(1).month,correctedSpectra(
         % Selecting the interesting values for each calibration cycle:
         rowInd=([meteoData.dateTime]>correctedSpectra(t).datetimeStart) & ([meteoData.dateTime]<correctedSpectra(t).datetimeStop);
 
-        correctedSpectra(t).meanAirTemperature=nanmean(airTempVec(rowInd));
+        correctedSpectra(t).meanAirTemperature=nanmean(airTempVec(rowInd))+273.15;
         correctedSpectra(t).meanRelHumidity=nanmean(relHumVect(rowInd));
         correctedSpectra(t).meanAirPressure=nanmean(airPVec(rowInd));
     end

@@ -15,7 +15,7 @@
 % ARGUMENTS     | 
 %               |
 %               | 
-%               |
+%              11
 % CALLS         | run_retrieval.m
 %               |
 %               |
@@ -27,7 +27,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_08_01','yyyy_mm_dd'):datenum('2019_08_01','yyyy_mm_dd');
+dates=datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -48,7 +48,7 @@ for k = 1:numel(dates)
     % Path definition (for local computer)
     if (instrumentName=='GROMOS')
         %retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
-        retrievalTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        retrievalTool.rawFileFolder=['/mtn/datalakeMW/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         
@@ -65,12 +65,13 @@ for k = 1:numel(dates)
         % TOCHANGE
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         
-        retrievalTool.fLO1=1.4217504e11;
-        retrievalTool.fLO2=0;
+        retrievalTool.fLO1=1.49275e11;
+        retrievalTool.fLO2=5.6e9;
+        retrievalTool.fLO3=2e9;
         
         % This one should correspond to the DC channel
-        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2;
-        retrievalTool.DCChannel=8193; %=Nchannel/2 ??
+        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2-retrievalTool.fLO3;
+        retrievalTool.DCChannel=1; %=Nchannel/2 ??
         
     end
     

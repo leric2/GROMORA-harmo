@@ -55,7 +55,7 @@ end
 
 % Option for plotting spectra (to be improved...)
 if retrievalTool.rawSpectraPlot
-    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,48);
+    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,10);
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,7 +72,7 @@ calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpe
 
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
-    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,10);
+    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,24);
 end
 
 %%
@@ -118,7 +118,8 @@ calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retri
 
 % Check calibrated spectra to identify the good ones for integration
 
-% Integrate the "good" spectra
+% Integrate the "good" spectra --> weighted mean based on tropospheric
+% transmittance ?
 %retrievalTool.integrate_calibrated_spectra()
 
 % window_correction()
