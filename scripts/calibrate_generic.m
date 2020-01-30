@@ -188,7 +188,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calibration
 switch calType
-    case 'standard'
+    case 'debug'
         % Based on the discussion with Axel, changes in the calibration:
         % Averaging hot and cold FFTS counts on the time interval. 
         % Keeping each individual cycle for later analysis but computing as
@@ -229,7 +229,7 @@ switch calType
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
-            % calibratedSpectra(i).calibrationType='standard';
+            calibratedSpectra(i).calibrationType='debug';
             
             % Mean Antenna counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
@@ -275,6 +275,52 @@ switch calType
             calibratedSpectra(i).meanFromTbDownAll=mean(calibratedSpectra(i).TbDownAll);
             % For the future: propagate the initial uncertainties into the
             % calibration formula.
+        end
+    case 'standard'
+        % Based on the discussion with Axel, changes in the calibration:
+        % Averaging hot and cold FFTS counts on the time interval. 
+        for i=1:nCalibrationCycles
+            calibratedSpectra(i).calibrationVersion=calibVersion;
+            calibratedSpectra(i).calibrationTime=calibTime;
+            
+            % All antenna measurements
+            ia=reshape(indices(i).validAntenna,[],1);
+            
+            % Antenna measurements inside a half cycle
+            iaUp=reshape(indices(i).validColdStartUp(2,:),[],1);
+            iaDown=reshape(indices(i).validHotStartDown(2,:),[],1);
+            
+            % Checking for NaN in the antenna spectra and keeping only complete
+            % spectra for the calibration:
+            ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
+            iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
+            iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
+            
+            % Saving the indices for the Antenna
+            calibratedSpectra(i).antennaInd=ia;
+            calibratedSpectra(i).antennaIndUp=iaUp;
+            calibratedSpectra(i).antennaIndDown=iaDown;
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Flaging and removing (from the mean spectra only) bad angles for the antenna
+            antennaAngleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)>retrievalTool.elevationAngleTolerance;
+            if any(antennaAngleCheck)==1
+                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
+            else
+                calibratedSpectra(i).antennaAngleRemoved=0;
+            end
+            calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
+            calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Doing the calibration globally for this calibration cycle:
+            calibratedSpectra(i).calibrationType='standard';
+            
+            % Mean Antenna counts for this cycle
+            rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
+
+            % Calibration
+            calibratedSpectra(i).Tb = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
         end
     case 'time'
         nCalibrationCycles=length(indices);
@@ -423,7 +469,7 @@ switch calType
             calibratedSpectra(i).THot=THot(i);
             calibratedSpectra(i).stdTHot=stdTHot(i);
         end
-%     case 'all_then_avg'
+%     case 'all_then_avg'log.Position==retrievalTool.indiceHot
 %         timeThresh=0:calibTime/60:24;
 %         
 %         % Storing the indices specific to each calibration cycle in a new

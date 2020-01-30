@@ -40,13 +40,14 @@ disp('Reading level0 data...')
 log=retrievalTool.harmonize_log(log);
 
 % Quality check of the raw data:
-warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
+if retrievalTool.checkLevel0
+    warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
+end
 
+%% TO CHECK IF RIGHT
 % Reformat the raw spectra from vector to matrix
 rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
 
-
-%% TO CHECK IF RIGHT
 % when needed, flip it !
 if retrievalTool.flipped_spectra
     rawSpectra=retrievalTool.flip_spectra(rawSpectra);
@@ -54,7 +55,7 @@ end
 
 % Option for plotting spectra (to be improved...)
 if retrievalTool.rawSpectraPlot
-    retrievalTool.plot_raw_spectra(rawSpectra,0,2e4,10);
+    retrievalTool.plot_raw_spectra(rawSpectra,0,1e9,20);
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,10 +69,9 @@ calibratedSpectra=retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'stand
 % Also computing some additional metadata from the log file
 calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpectra);
 
-
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
-    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,350,24);
+    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,250,24);
 end
 
 %%

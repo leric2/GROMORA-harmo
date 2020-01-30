@@ -28,7 +28,7 @@ clear; close all; clc;
 instrumentName='mopi5';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_06_16','yyyy_mm_dd'):datenum('2019_06_16','yyyy_mm_dd');
+dates=datenum('2019_06_15','yyyy_mm_dd'):datenum('2019_06_15','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -98,7 +98,7 @@ for k = 1:numel(dates)
     if (string(instrumentName)=='GROMOS')
         %retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         retrievalTool.rawFileFolder=['/mtn/datalakeMW/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
-        retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
+        %retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         retrievalTool.file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
         
@@ -125,7 +125,8 @@ for k = 1:numel(dates)
         retrievalTool.DCChannel=1; %=Nchannel/2 ??
         
     elseif (string(instrumentName)=='mopi5')
-        retrievalTool.rawFileFolder=['/mtn/datalakeMW/instrumentdata/mopi5/' dateStr(1:4) '/'];
+        retrievalTool.rawFileFolder=['/mnt/instrumentdata/mopi5/' dateStr(1:4) '/'];
+        retrievalTool.rawFileFolder=['/scratch/mopi_rawData/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/MOPI5/Level1/';
         
         retrievalTool.file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'_', retrievalTool.dateStr(1:4) retrievalTool.dateStr(6:7) retrievalTool.dateStr(9:10)];
@@ -133,15 +134,20 @@ for k = 1:numel(dates)
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         retrievalTool.observationFreq=110;
         
+        retrievalTool.calibrationTime=60;
+        
         %retrievalTool.fLO1=1.49275e11;
         %retrievalTool.fLO2=5.6e9;
         %retrievalTool.fLO3=2e9;
         
         % This one should correspond to the DC channel
-        %retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2-retrievalTool.fLO3;
-        %retrievalTool.DCChannel=1; %=Nchannel/2 ??
-        retrievalTool.ffts_model=3;
+        retrievalTool.LOFreqTot=1.10e11;
+        retrievalTool.DCChannel=1; %=Nchannel/2 ??
+        retrievalTool.ffts_model=4;
         retrievalTool.read_level0=@(retrievalTool) mopi5_read(retrievalTool); 
+        
+        retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType);
+        retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_mopi5(log,retrievalTool,calibratedSpectra);
     end
     
     

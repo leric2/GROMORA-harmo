@@ -47,7 +47,7 @@ retrievalTool.numberOfAquisitionSpectraCold=120000;
 
 retrievalTool.systemTempMaxStd=10;
 
-switch instrumentName
+switch string(instrumentName)
     case 'GROMOS'
         % Meta data
         retrievalTool.dataLocation='BERN';
@@ -67,6 +67,8 @@ switch instrumentName
         retrievalTool.lat=46.95;
         retrievalTool.altitude=560;
         retrievalTool.azimuthAngle=45;
+        
+        retrievalTool.checkLevel0=true;
         
         retrievalTool.numberOfTippingCurveExpected=48;
         retrievalTool.toleranceTippingCurves=2;
@@ -106,6 +108,8 @@ switch instrumentName
         retrievalTool.altitude=491;
         retrievalTool.azimuthAngle=-9999;
         
+        retrievalTool.checkLevel0=true;
+        
         retrievalTool.numberOfTippingCurveExpected=4;
         retrievalTool.toleranceTippingCurves=2;
         
@@ -122,6 +126,52 @@ switch instrumentName
         % The log needs to be harmonized, for now taking gromos as basis
         retrievalTool.harmonize_log=@(log) harmonize_log_somora(log);
         retrievalTool.THotUnit='K';
+        
+        % Calibration outlier management
+        retrievalTool.threshNumRawSpectraHot=0.05*retrievalTool.numberOfChannels;
+        retrievalTool.threshNumRawSpectraCold=0.05*retrievalTool.numberOfChannels;
+    case 'mopi5'
+        % Meta data
+        
+        retrievalTool.dataLocation='BERN';
+        retrievalTool.PI_NAME='Murk;Axel';
+        retrievalTool.PI_AFFILIATION='Universtiy of Bern;UBERN';
+        retrievalTool.PI_ADDRESS='Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland';
+        retrievalTool.PI_EMAIL='axel.murk@iap.unibe.ch'; 
+        retrievalTool.dataSource='MWR.O3_UBERN';
+        
+        % Instrument data
+        retrievalTool.indiceCold=2;
+        retrievalTool.indiceAntenna=5;
+        retrievalTool.indiceHot=1;
+        retrievalTool.numberOfChannels=16384;
+
+        retrievalTool.instrumentBandwidth=1e9;
+        retrievalTool.LOFreq=1.45875e11;
+        
+        retrievalTool.lon=7.44;
+        retrievalTool.lat=46.95;
+        retrievalTool.altitude=560;
+        retrievalTool.azimuthAngle=45;
+        
+        retrievalTool.checkLevel0=false;
+        
+        %retrievalTool.numberOfTippingCurveExpected=48;
+        %retrievalTool.toleranceTippingCurves=2;
+        retrievalTool.elevationAngleAntenna=140;
+        retrievalTool.elevationAngleCold=265;
+        retrievalTool.elevationAngleHot=85;
+        
+        retrievalTool.elevationAngleTolerance=5;
+        % Considering the expected number of tipping curve:
+        %retrievalTool.numberOfCyclesExpected=1500;
+        %retrievalTool.toleranceNumberCycles=0.01*retrievalTool.numberOfCyclesExpected;
+        retrievalTool.tippingSize=27;
+        retrievalTool.flipped_spectra=false;
+        retrievalTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
+        %retrievalTool.THotUnit='degreeC';
+        % Harmonizing mopi5 log (for units)
+        retrievalTool.harmonize_log=@(log) harmonize_log_mopi5(log);  
         
         % Calibration outlier management
         retrievalTool.threshNumRawSpectraHot=0.05*retrievalTool.numberOfChannels;
