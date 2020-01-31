@@ -67,7 +67,6 @@ for i=1:4 subplot(2,2,i); set(gca, 'xlim', [0 24]); xlabel('t [h]'); end
 % into the different calibration cycle
 
 
-
 % Threshold for the separation, calibTime has to be in [min]
 timeThresh=0:calibTime/60:24;
 
@@ -136,6 +135,10 @@ for i=1:nCalibrationCycles
     initSizeHot=length(ih);
     initSizeCold=length(ic);
     
+    % Global values before removing some spectra
+    calibratedSpectra(i).globalHotCounts=mean(rawSpectra(ih,:),2,'omitnan')';
+    calibratedSpectra(i).globalColdCounts=mean(rawSpectra(ic,:),2,'omitnan')';
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % We compute the median of the calibration spectra as well as its std
     % deviation. We then remove the spectra which contains too many
@@ -166,11 +169,18 @@ for i=1:nCalibrationCycles
     % Final mean hot and cold raw counts for this cycle:
     calibratedSpectra(i).meanHotSpectra=nanmean(rawSpectra(ih,:),1);
     calibratedSpectra(i).meanColdSpectra=nanmean(rawSpectra(ic,:),1);
-   
-    calibratedSpectra(i).meanHotSpectra2=mean(rawSpectra(ih,:),2,'omitnan')';
-    calibratedSpectra(i).meanColdSpectra2=mean(rawSpectra(ic,:),2,'omitnan')';
     
-    calibratedSpectra(i).globalYFactor=calibratedSpectra(i).meanHotSpectra2/calibratedSpectra(i).meanColdSpectra2;
+    % Global counts and Noise temperature computation
+    if (initSizeHot == initSizeCold)
+        calibratedSpectra(i).globalYFactor=calibratedSpectra(i).globalHotCounts./calibratedSpectra(i).globalColdCounts;
+        calibratedSpectra(i).globalTN=(TH - calibratedSpectra(i).globalYFactor*TCold)./ (calibratedSpectra(i).globalYFactor-1);
+    else
+        sizeToConsider=min([initSizeHot,initSizeCold]);
+        ghc=calibratedSpectra(i).globalHotCounts;
+        gcc=calibratedSpectra(i).globalColdCounts;
+        calibratedSpectra(i).globalYFactor=ghc(1:sizeToConsider)./gcc(1:sizeToConsider);
+        calibratedSpectra(i).globalTN=(TH - calibratedSpectra(i).globalYFactor*TCold)./ (calibratedSpectra(i).globalYFactor-1);
+    end
     
     % Final std dev hot and cold raw counts for this cycle:
     calibratedSpectra(i).stdHotSpectra=nanstd(rawSpectra(ih,:),1);
@@ -180,9 +190,8 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(ih));
     calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(ih));
     
-    % === T_sys calculation : ===
+    % === T_sys calculation : ==
     calibratedSpectra(i).Yfactor = (calibratedSpectra(i).meanHotSpectra)./( calibratedSpectra(i).meanColdSpectra);
-    
     calibratedSpectra(i).TSys    = (calibratedSpectra(i).THot - calibratedSpectra(i).Yfactor*TCold)./(calibratedSpectra(i).Yfactor-1);
     
     % mean relative difference
@@ -230,8 +239,18 @@ switch calType
             calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
             calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
             
-             calibratedSpectra(i).globalAntennaCounts=mean(rawSpectra(antennaIndices,:),2,'omitnan');
+            calibratedSpectra(i).globalAntennaCounts=mean(rawSpectra(ia,:),2,'omitnan')';
             
+%             %  Global calibrated temperature  
+%             if (length(calibratedSpectra(i).globalAntennaCounts) == length(calibratedSpectra(i).globalColdCounts) == length(calibratedSpectra(i).globalHotCounts))
+%                 calibratedSpectra(i).globalTa = (calibratedSpectra(i).globalAntennaCounts - calibratedSpectra(i).globalColdCounts) ./ (calibratedSpectra(i).globalHotCounts - calibratedSpectra(i).globalColdCounts) *(TH-TCold) + TCold;
+%             else
+%                 sizeToConsider=min([length(calibratedSpectra(i).globalAntennaCounts),length(calibratedSpectra(i).globalColdCounts),length(calibratedSpectra(i).globalHotCounts)]);
+%                 gac=calibratedSpectra(i).globalAntennaCounts;
+%                 ghc=calibratedSpectra(i).globalHotCounts;
+%                 gcc=calibratedSpectra(i).globalColdCounts;
+%                 calibratedSpectra(i).globalTa = (gac(1:sizeToConsider) - gcc(1:sizeToConsider)) ./ (ghc(1:sizeToConsider) - gcc(1:sizeToConsider)) *(TH-TCold) + TCold;
+%             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
             calibratedSpectra(i).calibrationType='standard';

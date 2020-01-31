@@ -46,7 +46,7 @@ for k = 1:numel(dates)
     
     retrievalTool.observationFreq=1.4217504e11;
     
-    retrievalTool.saveAllCycles=1;
+    retrievalTool.saveAllCycles=0;
     
     retrievalTool.hotSpectraNumberOfStdDev=3;
     retrievalTool.coldSpectraNumberOfStdDev=3;
@@ -143,7 +143,11 @@ for k = 1:numel(dates)
         % This one should correspond to the DC channel
         retrievalTool.LOFreqTot=1.10e11;
         retrievalTool.DCChannel=1; %=Nchannel/2 ??
-        retrievalTool.ffts_model=4;
+        
+        retrievalTool.ffts_model=3;
+        S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
+        retrievalTool.spectrometer=S{retrievalTool.ffts_model};
+        
         retrievalTool.read_level0=@(retrievalTool) mopi5_read(retrievalTool); 
         
         retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType);

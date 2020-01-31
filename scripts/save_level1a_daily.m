@@ -34,22 +34,24 @@ locationLevel1a=retrievalTool.level1Folder;
 channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
 Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 frequencyVector=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
-
-error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-
+if isfield(calibratedSpectra,'errorVector')
+    error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
+    errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
+end
 for t = 1:length(calibratedSpectra)
     channelId(t,:)=1:retrievalTool.numberOfChannels;
     Tb(t,:)=calibratedSpectra(t).Tb;
     frequencyVector(t,:)=calibratedSpectra(t).freq;
     
-    error(t,:)=1:length(calibratedSpectra(1).errorVector);
-    errorCalib(t,:)=calibratedSpectra(t).errorVector;
+    if isfield(calibratedSpectra,'errorVector')
+        error(t,:)=1:length(calibratedSpectra(1).errorVector);
+        errorCalib(t,:)=calibratedSpectra(t).errorVector;
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now write daily level 1a file
-filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.dateStr '.nc'];
+filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
 retrievalTool.filenameLevel1a=filename;
 
 %filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
@@ -88,9 +90,8 @@ nccreate(filename,'/aquirisFFT/firstSkyTime','Dimensions',{'time',Inf},'Datatype
 nccreate(filename,'/aquirisFFT/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
-% the variables linked with the calibration
+% the variables linked with the calibration    
 nccreate(filename,'/aquirisFFT/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-
 nccreate(filename,'/aquirisFFT/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/aquirisFFT/frequencies','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/aquirisFFT/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -106,13 +107,14 @@ nccreate(filename,'/aquirisFFT/TOut','Dimensions',{'time',Inf},'Datatype','doubl
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
-nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
-nccreate(filename,'/flags/flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector)},'Datatype','int64')
-
-% We input a (1xerrorVectorSize) int vector to identify the errors
-nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
-%nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
-
+if isfield(calibratedSpectra,'errorVector')
+    nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
+    nccreate(filename,'/flags/flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector)},'Datatype','int64')
+    
+    % We input a (1xerrorVectorSize) int vector to identify the errors
+    nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
+    %nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing netCDF variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,8 +153,9 @@ ncwriteatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the fi
 
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration
-ncwrite(filename,'/aquirisFFT/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
-
+if isfield(calibratedSpectra,'effectiveCalibrationTime')
+    ncwrite(filename,'/aquirisFFT/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
+end
 ncwrite(filename,'/aquirisFFT/Tb',Tb');
 ncwrite(filename,'/aquirisFFT/frequencies',calibratedSpectra(1).freq);
 ncwrite(filename,'/aquirisFFT/THot',[calibratedSpectra.THot]);
@@ -164,18 +167,21 @@ ncwrite(filename,'/aquirisFFT/meanAngleAntenna',[calibratedSpectra.meanAngleAnte
 
 ncwrite(filename,'/aquirisFFT/TRoom',[calibratedSpectra.TempRoom]);
 ncwrite(filename,'/aquirisFFT/stdTRoom',[calibratedSpectra.stdTempRoom]);
-ncwrite(filename,'/aquirisFFT/TOut',[calibratedSpectra.TempOut]);
 
+if isfield(calibratedSpectra,'TOut')
+    ncwrite(filename,'/aquirisFFT/TOut',[calibratedSpectra.TempOut]);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
-ncwrite(filename,'/flags/time',[calibratedSpectra.meanDatetime]);
-ncwriteatt(filename,'/flags/time','units',calibratedSpectra(1).meanDatetimeUnit);
-ncwriteatt(filename,'/flags/time','calendar',calibratedSpectra(1).calendar);
-ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
-
-ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
-ncwrite(filename,'/flags/calibration_flags',errorCalib');
-
+if isfield(calibratedSpectra,'errorVector')
+    ncwrite(filename,'/flags/time',[calibratedSpectra.meanDatetime]);
+    ncwriteatt(filename,'/flags/time','units',calibratedSpectra(1).meanDatetimeUnit);
+    ncwriteatt(filename,'/flags/time','calendar',calibratedSpectra(1).calendar);
+    ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
+    
+    ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
+    ncwrite(filename,'/flags/calibration_flags',errorCalib');
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global Attributes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,9 +200,12 @@ ncwriteatt(filename,'/','comment','');
 %ncwriteatt(filename,'/','DATA_VARIABLES','');
 
 ncwriteatt(filename,'/','rawData',log.file);
-ncwriteatt(filename,'/','raw_data_software_version',num2str(log.SW_version(1)));
+if isfield(log,'SW_version')
+    ncwriteatt(filename,'/','raw_data_software_version',num2str(log.SW_version(1)));
+end
 ncwriteatt(filename,'/','calibrated_version',calibratedSpectra(1).calibrationVersion);
 ncwriteatt(filename,'/','raw_file_comment',log.comment);
+
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
 
 % Geolocation attributes
@@ -224,19 +233,20 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 % Attributes for groups and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the attributes of flags group
-ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
-
-%ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','LN2SensorsOK');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_7','LN2LevelOK');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_8','hotLoadOK');
-ncwriteatt(filename,'/flags/calibration_flags','errorCode_9','FFT_adc_overload_OK');
-
+if isfield(calibratedSpectra,'errorVector')
+    ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
+    
+    %ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','LN2SensorsOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_7','LN2LevelOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_8','hotLoadOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_9','FFT_adc_overload_OK');
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers group
 % The following are required for each variable

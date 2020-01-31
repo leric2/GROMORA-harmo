@@ -19,7 +19,8 @@ function calibratedSpectra = check_calibrated_mopi5(log,retrievalTool,calibrated
 %               |
 
 %==========================================================================
-% General warning raised during the calibration
+% 
+
 for i = 1:size(calibratedSpectra,2)
     ia=calibratedSpectra(i).antennaInd;
     ih=calibratedSpectra(i).hotInd;
@@ -168,6 +169,19 @@ for i = 1:size(calibratedSpectra,2)
     %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
    
 end
+
+
+% Ording by datenum
+T=struct2table(calibratedSpectra);
+sortedT=sortrows(T,'meanDatetime');
+calibratedSpectra=table2struct(sortedT);
+
+figure
+plot([calibratedSpectra.globalHotCounts],'r');
+hold on
+plot([calibratedSpectra.globalColdCounts],'b');
+plot([calibratedSpectra.globalAntennaCounts],'g');
+ylabel('Counts []') 
 
 end
 

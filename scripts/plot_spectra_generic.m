@@ -2,7 +2,7 @@ function plot_spectra_generic(retrievalTool,calibratedSpectra,lowerLim,upperLim,
 % Just for a first look
 try
 % plotting a spectra every N measurements 
-l=floor(linspace(1,size(calibratedSpectra,2),N));
+l=floor(linspace(1,length(calibratedSpectra),N));
 
 TOD={};
 

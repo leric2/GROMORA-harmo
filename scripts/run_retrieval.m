@@ -42,6 +42,8 @@ log=retrievalTool.harmonize_log(log);
 % Quality check of the raw data:
 if retrievalTool.checkLevel0
     warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
+else
+    warningLevel0='';
 end
 
 %% TO CHECK IF RIGHT
@@ -71,7 +73,7 @@ calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpe
 
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
-    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,250,24);
+    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,250,12);
 end
 
 %%
