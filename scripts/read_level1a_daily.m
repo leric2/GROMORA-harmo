@@ -1,4 +1,4 @@
-function correctedSpectra = read_level1a_daily(retrievalTool)
+function calib = read_level1a_daily(retrievalTool)
 %==========================================================================
 % NAME          | read_level1a_daily.m
 % TYPE          | function
@@ -87,4 +87,20 @@ correctedSpectra.lastSkyTime=ncread(filename,'/aquirisFFT/lastSkyTime')';
 % ncreadatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
 disp(['File read : ' filename])
+
+for i = 1:length(correctedSpectra.meanTime)
+    calib(i).Tb=correctedSpectra.Tb(i,:);
+    calib(i).meanDatetime=correctedSpectra.meanTime(i);
+    calib(i).freq=correctedSpectra.freq(:)';
+    calib(i).year=correctedSpectra.year(i);
+    calib(i).month=correctedSpectra.month(i);
+    calib(i).day=correctedSpectra.day(i);
+    calib(i).THot=correctedSpectra.THot(i);
+    calib(i).stdTHot=correctedSpectra.stdTHot(i);
+    calib(i).TSys=correctedSpectra.TSys(i);
+    calib(i).stdTSys=correctedSpectra.stdTSys(i);
+    calib(i).calibrationTime=correctedSpectra.calibrationTime(i);
+    calib(i).firstSkyTime=correctedSpectra.firstSkyTime(i);
+    calib(i).lastSkyTime=correctedSpectra.lastSkyTime(i);
+    
 end

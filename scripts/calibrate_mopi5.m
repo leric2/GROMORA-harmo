@@ -45,21 +45,23 @@ coldIndices=find(log.Position==retrievalTool.indiceCold & log.Measurement_NoiseD
 % Checking the mean values to find the bug... From Axel
 % Variations of mean amplitude and Tsys with time
 TH=mean(log.T_Hot_Absorber);
-drift.t  = log.t(hotIndices);
-drift.T  = log.T_Hot_Absorber(hotIndices,:);
-drift.a(1,:) = mean(rawSpectra(coldIndices,:),2,'omitnan');
-drift.a(2,:) = mean(rawSpectra(hotIndices,:),2,'omitnan');
-drift.a(3,:) = mean(rawSpectra(antennaIndices,:),2,'omitnan');
-drift.Y    = drift.a(2,:) ./  drift.a(1,:);
-drift.Tn   = (TH - drift.Y*TCold)./ (drift.Y-1);
-drift.Ta   = (drift.a(3,:) - drift.a(1,:)) ./ (drift.a(2,:) - drift.a(1,:)) *(TH-TCold) + TCold;
+% drift.t  = log.t(hotIndices);
+% drift.T  = log.T_Hot_Absorber(hotIndices,:);
+% drift.a(1,:) = mean(rawSpectra(coldIndices,:),2,'omitnan');
+% drift.a(2,:) = mean(rawSpectra(hotIndices,:),2,'omitnan');
+% drift.a(3,:) = mean(rawSpectra(antennaIndices,:),2,'omitnan');
+% drift.Y    = drift.a(2,:) ./  drift.a(1,:);
+% drift.Tn   = (TH - drift.Y*TCold)./ (drift.Y-1);
+% drift.Ta   = (drift.a(3,:) - drift.a(1,:)) ./ (drift.a(2,:) - drift.a(1,:)) *(TH-TCold) + TCold;
 
-figure
-subplot(2,2,1); plot(drift.t, drift.Tn), ylabel('TN [K]') 
-subplot(2,2,2); plot(drift.t, drift.Ta), ylabel('Ta [K]') 
-subplot(2,2,3); plot(drift.t, drift.a),  ylabel('Counts [K]') 
-subplot(2,2,4); plot(drift.t, drift.T),  ylabel('T Room  [K]') 
-for i=1:4 subplot(2,2,i); set(gca, 'xlim', [0 24]); xlabel('t [h]'); end
+% figure
+% subplot(2,2,1); plot(drift.t, drift.Tn), ylabel('TN [K]') 
+% subplot(2,2,2); plot(drift.t, drift.Ta), ylabel('Ta [K]') 
+% subplot(2,2,3); plot(drift.t, drift.a),  ylabel('Counts [K]') 
+% subplot(2,2,4); plot(drift.t, drift.T),  ylabel('T Room  [K]') 
+% for i=1:4 subplot(2,2,i); set(gca, 'xlim', [0 24]); xlabel('t [h]'); end
+% saveas(gcf,[retrievalTool.level1Folder 'drift_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'jpg')
+% close
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
@@ -120,13 +122,13 @@ for i=1:nCalibrationCycles
     coldAngleCheck=~(log.Elevation_Angle(ic)==retrievalTool.elevationAngleCold);
     
     if sum(hotAngleCheck>0)
-        ih=ih(~hotAngleCheck);
+        %ih=ih(~hotAngleCheck);
         calibratedSpectra(i).hotAngleRemoved=sum(hotAngleCheck);
     else
         calibratedSpectra(i).hotAngleRemoved=0;
     end
     if sum(coldAngleCheck>0)
-        ic=ic(~coldAngleCheck);
+        %ic=ic(~coldAngleCheck);
         calibratedSpectra(i).coldAngleRemoved=sum(coldAngleCheck);
     else
         calibratedSpectra(i).coldAngleRemoved=0;
@@ -186,14 +188,6 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).stdHotSpectra=nanstd(rawSpectra(ih,:),1);
     calibratedSpectra(i).stdColdSpectra=nanstd(rawSpectra(ic,:),1);
     
-    % Hot temperature corresponding to the hot spectra (to all spectra ?)
-    calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(ih));
-    calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(ih));
-    
-    % === T_sys calculation : ==
-    calibratedSpectra(i).Yfactor = (calibratedSpectra(i).meanHotSpectra)./( calibratedSpectra(i).meanColdSpectra);
-    calibratedSpectra(i).TSys    = (calibratedSpectra(i).THot - calibratedSpectra(i).Yfactor*TCold)./(calibratedSpectra(i).Yfactor-1);
-    
     % mean relative difference
     %threshHot=retrievalTool.threshRawSpectraHot*ones(size(ih));
     %threshCold=retrievalTool.threshRawSpectraCold*ones(size(ic));
@@ -241,6 +235,23 @@ switch calType
             
             calibratedSpectra(i).globalAntennaCounts=mean(rawSpectra(ia,:),2,'omitnan')';
             
+            allIndice=[calibratedSpectra(i).antennaIndCleanAngle; calibratedSpectra(i).hotInd ; calibratedSpectra(i).coldInd];
+            
+            calibratedSpectra(i).tod=log.t(allIndice)';
+            
+            % Hot temperature corresponding to all spectra in this cycle
+            calibratedSpectra(i).allTHot=log.T_Hot_Absorber(allIndice)';
+            calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(allIndice));
+            calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(allIndice));
+            
+            sizeToConsider=min([length(calibratedSpectra(i).globalAntennaCounts),length(calibratedSpectra(i).globalColdCounts),length(calibratedSpectra(i).globalHotCounts)]);
+            
+            gac=calibratedSpectra(i).globalAntennaCounts;
+            ghc=calibratedSpectra(i).globalHotCounts;
+            gcc=calibratedSpectra(i).globalColdCounts;
+            
+            calibratedSpectra(i).globalTa = (gac(1:sizeToConsider) - gcc(1:sizeToConsider)) ./ (ghc(1:sizeToConsider) - gcc(1:sizeToConsider)) *(TH-TCold) + TCold;
+
 %             %  Global calibrated temperature  
 %             if (length(calibratedSpectra(i).globalAntennaCounts) == length(calibratedSpectra(i).globalColdCounts) == length(calibratedSpectra(i).globalHotCounts))
 %                 calibratedSpectra(i).globalTa = (calibratedSpectra(i).globalAntennaCounts - calibratedSpectra(i).globalColdCounts) ./ (calibratedSpectra(i).globalHotCounts - calibratedSpectra(i).globalColdCounts) *(TH-TCold) + TCold;
@@ -251,6 +262,11 @@ switch calType
 %                 gcc=calibratedSpectra(i).globalColdCounts;
 %                 calibratedSpectra(i).globalTa = (gac(1:sizeToConsider) - gcc(1:sizeToConsider)) ./ (ghc(1:sizeToConsider) - gcc(1:sizeToConsider)) *(TH-TCold) + TCold;
 %             end
+
+            % === T_sys calculation : ==
+            calibratedSpectra(i).Yfactor = (calibratedSpectra(i).meanHotSpectra)./( calibratedSpectra(i).meanColdSpectra);
+            calibratedSpectra(i).TSys    = (calibratedSpectra(i).THot - calibratedSpectra(i).Yfactor*TCold)./(calibratedSpectra(i).Yfactor-1);
+
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
             calibratedSpectra(i).calibrationType='standard';

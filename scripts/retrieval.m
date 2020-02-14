@@ -25,10 +25,10 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='mopi5';
+instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_06_15','yyyy_mm_dd'):datenum('2019_06_15','yyyy_mm_dd');
+dates=datenum('2019_04_26','yyyy_mm_dd'):datenum('2019_04_26','yyyy_mm_dd');
 
 for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -53,7 +53,7 @@ for k = 1:numel(dates)
     
     retrievalTool.rawSpectraPlot=false;
     retrievalTool.calibratedSpectraPlot=true;
-    retrievalTool.hourlyCalibratedSpectraPlot=true;
+    retrievalTool.hourlyCalibratedSpectraPlot=false;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Selecting the functions that will be used for processing this retrieval
@@ -97,8 +97,8 @@ for k = 1:numel(dates)
     % Path definition (for local computer)
     if (string(instrumentName)=='GROMOS')
         %retrievalTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
-        retrievalTool.rawFileFolder=['/mtn/datalakeMW/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
-        %retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
+        retrievalTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
         retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         retrievalTool.file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
         
@@ -108,7 +108,7 @@ for k = 1:numel(dates)
         % This one should correspond to the DC channel
         retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2;
         retrievalTool.DCChannel=16384; %=Nchannel/2 ??
-        
+        retrievalTool.spectrometer='AC240';
     elseif (string(instrumentName)=='SOMORA')
         retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
@@ -123,10 +123,12 @@ for k = 1:numel(dates)
         % This one should correspond to the DC channel
         retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2-retrievalTool.fLO3;
         retrievalTool.DCChannel=1; %=Nchannel/2 ??
+        retrievalTool.spectrometer='AC240';
+        
         
     elseif (string(instrumentName)=='mopi5')
         retrievalTool.rawFileFolder=['/mnt/instrumentdata/mopi5/' dateStr(1:4) '/'];
-        retrievalTool.rawFileFolder=['/scratch/mopi_rawData/'];
+        %retrievalTool.rawFileFolder=['/scratch/mopi_rawData/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/MOPI5/Level1/';
         
         retrievalTool.file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'_', retrievalTool.dateStr(1:4) retrievalTool.dateStr(6:7) retrievalTool.dateStr(9:10)];
@@ -144,19 +146,33 @@ for k = 1:numel(dates)
         retrievalTool.LOFreqTot=1.10e11;
         retrievalTool.DCChannel=1; %=Nchannel/2 ??
         
-        retrievalTool.ffts_model=3;
+
+        retrievalTool.ffts_model=1;
         S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
         retrievalTool.spectrometer=S{retrievalTool.ffts_model};
         
+        FS = [200 20  3200 2000]; % sampling rates in MHz 
+        retrievalTool.FS=FS(retrievalTool.ffts_model);
         retrievalTool.read_level0=@(retrievalTool) mopi5_read(retrievalTool); 
+        
+        retrievalTool.filenameLevel1a=['/home/esauvageat/Documents/MOPI5/Level1/mopi5_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
         
         retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType);
         retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_mopi5(log,retrievalTool,calibratedSpectra);
     end
     
+%     for m=1:3
+%          model=[1 3 4];
+%          fftsMopi=model(m);
+%          retrievalTool.ffts_model=fftsMopi;
+%          S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
+%          retrievalTool.spectrometer=S{retrievalTool.ffts_model};
     
+        try
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Running the retrieval with the defined toolchain
-    %run_retrieval(retrievalTool)
+            run_retrieval(retrievalTool)
+        end
+    %end
 end
 

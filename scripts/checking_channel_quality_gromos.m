@@ -24,8 +24,8 @@ retrievalTool.TbMax=300;
 retrievalTool.TbMin=20;
 
 retrievalTool.boxCarSize=51;
-retrievalTool.badChannels=[16384 16385];
-
+% retrievalTool.badChannels=[16384 16385];
+retrievalTool.badChannels=[];
 retrievalTool.boxCarThreshold=7;
 
 % creating boxcar filter

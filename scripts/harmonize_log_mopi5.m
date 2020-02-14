@@ -37,9 +37,15 @@ function log = harmonize_log_mopi5(log)
 %   Data_file_size	SW_version	IWV
 %   
 % For MOPI5
-
-log.Year=ones(length(log.t),1)*log.Year;
-log.Month=ones(length(log.t),1)*log.Month;
+if length(log.Year)==1
+    log.Year=ones(length(log.t),1)*log.Year;
+end
+if length(log.Month)==1
+    log.Month=ones(length(log.t),1)*log.Month;
+end
+if length(log.Day)==1
+    log.Day=ones(length(log.t),1)*log.Day;
+end
 
 log.Tipping_Curve_active=zeros(length(log.t),1);
 

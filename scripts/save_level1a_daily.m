@@ -141,12 +141,12 @@ ncwrite(filename,'/aquirisFFT/month',int64([calibratedSpectra.month]));
 ncwrite(filename,'/aquirisFFT/day',int64([calibratedSpectra.day]));
 ncwrite(filename,'/aquirisFFT/timeOfDay',[calibratedSpectra.timeOfDay]);
 
-ncwrite(filename,'/aquirisFFT/firstSkyTime',[calibratedSpectra.datetimeStart]);  
+ncwrite(filename,'/aquirisFFT/firstSkyTime',[calibratedSpectra.firstSkyTime]);  
 ncwriteatt(filename,'/aquirisFFT/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 ncwriteatt(filename,'/aquirisFFT/firstSkyTime','calendar',calibratedSpectra(1).calendar);
 ncwriteatt(filename,'/aquirisFFT/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/aquirisFFT/lastSkyTime',[calibratedSpectra.datetimeStop]);
+ncwrite(filename,'/aquirisFFT/lastSkyTime',[calibratedSpectra.lastSkyTime]);
 ncwriteatt(filename,'/aquirisFFT/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 ncwriteatt(filename,'/aquirisFFT/lastSkyTime','calendar',calibratedSpectra(1).calendar);
 ncwriteatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the first sky measurements in this cycle');
@@ -155,7 +155,10 @@ ncwriteatt(filename,'/aquirisFFT/lastSkyTime','description','stop time of the fi
 % the variables linked with the calibration
 if isfield(calibratedSpectra,'effectiveCalibrationTime')
     ncwrite(filename,'/aquirisFFT/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
+else
+    ncwrite(filename,'/aquirisFFT/effectiveCalibrationTime',-9999*ones(length(calibratedSpectra),1));
 end
+
 ncwrite(filename,'/aquirisFFT/Tb',Tb');
 ncwrite(filename,'/aquirisFFT/frequencies',calibratedSpectra(1).freq);
 ncwrite(filename,'/aquirisFFT/THot',[calibratedSpectra.THot]);
@@ -165,12 +168,20 @@ ncwrite(filename,'/aquirisFFT/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/aquirisFFT/calibrationTime',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/aquirisFFT/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
 
-ncwrite(filename,'/aquirisFFT/TRoom',[calibratedSpectra.TempRoom]);
-ncwrite(filename,'/aquirisFFT/stdTRoom',[calibratedSpectra.stdTempRoom]);
+if isfield(calibratedSpectra,'TempRoom')
+    ncwrite(filename,'/aquirisFFT/TRoom',[calibratedSpectra.TempRoom]);
+    ncwrite(filename,'/aquirisFFT/stdTRoom',[calibratedSpectra.stdTempRoom]);
+else
+    ncwrite(filename,'/aquirisFFT/TRoom',-9999*ones(length(calibratedSpectra),1));
+    ncwrite(filename,'/aquirisFFT/stdTRoom',-9999*ones(length(calibratedSpectra),1));
+end
 
 if isfield(calibratedSpectra,'TOut')
     ncwrite(filename,'/aquirisFFT/TOut',[calibratedSpectra.TempOut]);
+else
+    ncwrite(filename,'/aquirisFFT/TOut',-9999*ones(length(calibratedSpectra),1));
 end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
 if isfield(calibratedSpectra,'errorVector')
@@ -182,6 +193,7 @@ if isfield(calibratedSpectra,'errorVector')
     ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
     ncwrite(filename,'/flags/calibration_flags',errorCalib');
 end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global Attributes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
