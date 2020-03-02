@@ -59,7 +59,7 @@ This part is opened to discussion but what I did until now is:
 
 4. What other quality flags do we want to add for the calibration cycle ?
 
-5. Output parameters to save as netCDF for the level1a ? See an example of netCDF structure [here](/documentation/example_netCDF/GROSOM_level1a_daily_example.txt).
+5. Output parameters to save as netCDF for the level1a ? See an example of netCDF structure [here](/example_netCDF/GROSOM_level1a_daily_example.txt).
 
 ### Future perspectives
 
