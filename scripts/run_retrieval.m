@@ -67,7 +67,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Calibrating...')
 
-calibratedSpectra = retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
+[drift,calibratedSpectra] = retrievalTool.calibrate(rawSpectra,log,retrievalTool,80,'standard');
 
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file
@@ -75,7 +75,7 @@ calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpe
 
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
-    retrievalTool.plot_calibrated_spectra(retrievalTool,calibratedSpectra,50,250,24);
+    retrievalTool.plot_calibrated_spectra(retrievalTool,drift,calibratedSpectra,50,300,24);
 end
 
 %%
@@ -93,21 +93,27 @@ disp(warningLevel0)
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 %%
+clear calibratedSpectra
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Level 1a to level 1b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% 
-%
-% 
-% if exist(retrievalTool.filenameLevel1a)
-%     calibratedSpectra=retrievalTool.read_level1a(retrievalTool);
-% end
+
+if isfield(retrievalTool,'filenameLevel1a') 
+    if exist(retrievalTool.filenameLevel1a,'file')
+        calibratedSpectra=retrievalTool.read_level1a(retrievalTool);
+    else
+        return
+    end
+else
+    disp('No calibration data found for this day')
+    return
+end
 % 
 % % correctedSpectra.date=calibratedSpectra(1).date;
 % % 
 % 
-%calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
+calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
 % 
 % 
 % % Option for plotting hourly spectra (to be improved...)

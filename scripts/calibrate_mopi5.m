@@ -1,4 +1,4 @@
-function calibratedSpectra = calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType)
+function [drift,calibratedSpectra] = calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType)
 %==========================================================================
 % NAME          | calibrate_generic.m
 % TYPE          | function

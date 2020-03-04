@@ -28,9 +28,9 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_04_26','yyyy_mm_dd'):datenum('2019_04_26','yyyy_mm_dd');
-
-for k = 1:numel(dates)
+dates=datenum('2019_06_01','yyyy_mm_dd'):datenum('2019_06_02','yyyy_mm_dd');
+k=1;
+%for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
     
     % Import default tools for running a retrieval for a given instrument
@@ -75,7 +75,7 @@ for k = 1:numel(dates)
     retrievalTool.calibrate=@(rawSpectra,log,retrievalTool,TCold,calType) calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType);
     
     % Plot some calibrated spectra:
-    retrievalTool.plot_calibrated_spectra=@(retrievalTool,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim,N);
+    retrievalTool.plot_calibrated_spectra=@(retrievalTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(retrievalTool,drift,rawSpectra,lowerLim,upperLim,N);
     
     % Function for quality check of the calibrated spectra
     retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_generic(log,retrievalTool,calibratedSpectra);
@@ -105,9 +105,12 @@ for k = 1:numel(dates)
         retrievalTool.fLO1=1.45875e11;
         retrievalTool.fLO2=3.6e9;
         
+        retrievalTool.numberOfSpectrometer=1;
+        
         % This one should correspond to the DC channel
-        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2;
-        retrievalTool.DCChannel=16384; %=Nchannel/2 ??
+        retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2-0.5e9;
+        
+        %retrievalTool.DCChannel=16384;
         retrievalTool.spectrometer='AC240';
     elseif (string(instrumentName)=='SOMORA')
         retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
@@ -122,7 +125,8 @@ for k = 1:numel(dates)
         
         % This one should correspond to the DC channel
         retrievalTool.LOFreqTot=retrievalTool.fLO1-retrievalTool.fLO2-retrievalTool.fLO3;
-        retrievalTool.DCChannel=1; %=Nchannel/2 ??
+        %retrievalTool.DCChannel=1; %=Nchannel/2 ??
+        retrievalTool.numberOfSpectrometer=1;
         retrievalTool.spectrometer='AC240';
         
         
@@ -148,6 +152,7 @@ for k = 1:numel(dates)
         
 
         retrievalTool.ffts_model=1;
+        retrievalTool.numberOfSpectrometer=4;
         S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
         retrievalTool.spectrometer=S{retrievalTool.ffts_model};
         
@@ -161,18 +166,23 @@ for k = 1:numel(dates)
         retrievalTool.check_calibrated=@(log,retrievalTool,calibratedSpectra) check_calibrated_mopi5(log,retrievalTool,calibratedSpectra);
     end
     
-%     for m=1:3
-%          model=[1 3 4];
-%          fftsMopi=model(m);
-%          retrievalTool.ffts_model=fftsMopi;
-%          S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
-%          retrievalTool.spectrometer=S{retrievalTool.ffts_model};
-    
-        try
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Running the retrieval with the defined toolchain
-            run_retrieval(retrievalTool)
+    if retrievalTool.numberOfSpectrometer>1
+        for m=1:3
+            model=[1 3 4];
+            fftsMopi=model(m);
+            retrievalTool.ffts_model=fftsMopi;
+            S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
+            retrievalTool.spectrometer=S{retrievalTool.ffts_model};
+            
+            try
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                % Running the retrieval with the defined toolchain
+                %run_retrieval(retrievalTool)
+            end
         end
-    %end
-end
+    
+    else
+        % run_retrieval(retrievalTool)
+    end
+%end
 

@@ -62,6 +62,7 @@ switch string(instrumentName)
 
         retrievalTool.instrumentBandwidth=1e9;
         retrievalTool.LOFreq=1.45875e11;
+        retrievalTool.samplingRateFFTS=2000;
         
         retrievalTool.lon=7.44;
         retrievalTool.lat=46.95;
@@ -102,11 +103,12 @@ switch string(instrumentName)
 
         retrievalTool.instrumentBandwidth=1e9;
         retrievalTool.LOFreq=1.4927504e11; %TOCHECK
+        retrievalTool.samplingRateFFTS=2000;
         
         retrievalTool.lon=6.95;
         retrievalTool.lat=46.82;
         retrievalTool.altitude=491;
-        retrievalTool.azimuthAngle=-9999;
+        retrievalTool.azimuthAngle=34;
         
         retrievalTool.checkLevel0=true;
         

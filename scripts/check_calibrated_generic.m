@@ -57,14 +57,20 @@ for i = 1:size(calibratedSpectra,2)
     %calibratedSpectra(i).effectiveCalibrationTime=calibratedSpectra(i).effectiveCalibrationTimeHot+calibratedSpectra(i).effectiveCalibrationTimeAntenna+calibratedSpectra(i).effectiveCalibrationTimeCold;
     
     % Frequency vector
+    calibratedSpectra(i).if = retrievalTool.samplingRateFFTS/2 * [0:1/retrievalTool.numberOfChannels:1-1/retrievalTool.numberOfChannels];
+
     calibratedSpectra(i).observationFreq=retrievalTool.observationFreq;
+        
     calibratedSpectra(i).LOFreqTot=retrievalTool.LOFreqTot;
-    bw=retrievalTool.instrumentBandwidth;
-    nChannel=retrievalTool.numberOfChannels;
-    df=bw/(nChannel+1); % TOCHECK
+    
+    calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+    
+    %bw=retrievalTool.instrumentBandwidth;
+    %nChannel=retrievalTool.numberOfChannels;
+    %df=bw/(nChannel+1); % TOCHECK
     % lc=log.Spectr_line_center(1);
-    calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).LOFreqTot-df*(0:retrievalTool.DCChannel-1)),calibratedSpectra(i).LOFreqTot+df*(1:nChannel-retrievalTool.DCChannel));
-    calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
+    %calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).LOFreqTot-df*(0:retrievalTool.DCChannel-1)),calibratedSpectra(i).LOFreqTot+df*(1:nChannel-retrievalTool.DCChannel));
+    %calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
     %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -164,8 +170,8 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).dateStart=datestr(log.x(1:6,ia(1))','yyyymmddTHHMMSSZ');
     calibratedSpectra(i).dateStop=datestr(log.x(1:6,ia(end))','yyyymmddTHHMMSSZ');
     
-    calibratedSpectra(i).datetimeStart=datenum(calibratedSpectra(i).dateStart,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
-    calibratedSpectra(i).datetimeStop=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
+    calibratedSpectra(i).firstSkyTime=datenum(calibratedSpectra(i).dateStart,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
+    calibratedSpectra(i).lastSkyTime=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
     
     % As we are always using daily raw files:
     calibratedSpectra(i).year=log.Year(1);

@@ -1,4 +1,4 @@
-function calibratedSpectra = calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType)
+function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,log,retrievalTool,TCold,calType)
 %==========================================================================
 % NAME          | calibrate_generic.m
 % TYPE          | function
@@ -32,18 +32,33 @@ hotIndices=find(log.Position==retrievalTool.indiceHot & log.Tipping_Curve_active
 antennaIndices=find(log.Position==retrievalTool.indiceAntenna & log.Tipping_Curve_active==0);
 coldIndices=find(log.Position==retrievalTool.indiceCold & log.Tipping_Curve_active==0);
 
+initialIndices={
+    find(log.Position==retrievalTool.indiceHot & log.Tipping_Curve_active==0);      % Hot
+    find(log.Position==retrievalTool.indiceAntenna & log.Tipping_Curve_active==0);  % Antenna
+    find(log.Position==retrievalTool.indiceCold & log.Tipping_Curve_active==0);     % Cold
+};
+
 % Now we read complete half cycle Up (c-a-h) and Down (h-a-c) separately
 [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(log,retrievalTool);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% older version
-% We define a complete cycle as 2-1-0-0-1-2:
-% hotIndCompleteCycle=find_completed_cycle(log,retrievalTool);
+% Checking the mean values to find the bug... From Axel
+% Variations of mean amplitude and Tsys with time
+% ensure equal number of cycles
 
-% % Group all indices by type for all the completed cycles:
-% ih=reshape([hotIndCompleteCycle; hotIndCompleteCycle+5],[],1);
-% ia=reshape([hotIndCompleteCycle+1;hotIndCompleteCycle+4],[],1);
-% ic=reshape([hotIndCompleteCycle+2;hotIndCompleteCycle+3],[],1);
+for i=1:length(initialIndices); 	cn(i) = length(initialIndices{i}); end;
+for i=1:length(initialIndices); 	initialIndices{i}=initialIndices{i}(1:min(cn)); end;
+
+TH=mean(log.T_Hot_Absorber);
+drift.t  = log.t(initialIndices{1});
+drift.T  = log.T_Hot_Absorber(initialIndices{1});
+drift.a(1,:) = mean(rawSpectra(initialIndices{1},:),2,'omitnan');
+drift.a(2,:) = mean(rawSpectra(initialIndices{2},:),2,'omitnan');
+drift.a(3,:) = mean(rawSpectra(initialIndices{3},:),2,'omitnan');
+drift.Y    = drift.a(1,:) ./  drift.a(3,:);
+drift.Tn   = (TH - drift.Y*TCold)./ (drift.Y-1);
+drift.TSysLog=log.FE_T_Sys(initialIndices{1});
+drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(TH-TCold) + TCold;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
@@ -156,8 +171,8 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).coldSpectraRemaining=length(ic);
     
     % Saving clean hot and cold indices for this cycle
-    calibratedSpectra(i).hotInd=ih;
-    calibratedSpectra(i).coldInd=ic;
+    calibratedSpectra(i).hotInd=ih';
+    calibratedSpectra(i).coldInd=ic';
     
     % Final mean hot and cold raw counts for this cycle:
     calibratedSpectra(i).meanHotSpectra=nanmean(rawSpectra(ih,:),1);
@@ -170,29 +185,68 @@ for i=1:nCalibrationCycles
     % Hot temperature corresponding to the hot spectra (to all spectra ?)
     calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(ih));
     calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(ih));
-    
-    % mean relative difference
-    %threshHot=retrievalTool.threshRawSpectraHot*ones(size(ih));
-    %threshCold=retrievalTool.threshRawSpectraCold*ones(size(ic));
-    
-    %mrdHot=(rawSpectra(ih,:)-meanRawCountsHot)./meanRawCountsHot > threshHot;
-    %mrdCold=(rawSpectra(ic,:)-meanRawCountsCold)./meanRawCountsCold > threshCold;
-    
-    %plot(meanRawCountsHot)
-    %hold on
-    %plot(rawSpectra(2406,:))
-    %plot((rawSpectra(2407,:)-meanRawCountsHot)./meanRawCountsHot)
-    %ylim([lowerLim,upperLim])
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calibration
 switch calType
-    case 'debug'
+    case 'standard'
         % Based on the discussion with Axel, changes in the calibration:
         % Averaging hot and cold FFTS counts on the time interval. 
+        for i=1:nCalibrationCycles
+            calibratedSpectra(i).calibrationVersion=calibVersion;
+            calibratedSpectra(i).calibrationTime=calibTime;
+            
+            % All antenna measurements
+            ia=reshape(indices(i).validAntenna,[],1);
+            
+            % Antenna measurements inside a half cycle
+            iaUp=reshape(indices(i).validColdStartUp(2,:),[],1);
+            iaDown=reshape(indices(i).validHotStartDown(2,:),[],1);
+            
+            % Checking for NaN in the antenna spectra and keeping only complete
+            % spectra for the calibration:
+            ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
+            iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
+            iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
+            
+            % Saving the indices for the Antenna
+            calibratedSpectra(i).antennaInd=ia;
+            calibratedSpectra(i).antennaIndUp=iaUp;
+            calibratedSpectra(i).antennaIndDown=iaDown;
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Flaging and removing (from the mean spectra only) bad angles for the antenna
+            antennaAngleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)>retrievalTool.elevationAngleTolerance;
+            if any(antennaAngleCheck)==1
+                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
+            else
+                calibratedSpectra(i).antennaAngleRemoved=0;
+            end
+            calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck)';
+            calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Doing the calibration globally for this calibration cycle:
+            calibratedSpectra(i).calibrationType='standard';
+            
+            % Mean Antenna counts for this cycle
+            rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
+            
+            % Y factor
+            calibratedSpectra(i).Y=calibratedSpectra(i).meanHotSpectra ./ calibratedSpectra(i).meanColdSpectra;
+            
+            % Noise Temperature Spectra
+            calibratedSpectra(i).TN=(calibratedSpectra(i).THot - calibratedSpectra(i).Y*TCold)./ (calibratedSpectra(i).Y -1);
+            
+            % Calibration
+            calibratedSpectra(i).Tb = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
+        end
+    case 'debug'
+        % Based on the discussion with Axel, changes in the calibration:
+        % Averaging hot and cold FFTS counts on the time interval.
         % Keeping each individual cycle for later analysis but computing as
-        % well the avg calibrated spectra. 
+        % well the avg calibrated spectra.
         
         for i=1:nCalibrationCycles
             calibratedSpectra(i).calibrationVersion=calibVersion;
@@ -226,14 +280,14 @@ switch calType
             end
             calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
             calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
-
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
             calibratedSpectra(i).calibrationType='debug';
             
             % Mean Antenna counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
-
+            
             % Calibration
             calibratedSpectra(i).Tb = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             
@@ -275,52 +329,6 @@ switch calType
             calibratedSpectra(i).meanFromTbDownAll=mean(calibratedSpectra(i).TbDownAll);
             % For the future: propagate the initial uncertainties into the
             % calibration formula.
-        end
-    case 'standard'
-        % Based on the discussion with Axel, changes in the calibration:
-        % Averaging hot and cold FFTS counts on the time interval. 
-        for i=1:nCalibrationCycles
-            calibratedSpectra(i).calibrationVersion=calibVersion;
-            calibratedSpectra(i).calibrationTime=calibTime;
-            
-            % All antenna measurements
-            ia=reshape(indices(i).validAntenna,[],1);
-            
-            % Antenna measurements inside a half cycle
-            iaUp=reshape(indices(i).validColdStartUp(2,:),[],1);
-            iaDown=reshape(indices(i).validHotStartDown(2,:),[],1);
-            
-            % Checking for NaN in the antenna spectra and keeping only complete
-            % spectra for the calibration:
-            ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
-            iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
-            iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
-            
-            % Saving the indices for the Antenna
-            calibratedSpectra(i).antennaInd=ia;
-            calibratedSpectra(i).antennaIndUp=iaUp;
-            calibratedSpectra(i).antennaIndDown=iaDown;
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Flaging and removing (from the mean spectra only) bad angles for the antenna
-            antennaAngleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)>retrievalTool.elevationAngleTolerance;
-            if any(antennaAngleCheck)==1
-                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
-            else
-                calibratedSpectra(i).antennaAngleRemoved=0;
-            end
-            calibratedSpectra(i).antennaIndCleanAngle=calibratedSpectra(i).antennaInd(~antennaAngleCheck);
-            calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Doing the calibration globally for this calibration cycle:
-            calibratedSpectra(i).calibrationType='standard';
-            
-            % Mean Antenna counts for this cycle
-            rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
-
-            % Calibration
-            calibratedSpectra(i).Tb = TCold + (calibratedSpectra(i).THot-TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
         end
     case 'time'
         nCalibrationCycles=length(indices);
