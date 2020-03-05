@@ -435,5 +435,4 @@ if retrievalTool.saveAllCycles
 end
 
 disp(['File saved as: ' filename])
-retrievalTool.filenameLevel1a=filename;
 end

@@ -46,7 +46,7 @@ for t = 1:length(calibratedSpectra)
     
     indCyclesGood(abs(calibratedSpectra(t).Tb-TbFiltered)>retrievalTool.boxCarThreshold)=0;
     
-    calibratedSpectra(t).channelsQuality=indCyclesGood;
+    calibratedSpectra(t).channelsQuality=indCyclesGood';
     
 end
 

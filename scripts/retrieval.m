@@ -28,7 +28,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_06_01','yyyy_mm_dd'):datenum('2019_06_02','yyyy_mm_dd');
+dates=datenum('2019_04_30','yyyy_mm_dd'):datenum('2019_06_02','yyyy_mm_dd');
 k=1;
 %for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
@@ -93,6 +93,9 @@ k=1;
     retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
     
     retrievalTool.checking_channel_quality= @(calibratedSpectra,retrievalTool) checking_channel_quality_gromos(calibratedSpectra,retrievalTool);
+    
+    retrievalTool.integrate_calibrated_spectra= @(calibratedSpectra,integrationTime) integrate_calibrated_spectra_generic(calibratedSpectra,integrationTime);
+    
     
     % Path definition (for local computer)
     if (string(instrumentName)=='GROMOS')

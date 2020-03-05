@@ -33,8 +33,7 @@ for t = 1:length(calibratedSpectra)
     
     
     % Linear fit of spectrum's wings
-    
-    f_trop_corr  = [calibratedSpectra(t).freq(100:5000) calibratedSpectra(t).freq(end-5000:end-100)];
+    f_trop_corr  = [calibratedSpectra(t).freq(100:2000) calibratedSpectra(t).freq(end-2000:end-100)];
     
     % Clean brightness temperature (without spurious channels)
     Tb_temp=calibratedSpectra(t).Tb;
@@ -45,9 +44,7 @@ for t = 1:length(calibratedSpectra)
 %     ib=find(isnan(Tb_temp));
 %     ig=find(calibratedSpectra(t).channelsQuality==1);
 %     
-
-    
-    Tb_trop_corr = [Tb_temp(100:5000) Tb_temp(end-5000:end-100)];
+    Tb_trop_corr = [Tb_temp(100:2000) Tb_temp(end-2000:end-100)];
     ig=find(~isnan(Tb_trop_corr));
     ib=find(isnan(Tb_trop_corr));
     
@@ -65,13 +62,20 @@ for t = 1:length(calibratedSpectra)
     [p,s,mu] = polyfit(f_trop_corr,Tb_trop_corr_smoothed,1 );  % linear fit
     Twing    = polyval(p, calibratedSpectra(t).freq, [], mu);        % polynomial evaluation
     
-    
     % Transmitance calculated (Ingold)
     transmittance = (Tmean - Twing)./(Tmean - Tbg);
+    
+    % Method used in GROMOS and SOMORA
+    r = read_datafile(sprintf('/home/esauvageat/Documents/GROSOM/RetrievalFiles/standard.spectrum.above.troposphere.aa', path) , 'matrix');
+    T_strat = ( mean(r(1:2)) + mean(r((end-1):end)) ) /2;
+    meanTWings=mean(Twing);
+    
+    calibratedSpectra(t).oldMeanTroposphericTransmittance=(meanTWings - Tmean)/(T_strat - Tmean); 
     
     % Troposph. corr.
     calibratedSpectra(t).TbTroposphericCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
     calibratedSpectra(t).troposphericTransmittance = transmittance;
+    calibratedSpectra(t).troposphericOpacity=-log(transmittance);
     calibratedSpectra(t).meanTroposphericTransmittance  = mean(transmittance);
     
 

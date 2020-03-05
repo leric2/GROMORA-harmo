@@ -123,17 +123,16 @@ calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
 % 
 % % checking the quality of the channels and flagging the potential bad ones
 % % (we do not remove any)
-%calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool);
+calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool);
 
 % Check calibrated spectra to identify the good ones for integration
+calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
 
 % Integrate the "good" spectra --> weighted mean based on tropospheric
 % transmittance ?
-% retrievalTool.integrate_calibrated_spectra()
+integratedSpectra = retrievalTool.integrate_calibrated_spectra(calibratedSpectra,60);
 
 % window_correction()
-
-%calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
 
 % sideband correction ?
 
