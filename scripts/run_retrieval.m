@@ -98,6 +98,8 @@ clear calibratedSpectra
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Level 1a to level 1b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+filename=[retrievalTool.level1Folder retrievalTool.instrumentName '_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
+retrievalTool.filenameLevel1a=filename;
 
 if isfield(retrievalTool,'filenameLevel1a') 
     if exist(retrievalTool.filenameLevel1a,'file')

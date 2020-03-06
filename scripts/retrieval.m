@@ -28,7 +28,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_04_30','yyyy_mm_dd'):datenum('2019_06_02','yyyy_mm_dd');
+dates=datenum('2019_05_02','yyyy_mm_dd'):datenum('2019_05_02','yyyy_mm_dd');
 k=1;
 %for k = 1:numel(dates)
     dateStr=datestr(dates(k),'yyyy_mm_dd');
