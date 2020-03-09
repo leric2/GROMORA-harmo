@@ -89,8 +89,7 @@ k=1;
     %
     retrievalTool.plot_hourly_spectra = @(retrievalTool,rawSpectra,lowerLim,upperLim) plot_hourly_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim);
     
-    % TO CHANGE FOR SOMORA
-    retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
+    
     
     retrievalTool.checking_channel_quality= @(calibratedSpectra,retrievalTool) checking_channel_quality_gromos(calibratedSpectra,retrievalTool);
     
@@ -115,12 +114,15 @@ k=1;
         
         %retrievalTool.DCChannel=16384;
         retrievalTool.spectrometer='AC240';
+        
+        % meteo Data
+        retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
     elseif (string(instrumentName)=='SOMORA')
         retrievalTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         retrievalTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
         retrievalTool.file=[retrievalTool.rawFileFolder,retrievalTool.instrumentName,'09_', retrievalTool.dateStr];
         % TOCHANGE
-        retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        retrievalTool.meteoFolder='/home/esauvageat/Documents/GROSOM/MeteoFile/';
         
         retrievalTool.fLO1=1.49275e11;
         retrievalTool.fLO2=5.6e9;
@@ -132,7 +134,8 @@ k=1;
         retrievalTool.numberOfSpectrometer=1;
         retrievalTool.spectrometer='AC240';
         
-        
+        % meteo Data
+        retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_payerne(retrievalTool,correctedSpectra);
     elseif (string(instrumentName)=='mopi5')
         retrievalTool.rawFileFolder=['/mnt/instrumentdata/mopi5/' dateStr(1:4) '/'];
         %retrievalTool.rawFileFolder=['/scratch/mopi_rawData/'];

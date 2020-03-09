@@ -1,4 +1,4 @@
-function correctedSpectra = get_meteo_data_unibe(correctedSpectra,retrievalTool)
+function calibratedSpectra = get_meteo_data_unibe(calibratedSpectra,retrievalTool)
 %==========================================================================
 % NAME          | get_meteo_data_unibe
 % TYPE          | function
@@ -21,7 +21,7 @@ function correctedSpectra = get_meteo_data_unibe(correctedSpectra,retrievalTool)
 
 %==========================================================================
 
-if datetime(correctedSpectra(1).year,correctedSpectra(1).month,correctedSpectra(1).day) > datetime(2017,08,10)
+if datetime(calibratedSpectra(1).year,calibratedSpectra(1).month,calibratedSpectra(1).day) > datetime(2017,08,10)
     % First reading the Meteo dataset for this day
     dateStringMeteo=[retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)];
     meteoDataFile=[retrievalTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
@@ -34,19 +34,18 @@ if datetime(correctedSpectra(1).year,correctedSpectra(1).month,correctedSpectra(
         meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-datenum(1970,1,1);
     end
     
-    % Storing interesting variable into vectors
-    airTempVec=[meteoData.air_temperature];
-    relHumVect=[meteoData.rel_humidity];
-    airPVec=[meteoData.air_pressure];
-    
-    for t=1:length(correctedSpectra)
+    %%%%%% Storing values into calibratedSpectra
+    for t=1:length(calibratedSpectra)
+        %start=datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
+        stop=datenum(datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
         
         % Selecting the interesting values for each calibration cycle:
-        rowInd=([meteoData.dateTime]>correctedSpectra(t).firstSkyTime) & ([meteoData.dateTime]<correctedSpectra(t).lastSkyTime);
-
-        correctedSpectra(t).meanAirTemperature=nanmean(airTempVec(rowInd))+273.15;
-        correctedSpectra(t).meanRelHumidity=nanmean(relHumVect(rowInd));
-        correctedSpectra(t).meanAirPressure=nanmean(airPVec(rowInd));
+        rowInd=([meteoData.dateTime]>=calibratedSpectra(t).timeMin & [meteoData.dateTime]<=stop);
+        
+        calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData(rowInd).air_temperature))+273.15;
+        calibratedSpectra(t).meanRelHumidity=nanmean(vertcat(meteoData(rowInd).rel_humidity));
+        calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData(rowInd).air_pressure));
+        calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).rain_accumulation));
     end
 else
     disp('format of meteo data changed before the 10th of August 2017') 

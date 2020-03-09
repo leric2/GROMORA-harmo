@@ -50,7 +50,7 @@ log.T_Amp2=log.TExt5;
 log.T_Mirror_View=log.TExt6;
 log.T_Reserved=log.TExt7;
 
-log.LN2_Sensors_OK = log.LN2_Relay;
+log.LN2_Sensors_OK = ~log.LN2_Relay;
 
 log.LN2_Level_OK = log.LN2_above_High & ~(log.LN2_above_Low);
     

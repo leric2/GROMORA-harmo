@@ -134,7 +134,8 @@ calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
 % transmittance ?
 integratedSpectra = retrievalTool.integrate_calibrated_spectra(calibratedSpectra,60);
 
-% window_correction()
+% window correction
+%calibratedSpectra=window_correction(calibratedSpectra);
 
 % sideband correction ?
 

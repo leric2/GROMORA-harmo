@@ -1,4 +1,4 @@
-function calibratedSpectra = window_correction_generic(calibratedSpectra,retrievalTool)
+function calibratedSpectra = window_correction_generic(calibratedSpectra)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -21,7 +21,6 @@ function calibratedSpectra = window_correction_generic(calibratedSpectra,retriev
 %==========================================================================
 
 % Window correction
-
-Twin = mean(log.TCAB7(is(1):is(end)));      % Temperature read by sensor close to the window  (Compare TCAB7 instead of TCAB5)
-Tbw  = (Tb - Twin * 0.0012) ./ 0.9988;
-
+for i = 1:length(calibratedSpectra)
+    calibratedSpectra(i).Tbw  = (calibratedSpectra(i).Tb - calibratedSpectra(i).TWindow * 0.0012) ./ 0.9988;
+end

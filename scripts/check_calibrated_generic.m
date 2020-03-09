@@ -25,7 +25,7 @@ for i = 1:size(calibratedSpectra,2)
     ih=calibratedSpectra(i).hotInd;
     ic=calibratedSpectra(i).coldInd;
     
-    ind=sort([ia; ih; ic]);
+    ind=sort([ia ih ic]);
     
     % The number of indices for the 3 positions considered in the
     % calibration cycle should be more than a certain threshold
@@ -78,7 +78,6 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanAngleAntenna=mean(log.Elevation_Angle(ia));
     calibratedSpectra(i).stdAngleAntenna=std(log.Elevation_Angle(ia));
     
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Hot load check flag
     if (calibratedSpectra(i).stdTHot>retrievalTool.hotTemperatureStdThreshold)
@@ -90,8 +89,8 @@ for i = 1:size(calibratedSpectra,2)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
     % Tsys from the log
-    calibratedSpectra(i).Tsys=nanmean(log.FE_T_Sys(ind));
-    calibratedSpectra(i).stdTSys=nanstd(log.FE_T_Sys(ind));
+    calibratedSpectra(i).TSysLog=nanmean(log.FE_T_Sys(ind));
+    calibratedSpectra(i).stdTSysLog=nanstd(log.FE_T_Sys(ind));
     
     if (calibratedSpectra(i).stdTSys>retrievalTool.systemTempMaxStd)
         calibratedSpectra(i).systemTemperatureOK=0;
@@ -101,12 +100,12 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Liquid Nitrogen
-    if ~all(log.LN2_Sensors_OK)
+    if ~all(log.LN2_Sensors_OK(ind)==1)
         calibratedSpectra(i).LN2SensorsOK=0;
     else
         calibratedSpectra(i).LN2SensorsOK=1;
     end
-    if ~all(log.LN2_Level_OK)
+    if ~all(log.LN2_Level_OK(ind))
         calibratedSpectra(i).LN2LevelOK=0;
     else
         calibratedSpectra(i).LN2LevelOK=1;
@@ -167,6 +166,7 @@ for i = 1:size(calibratedSpectra,2)
     % Save the start and stop time for this calibration cycle
     % Correspond to the first sky measurements taken into account for the
     % mean calibrated spectra.
+       
     calibratedSpectra(i).dateStart=datestr(log.x(1:6,ia(1))','yyyymmddTHHMMSSZ');
     calibratedSpectra(i).dateStop=datestr(log.x(1:6,ia(end))','yyyymmddTHHMMSSZ');
     
@@ -195,6 +195,11 @@ for i = 1:size(calibratedSpectra,2)
     % as well as the "mean time" of the calibration cycle (mean of all
     % antenna measurements)
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(log.t(ia))/24,'HH:MM:SS')];
+    
+    theoreticalminTime=[calibratedSpectra(i).date '_' datestr(calibratedSpectra(i).theoreticalStartTime/24,'HH:MM:SS')];
+    %theoreticalmaxTime=[calibratedSpectra(i).date '_' datestr((calibratedSpectra(i).theoreticalStartTime+calibratedSpectra(i).calibrationTime/60)/24,'HH:MM:SS')];
+    
+    calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';

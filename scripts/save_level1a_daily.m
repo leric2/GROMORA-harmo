@@ -32,7 +32,7 @@ locationLevel1a=retrievalTool.level1Folder;
 
 %initialize some variable (only the matrices)
 channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
-Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
+%Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 %frequencyVector=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 
 if isfield(calibratedSpectra,'errorVector')
@@ -41,7 +41,7 @@ if isfield(calibratedSpectra,'errorVector')
 end
 for t = 1:length(calibratedSpectra)
     channelId(t,:)=1:retrievalTool.numberOfChannels;
-    Tb(t,:)=calibratedSpectra(t).Tb;
+    %Tb(t,:)=calibratedSpectra(t).Tb;
     %frequencyVector(t,:)=calibratedSpectra(t).freq;
     
     if isfield(calibratedSpectra,'errorVector')
@@ -90,9 +90,11 @@ nccreate(filename,'/spectrometer1/timeOfDay','Dimensions',{'time',Inf},'Datatype
 nccreate(filename,'/spectrometer1/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
+nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration    
-nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+%nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
@@ -155,15 +157,20 @@ ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).me
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
+ncwrite(filename,'/spectrometer1/timeMin',[calibratedSpectra.timeMin]);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoretical start time for this calibration cycle');
+
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration
-if isfield(calibratedSpectra,'effectiveCalibrationTime')
-    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
-else
-    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',-9999*ones(length(calibratedSpectra),1));
-end
+%if isfield(calibratedSpectra,'effectiveCalibrationTime')
+%    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
+%else
+%    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',-9999*ones(length(calibratedSpectra),1));
+%end
 
-ncwrite(filename,'/spectrometer1/Tb',Tb');
+ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
@@ -302,10 +309,10 @@ attrVal.azimuth = {'azimuth angle',...
     'degree',...
     'angle measured clockwise positive, 0 deg is northwise'};
 
-attrVal.effCalTime = {'effective calibration time',...
-    'calibration_time',...
-    'second',...
-    'still to improve'};
+%attrVal.effCalTime = {'effective calibration time',...
+%    'calibration_time',...
+%    'second',...
+ %   'still to improve'};
 
 attrVal.Tb = {'Tb',...
     'brightness_temperature',...
@@ -378,7 +385,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/lon',attrName{i},attrVal.lon{i});
     ncwriteatt(filename,'/spectrometer1/alt',attrName{i},attrVal.alt{i});
     ncwriteatt(filename,'/spectrometer1/azimuthAngle',attrName{i},attrVal.azimuth{i});
-    ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
+    %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});

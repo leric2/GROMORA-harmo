@@ -39,6 +39,8 @@ correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
 correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
 correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
 
+correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
+
 correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
 correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
 
@@ -80,6 +82,9 @@ correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/lastSkyTime')';
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
+
+correctedSpectra.timeMin=ncread(filename,'/spectrometer1/timeMin')';
+
 correctedSpectra.tod = ncread(filename,'/spectrometer1/timeOfDay')';
 
 disp(['File read : ' filename])
@@ -95,10 +100,12 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).THot=correctedSpectra.THot(i);
     calib(i).stdTHot=correctedSpectra.stdTHot(i);
     calib(i).TSys=correctedSpectra.TSys(i);
+    calib(i).TWindow=correctedSpectra.TWindow(i);
     calib(i).stdTSys=correctedSpectra.stdTSys(i);
     calib(i).calibrationTime=correctedSpectra.calibrationTime(i);
     calib(i).firstSkyTime=correctedSpectra.firstSkyTime(i);
     calib(i).lastSkyTime=correctedSpectra.lastSkyTime(i);
+    calib(i).timeMin=correctedSpectra.timeMin(i);
     calib(i).TOD=correctedSpectra.tod(i);
     
     calib(i).flags=correctedSpectra.flagVector(i,:);
