@@ -21,7 +21,8 @@ function calibratedSpectra = get_meteo_data_unibe(calibratedSpectra,retrievalToo
 
 %==========================================================================
 
-if datetime(calibratedSpectra(1).year,calibratedSpectra(1).month,calibratedSpectra(1).day) > datetime(2017,08,10)
+
+if datetime(str2num(retrievalTool.dateStr(1:4)),str2num(retrievalTool.dateStr(6:7)),str2num(retrievalTool.dateStr(9:10))) > datetime(2017,08,10)
     % First reading the Meteo dataset for this day
     dateStringMeteo=[retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)];
     meteoDataFile=[retrievalTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];

@@ -30,7 +30,7 @@ jjj= datenum(retrievalTool.dateStr)-datenum(str2num(datestr(datenum(retrievalToo
 % First reading the Meteo dataset for this day
 MetNum=str2num(retrievalTool.dateStr(1:4))*1000;
 dateStringMeteo=[num2str(MetNum+jjj+1) '.002'];
-dateStringMeteo='2020065.002';
+%dateStringMeteo='2020065.002';
 
 meteoDataFile=[retrievalTool.meteoFolder dateStringMeteo];
 
@@ -45,12 +45,12 @@ met(met == -999.0) = NaN;
 met(met == 3276.7) = NaN;
 
 datemet=datevec(met(:,1)-1+datenum(str2num(dateStringMeteo(1:4)),01,01));
-datetime=datenum(datemet)-datenum(1970,1,1);
+dateTime=datenum(datemet)-datenum(1970,1,1);
 
 meteoData=struct();
 
 for i = 1:length(met)
-    meteoData(i).dateTime=datetime(i);
+    meteoData(i).dateTime=dateTime(i);
     meteoData(i).air_temperature=met(i,2);
     meteoData(i).rel_humidity=met(i,3);
     meteoData(i).air_pressure=met(i,4);
@@ -67,7 +67,7 @@ for t=1:length(calibratedSpectra)
     calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData(rowInd).air_temperature))+273.15;
     calibratedSpectra(t).meanRelHumidity=nanmean(vertcat(meteoData(rowInd).rel_humidity));
     calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData(rowInd).air_pressure));
-    calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).rain_accumulation));
+    calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).precipitation));
 end
     
 end

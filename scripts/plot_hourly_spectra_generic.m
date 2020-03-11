@@ -1,44 +1,46 @@
-function plot_hourly_spectra_generic(retrievalTool,correctedSpectra,lowerLim,upperLim)
+function plot_hourly_spectra_generic(retrievalTool,integratedSpectra,lowerLim,upperLim)
 % Just for a first look
-try
-    numberOfSpectraToGroup=60/retrievalTool.calibrationTime;
-    
-    N=24;
-    
-    Tb=ones(length(correctedSpectra),retrievalTool.numberOfChannels)*NaN;
-    for t = 1:length(correctedSpectra)
-        Tb(t,:)=correctedSpectra(t).Tb;
-    end
-    
+try   
     % plotting a spectra every numberOfSpectraToGroup measurements
     TOD={};
+    N=24;
+    fig=figure();
+    clf
+    set(gcf, 'PaperPosition', [1 1 19 27.7])
+    suptitle([retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)])
     
-    figure();
-    
-    meanHourlySpectra = mean(Tb(1:6,:),1);
-    plot(correctedSpectra(1).freq/1e9,meanHourlySpectra)
     TOD{1}=[num2str(0) ' h'];
     hold on
-    for i=2:N
-        meanHourlySpectra= mean(Tb((i-1)*numberOfSpectraToGroup:i*numberOfSpectraToGroup,:),1);
-        
-        plot(correctedSpectra(1).freq/1e9,meanHourlySpectra)
-        %plot(calibratedSpectra(i).meanFromTbUpAll)
-        %hold on
-        %plot(calibratedSpectra(i).meanFromTbDownAll)
-        %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
-        xlabel('f [GHz]')
-        %xlim(1e-9*[correctedSpectra(1).freq(1),correctedSpectra.freq(end)])
+    subplot(1,2,1); 
+    for i=1:N
+        plot(integratedSpectra(i).if,integratedSpectra(i).Tb);
+        title('')
+        xlabel('IF [MHz]')
         ylabel('T_B [K]')
+        
         ylim([lowerLim,upperLim])
-        TOD{i}=[num2str(i-1) ' [h]'];
+        TOD{i}=num2str(integratedSpectra(i).TOD);
         hold on
     end
-    legend(TOD)
+    title('Non Corrected, all channels')
+    grid on
+    subplot(1,2,2); 
     
-    saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
-
-% close
+    for i=1:N
+        plot(integratedSpectra(i).if,integratedSpectra(i).Tbcorr.*integratedSpectra(i).channelsQuality);
+        xlabel('IF [MHz]')
+        ylabel('T_B [K]')
+        
+        ylim([lowerLim,upperLim])
+        hold on
+    end
+    title('Corrected, good channels')
+    %legend(TOD,'Location','southoutside')
+    grid on
+    orient(fig,'landscape')
+    % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
+    print([retrievalTool.level1Folder 'integratedSpectra' retrievalTool.dateStr '_' retrievalTool.spectrometer],'-dpdf','-fillpage')
+    close
 
 catch ME
     warning(ME.identifier,'Problem Plotting')

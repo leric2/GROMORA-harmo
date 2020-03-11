@@ -42,7 +42,7 @@ correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
 
 correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
-correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
+%correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
 
 % ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
 % ncread(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);

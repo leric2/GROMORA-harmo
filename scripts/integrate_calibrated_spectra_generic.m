@@ -1,4 +1,4 @@
-function integratedSpectra = integrate_calibrated_spectra_generic(calibratedSpectra,integrationTime)
+function level1b = integrate_calibrated_spectra_generic(retrievalTool,calibratedSpectra)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -20,22 +20,48 @@ function integratedSpectra = integrate_calibrated_spectra_generic(calibratedSpec
 
 %==========================================================================
 % Threshold for the integration, calibTime has to be in [min]
-dt=integrationTime/60;
+dt=retrievalTool.integrationTime/60;
 timeThresh=0:dt:23;
 
-integratedSpectra=struct();
+level1b=struct();
+level1b.calibration=calibratedSpectra;
 
 for h = 1:length(timeThresh)
     % Finding the spectra during this time stamp:
     indSpectra=find([calibratedSpectra.TOD]>timeThresh(h) & [calibratedSpectra.TOD]<timeThresh(h)+dt);
     
-    % Selecting only spectra with transmission > 0.2 in the integration:
+    % Selecting only spectra with:
+    
+    % transmission > 0.2 in the integration:
     goodSpectra=indSpectra([calibratedSpectra(indSpectra).meanTroposphericTransmittance] > 0.2);
     
-    % Averaging the good spectra together
-    intSpectra=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
-   
-    integratedSpectra(h).intTb=intSpectra;
-    integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
-    integratedSpectra(h).meanTOD=mean([calibratedSpectra(goodSpectra).TOD]);
+    if ~isempty(goodSpectra)  
+        % no critical error:
+        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==[1 1 0 0 0 1 1 1 1],2)==9);
+    end
+    
+    if isempty(goodSpectra)
+        intSpectra=NaN*ones(1,retrievalTool.numberOfChannels);
+        integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
+        goodSpectra=indSpectra;
+    else
+        % Averaging the good spectra together
+        intSpectra=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
+        integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
+    end
+
+    integratedSpectra(h).if=calibratedSpectra(indSpectra(1)).if;
+    integratedSpectra(h).freq=calibratedSpectra(indSpectra(1)).freq;
+    integratedSpectra(h).timeMin=calibratedSpectra(indSpectra(1)).timeMin;
+    integratedSpectra(h).calibrationTime=calibratedSpectra(1).calibrationTime;
+    integratedSpectra(h).integrationTime=retrievalTool.integrationTime*60;
+    integratedSpectra(h).Tb=intSpectra;
+    
+    integratedSpectra(h).TOD=mean([calibratedSpectra(goodSpectra).TOD]);
+    integratedSpectra(h).meanAirTemperature=mean([calibratedSpectra(goodSpectra).meanAirTemperature]);
+    integratedSpectra(h).meanRelativeHumidity=mean([calibratedSpectra(goodSpectra).meanRelHumidity]);
+    integratedSpectra(h).TWindow=mean([calibratedSpectra(goodSpectra).TWindow]);
+    
+end
+level1b.integration=integratedSpectra;
 end

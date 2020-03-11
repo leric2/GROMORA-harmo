@@ -24,13 +24,12 @@ retrievalTool.TbMax=300;
 retrievalTool.TbMin=20;
 
 retrievalTool.boxCarSize=51;
-% retrievalTool.badChannels=[16384 16385];
-retrievalTool.badChannels=[];
+
+%retrievalTool.badChannels=[];
 retrievalTool.boxCarThreshold=7;
 
 % creating boxcar filter
 boxCarFilter=ones(retrievalTool.boxCarSize,1)/retrievalTool.boxCarSize;
-
 
 indicesGood=ones(retrievalTool.numberOfChannels,1);
 

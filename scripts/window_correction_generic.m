@@ -1,4 +1,4 @@
-function calibratedSpectra = window_correction_generic(calibratedSpectra)
+function level1b = window_correction_generic(retrievalTool,level1b)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -21,6 +21,17 @@ function calibratedSpectra = window_correction_generic(calibratedSpectra)
 %==========================================================================
 
 % Window correction
-for i = 1:length(calibratedSpectra)
-    calibratedSpectra(i).Tbw  = (calibratedSpectra(i).Tb - calibratedSpectra(i).TWindow * 0.0012) ./ 0.9988;
+for t = 1:length(level1b.integration)
+    freq=level1b.integration(t).freq;
+    Tb=level1b.integration(t).Tb;
+    TWindow=level1b.integration(t).TWindow;
+    
+    % Planck:
+    TbWindowP= (2*retrievalTool.h*freq.^2)/(retrievalTool.lightSpeed^2)*(1)./(exp((t* freq)./(retrievalTool.kb*TWindow))-1);
+    
+    % Railey-Jeans ??
+    % TbWindowRJ = (retrievalTool.lightSpeed^2 ./ (2*retrievalTool.kb*freq.^2) ) .* TbWindowP; 
+
+    level1b.integration(t).Tbcorr  = (Tb - TbWindowP*(1-retrievalTool.tWindow))./retrievalTool.tWindow;
+end
 end

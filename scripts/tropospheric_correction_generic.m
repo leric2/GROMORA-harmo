@@ -1,4 +1,4 @@
-function calibratedSpectra = tropospheric_correction_generic(calibratedSpectra,deltaT)
+function spectra = tropospheric_correction_generic(spectra,deltaT)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -20,11 +20,9 @@ function calibratedSpectra = tropospheric_correction_generic(calibratedSpectra,d
 
 %==========================================================================
 
-for t = 1:length(calibratedSpectra)
-
+for t = 1:length(spectra)
     % Mean tropospheric temperature
-    
-    Tmean = calibratedSpectra(t).meanAirTemperature - deltaT;
+    Tmean = spectra(t).meanAirTemperature - deltaT;
     
     % Ingold, v2: CHECK UNITS FOR T
     % T_mean  = (-18.772 + 0.7721 * calibratedSpectra(t).meanAirTemperature + 0.1452 * calibratedSpectra(t).meanRelHumidity);
@@ -33,12 +31,12 @@ for t = 1:length(calibratedSpectra)
     
     
     % Linear fit of spectrum's wings
-    f_trop_corr  = [calibratedSpectra(t).freq(100:2000) calibratedSpectra(t).freq(end-2000:end-100)];
+    f_trop_corr  = [spectra(t).freq(100:2000) spectra(t).freq(end-2000:end-100)];
     
     % Clean brightness temperature (without spurious channels)
-    Tb_temp=calibratedSpectra(t).Tb;
+    Tb_temp=spectra(t).Tb;
     
-    Tb_temp(find(calibratedSpectra(t).channelsQuality==0))=NaN;
+    Tb_temp(find(spectra(t).channelsQuality==0))=NaN;
     
     % Not needed to interpolate and extrapolate
 %     ib=find(isnan(Tb_temp));
@@ -53,14 +51,19 @@ for t = 1:length(calibratedSpectra)
         Tb_trop_corr(ib)=interp1(f_trop_corr(ig),Tb_trop_corr(ig),f_trop_corr(ib),'linear');
     elseif isempty(ig)
         disp('Problem with this spectra : ');
-        disp(calibratedSpectra(t).timeOfDay);
+        disp(spectra(t).TOD);
     end
         % Tb_clean(logical(calibratedSpectra(t).channelsQuality))=NaN;
     
     % Smooth the spectra 
-    Tb_trop_corr_smoothed=conv(Tb_trop_corr,ones(11,1)/11,'same');
-    [p,s,mu] = polyfit(f_trop_corr,Tb_trop_corr_smoothed,1 );  % linear fit
-    Twing    = polyval(p, calibratedSpectra(t).freq, [], mu);        % polynomial evaluation
+    Tb_trop_corr_smoothed=conv(Tb_trop_corr,ones(11,1)/11,'valid');
+    %f_trop_corr=f_trop_corr(1:length(Tb_trop_corr_smoothed));
+    
+    %[p,s,mu] = polyfit(f_trop_corr,Tb_trop_corr_smoothed,1 );  % linear fit
+    %Twing    = polyval(p, spectra(t).freq, [], mu);        % polynomial evaluation
+
+    % Keeping the easy method for now
+    Twing=nanmean(Tb_trop_corr_smoothed);
     
     % Transmitance calculated (Ingold)
     transmittance = (Tmean - Twing)./(Tmean - Tbg);
@@ -70,13 +73,13 @@ for t = 1:length(calibratedSpectra)
     T_strat = ( mean(r(1:2)) + mean(r((end-1):end)) ) /2;
     meanTWings=mean(Twing);
     
-    calibratedSpectra(t).oldMeanTroposphericTransmittance=(meanTWings - Tmean)/(T_strat - Tmean); 
+    spectra(t).oldMeanTroposphericTransmittance=(meanTWings - Tmean)/(T_strat - Tmean); 
     
     % Troposph. corr.
-    calibratedSpectra(t).TbTroposphericCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
-    calibratedSpectra(t).troposphericTransmittance = transmittance;
-    calibratedSpectra(t).troposphericOpacity=-log(transmittance);
-    calibratedSpectra(t).meanTroposphericTransmittance  = mean(transmittance);
+    spectra(t).TbTroposphericCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
     
-
+    spectra(t).troposphericTransmittance = transmittance;
+    spectra(t).troposphericOpacity=-log(transmittance);
+    spectra(t).meanTroposphericTransmittance  = mean(transmittance);
+end
 end
