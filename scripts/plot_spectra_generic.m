@@ -10,13 +10,13 @@ figure
 clf
 set(gcf, 'PaperPosition', [1 1 19 27.7])
 suptitle([retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)])
-subplot(3,2,1); plot(drift.t, drift.Tn, 'k'), hold on, plot(drift.t,drift.TSysLog,'y'), ylabel('Tn [K]'), xlim([0,24])
+subplot(3,2,1); plot(drift.t, drift.Tn, 'k'), hold on, plot(drift.t,drift.TSysLog,'y'), ylabel('Tn [K]'), xlim([0,24]),ylim([nanmedian(drift.Tn)-80,nanmedian(drift.Tn)+80])
 subplot(3,2,2); plot(drift.t, drift.Ta ,'g'), ylabel('Ta [K]'), xlim([0,24])
 %set(gca, 'ColorOrder', [1 0.5 0.5; 0.2 0.2 0.2, 0 0 1],'NextPlot', 'replacechildren');
 colors = {'r','g','b'};
 subplot(3,2,3); 
 for i=1:3
-    plot(drift.t, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),xlim([0,24])
+    plot(drift.t, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),xlim([0,24]),ylim([nanmedian(drift.a(3,:))-200,nanmedian(drift.a(1,:))+200])
 end
 subplot(3,2,4); plot(drift.t, drift.T, 'r'),  ylabel('T Hot  [K]'), ylim([mean(drift.T)-0.5 mean(drift.T)+0.5]),xlim([0,24])
 subplot(3,2,5);
