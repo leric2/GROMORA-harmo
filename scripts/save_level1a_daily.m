@@ -175,7 +175,7 @@ ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
 ncwrite(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
-ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);
+ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibrationTime',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);

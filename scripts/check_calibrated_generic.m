@@ -58,12 +58,15 @@ for i = 1:size(calibratedSpectra,2)
     
     % Frequency vector
     calibratedSpectra(i).if = retrievalTool.samplingRateFFTS/2 * [0:1/retrievalTool.numberOfChannels:1-1/retrievalTool.numberOfChannels];
-
+    
     calibratedSpectra(i).observationFreq=retrievalTool.observationFreq;
         
     calibratedSpectra(i).LOFreqTot=retrievalTool.LOFreqTot;
     
     calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+    
+    calibratedSpectra(i).df=retrievalTool.samplingRateFFTS/(2*retrievalTool.numberOfChannels);
+    
     
     %bw=retrievalTool.instrumentBandwidth;
     %nChannel=retrievalTool.numberOfChannels;
@@ -80,7 +83,7 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Hot load check flag
-    if (calibratedSpectra(i).stdTHot>retrievalTool.hotTemperatureStdThreshold)
+    if (abs(calibratedSpectra(i).THot - retrievalTool.THotTh)>retrievalTool.THotAbsThresh | calibratedSpectra(i).stdTHot>retrievalTool.hotTemperatureStdThreshold)
         calibratedSpectra(i).hotLoadOK=0;
     else
         calibratedSpectra(i).hotLoadOK=1;
@@ -88,15 +91,36 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
-    % Tsys from the log
-    calibratedSpectra(i).TSysLog=nanmean(log.FE_T_Sys(ind));
-    calibratedSpectra(i).stdTSysLog=nanstd(log.FE_T_Sys(ind));
+    % Computing TN around the line center (approximately +- 200 MHz)
+    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-200e6 & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+200e6);
     
-    if (calibratedSpectra(i).stdTSys>retrievalTool.systemTempMaxStd)
+    Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
+    
+    % Removing extreme outliers before computing TN:
+    boxCarFilter=ones(100,1)/100;
+    Yfiltered=conv(Ycenter,boxCarFilter,'same');
+    YcenterSmoothed=Ycenter(abs(Ycenter-Yfiltered)<2*nanstd(Ycenter));
+    
+    TSysCenter=(calibratedSpectra(i).THot-YcenterSmoothed*retrievalTool.TCold)./(YcenterSmoothed-1);
+    
+    %TSysCenter2=(calibratedSpectra(i).THot-mean(Ycenter)*retrievalTool.TCold)./(mean(Ycenter)-1);
+    
+    calibratedSpectra(i).TSys=nanmean(TSysCenter);
+
+    if (abs(calibratedSpectra(i).TSys-retrievalTool.TSysCenterTh)>retrievalTool.TSysThresh | calibratedSpectra(i).stdTSys > retrievalTool.stdTSysThresh)
         calibratedSpectra(i).systemTemperatureOK=0;
     else
         calibratedSpectra(i).systemTemperatureOK=1;
     end
+    
+    % Tsys from the log
+    calibratedSpectra(i).TSysLog=nanmean(log.FE_T_Sys(ind));
+    calibratedSpectra(i).stdTSysLog=nanstd(log.FE_T_Sys(ind));
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Cold and Hot spectra variation among this cycle
+    calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
+    calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Liquid Nitrogen
@@ -147,20 +171,8 @@ for i = 1:size(calibratedSpectra,2)
     if ((all(log.FFT_Nr_of_acq(ia))==retrievalTool.numberOfAquisitionSpectraAntenna) & (all(log.FFT_Nr_of_acq(ih))==retrievalTool.numberOfAquisitionSpectraHot) & (all(log.FFT_Nr_of_acq(ih))==retrievalTool.numberOfAquisitionSpectraCold))
         calibratedSpectra(i).FFT_nr_aquisition_OK=0;
     else
-        calibratedSpectra(i).FFT_aquisition_OK=0;
+        calibratedSpectra(i).FFT_nr_aquisition_OK=0;
     end
-    
-    % Error vector for this calibration cycle
-    
-    calibratedSpectra(i).errorVector=[calibratedSpectra(i).sufficientNumberOfIndices,...
-        calibratedSpectra(i).systemTemperatureOK,...
-        calibratedSpectra(i).hotAngleRemoved,...
-        calibratedSpectra(i).coldAngleRemoved,...
-        calibratedSpectra(i).antennaAngleRemoved,...
-        calibratedSpectra(i).LN2SensorsOK,...
-        calibratedSpectra(i).LN2LevelOK,...
-        calibratedSpectra(i).hotLoadOK,...
-        calibratedSpectra(i).FFT_adc_overload_OK];
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Save the start and stop time for this calibration cycle
@@ -208,6 +220,23 @@ for i = 1:size(calibratedSpectra,2)
     
     %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
    
+    
+    % Error vector for this calibration cycle
+    calibratedSpectra(i).errorVector=[calibratedSpectra(i).sufficientNumberOfIndices,...
+        calibratedSpectra(i).systemTemperatureOK,...
+        calibratedSpectra(i).hotAngleRemoved,...
+        calibratedSpectra(i).coldAngleRemoved,...
+        calibratedSpectra(i).antennaAngleRemoved,...
+        calibratedSpectra(i).LN2SensorsOK,...
+        calibratedSpectra(i).LN2LevelOK,...
+        calibratedSpectra(i).hotLoadOK,...
+        calibratedSpectra(i).FFT_adc_overload_OK];
+    
+    if (sum(calibratedSpectra(i).errorVector([1,2,6,7,8,9]))<6 | sum(calibratedSpectra(i).errorVector([3,4,5]))>0)
+        errorV=num2str(calibratedSpectra(i).errorVector);
+        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' num2str(calibratedSpectra(i).timeOfDay)])
+        warning(['Problem with this calibration, error code : ' errorV]);
+    end
 end
 
 end
