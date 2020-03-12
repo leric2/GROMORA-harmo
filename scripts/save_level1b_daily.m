@@ -1,4 +1,4 @@
-function retrievalTool = save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0)
+function retrievalTool = save_level1b_daily(retrievalTool,log,level1b)
 %==========================================================================
 % NAME          | save_level1a_daily.m
 % TYPE          | function
@@ -24,36 +24,39 @@ function retrievalTool = save_level1a_daily(retrievalTool,log,calibratedSpectra,
 % Saving level1a into DAILY netCDF file
 % We are using the netcdf package because it offers far more flexibility
 % for the writing.
-locationLevel1a=retrievalTool.level1Folder;
+locationLevel1b=retrievalTool.level1Folder;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Here LOOOP in all calibration cycle and write every variable into daily vector
 % of matrices
 
+integratedSpectra=level1b.integration;
+
+
 %initialize some variable (only the matrices)
-channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
+channelId=int64(ones(length(integratedSpectra),retrievalTool.numberOfChannels)*NaN);
 %Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 %frequencyVector=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
 
-if isfield(calibratedSpectra,'errorVector')
-    error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-    errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
+if isfield(integratedSpectra,'errorVector')
+    error=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
+    errorCalib=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
 end
-for t = 1:length(calibratedSpectra)
+for t = 1:length(integratedSpectra)
     channelId(t,:)=1:retrievalTool.numberOfChannels;
     %Tb(t,:)=calibratedSpectra(t).Tb;
     %frequencyVector(t,:)=calibratedSpectra(t).freq;
     
-    if isfield(calibratedSpectra,'errorVector')
-        error(t,:)=1:length(calibratedSpectra(1).errorVector);
-        errorCalib(t,:)=calibratedSpectra(t).errorVector;
+    if isfield(integratedSpectra,'errorVector')
+        error(t,:)=1:length(integratedSpectra(1).errorVector);
+        errorCalib(t,:)=integratedSpectra(t).errorVector;
     end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now write daily level 1a file
-filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
-retrievalTool.filenameLevel1a=filename;
+filename=[locationLevel1b retrievalTool.instrumentName '_level1b_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
+retrievalTool.filenameLevel1b=filename;
 
 %filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
 %title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
@@ -104,6 +107,7 @@ nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/integrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/meanAngleAntenna','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -111,14 +115,16 @@ nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/CalibratedSpectraIntegrated','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
-if isfield(calibratedSpectra,'errorVector')
+if isfield(integratedSpectra,'errorVector')
     nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
-    nccreate(filename,'/flags/flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector)},'Datatype','int64')
+    nccreate(filename,'/flags/flags','Dimensions',{'flags',length(integratedSpectra(1).errorVector)},'Datatype','int64')
     
     % We input a (1xerrorVectorSize) int vector to identify the errors
-    nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
+    nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(integratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
     %nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,7 +132,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the spectrometer1 variable
 % Coordinate variables, directly adding the attributes
-ncwrite(filename,'/spectrometer1/time',[calibratedSpectra.meanDatetime]);
+ncwrite(filename,'/spectrometer1/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/spectrometer1/time','units',retrievalTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/time','calendar',retrievalTool.calendar);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
@@ -136,28 +142,28 @@ ncwrite(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
 %%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
 % these are scalar variables as they do not vary in time
-ncwrite(filename,'/spectrometer1/lat',ones(length(calibratedSpectra),1)*retrievalTool.lat);
-ncwrite(filename,'/spectrometer1/lon',ones(length(calibratedSpectra),1)*retrievalTool.lon);
-ncwrite(filename,'/spectrometer1/alt',ones(length(calibratedSpectra),1)*retrievalTool.altitude);
-ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(calibratedSpectra),1)*retrievalTool.azimuthAngle);
+ncwrite(filename,'/spectrometer1/lat',ones(length(integratedSpectra),1)*retrievalTool.lat);
+ncwrite(filename,'/spectrometer1/lon',ones(length(integratedSpectra),1)*retrievalTool.lon);
+ncwrite(filename,'/spectrometer1/alt',ones(length(integratedSpectra),1)*retrievalTool.altitude);
+ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(integratedSpectra),1)*retrievalTool.azimuthAngle);
 
 % some variable for better identifying the time period of the measurements
-ncwrite(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
-ncwrite(filename,'/spectrometer1/month',int64([calibratedSpectra.month]));
-ncwrite(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
-ncwrite(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
+ncwrite(filename,'/spectrometer1/year',int64([integratedSpectra.year]));
+ncwrite(filename,'/spectrometer1/month',int64([integratedSpectra.month]));
+ncwrite(filename,'/spectrometer1/day',int64([integratedSpectra.day]));
+ncwrite(filename,'/spectrometer1/timeOfDay',[integratedSpectra.timeOfDay]);
 
-ncwrite(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.firstSkyTime]);  
+ncwrite(filename,'/spectrometer1/firstSkyTime',[integratedSpectra.firstSkyTime]);  
 ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',retrievalTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',retrievalTool.calendar);
 ncwriteatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.lastSkyTime]);
+ncwrite(filename,'/spectrometer1/lastSkyTime',[integratedSpectra.lastSkyTime]);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',retrievalTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',retrievalTool.calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/spectrometer1/timeMin',[calibratedSpectra.timeMin]);
+ncwrite(filename,'/spectrometer1/timeMin',[integratedSpectra.timeMin]);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',retrievalTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',retrievalTool.calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoretical start time for this calibration cycle');
@@ -170,45 +176,48 @@ ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoreti
 %    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',-9999*ones(length(calibratedSpectra),1));
 %end
 
-ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
-ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
-ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
-ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
-ncwrite(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
-ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
-ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
-ncwrite(filename,'/spectrometer1/calibrationTime',60*[calibratedSpectra.calibrationTime]);
-ncwrite(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
+ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
+ncwrite(filename,'/spectrometer1/intermediateFreq',integratedSpectra(1).if);
+ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
+ncwrite(filename,'/spectrometer1/stdTHot',[integratedSpectra.stdTHot]);
+ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
+ncwrite(filename,'/spectrometer1/stdTSys',[integratedSpectra.stdTSys]);
+ncwrite(filename,'/spectrometer1/calibrationTime',[integratedSpectra.calibrationTime]);
+ncwrite(filename,'/spectrometer1/integrationTime',[integratedSpectra.integrationTime]);
+ncwrite(filename,'/spectrometer1/meanAngleAntenna',[integratedSpectra.meanAngleAntenna]);
 
-if isfield(calibratedSpectra,'TempRoom')
-    ncwrite(filename,'/spectrometer1/TRoom',[calibratedSpectra.TempRoom]);
-    ncwrite(filename,'/spectrometer1/stdTRoom',[calibratedSpectra.stdTempRoom]);
+ncwrite(filename,'/spectrometer1/CalibratedSpectraIntegrated',[integratedSpectra.numberOfAveragedSpectra]);
+
+if isfield(integratedSpectra,'TempRoom')
+    ncwrite(filename,'/spectrometer1/TRoom',[integratedSpectra.TempRoom]);
+    ncwrite(filename,'/spectrometer1/stdTRoom',[integratedSpectra.stdTempRoom]);
 else
-    ncwrite(filename,'/spectrometer1/TRoom',-9999*ones(length(calibratedSpectra),1));
-    ncwrite(filename,'/spectrometer1/stdTRoom',-9999*ones(length(calibratedSpectra),1));
+    ncwrite(filename,'/spectrometer1/TRoom',-9999*ones(length(integratedSpectra),1));
+    ncwrite(filename,'/spectrometer1/stdTRoom',-9999*ones(length(integratedSpectra),1));
 end
 
-if isfield(calibratedSpectra,'TempOut')
-    ncwrite(filename,'/spectrometer1/TOut',[calibratedSpectra.TempOut]);
+if isfield(integratedSpectra,'TempOut')
+    ncwrite(filename,'/spectrometer1/TOut',[integratedSpectra.TempOut]);
 else
-    ncwrite(filename,'/spectrometer1/TOut',-9999*ones(length(calibratedSpectra),1));
+    ncwrite(filename,'/spectrometer1/TOut',-9999*ones(length(integratedSpectra),1));
 end
 
-if isfield(calibratedSpectra,'TempWindow')
-    ncwrite(filename,'/spectrometer1/TWindow',[calibratedSpectra.TempWindow]);
+if isfield(integratedSpectra,'TempWindow')
+    ncwrite(filename,'/spectrometer1/TWindow',[integratedSpectra.TempWindow]);
 else
-    ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(calibratedSpectra),1));
+    ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(integratedSpectra),1));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
-if isfield(calibratedSpectra,'errorVector')
-    ncwrite(filename,'/flags/time',[calibratedSpectra.meanDatetime]);
+if isfield(integratedSpectra,'errorVector')
+    ncwrite(filename,'/flags/time',[integratedSpectra.meanDatetime]);
     ncwriteatt(filename,'/flags/time','units',retrievalTool.meanDatetimeUnit);
     ncwriteatt(filename,'/flags/time','calendar',retrievalTool.calendar);
     ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
     
-    ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
+    ncwrite(filename,'/flags/flags',1:length(integratedSpectra(1).errorVector));
     ncwrite(filename,'/flags/calibration_flags',errorCalib');
 end
 
@@ -233,7 +242,7 @@ ncwriteatt(filename,'/','rawData',log.file);
 if isfield(log,'SW_version')
     ncwriteatt(filename,'/','raw_data_software_version',num2str(log.SW_version(1)));
 end
-ncwriteatt(filename,'/','calibrated_version',calibratedSpectra(1).calibrationVersion);
+ncwriteatt(filename,'/','calibrated_version',integratedSpectra(1).calibrationVersion);
 ncwriteatt(filename,'/','raw_file_comment',log.comment);
 
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
@@ -241,15 +250,9 @@ ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
 % Geolocation attributes
 %ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
 %ncwriteatt(filename,'/','data_stop_date',datestr(calibratedSpectra(end).dateStop,'yyyymmddTHHMMSSZ'));
-ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).dateStart);
-ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).dateStop);
-%ncwriteatt(filename,'/','DATA_FILE_VERSION','');
-%ncwriteatt(filename,'/','DATA_RULES_OF_USE','');
 
-% Create global variables --> saved as variables
-%ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',retrievalTool.lat);
-%ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',retrievalTool.lon);
-%ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',retrievalTool.altitude);
+%ncwriteatt(filename,'/','data_start_date',integratedSpectra(1).dateStart);
+%ncwriteatt(filename,'/','data_stop_date',integratedSpectra(end).dateStop);
 
 % Global file attributes
 ncwriteatt(filename,'/','filename',filename);
@@ -263,7 +266,7 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 % Attributes for groups and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the attributes of flags group
-if isfield(calibratedSpectra,'errorVector')
+if isfield(integratedSpectra,'errorVector')
     ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
     
     %ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
@@ -407,8 +410,8 @@ end
 if retrievalTool.saveAllCycles
     % initialize matrices
     nClean=0;
-    for t = 1:length(calibratedSpectra)
-        nClean=nClean+calibratedSpectra(t).numberOfCleanAntennaAngle;
+    for t = 1:length(integratedSpectra)
+        nClean=nClean+integratedSpectra(t).numberOfCleanAntennaAngle;
     end
     
     channel_idx=int64(ones(nClean,retrievalTool.numberOfChannels)*NaN);
@@ -417,9 +420,9 @@ if retrievalTool.saveAllCycles
     cycleId=int64(1:nClean);
     
     counter=1;
-    for t = 1:length(calibratedSpectra)
-        for i =1:calibratedSpectra(t).numberOfCleanAntennaAngle
-            TbAll(counter,:)=calibratedSpectra(t).TbAll(i,:);
+    for t = 1:length(integratedSpectra)
+        for i =1:integratedSpectra(t).numberOfCleanAntennaAngle
+            TbAll(counter,:)=integratedSpectra(t).TbAll(i,:);
             channel_idx(counter,:)=1:retrievalTool.numberOfChannels;
             cycleNumber(counter)=t;
             counter=counter+1;
