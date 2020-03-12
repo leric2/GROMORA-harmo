@@ -33,15 +33,15 @@ disp('Reading level0 data...')
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading raw data
-[log,rawSpectra]=retrievalTool.read_level0(retrievalTool);
+[logFile,rawSpectra]=retrievalTool.read_level0(retrievalTool);
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible.
-log=retrievalTool.harmonize_log(log);
+logFile=retrievalTool.harmonize_log(logFile);
 
 % Quality check of the raw data:
 if retrievalTool.checkLevel0
-    warningLevel0=retrievalTool.check_level0(log,rawSpectra,retrievalTool);
+    warningLevel0=retrievalTool.check_level0(logFile,rawSpectra,retrievalTool);
 else
     warningLevel0='';
 end
@@ -49,7 +49,7 @@ end
 %% TO CHECK IF RIGHT
 % Reformat the raw spectra from vector to matrix
 if size(rawSpectra,1)==1
-    rawSpectra=retrievalTool.reformat_spectra(rawSpectra,log,retrievalTool);
+    rawSpectra=retrievalTool.reformat_spectra(rawSpectra,logFile,retrievalTool);
 end
 % when needed, flip it !
 if retrievalTool.flipped_spectra
@@ -67,11 +67,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Calibrating...')
 
-[drift,calibratedSpectra] = retrievalTool.calibrate(rawSpectra,log,retrievalTool,retrievalTool.TCold,'standard');
+[drift,calibratedSpectra] = retrievalTool.calibrate(rawSpectra,logFile,retrievalTool,retrievalTool.TCold,'standard');
 
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file
-calibratedSpectra=retrievalTool.check_calibrated(log,retrievalTool,calibratedSpectra);
+calibratedSpectra=retrievalTool.check_calibrated(logFile,retrievalTool,calibratedSpectra);
 
 % Option for plotting and saving spectra (to be improved...)
 if retrievalTool.calibratedSpectraPlot
@@ -85,7 +85,7 @@ clear rawSpectra;
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
-retrievalTool = retrievalTool.save_level1a(retrievalTool,log,calibratedSpectra,warningLevel0);
+retrievalTool = retrievalTool.save_level1a(retrievalTool,logFile,calibratedSpectra,warningLevel0);
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)
@@ -122,7 +122,7 @@ calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
 
 % % checking the quality of the channels and flagging the potential bad ones
 % % (we do not remove any)
-calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool);
+calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool,1);
 
 % Check calibrated spectra to identify the good ones for integration
 calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
@@ -134,7 +134,7 @@ level1b = retrievalTool.integrate_calibrated_spectra(retrievalTool,calibratedSpe
 %% Correction and checks
 % checking the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
-level1b.integration=retrievalTool.checking_channel_quality(level1b.integration,retrievalTool);
+level1b.integration=retrievalTool.checking_channel_quality(level1b.integration,retrievalTool,2);
 
 % Check calibrated spectra to identify the good ones for integration
 level1b.integration=tropospheric_correction_generic(level1b.integration,10.4);
@@ -152,8 +152,9 @@ end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1b...')
-%retrievalTool = retrievalTool.save_level1b(retrievalTool,log,calibratedSpectra,warningLevel0);
-disp('not ready yet')
+retrievalTool = retrievalTool.save_level1b(retrievalTool,logFile,level1b);
+
+disp('Done')
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 end

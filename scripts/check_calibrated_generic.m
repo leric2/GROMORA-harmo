@@ -214,8 +214,8 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
-    calibratedSpectra(i).calendar='standard';
+    %calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
+    %calibratedSpectra(i).calendar='standard';
     calibratedSpectra(i).timeOfDay=mean(log.t(ia));
     
     %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));

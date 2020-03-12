@@ -53,14 +53,35 @@ for h = 1:length(timeThresh)
     integratedSpectra(h).if=calibratedSpectra(indSpectra(1)).if;
     integratedSpectra(h).freq=calibratedSpectra(indSpectra(1)).freq;
     integratedSpectra(h).timeMin=calibratedSpectra(indSpectra(1)).timeMin;
+    
+    
+    
+    integratedSpectra(h).firstSkyTime=calibratedSpectra(indSpectra(1)).firstSkyTime;
+    integratedSpectra(h).lastSkyTime=calibratedSpectra(indSpectra(end)).lastSkyTime;
+    
+    integratedSpectra(h).year=calibratedSpectra(indSpectra(1)).year;
+    integratedSpectra(h).month=calibratedSpectra(indSpectra(1)).month;
+    integratedSpectra(h).day=calibratedSpectra(indSpectra(1)).day;
+    
     integratedSpectra(h).calibrationTime=calibratedSpectra(1).calibrationTime;
     integratedSpectra(h).integrationTime=retrievalTool.integrationTime*60;
     integratedSpectra(h).Tb=intSpectra;
     
     integratedSpectra(h).TOD=mean([calibratedSpectra(goodSpectra).TOD]);
+    integratedSpectra(h).meanDatetime=mean([calibratedSpectra(goodSpectra).meanDatetime]);
     integratedSpectra(h).meanAirTemperature=mean([calibratedSpectra(goodSpectra).meanAirTemperature]);
     integratedSpectra(h).meanRelativeHumidity=mean([calibratedSpectra(goodSpectra).meanRelHumidity]);
+    
+    integratedSpectra(h).rainAccumulation=sum([calibratedSpectra(indSpectra).rainAccumulation]);
+    
+    integratedSpectra(h).TSys=mean([calibratedSpectra(goodSpectra).TSys]);
+    integratedSpectra(h).THot=mean([calibratedSpectra(goodSpectra).THot]);
+    
+    %stdTHot
+    %StdTSYS...
+    
     integratedSpectra(h).TWindow=mean([calibratedSpectra(goodSpectra).TWindow]);
+    integratedSpectra(h).TOut=mean([calibratedSpectra(goodSpectra).TWindow]);
     
 end
 level1b.integration=integratedSpectra;

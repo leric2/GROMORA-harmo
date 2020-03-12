@@ -28,7 +28,7 @@ clear; close all; clc;
 instrumentName='GROMOS';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_01_19','yyyy_mm_dd'):datenum('2019_01_20','yyyy_mm_dd');
+dates=datenum('2019_09_13','yyyy_mm_dd'):datenum('2019_09_13','yyyy_mm_dd');
 k=1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,10 +52,28 @@ for k = 1:numel(dates)
     
     % Temperature of the cold load
     retrievalTool.TCold=80;
+    
+    %
+    retrievalTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
+    retrievalTool.calendar='standard';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     retrievalTool.hotSpectraNumberOfStdDev=3;
     retrievalTool.coldSpectraNumberOfStdDev=3;
+    
+    
+    % Filters for flagging "bad channels"
+    % On 10 minutes spectra
+    retrievalTool.filter1.TbMax=300;
+    retrievalTool.filter1.TbMin=20;
+    retrievalTool.filter1.boxCarSize=51;
+    retrievalTool.filter1.boxCarThresh=7;
+    
+    % On hourly spectra
+    retrievalTool.filter2.TbMax=300;
+    retrievalTool.filter2.TbMin=20;
+    retrievalTool.filter2.boxCarSize=51;
+    retrievalTool.filter2.boxCarThresh=2;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Debug mode and plot options
@@ -66,6 +84,9 @@ for k = 1:numel(dates)
     retrievalTool.integratedSpectraPlot=true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Level0 -> Level1a
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     % Selecting the functions that will be used for processing this retrieval
     % Reading routine to use for the raw data
     retrievalTool.read_level0=@(retrievalTool) read_level0_generic(retrievalTool);
@@ -92,6 +113,10 @@ for k = 1:numel(dates)
     % Function saving the calibrated spectra into netCDF file
     retrievalTool.save_level1a=@(retrievalTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0);
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Level1a -> Level1b
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     % Function reading the daily calibrated spectra from netCDF file
     retrievalTool.read_level1a = @(retrievalTool) read_level1a_daily(retrievalTool);
     
@@ -99,7 +124,7 @@ for k = 1:numel(dates)
     retrievalTool.plot_hourly_spectra = @(retrievalTool,rawSpectra,lowerLim,upperLim) plot_hourly_spectra_generic(retrievalTool,rawSpectra,lowerLim,upperLim);
     
     % Check of the channels quality on the calibrated spectra:
-    retrievalTool.checking_channel_quality= @(calibratedSpectra,retrievalTool) checking_channel_quality_gromos(calibratedSpectra,retrievalTool);
+    retrievalTool.checking_channel_quality= @(calibratedSpectra,retrievalTool,filterN) checking_channel_quality_gromos(calibratedSpectra,retrievalTool,filterN);
     
     % Integration of level1a data
     retrievalTool.integrate_calibrated_spectra= @(retrievalTool,calibratedSpectra) integrate_calibrated_spectra_generic(retrievalTool,calibratedSpectra);
@@ -107,6 +132,9 @@ for k = 1:numel(dates)
     % Window correction for the calibrated spectra
     retrievalTool.window_correction= @(retrievalTool,level1b) window_correction_generic(retrievalTool,level1b);
     
+    % Function saving the calibrated spectra into netCDF file
+    retrievalTool.save_level1b=@(retrievalTool,log,level1b) save_level1b_daily(retrievalTool,log,level1b);
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,7 +184,7 @@ for k = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if retrievalTool.numberOfSpectrometer==1
         try
-            run_retrieval(retrievalTool)
+            %run_retrieval(retrievalTool)
         end
     else
         for m=1:3

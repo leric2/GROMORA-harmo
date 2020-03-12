@@ -11,7 +11,7 @@ try
     
     TOD{1}=[num2str(0) ' h'];
     hold on
-    subplot(1,2,1); 
+    subplot(2,2,[1,3]); 
     for i=1:N
         plot(integratedSpectra(i).if,integratedSpectra(i).Tb);
         title('')
@@ -24,8 +24,9 @@ try
     end
     title('Non Corrected, all channels')
     grid on
-    subplot(1,2,2); 
+    legend(TOD,'Location','south','NumColumns',4)
     
+    subplot(2,2,2); 
     for i=1:N
         plot(integratedSpectra(i).if,integratedSpectra(i).Tbcorr.*integratedSpectra(i).channelsQuality);
         xlabel('IF [MHz]')
@@ -34,9 +35,21 @@ try
         ylim([lowerLim,upperLim])
         hold on
     end
-    title('Corrected, good channels')
-    %legend(TOD,'Location','southoutside')
+    title('Corrected (windows), good channels')
     grid on
+    
+    subplot(2,2,4);
+    for i=1:N
+        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericCorr.*integratedSpectra(i).channelsQuality);
+        xlabel('IF [MHz]')
+        ylabel('T_B [K]')
+
+        %ylim([lowerLim,upperLim])
+        hold on
+    end
+    title('Corrected (troposphere), good channels')
+    grid on
+    
     orient(fig,'landscape')
     % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
     print([retrievalTool.level1Folder 'integratedSpectra' retrievalTool.dateStr '_' retrievalTool.spectrometer],'-dpdf','-fillpage')
