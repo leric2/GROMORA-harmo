@@ -1,4 +1,4 @@
-function calib = read_level1a_daily(retrievalTool)
+function [calib,retrievalTool] = read_level1a_daily(retrievalTool)
 %==========================================================================
 % NAME          | read_level1a_daily.m
 % TYPE          | function
@@ -38,6 +38,8 @@ correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
 correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
 correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
 correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
+
+correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/meanAngleAntenna')';
 
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
 
@@ -87,6 +89,19 @@ correctedSpectra.timeMin=ncread(filename,'/spectrometer1/timeMin')';
 
 correctedSpectra.tod = ncread(filename,'/spectrometer1/timeOfDay')';
 
+% Reading attributes
+retrievalTool.logFile.raw_file_warning=ncreadatt(filename,'/','raw_file_warning');
+retrievalTool.logFile.comment=ncreadatt(filename,'/','comment');
+retrievalTool.logFile.raw_file_comment=ncreadatt(filename,'/','raw_file_comment');
+retrievalTool.logFile.rawFilename=ncreadatt(filename,'/','rawFilename');
+retrievalTool.logFile.rawData=ncreadatt(filename,'/','rawData');
+retrievalTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
+retrievalTool.logFile.calibration_version=ncreadatt(filename,'/','calibration_version');
+retrievalTool.logFile.creation_date_level1a=ncreadatt(filename,'/','creation_date');
+retrievalTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
+retrievalTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
+
+
 disp(['File read : ' filename])
 
 for i = 1:length(correctedSpectra.meanTime)
@@ -101,6 +116,7 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).stdTHot=correctedSpectra.stdTHot(i);
     calib(i).TSys=correctedSpectra.TSys(i);
     calib(i).TWindow=correctedSpectra.TWindow(i);
+    calib(i).meanAngleAntenna = correctedSpectra.meanAngleAntenna(i);
     calib(i).stdTSys=correctedSpectra.stdTSys(i);
     calib(i).calibrationTime=correctedSpectra.calibrationTime(i);
     calib(i).firstSkyTime=correctedSpectra.firstSkyTime(i);

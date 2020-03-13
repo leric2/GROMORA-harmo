@@ -79,10 +79,6 @@ if retrievalTool.calibratedSpectraPlot
 end
 
 %%
-% Clearing some variables for space
-clear rawSpectra;
-
-%%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
 retrievalTool = retrievalTool.save_level1a(retrievalTool,logFile,calibratedSpectra,warningLevel0);
@@ -93,17 +89,22 @@ disp(warningLevel0)
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 %%
+% Clearing some variables for space
+clear rawSpectra;
+
 clear calibratedSpectra
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Level 1a to level 1b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+level1b=struct();
+
 filename=[retrievalTool.level1Folder retrievalTool.instrumentName '_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
 retrievalTool.filenameLevel1a=filename;
 
 if isfield(retrievalTool,'filenameLevel1a') 
     if exist(retrievalTool.filenameLevel1a,'file')
-        calibratedSpectra=retrievalTool.read_level1a(retrievalTool);
+        [level1b.calibratedSpectra,retrievalTool]=retrievalTool.read_level1a(retrievalTool);
     else
         return
     end
@@ -114,22 +115,22 @@ end
 % 
 % % correctedSpectra.date=calibratedSpectra(1).date;
 % % 
-% For Now because no Payerne dataset
+% For now because no Payerne dataset
 retrievalTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
 retrievalTool.get_meteo_data = @(retrievalTool,correctedSpectra) get_meteo_data_unibe(retrievalTool,correctedSpectra);
-calibratedSpectra=retrievalTool.get_meteo_data(calibratedSpectra,retrievalTool);
+level1b.calibratedSpectra=retrievalTool.get_meteo_data(retrievalTool,level1b.calibratedSpectra);
 % 
 
 % % checking the quality of the channels and flagging the potential bad ones
 % % (we do not remove any)
-calibratedSpectra=retrievalTool.checking_channel_quality(calibratedSpectra,retrievalTool,1);
+level1b.calibratedSpectra=retrievalTool.checking_channel_quality(level1b.calibratedSpectra,retrievalTool,1);
 
 % Check calibrated spectra to identify the good ones for integration
-calibratedSpectra=tropospheric_correction_generic(calibratedSpectra,10.4);
+level1b.calibratedSpectra=tropospheric_correction_generic(level1b.calibratedSpectra,10.4);
 
 % Integrate the "good" spectra --> weighted mean based on tropospheric
 % transmittance ?
-level1b = retrievalTool.integrate_calibrated_spectra(retrievalTool,calibratedSpectra);
+level1b = retrievalTool.integrate_calibrated_spectra(retrievalTool,level1b);
 
 %% Correction and checks
 % checking the quality of the channels and flagging the potential bad ones
@@ -152,7 +153,7 @@ end
 %%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1b...')
-retrievalTool = retrievalTool.save_level1b(retrievalTool,logFile,level1b);
+retrievalTool = retrievalTool.save_level1b(retrievalTool,level1b);
 
 disp('Done')
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')

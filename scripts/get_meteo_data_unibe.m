@@ -1,4 +1,4 @@
-function calibratedSpectra = get_meteo_data_unibe(calibratedSpectra,retrievalTool)
+function calibratedSpectra = get_meteo_data_unibe(retrievalTool,calibratedSpectra)
 %==========================================================================
 % NAME          | get_meteo_data_unibe
 % TYPE          | function
@@ -44,10 +44,11 @@ if datetime(str2num(retrievalTool.dateStr(1:4)),str2num(retrievalTool.dateStr(6:
         rowInd=([meteoData.dateTime]>=calibratedSpectra(t).timeMin & [meteoData.dateTime]<=stop);
         
         calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData(rowInd).air_temperature))+273.15;
-        calibratedSpectra(t).meanRelHumidity=nanmean(vertcat(meteoData(rowInd).rel_humidity));
+        calibratedSpectra(t).meanRelHumidity=0.01*nanmean(vertcat(meteoData(rowInd).rel_humidity));
         calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData(rowInd).air_pressure));
         calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).rain_accumulation));
     end
+    
 else
     disp('format of meteo data changed before the 10th of August 2017') 
     

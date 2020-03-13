@@ -232,8 +232,10 @@ ncwriteatt(filename,'/','comment','');
 ncwriteatt(filename,'/','rawData',log.file);
 if isfield(log,'SW_version')
     ncwriteatt(filename,'/','raw_data_software_version',num2str(log.SW_version(1)));
+else
+    ncwriteatt(filename,'/','raw_data_software_version','unknown');
 end
-ncwriteatt(filename,'/','calibrated_version',calibratedSpectra(1).calibrationVersion);
+ncwriteatt(filename,'/','calibration_version',calibratedSpectra(1).calibrationVersion);
 ncwriteatt(filename,'/','raw_file_comment',log.comment);
 
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);

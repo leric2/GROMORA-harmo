@@ -1,4 +1,4 @@
-function calibratedSpectra = get_meteo_data_payerne(calibratedSpectra,retrievalTool)
+function calibratedSpectra = get_meteo_data_payerne(retrievalTool,calibratedSpectra)
 %==========================================================================
 % NAME          | get_meteo_data_payerne
 % TYPE          | function

@@ -1,4 +1,4 @@
-function retrievalTool = save_level1b_daily(retrievalTool,log,level1b)
+function retrievalTool = save_level1b_daily(retrievalTool,level1b)
 %==========================================================================
 % NAME          | save_level1a_daily.m
 % TYPE          | function
@@ -31,6 +31,11 @@ locationLevel1b=retrievalTool.level1Folder;
 % of matrices
 
 integratedSpectra=level1b.integration;
+
+% Convert NaN's into the standard FillValue
+%fields=fieldnames(integratedSpectra);
+%for field = 
+
 
 
 %initialize some variable (only the matrices)
@@ -115,7 +120,17 @@ nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/spectrometer1/CalibratedSpectraIntegrated','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/number_calibrated_spectra','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
+% Tropospheric correction data:
+nccreate(filename,'/spectrometer1/trospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/trospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
+% Meteo Data
+nccreate(filename,'/meteo/air_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/relative_humidity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/precipitation','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
@@ -139,7 +154,7 @@ ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINN
 
 ncwrite(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
 
-%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
 % these are scalar variables as they do not vary in time
 ncwrite(filename,'/spectrometer1/lat',ones(length(integratedSpectra),1)*retrievalTool.lat);
@@ -151,7 +166,7 @@ ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(integratedSpectra),1)
 ncwrite(filename,'/spectrometer1/year',int64([integratedSpectra.year]));
 ncwrite(filename,'/spectrometer1/month',int64([integratedSpectra.month]));
 ncwrite(filename,'/spectrometer1/day',int64([integratedSpectra.day]));
-ncwrite(filename,'/spectrometer1/timeOfDay',[integratedSpectra.timeOfDay]);
+ncwrite(filename,'/spectrometer1/timeOfDay',[integratedSpectra.TOD]);
 
 ncwrite(filename,'/spectrometer1/firstSkyTime',[integratedSpectra.firstSkyTime]);  
 ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',retrievalTool.meanDatetimeUnit);
@@ -168,27 +183,29 @@ ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',retrievalTool.meanDatet
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',retrievalTool.calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoretical start time for this calibration cycle');
 
-%%%%%%%%%%%%%%%%%
-% the variables linked with the calibration
-%if isfield(calibratedSpectra,'effectiveCalibrationTime')
-%    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',[calibratedSpectra.effectiveCalibrationTime]);
-%else
-%    ncwrite(filename,'/spectrometer1/effectiveCalibrationTime',-9999*ones(length(calibratedSpectra),1));
-%end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Main set of variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediateFreq',integratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
-ncwrite(filename,'/spectrometer1/stdTHot',[integratedSpectra.stdTHot]);
+%ncwrite(filename,'/spectrometer1/stdTHot',[integratedSpectra.stdTHot]);
 ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
-ncwrite(filename,'/spectrometer1/stdTSys',[integratedSpectra.stdTSys]);
+%ncwrite(filename,'/spectrometer1/stdTSys',[integratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibrationTime',[integratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/integrationTime',[integratedSpectra.integrationTime]);
 ncwrite(filename,'/spectrometer1/meanAngleAntenna',[integratedSpectra.meanAngleAntenna]);
 
-ncwrite(filename,'/spectrometer1/CalibratedSpectraIntegrated',[integratedSpectra.numberOfAveragedSpectra]);
+ncwrite(filename,'/spectrometer1/number_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);
 
+% Tropospheric correction data:
+ncwrite(filename,'/spectrometer1/trospheric_transmittance',[integratedSpectra.troposphericTransmittance]);
+ncwriteatt(filename,'/spectrometer1/trospheric_transmittance','method',integratedSpectra(1).transmittanceMethod);
+
+ncwrite(filename,'/spectrometer1/trospheric_opacity',[integratedSpectra.troposphericOpacity]);
+ncwriteatt(filename,'/spectrometer1/trospheric_opacity','method',integratedSpectra(1).transmittanceMethod);
+
+% Data that are not present for every instrument
 if isfield(integratedSpectra,'TempRoom')
     ncwrite(filename,'/spectrometer1/TRoom',[integratedSpectra.TempRoom]);
     ncwrite(filename,'/spectrometer1/stdTRoom',[integratedSpectra.stdTempRoom]);
@@ -208,6 +225,12 @@ if isfield(integratedSpectra,'TempWindow')
 else
     ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(integratedSpectra),1));
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Meteo Data
+ncwrite(filename,'/meteo/air_temperature',[integratedSpectra.meanAirTemperature]);
+ncwrite(filename,'/meteo/relative_humidity',[integratedSpectra.meanRelativeHumidity]);
+ncwrite(filename,'/meteo/precipitation',[integratedSpectra.rainAccumulation]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
@@ -238,14 +261,19 @@ ncwriteatt(filename,'/','references','');
 ncwriteatt(filename,'/','comment','');
 %ncwriteatt(filename,'/','DATA_VARIABLES','');
 
-ncwriteatt(filename,'/','rawData',log.file);
-if isfield(log,'SW_version')
-    ncwriteatt(filename,'/','raw_data_software_version',num2str(log.SW_version(1)));
-end
-ncwriteatt(filename,'/','calibrated_version',integratedSpectra(1).calibrationVersion);
-ncwriteatt(filename,'/','raw_file_comment',log.comment);
+ncwriteatt(filename,'/','raw_data_filename',retrievalTool.logFile.rawFilename);
+ncwriteatt(filename,'/','raw_data_software_version',retrievalTool.logFile.raw_data_software_version);
+ncwriteatt(filename,'/','calibrated_version',retrievalTool.logFile.calibration_version);
+ncwriteatt(filename,'/','raw_file_comment',retrievalTool.logFile.raw_file_comment);
+ncwriteatt(filename,'/','comment',retrievalTool.logFile.comment);
+ncwriteatt(filename,'/','filename_level1a',retrievalTool.logFile.filenameLevel1a);
+ncwriteatt(filename,'/','creation_date_level1a',retrievalTool.logFile.creation_date_level1a);
+ncwriteatt(filename,'/','raw_file_warning',retrievalTool.logFile.raw_file_warning);
 
-ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
+% Global file attributes
+ncwriteatt(filename,'/','filename',filename);
+ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
+ncwriteatt(filename,'/','featureType','timeSeries');
 
 % Geolocation attributes
 %ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
@@ -253,14 +281,6 @@ ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
 
 %ncwriteatt(filename,'/','data_start_date',integratedSpectra(1).dateStart);
 %ncwriteatt(filename,'/','data_stop_date',integratedSpectra(end).dateStop);
-
-% Global file attributes
-ncwriteatt(filename,'/','filename',filename);
-ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
-
-ncwriteatt(filename,'/','rawFilename','')
-
-ncwriteatt(filename,'/','featureType','timeSeries');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Attributes for groups and variables
@@ -357,6 +377,11 @@ attrVal.calibrationTime = {'calibrationTime',...
     'second',...
     'Time used for calibrating the spectra'};
 
+attrVal.integrationTime = {'integrationTime',...
+    '',...
+    'second',...
+    'Time used for integrating the spectra'};
+
 attrVal.meanAngleAntenna = {'meanAngleAntenna',...
     'elevation_angle',...
     'degree',...
@@ -382,6 +407,34 @@ attrVal.TWindow = {'TWindow',...
     'K',...
     'mean window temperature'};
 
+% Tropospheric correction data:
+attrVal.trospheric_transmittance = {'tropospheric transmittance',...
+    '',...
+    '1',...
+    ''};
+
+attrVal.trospheric_opacity = {'tropospheric opacity',...
+    '',...
+    '1',...
+    ''};
+
+% Meteo Data
+% Tropospheric correction data:
+attrVal.air_temperature = {'air temperature',...
+    'air_temperature',...
+    'K',...
+    ''};
+
+attrVal.relative_humidity = {'relative humidity',...
+    'relative_humidity',...
+    '1',...
+    ''};
+
+attrVal.precipitation = {'rain accumulation',...
+    '',...
+    'mm',...
+    ''};
+
 for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/timeOfDay',attrName{i},attrVal.tod{i});
     ncwriteatt(filename,'/spectrometer1/lat',attrName{i},attrVal.lat{i});
@@ -393,15 +446,27 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
-    ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
+    %ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
     ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
-    ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
+    %ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
     ncwriteatt(filename,'/spectrometer1/calibrationTime',attrName{i},attrVal.calibrationTime{i});
+    ncwriteatt(filename,'/spectrometer1/integrationTime',attrName{i},attrVal.integrationTime{i});
     ncwriteatt(filename,'/spectrometer1/meanAngleAntenna',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
+    
+    % Meteo
+    ncwriteatt(filename,'/meteo/air_temperature',attrName{i},attrVal.air_temperature{i});
+    ncwriteatt(filename,'/meteo/relative_humidity',attrName{i},attrVal.relative_humidity{i});
+    ncwriteatt(filename,'/meteo/precipitation',attrName{i},attrVal.precipitation{i});
+    
+    
+    % Corrections
+    ncwriteatt(filename,'/spectrometer1/trospheric_transmittance',attrName{i},attrVal.trospheric_transmittance{i});
+    ncwriteatt(filename,'/spectrometer1/trospheric_opacity',attrName{i},attrVal.trospheric_opacity{i});
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,4 +1,4 @@
-function level1b = integrate_calibrated_spectra_generic(retrievalTool,calibratedSpectra)
+function level1b = integrate_calibrated_spectra_generic(retrievalTool,level1b)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -23,66 +23,82 @@ function level1b = integrate_calibrated_spectra_generic(retrievalTool,calibrated
 dt=retrievalTool.integrationTime/60;
 timeThresh=0:dt:23;
 
-level1b=struct();
-level1b.calibration=calibratedSpectra;
-
 for h = 1:length(timeThresh)
     % Finding the spectra during this time stamp:
-    indSpectra=find([calibratedSpectra.TOD]>timeThresh(h) & [calibratedSpectra.TOD]<timeThresh(h)+dt);
+    indSpectra=find([level1b.calibratedSpectra.TOD]>timeThresh(h) & [level1b.calibratedSpectra.TOD]<timeThresh(h)+dt);
     
     % Selecting only spectra with:
     
     % transmission > 0.2 in the integration:
-    goodSpectra=indSpectra([calibratedSpectra(indSpectra).meanTroposphericTransmittance] > 0.2);
+    goodSpectra=indSpectra([level1b.calibratedSpectra(indSpectra).meanTroposphericTransmittance] > 0.2);
     
     if ~isempty(goodSpectra)  
         % no critical error:
-        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==[1 1 0 0 0 1 1 1 1],2)==9);
+        goodSpectra=goodSpectra(sum(vertcat(level1b.calibratedSpectra(goodSpectra).flags)==[1 1 0 0 0 1 1 1 1],2)==9);
     end
     
     if isempty(goodSpectra)
-        intSpectra=NaN*ones(1,retrievalTool.numberOfChannels);
-        integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
+        intSpectra=-9999*ones(1,retrievalTool.numberOfChannels);
+        integratedSpectra(h).numberOfAveragedSpectra=-9999;
         goodSpectra=indSpectra;
     else
         % Averaging the good spectra together
-        intSpectra=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
+        intSpectra=mean(vertcat(level1b.calibratedSpectra(goodSpectra).Tb),1);
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
     end
 
-    integratedSpectra(h).if=calibratedSpectra(indSpectra(1)).if;
-    integratedSpectra(h).freq=calibratedSpectra(indSpectra(1)).freq;
-    integratedSpectra(h).timeMin=calibratedSpectra(indSpectra(1)).timeMin;
+    integratedSpectra(h).if=level1b.calibratedSpectra(indSpectra(1)).if;
+    integratedSpectra(h).freq=level1b.calibratedSpectra(indSpectra(1)).freq;
+    integratedSpectra(h).timeMin=level1b.calibratedSpectra(indSpectra(1)).timeMin;
     
+    integratedSpectra(h).firstSkyTime=level1b.calibratedSpectra(indSpectra(1)).firstSkyTime;
+    integratedSpectra(h).lastSkyTime=level1b.calibratedSpectra(indSpectra(end)).lastSkyTime;
     
+    integratedSpectra(h).year=level1b.calibratedSpectra(indSpectra(1)).year;
+    integratedSpectra(h).month=level1b.calibratedSpectra(indSpectra(1)).month;
+    integratedSpectra(h).day=level1b.calibratedSpectra(indSpectra(1)).day;
     
-    integratedSpectra(h).firstSkyTime=calibratedSpectra(indSpectra(1)).firstSkyTime;
-    integratedSpectra(h).lastSkyTime=calibratedSpectra(indSpectra(end)).lastSkyTime;
-    
-    integratedSpectra(h).year=calibratedSpectra(indSpectra(1)).year;
-    integratedSpectra(h).month=calibratedSpectra(indSpectra(1)).month;
-    integratedSpectra(h).day=calibratedSpectra(indSpectra(1)).day;
-    
-    integratedSpectra(h).calibrationTime=calibratedSpectra(1).calibrationTime;
+    integratedSpectra(h).calibrationTime=level1b.calibratedSpectra(1).calibrationTime;
     integratedSpectra(h).integrationTime=retrievalTool.integrationTime*60;
     integratedSpectra(h).Tb=intSpectra;
+    integratedSpectra(h).meanAngleAntenna=nanmean([level1b.calibratedSpectra(goodSpectra).meanAngleAntenna]);
     
-    integratedSpectra(h).TOD=mean([calibratedSpectra(goodSpectra).TOD]);
-    integratedSpectra(h).meanDatetime=mean([calibratedSpectra(goodSpectra).meanDatetime]);
-    integratedSpectra(h).meanAirTemperature=mean([calibratedSpectra(goodSpectra).meanAirTemperature]);
-    integratedSpectra(h).meanRelativeHumidity=mean([calibratedSpectra(goodSpectra).meanRelHumidity]);
+    integratedSpectra(h).TOD=nanmean([level1b.calibratedSpectra(goodSpectra).TOD]);
     
-    integratedSpectra(h).rainAccumulation=sum([calibratedSpectra(indSpectra).rainAccumulation]);
     
-    integratedSpectra(h).TSys=mean([calibratedSpectra(goodSpectra).TSys]);
-    integratedSpectra(h).THot=mean([calibratedSpectra(goodSpectra).THot]);
+    integratedSpectra(h).meanDatetime=nanmean([level1b.calibratedSpectra(goodSpectra).meanDatetime]);
+    
+    integratedSpectra(h).meanAirTemperature=nanmean([level1b.calibratedSpectra(goodSpectra).meanAirTemperature]);
+    
+    if isnan(integratedSpectra(h).meanAirTemperature)
+        integratedSpectra(h).meanAirTemperature=-9999;
+    end
+    
+    integratedSpectra(h).meanRelativeHumidity=nanmean([level1b.calibratedSpectra(goodSpectra).meanRelHumidity]);
+    if isnan(integratedSpectra(h).meanRelativeHumidity)
+        integratedSpectra(h).meanRelativeHumidity=-9999;
+    end
+    
+    integratedSpectra(h).rainAccumulation=nansum([level1b.calibratedSpectra(indSpectra).rainAccumulation]);
+    if isnan(integratedSpectra(h).rainAccumulation)
+        integratedSpectra(h).rainAccumulation=-9999;
+    end
+    
+    integratedSpectra(h).TSys=nanmean([level1b.calibratedSpectra(goodSpectra).TSys]);
+    if isnan(integratedSpectra(h).TSys)
+        integratedSpectra(h).TSys=-9999;
+    end
+    
+    integratedSpectra(h).THot=nanmean([level1b.calibratedSpectra(goodSpectra).THot]);
+    if isnan(integratedSpectra(h).THot)
+        integratedSpectra(h).THot=-9999;
+    end
     
     %stdTHot
     %StdTSYS...
     
-    integratedSpectra(h).TWindow=mean([calibratedSpectra(goodSpectra).TWindow]);
-    integratedSpectra(h).TOut=mean([calibratedSpectra(goodSpectra).TWindow]);
-    
+    integratedSpectra(h).TWindow=nanmean([level1b.calibratedSpectra(goodSpectra).TWindow]);
+    integratedSpectra(h).TOut=nanmean([level1b.calibratedSpectra(goodSpectra).TWindow]);
 end
 level1b.integration=integratedSpectra;
 end

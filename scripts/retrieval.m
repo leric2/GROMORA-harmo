@@ -25,10 +25,10 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
 % Define the dates where we want to launch a retrieval:
-dates=datenum('2019_09_13','yyyy_mm_dd'):datenum('2019_09_13','yyyy_mm_dd');
+dates=datenum('2019_04_16','yyyy_mm_dd'):datenum('2019_04_16','yyyy_mm_dd');
 k=1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,7 +133,7 @@ for k = 1:numel(dates)
     retrievalTool.window_correction= @(retrievalTool,level1b) window_correction_generic(retrievalTool,level1b);
     
     % Function saving the calibrated spectra into netCDF file
-    retrievalTool.save_level1b=@(retrievalTool,log,level1b) save_level1b_daily(retrievalTool,log,level1b);
+    retrievalTool.save_level1b=@(retrievalTool,level1b) save_level1b_daily(retrievalTool,level1b);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -184,7 +184,7 @@ for k = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if retrievalTool.numberOfSpectrometer==1
         try
-            %run_retrieval(retrievalTool)
+            run_retrieval(retrievalTool)
         end
     else
         for m=1:3
