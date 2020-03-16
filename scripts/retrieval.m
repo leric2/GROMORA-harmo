@@ -12,11 +12,11 @@
 %               | 
 %               |
 %               |
-% ARGUMENTS     | 
+% ARGUMENTS     | NONE
 %               |
 %               | 
-%              11
-% CALLS         | run_retrieval.m
+%               |
+% CALLS         | run_retrieval(retrievalTool);
 %               |
 %               |
 %               |
@@ -27,7 +27,7 @@ clear; close all; clc;
 % 'GROMOS' // 'SOMORA' // 'mopi5'
 instrumentName='SOMORA';
 
-% Define the dates where we want to launch a retrieval:
+% Define the dates for the calibration:
 dates=datenum('2019_04_16','yyyy_mm_dd'):datenum('2019_04_16','yyyy_mm_dd');
 k=1;
 
@@ -41,8 +41,11 @@ for k = 1:numel(dates)
     retrievalTool=import_default_retrievalTool(instrumentName,dateStr);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Editing the retrievalTool for this particular retrieval:
+    % Editing the retrievalTool for this particular day and instrument:
     % retrievalTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
+    
+    % for gaining time..
+    retrievalTool.level1aExist=true;
     
     % Time interval for doing the calibration
     retrievalTool.calibrationTime=10;
@@ -184,7 +187,7 @@ for k = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if retrievalTool.numberOfSpectrometer==1
         try
-            run_retrieval(retrievalTool)
+            %run_retrieval(retrievalTool)
         end
     else
         for m=1:3

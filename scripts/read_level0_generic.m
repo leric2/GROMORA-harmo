@@ -1,17 +1,24 @@
 function [log,rawSpectra] = read_level0_generic(retrievalTool)
-% [log,rawSpectra,readingLevel0Error] = read_level0_generic(file)
-%
-% Reads houskeeping and binary data of the universal IAP data format
-%
-% INPUT
-% file:     Filename without extension
-%
-% OUTPUT
-% hk:       Housekeeping structure with field names for each parameter
-% data:     [N,channles] array of binary file
-%
-%
-% DATA FORMAT
+%==========================================================================
+% NAME          | read_level0_generic.m
+% TYPE          | function
+% AUTHOR(S)     | Axel Murk (adapted to GROSOM by E.S.)
+% CREATION      | 2011-03-04 (adapted 01.2020)
+%               |
+% ABSTRACT      | Reads houskeeping and binary data of the universal IAP 
+%               | data format
+%               | 
+%               |
+%               |
+% ARGUMENTS     | INPUTS: Filename without extension
+%               |
+%               | OUTPUTS:  1. Housekeeping structure with field names for each parameter
+%               |           2. [length(file)*#channels] line vector of binary file
+%               |             
+% CALLS         | run_retrieval(retrievalTool);
+%               |
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DATA FORMAT:
 %
 % file.txt:
 % -  Arbitrary number of lines with comments starting with '%'
@@ -20,12 +27,8 @@ function [log,rawSpectra] = read_level0_generic(retrievalTool)
 % -  N lines of the houskeeping values with M entries each
 %
 % file.bin
-% 32bit floatinig point data for an array of [Nxchannles] values
-%
-% The number of channles is determined from file size
-
-% Revisions
-% 2011-03-04    A. Murk (first issue)
+% 32bit floatinig point data 
+%==========================================================================
 
 file=retrievalTool.file;
 % initialize return value

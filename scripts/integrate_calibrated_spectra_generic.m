@@ -1,15 +1,16 @@
 function level1b = integrate_calibrated_spectra_generic(retrievalTool,level1b)
 %==========================================================================
-% NAME          | 
-% TYPE          |
+% NAME          | integrate_calibrated_spectra_generic.m
+% TYPE          | Function
 % AUTHOR(S)     | Eric Sauvageat
-% CREATION      | 09.2014
+% CREATION      | 03.2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | Function for integrating calibrated spectra from an
+%               | instrument
 %               | 
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | INPUTS: 
 %               |
 %               | OUTPUTS:
 %               |
