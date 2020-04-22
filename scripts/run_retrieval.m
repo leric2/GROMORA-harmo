@@ -168,7 +168,5 @@ end
 disp('Saving Level 1b...')
 retrievalTool = retrievalTool.save_level1b(retrievalTool,level1b);
 
-disp('Level 1b saved for : ',retrievalTool.dateStr)
-disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 end
 end

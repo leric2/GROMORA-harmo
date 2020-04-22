@@ -46,7 +46,7 @@ end
 for i=5:6 subplot(3,2,i); xlabel('IF [MHz]'); end
 %legend(TOD)
 print([retrievalTool.level1Folder 'calibratedSpectra_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'-dpdf','-fillpage')
-close
+
 %saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'jpg')
 %close
 

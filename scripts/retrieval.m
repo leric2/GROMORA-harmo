@@ -25,10 +25,10 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Define the dates for the calibration:
-dates=datenum('2019_04_16','yyyy_mm_dd'):datenum('2019_04_16','yyyy_mm_dd');
+dates=datenum('2018_05_19','yyyy_mm_dd'):datenum('2018_05_19','yyyy_mm_dd');
 k=1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
