@@ -55,7 +55,7 @@ assert(exist([calibrationTool.file '.txt'],'file') && exist([calibrationTool.fil
 
 % Start calibration
 disp(['Starting the calibration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
-
+%%
 if ~calibrationTool.level1aExist
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
@@ -105,7 +105,7 @@ disp('Calibrating...')
 % - debug
 % - time
 % - all
-[drift,calibratedSpectra] = calibrationTool.calibrate(rawSpectra,logFile,calibrationTool,'standard');
+[drift,calibratedSpectra] = calibrationTool.calibrate(rawSpectra,logFile,calibrationTool,calibrationTool.calType);
 
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file and storing
@@ -117,7 +117,6 @@ if calibrationTool.calibratedSpectraPlot
     calibrationTool.plot_calibrated_spectra(calibrationTool,drift,calibratedSpectra,50,300,24);
 end
 
-%%
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
 calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,calibratedSpectra,warningLevel0);
@@ -126,6 +125,8 @@ disp('Warning Level0-1a :')
 disp(warningLevel0)
 
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+
+%%
 % Clearing some variables for space
 clear rawSpectra; 
 clear calibratedSpectra;
@@ -157,8 +158,8 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now because no Payerne dataset
-calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
-calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
+% calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+% calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
 
 % Reading meteo data during this day:
 level1b.calibratedSpectra=calibrationTool.get_meteo_data(calibrationTool,level1b.calibratedSpectra);

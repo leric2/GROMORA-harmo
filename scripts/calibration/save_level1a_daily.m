@@ -1,4 +1,4 @@
-function retrievalTool = save_level1a_daily(retrievalTool,log,calibratedSpectra,warningLevel0)
+function calibrationTool = save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0)
 %==========================================================================
 % NAME          | save_level1a_daily.m
 % TYPE          | function
@@ -24,23 +24,23 @@ function retrievalTool = save_level1a_daily(retrievalTool,log,calibratedSpectra,
 % Saving level1a into DAILY netCDF file
 % We are using the netcdf package because it offers far more flexibility
 % for the writing.
-locationLevel1a=retrievalTool.level1Folder;
+locationLevel1a=calibrationTool.level1Folder;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Here LOOOP in all calibration cycle and write every variable into daily vector
 % of matrices
 
 %initialize some variable (only the matrices)
-channelId=int64(ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN);
-%Tb=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
-%frequencyVector=ones(length(calibratedSpectra),retrievalTool.numberOfChannels)*NaN;
+channelId=int64(ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN);
+%Tb=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
+%frequencyVector=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
 
 if isfield(calibratedSpectra,'errorVector')
     error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
     errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
 end
 for t = 1:length(calibratedSpectra)
-    channelId(t,:)=1:retrievalTool.numberOfChannels;
+    channelId(t,:)=1:calibrationTool.numberOfChannels;
     %Tb(t,:)=calibratedSpectra(t).Tb;
     %frequencyVector(t,:)=calibratedSpectra(t).freq;
     
@@ -52,11 +52,15 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now write daily level 1a file
-filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.spectrometer '_' retrievalTool.dateStr '.nc'];
-retrievalTool.filenameLevel1a=filename;
+if calibrationTool.calType=='debug'
+    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
+else
+    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+end
+calibrationTool.filenameLevel1a=filename;
 
-%filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
-%title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
+%filename=[calibrationTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
+%title=[calibrationTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
 
 if isfile(filename)
     delete(filename)
@@ -71,7 +75,7 @@ end
 % First create coordinates variable (enable 'netcdf4' format)
 % 
 nccreate(filename,'/spectrometer1/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
-nccreate(filename,'/spectrometer1/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
@@ -95,9 +99,9 @@ nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype',
 %%%%%%%%%%%%%%%%%
 % the variables linked with the calibration    
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -127,19 +131,19 @@ end
 % Writing the spectrometer1 variable
 % Coordinate variables, directly adding the attributes
 ncwrite(filename,'/spectrometer1/time',[calibratedSpectra.meanDatetime]);
-ncwriteatt(filename,'/spectrometer1/time','units',retrievalTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/time','calendar',retrievalTool.calendar);
+ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
 
-ncwrite(filename,'/spectrometer1/channel_idx',1:retrievalTool.numberOfChannels);
+ncwrite(filename,'/spectrometer1/channel_idx',1:calibrationTool.numberOfChannels);
 
 %%%%%%%%%%%%%%%%%
 % Some variables to help geolocate the file:
 % these are scalar variables as they do not vary in time
-ncwrite(filename,'/spectrometer1/lat',ones(length(calibratedSpectra),1)*retrievalTool.lat);
-ncwrite(filename,'/spectrometer1/lon',ones(length(calibratedSpectra),1)*retrievalTool.lon);
-ncwrite(filename,'/spectrometer1/alt',ones(length(calibratedSpectra),1)*retrievalTool.altitude);
-ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(calibratedSpectra),1)*retrievalTool.azimuthAngle);
+ncwrite(filename,'/spectrometer1/lat',ones(length(calibratedSpectra),1)*calibrationTool.lat);
+ncwrite(filename,'/spectrometer1/lon',ones(length(calibratedSpectra),1)*calibrationTool.lon);
+ncwrite(filename,'/spectrometer1/alt',ones(length(calibratedSpectra),1)*calibrationTool.altitude);
+ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(calibratedSpectra),1)*calibrationTool.azimuthAngle);
 
 % some variable for better identifying the time period of the measurements
 ncwrite(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
@@ -148,18 +152,18 @@ ncwrite(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
 ncwrite(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
 
 ncwrite(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.firstSkyTime]);  
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',retrievalTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',retrievalTool.calendar);
+ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
 ncwrite(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.lastSkyTime]);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',retrievalTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',retrievalTool.calendar);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
 ncwrite(filename,'/spectrometer1/timeMin',[calibratedSpectra.timeMin]);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',retrievalTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',retrievalTool.calendar);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoretical start time for this calibration cycle');
 
 %%%%%%%%%%%%%%%%%
@@ -204,8 +208,8 @@ end
 % Writing the flags variables
 if isfield(calibratedSpectra,'errorVector')
     ncwrite(filename,'/flags/time',[calibratedSpectra.meanDatetime]);
-    ncwriteatt(filename,'/flags/time','units',retrievalTool.meanDatetimeUnit);
-    ncwriteatt(filename,'/flags/time','calendar',retrievalTool.calendar);
+    ncwriteatt(filename,'/flags/time','units',calibrationTool.meanDatetimeUnit);
+    ncwriteatt(filename,'/flags/time','calendar',calibrationTool.calendar);
     ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
     
     ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
@@ -217,12 +221,15 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Originator attributes
 ncwriteatt(filename,'/','title','Brightness temperature measured by ground-based radiometer');
-ncwriteatt(filename,'/','location',retrievalTool.dataLocation);
-ncwriteatt(filename,'/','source',retrievalTool.dataSource);
-ncwriteatt(filename,'/','name',retrievalTool.PI_NAME);
-ncwriteatt(filename,'/','institution',retrievalTool.PI_AFFILIATION);
-ncwriteatt(filename,'/','contact',retrievalTool.PI_ADDRESS);
-ncwriteatt(filename,'/','mail',retrievalTool.PI_EMAIL);
+ncwriteatt(filename,'/','location',calibrationTool.dataLocation);
+ncwriteatt(filename,'/','source',calibrationTool.dataSource);
+ncwriteatt(filename,'/','name',calibrationTool.PI_NAME);
+ncwriteatt(filename,'/','institution',calibrationTool.PI_AFFILIATION);
+ncwriteatt(filename,'/','contact',calibrationTool.PI_ADDRESS);
+ncwriteatt(filename,'/','mail',calibrationTool.PI_EMAIL);
+
+ncwriteatt(filename,'/','instument',calibrationTool.instrumentName);
+ncwriteatt(filename,'/','number_of_spectrometer',calibrationTool.numberOfSpectrometer);
 
 ncwriteatt(filename,'/','history','');
 ncwriteatt(filename,'/','references','');
@@ -249,9 +256,9 @@ ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).dateStop);
 %ncwriteatt(filename,'/','DATA_RULES_OF_USE','');
 
 % Create global variables --> saved as variables
-%ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',retrievalTool.lat);
-%ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',retrievalTool.lon);
-%ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',retrievalTool.altitude);
+%ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',calibrationTool.lat);
+%ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',calibrationTool.lon);
+%ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',calibrationTool.altitude);
 
 % Global file attributes
 ncwriteatt(filename,'/','filename',filename);
@@ -406,15 +413,15 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Adding debug (optionnal)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if retrievalTool.saveAllCycles
+if calibrationTool.calType=='debug'
     % initialize matrices
     nClean=0;
     for t = 1:length(calibratedSpectra)
         nClean=nClean+calibratedSpectra(t).numberOfCleanAntennaAngle;
     end
     
-    channel_idx=int64(ones(nClean,retrievalTool.numberOfChannels)*NaN);
-    TbAll=single(ones(nClean,retrievalTool.numberOfChannels)*NaN);
+    channel_idx=int64(ones(nClean,calibrationTool.numberOfChannels)*NaN);
+    TbAll=single(ones(nClean,calibrationTool.numberOfChannels)*NaN);
     cycleNumber=int64(ones(nClean,1)*NaN);
     cycleId=int64(1:nClean);
     
@@ -422,7 +429,7 @@ if retrievalTool.saveAllCycles
     for t = 1:length(calibratedSpectra)
         for i =1:calibratedSpectra(t).numberOfCleanAntennaAngle
             TbAll(counter,:)=calibratedSpectra(t).TbAll(i,:);
-            channel_idx(counter,:)=1:retrievalTool.numberOfChannels;
+            channel_idx(counter,:)=1:calibrationTool.numberOfChannels;
             cycleNumber(counter)=t;
             counter=counter+1;
         end
@@ -430,15 +437,15 @@ if retrievalTool.saveAllCycles
     
     % Group for debugging variables:
     nccreate(filename,'/debug/cycle_id','Dimensions',{'cycle_id',Inf},'Datatype','int64')
-    nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
+    nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
     
     nccreate(filename,'/debug/calibration_cycle_number','Dimensions',{'cycle_id',Inf},'Datatype','int64','FillValue',-9999)
-    nccreate(filename,'/debug/Tb_all','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'cycle_id',Inf},'Datatype','single','FillValue',-9999)
+    nccreate(filename,'/debug/Tb_all','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'cycle_id',Inf},'Datatype','single','FillValue',-9999)
     
     % Writing the debug variables
     ncwrite(filename,'/debug/cycle_id',cycleId);
     
-    ncwrite(filename,'/debug/channel_idx',1:retrievalTool.numberOfChannels);
+    ncwrite(filename,'/debug/channel_idx',1:calibrationTool.numberOfChannels);
     ncwrite(filename,'/debug/calibration_cycle_number',cycleNumber');
     ncwrite(filename,'/debug/Tb_all',TbAll');
 end

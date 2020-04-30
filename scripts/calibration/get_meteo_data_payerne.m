@@ -1,4 +1,4 @@
-function calibratedSpectra = get_meteo_data_payerne(retrievalTool,calibratedSpectra)
+function calibratedSpectra = get_meteo_data_payerne(calibrationTool,calibratedSpectra)
 %==========================================================================
 % NAME          | get_meteo_data_payerne
 % TYPE          | function
@@ -25,14 +25,14 @@ function calibratedSpectra = get_meteo_data_payerne(retrievalTool,calibratedSpec
 
 % fileName for meteo file in Payerne: yyyyjjj.002
 % julian day
-jjj= datenum(retrievalTool.dateStr)-datenum(str2num(datestr(datenum(retrievalTool.dateStr),'yyyy')),01,01);
+jjj= datenum(calibrationTool.dateStr)-datenum(str2num(datestr(datenum(calibrationTool.dateStr),'yyyy')),01,01);
 
 % First reading the Meteo dataset for this day
-MetNum=str2num(retrievalTool.dateStr(1:4))*1000;
+MetNum=str2num(calibrationTool.dateStr(1:4))*1000;
 dateStringMeteo=[num2str(MetNum+jjj+1) '.002'];
 %dateStringMeteo='2020065.002';
 
-meteoDataFile=[retrievalTool.meteoFolder dateStringMeteo];
+meteoDataFile=[calibrationTool.meteoFolder dateStringMeteo];
 
 %opts = detectImportOptions(meteoDataFile)
 

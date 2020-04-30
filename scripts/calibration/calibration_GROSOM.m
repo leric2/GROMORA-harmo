@@ -33,8 +33,11 @@ clear; close all; clc;
 % 'GROMOS' // 'SOMORA' // 'mopi5'
 instrumentName='GROMOS';
 
+% Type of calibration to do: standard of debug
+calibrationType='debug';
+
 % Define the dates for the calibration:
-dates=datenum('2018_05_19','yyyy_mm_dd'):datenum('2018_05_19','yyyy_mm_dd');
+dates=datenum('2019_01_12','yyyy_mm_dd'):datenum('2019_01_12','yyyy_mm_dd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
@@ -84,7 +87,8 @@ for k = 1:numel(dates)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Debug mode and plot options
-    calibrationTool.saveAllCycles=0;
+    
+    calibrationTool.calType=calibrationType;
     
     calibrationTool.rawSpectraPlot=false;
     calibrationTool.calibratedSpectraPlot=true;
@@ -109,7 +113,7 @@ for k = 1:numel(dates)
     calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
     
     % Function to use for doing the calibration:
-    calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,TCold,calType) calibrate_generic(rawSpectra,log,calibrationTool,TCold,calType);
+    calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
     
     % Plot some calibrated spectra:
     calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
@@ -150,7 +154,7 @@ for k = 1:numel(dates)
         % Path definition (for local computer only)
         %calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
-        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/GROMOS/';
+        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/';
         calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         
@@ -165,10 +169,10 @@ for k = 1:numel(dates)
     % SOMORA
     elseif (string(instrumentName)=='SOMORA')
         calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
-        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Level1/SOMORA/';
+        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         % TOCHANGE
-        calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/MeteoFile/';
+        calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
         
         
         calibrationTool.badChannels=1:104;
@@ -192,7 +196,7 @@ for k = 1:numel(dates)
     if calibrationTool.numberOfSpectrometer==1
         try
             % if commented, nothing happens --> developping purposes
-            %run_calibration(calibrationTool)
+            % run_calibration(calibrationTool)
         end
     else
         for m=1:3

@@ -70,9 +70,9 @@ drift.a(1,:) = mean(rawSpectra(initialIndices{1},:),2,'omitnan');
 drift.a(2,:) = mean(rawSpectra(initialIndices{2},:),2,'omitnan');
 drift.a(3,:) = mean(rawSpectra(initialIndices{3},:),2,'omitnan');
 drift.Y    = drift.a(1,:) ./  drift.a(3,:);
-drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.calibrationTool.TCold)./ (drift.Y-1);
-drift.TSysstandardLog=standardLog.FE_T_Sys(initialIndices{1});
-drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.calibrationTool.TCold) + calibrationTool.calibrationTool.TCold;
+drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.TCold)./ (drift.Y-1);
+drift.TSysLog=standardLog.FE_T_Sys(initialIndices{1});
+drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.TCold) + calibrationTool.TCold;
 
 drift.dailyMedianHotSpectra=median(rawSpectra(initialIndices{1},:),1,'omitnan');
 drift.dailyStdHotSpectra=nanstd(rawSpectra(initialIndices{1},:));
@@ -275,8 +275,7 @@ switch calType
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
             antennaAngleCheck=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             if any(antennaAngleCheck)==1
-                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
-                
+                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
             else
                 calibratedSpectra(i).antennaAngleRemoved=0;
             end
@@ -285,7 +284,7 @@ switch calType
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:
-            calibratedSpectra(i).calibrationType='standard';
+            calibratedSpectra(i).calibrationType=calType;
             
             % Antenna counts on this cycle:
             rsAntennaAll=rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:);
@@ -295,14 +294,22 @@ switch calType
 
             % Calibration
             % For every antenna measurement (to get the stddev of Tb on the
-            % calibration cycle)
+            % calibration cycle) against the mean of hot and cold spectra
+            % for this calibration cycle.
             TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             calibratedSpectra(i).stdTb=std(TbAll);
             
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
         end
     case 'debug'
-        % Based on the discussion with Axel, changes in the calibration:
+        % In this mode, we compute 3 types of calibration for debugging
+        % purpose:
+        % 1. "standard" one: mean antenna vs mean hot/cold spectra
+        % 2. "Mean Up/Down": mean AT up, mean AT Down vs mean hot/cold
+        % 3. "all cycles, mean hc": all individual cycle vs mean hot/cold,
+        % uncleaned for pointing angle problems.
+        %
+        %
         % Averaging hot and cold FFTS counts on the time interval.
         % Keeping each individual cycle for later analysis but computing as
         % well the avg calibrated spectra.
@@ -312,11 +319,11 @@ switch calType
             calibratedSpectra(i).calibrationTime=calibTime;
             
             % All antenna measurements
-            ia=reshape(indices(i).validAntenna,[],1);
+            ia=reshape(indices(i).validAntenna,1,[]);
             
             % Antenna measurements inside a half cycle
-            iaUp=reshape(indices(i).validColdStartUp(2,:),[],1);
-            iaDown=reshape(indices(i).validHotStartDown(2,:),[],1);
+            iaUp=reshape(indices(i).validColdStartUp(2,:),1,[]);
+            iaDown=reshape(indices(i).validHotStartDown(2,:),1,[]);
             
             % Checking for NaN in the antenna spectra and keeping only complete
             % spectra for the calibration:
@@ -333,7 +340,7 @@ switch calType
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
             antennaAngleCheck=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             if any(antennaAngleCheck)==1
-                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
+                calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
             else
                 calibratedSpectra(i).antennaAngleRemoved=0;
             end
@@ -341,51 +348,80 @@ switch calType
             calibratedSpectra(i).numberOfCleanAntennaAngle=length(calibratedSpectra(i).antennaIndCleanAngle);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Doing the calibration globally for this calibration cycle:
-            calibratedSpectra(i).calibrationType='standard';
+           % Doing the calibration globally for this calibration cycle:
+            calibratedSpectra(i).calibrationType=calType;
+            
+            % All clean Antenna counts on this cycle to compute the std Tb
+            rsAntennaAllClean=rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:);
+            
+            TbAllCleanAngle = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAllClean-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+            calibratedSpectra(i).stdTb=std(TbAllCleanAngle);
+            
+            % To check the difference if we do the averaging after the
+            % calibration of individual cycle:
+            calibratedSpectra(i).meanFromTbAll=nanmean(TbAllCleanAngle);
             
             % Mean Antenna counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
-                       
-            % Calibration
+            
+            % Calibration 1. "standard"
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Doing the calibration separately (Up and Down) for this calibration cycle:
+            % Doing the calibration separately (Mean Up and Down) for this calibration cycle:
             angleCheckUp=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaIndUp)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
             angleCheckDown=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaIndDown)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
             
-            % Antenna Up for this cycle
-            rsAntennaUp=nanmean(rawSpectra(calibratedSpectra(i).antennaIndUp,:),1);
-            rsAntennaDown=nanmean(rawSpectra(calibratedSpectra(i).antennaIndDown,:),1);
+            % Cleaning the angle for "Mean Up/Down" calibration
+            if any(angleCheckUp)==1
+                calibratedSpectra(i).antennaUpAngleRemoved=sum(angleCheckUp); 
+            else
+                calibratedSpectra(i).antennaUpAngleRemoved=0;
+            end
+            calibratedSpectra(i).antennaIndCleanUpAngle=calibratedSpectra(i).antennaIndUp(~angleCheckUp)';
+            calibratedSpectra(i).numberOfCleanAntennaUpAngle=length(calibratedSpectra(i).antennaIndCleanUpAngle);
             
+            % Cleaning the angle for "Mean Up/Down" calibration
+            if any(angleCheckDown)==1
+                calibratedSpectra(i).antennaDownAngleRemoved=sum(angleCheckDown); 
+            else
+                calibratedSpectra(i).antennaDownAngleRemoved=0;
+            end
+            calibratedSpectra(i).antennaIndCleanDownAngle=calibratedSpectra(i).antennaIndDown(~angleCheckDown)';
+            calibratedSpectra(i).numberOfCleanAntennaDownAngle=length(calibratedSpectra(i).antennaIndCleanDownAngle);
+            
+            % Mean Antenna Up/Down for this cycle
+            rsAntennaUp=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanUpAngle,:),1);
+            rsAntennaDown=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanDownAngle,:),1);
+            
+            % Calibration 2. "Mean Up/Down"
             calibratedSpectra(i).TbUp = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaUp-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             calibratedSpectra(i).TbDown = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDown-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Calibration of all cycle separately. 
             % Saving the cycle by cycle calibration (separated for clarity)
+            
+            % For now, we do not keep the difference between up/dow cycle.
+            % If one exist, it should be visible from "Mean Up/Down" type
+            % of calibration. 
             rsAntennaAll=rawSpectra(calibratedSpectra(i).antennaInd,:);
-            rsAntennaUpAll=rawSpectra(calibratedSpectra(i).antennaIndUp,:);
-            rsAntennaDownAll=rawSpectra(calibratedSpectra(i).antennaIndDown,:);
+            %rsAntennaUpAll=rawSpectra(calibratedSpectra(i).antennaIndUp,:);
+            %rsAntennaDownAll=rawSpectra(calibratedSpectra(i).antennaIndDown,:);
             
+            % Calibration 3. "all cycles, mean hc"
             calibratedSpectra(i).TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            % Angle flag
-            % calibratedSpectra(i).antennaAngleFlagAll=angleCheck';
+            % Angle flag all
+            calibratedSpectra(i).antennaAngleFlagAll=antennaAngleCheck';
             
-            calibratedSpectra(i).TbUpAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaUpAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            % Angle flag
-            calibratedSpectra(i).antennaAngleFlagUp=angleCheckUp';
+            %calibratedSpectra(i).TbUpAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaUpAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+            % Angle flag up
+            %calibratedSpectra(i).antennaAngleFlagUp=angleCheckUp';
             
-            calibratedSpectra(i).TbDownAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDownAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            % Angle flag
-            calibratedSpectra(i).antennaAngleFlagDown=angleCheckDown';
+            %calibratedSpectra(i).TbDownAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDownAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+            % Angle flag down
+            %calibratedSpectra(i).antennaAngleFlagDown=angleCheckDown';
             
-            % And the standard deviation of final Tb
-            calibratedSpectra(i).stdTb=nanstd(calibratedSpectra(i).TbAll);
-            
-            calibratedSpectra(i).meanFromTbAll=mean(calibratedSpectra(i).TbAll);
-            calibratedSpectra(i).meanFromTbUpAll=mean(calibratedSpectra(i).TbUpAll);
-            calibratedSpectra(i).meanFromTbDownAll=mean(calibratedSpectra(i).TbDownAll);
             % For the future: propagate the initial uncertainties into the
             % calibration formula.
         end
