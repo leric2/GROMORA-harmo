@@ -35,7 +35,7 @@ for h = 1:length(timeThresh)
     
     if ~isempty(goodSpectra)  
         % no critical error:
-        goodSpectra=goodSpectra(sum(vertcat(level1b.calibratedSpectra(goodSpectra).flags)==[1 1 0 0 0 1 1 1 1],2)==9);
+        goodSpectra=goodSpectra(sum(vertcat(level1b.calibratedSpectra(goodSpectra).flags)==[1 1 1 1 1 1],2)==6);
     end
     
     if isempty(goodSpectra)

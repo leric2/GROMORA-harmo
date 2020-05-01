@@ -31,13 +31,13 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='GROMOS';
+instrumentName="GROMOS";
 
 % Type of calibration to do: standard of debug
-calibrationType='debug';
+calibrationType="standard";
 
 % Define the dates for the calibration:
-dates=datenum('2019_01_12','yyyy_mm_dd'):datenum('2019_01_12','yyyy_mm_dd');
+dates=datenum('2019_02_12','yyyy_mm_dd'):datenum('2019_02_12','yyyy_mm_dd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
@@ -150,7 +150,7 @@ for k = 1:numel(dates)
     % Instrument specific parameters
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % GROMOS
-    if (string(instrumentName)=='GROMOS')
+    if string(instrumentName)=="GROMOS"
         % Path definition (for local computer only)
         %calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
@@ -167,7 +167,7 @@ for k = 1:numel(dates)
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % SOMORA
-    elseif (string(instrumentName)=='SOMORA')
+    elseif string(instrumentName) == "SOMORA"
         calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
@@ -184,7 +184,7 @@ for k = 1:numel(dates)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % MOPI
-    elseif (string(instrumentName)=='mopi5')
+    elseif string(instrumentName)=="mopi5"
         % FOR MOPI:
         % Everything stored into "import_default_calibrationTool"
     end

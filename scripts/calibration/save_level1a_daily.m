@@ -52,8 +52,8 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now write daily level 1a file
-if calibrationTool.calType=='debug'
-    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
+if calibrationTool.calType=="debug"
+    filename=[locationLevel1a calibrationTool.ginstrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
 else
     filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 end
@@ -120,10 +120,12 @@ nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','do
 if isfield(calibratedSpectra,'errorVector')
     nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
     nccreate(filename,'/flags/flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector)},'Datatype','int64')
+    nccreate(filename,'/flags/indices','Dimensions',{'indices',length(calibratedSpectra(1).numberOfIndices)},'Datatype','int64')
     
     % We input a (1xerrorVectorSize) int vector to identify the errors
     nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
-    %nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
+    nccreate(filename,'/flags/number_of_spectra','Dimensions',{'indices',length(calibratedSpectra(1).numberOfIndices),'time',Inf},'Datatype','int64','FillValue',-9999)
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing netCDF variables
@@ -214,6 +216,8 @@ if isfield(calibratedSpectra,'errorVector')
     
     ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
     ncwrite(filename,'/flags/calibration_flags',errorCalib');
+    
+    ncwrite(filename,'/flags/number_of_spectra',vertcat(calibratedSpectra.numberOfIndices)');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -278,13 +282,15 @@ if isfield(calibratedSpectra,'errorVector')
     %ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','LN2SensorsOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_7','LN2LevelOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_8','hotLoadOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_9','FFT_adc_overload_OK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','LN2SensorsOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','LN2LevelOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','hotLoadOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','FFT_adc_overload_OK');
+
+    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_1','hotSpectra');
+    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_2','coldSpectra');
+    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_3','AntennaSpectra');
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers group
@@ -413,7 +419,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Adding debug (optionnal)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if calibrationTool.calType=='debug'
+if calibrationTool.calType=="debug"
     % initialize matrices
     nClean=0;
     for t = 1:length(calibratedSpectra)
