@@ -5,7 +5,7 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Module reading level1b data 
+Main script for GROSOM retrieval
 
 Example:
     E...
@@ -21,8 +21,7 @@ Attributes:
         one convention to document module level variables and be consistent
         with it.
 
-Todo:
-    * CHECK if better to use class
+Todo: all
 
 """
 from abc import ABC
@@ -61,11 +60,12 @@ class DataRetrievalGROSOM(ABC):
         print('reading : ', self._filename)
         return retrieval_module.read_level1b(self._filename)
     
-    
-    
     def plot_level1b_TB(self, LVL1B, calibrationCycle):
         plt.plot(LVL1B.frequencies.values,LVL1B.Tb[calibrationCycle].values)
         pass
+    
+    def plot_meteo_lvl1b(self,METEO):
+        return retrieval_module.plot_meteo_level1b(METEO)
     
     def retrieve(self, LVL1B):
         return retrieval_module.retrieve(LVL1B)
@@ -100,10 +100,12 @@ def run_retrieval(instrument,retrievalParam):
     In this function we call the retrieval process step-by-step
     
     instrument is actually a concrete implementation of the the abstract 
-    DataRetrieval class. 
+    DataRetrieval class --> will be initiated here in the future
     
+    In the end, we will store this function elsewhere along with the classes definition.
     
     """
+    
     LVL1B,METEO,globalAttrs=instrument.read_level1b()
     
     instrument.plot_level1b_TB(LVL1B,retrievalParam['calibrationCycle'])
@@ -114,6 +116,12 @@ def run_retrieval(instrument,retrievalParam):
     
     LVL2 = DataRetrievalGROSOM.retrieve(instrument, LVL1B)
     
+    if retrievalParam["plot_meteo"]:
+        instrument.plot_meteo_lvl1b(METEO)
+    
+    
+    
+    
     return LVL1B,METEO,globalAttrs
 
 
@@ -122,16 +130,17 @@ if __name__=="__main__":
     # For testing
     basename="/home/eric/Documents/PhD/GROSOM/Level1/"
 
-    instrumentName="SOMORA"
+    instrumentName="GROMOS"
 
     retrievalParam=dict()
     retrievalParam["calibrationCycle"]=2
+    retrievalParam["plot_meteo"] = True
 
 # Reading function
 #retrievalTool["reading_level1b"]=reading_level1b.read_level1b
 
     if instrumentName=="GROMOS":
-       filename = basename+"GROMOS_level1b_AC240_2019_01_20"
+       filename = basename+"GROMOS_level1b_AC240_2019_02_12"
        instrument = GROMOS_LvL2(filename)
     else:
        filename = basename+"SOMORA_level1b_AC240_2019_04_16"
@@ -140,7 +149,12 @@ if __name__=="__main__":
     # Check the structure of the file and maybe use it ?
     print(netCDF4.Dataset(filename+".nc").groups.keys())
     
-    LVL1B, METEO, globalAttrs = run_retrieval(instrument,retrievalParam)
+    LVL1B, METEO, globalAttrsLvl1b = run_retrieval(instrument,retrievalParam)
+    
+    if globalAttrsLvl1b['instument'] != instrumentName:
+        print('wrong instrument')
+        
+    
     #print(LVL1B)
     
 # Check if this is the right instument
