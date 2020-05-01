@@ -78,37 +78,3 @@ Approximate timeline defined for this project (for now, focused on the first par
 * 01.03.20: Start working on the level1 to level2 data
 * ...
 
-## Good practice
-In order to have some coherence for this new retrieval code, here are some basic rules I would suggest to use when collaborating to the project.
-
-### Modules
-Every module has to make 1 (and only 1) action at a time and be named accordingly. Suggestions for naming the modules:
-
-*module_doing_this_action(var1,var2,...)*
-
-Another question to be solved regarding the modules is:
-
-*Do we want to have one specific module for each instruments when needed (corrections, etc...) or do we prefer to have some switch case and the instrument's name as input ?*
-
-### Variables 
-No hardcoded variables, except in the main module. Suggestions for naming the variables:
-
-*nameOfTheVariable*
-
-## Roles (self filling)
-
-### Eliane
-
-### Eric
-* Design and main contributor of the coding part
-* Organisation of the project
-* Git
-
-### Gunter
-
-### Klemens
-
-### Axel
-
-## Code main structure and data management  (maybe put that in another file)
-![MockUp for the project] (https://git.iap.unibe.ch/IAP_MCH/GROSOM-harmo/src/branch/master/sketch/MockUp_GROSOM.png)
