@@ -261,7 +261,7 @@ ncwriteatt(filename,'/','references','');
 ncwriteatt(filename,'/','comment','');
 %ncwriteatt(filename,'/','DATA_VARIABLES','');
 
-ncwriteatt(filename,'/','instument',calibrationTool.instrumentName);
+ncwriteatt(filename,'/','instrument',calibrationTool.instrumentName);
 ncwriteatt(filename,'/','number_of_spectrometer',calibrationTool.numberOfSpectrometer);
 
 ncwriteatt(filename,'/','raw_data_filename',calibrationTool.logFile.rawFilename);
@@ -472,45 +472,45 @@ for i=1:length(attrName)
     
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Adding debug (optionnal)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if calibrationTool.saveAllCycles
-    % initialize matrices
-    nClean=0;
-    for t = 1:length(integratedSpectra)
-        nClean=nClean+integratedSpectra(t).numberOfCleanAntennaAngle;
-    end
-    
-    channel_idx=int64(ones(nClean,calibrationTool.numberOfChannels)*NaN);
-    TbAll=single(ones(nClean,calibrationTool.numberOfChannels)*NaN);
-    cycleNumber=int64(ones(nClean,1)*NaN);
-    cycleId=int64(1:nClean);
-    
-    counter=1;
-    for t = 1:length(integratedSpectra)
-        for i =1:integratedSpectra(t).numberOfCleanAntennaAngle
-            TbAll(counter,:)=integratedSpectra(t).TbAll(i,:);
-            channel_idx(counter,:)=1:calibrationTool.numberOfChannels;
-            cycleNumber(counter)=t;
-            counter=counter+1;
-        end
-    end
-    
-    % Group for debugging variables:
-    nccreate(filename,'/debug/cycle_id','Dimensions',{'cycle_id',Inf},'Datatype','int64')
-    nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
-    
-    nccreate(filename,'/debug/calibration_cycle_number','Dimensions',{'cycle_id',Inf},'Datatype','int64','FillValue',-9999)
-    nccreate(filename,'/debug/Tb_all','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'cycle_id',Inf},'Datatype','single','FillValue',-9999)
-    
-    % Writing the debug variables
-    ncwrite(filename,'/debug/cycle_id',cycleId);
-    
-    ncwrite(filename,'/debug/channel_idx',1:calibrationTool.numberOfChannels);
-    ncwrite(filename,'/debug/calibration_cycle_number',cycleNumber');
-    ncwrite(filename,'/debug/Tb_all',TbAll');
-end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Adding debug (optionnal)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% if calibrationTool.calType=="debug"
+%     % initialize matrices
+%     nClean=0;
+%     for t = 1:length(integratedSpectra)
+%         nClean=nClean+integratedSpectra(t).numberOfCleanAntennaAngle;
+%     end
+%     
+%     channel_idx=int64(ones(nClean,calibrationTool.numberOfChannels)*NaN);
+%     TbAll=single(ones(nClean,calibrationTool.numberOfChannels)*NaN);
+%     cycleNumber=int64(ones(nClean,1)*NaN);
+%     cycleId=int64(1:nClean);
+%     
+%     counter=1;
+%     for t = 1:length(integratedSpectra)
+%         for i =1:integratedSpectra(t).numberOfCleanAntennaAngle
+%             TbAll(counter,:)=integratedSpectra(t).TbAll(i,:);
+%             channel_idx(counter,:)=1:calibrationTool.numberOfChannels;
+%             cycleNumber(counter)=t;
+%             counter=counter+1;
+%         end
+%     end
+%     
+%     % Group for debugging variables:
+%     nccreate(filename,'/debug/cycle_id','Dimensions',{'cycle_id',Inf},'Datatype','int64')
+%     nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
+%     
+%     nccreate(filename,'/debug/calibration_cycle_number','Dimensions',{'cycle_id',Inf},'Datatype','int64','FillValue',-9999)
+%     nccreate(filename,'/debug/Tb_all','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'cycle_id',Inf},'Datatype','single','FillValue',-9999)
+%     
+%     % Writing the debug variables
+%     ncwrite(filename,'/debug/cycle_id',cycleId);
+%     
+%     ncwrite(filename,'/debug/channel_idx',1:calibrationTool.numberOfChannels);
+%     ncwrite(filename,'/debug/calibration_cycle_number',cycleNumber');
+%     ncwrite(filename,'/debug/Tb_all',TbAll');
+% end
 
 disp(['File saved as: ' filename])
 end

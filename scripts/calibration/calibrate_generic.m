@@ -215,8 +215,8 @@ for i=1:nCalibrationCycles
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Number of spectra left:
-    calibratedSpectra(i).hotSpectraRemaining=length(ih);
-    calibratedSpectra(i).coldSpectraRemaining=length(ic);
+    %calibratedSpectra(i).hotSpectraRemaining=length(ih);
+    %calibratedSpectra(i).coldSpectraRemaining=length(ic);
     
     % Saving clean hot and cold indices for this cycle
     calibratedSpectra(i).hotInd=ih;
@@ -283,7 +283,7 @@ switch calType
             %TODO
             % ia=ia(no_outlier)
             
-            calibratedSpectra(i).antennaIndCleanAngle=ia';
+            calibratedSpectra(i).antennaIndCleanAngle=ia;
             %calibratedSpectra(i).numberOfCleanAntennaAngle=length(ia);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -354,7 +354,7 @@ switch calType
             %TODO
             % ia=ia(no_outlier)
             
-            calibratedSpectra(i).antennaIndCleanAngle=ia';
+            calibratedSpectra(i).antennaIndCleanAngle=ia;
             %calibratedSpectra(i).numberOfCleanAntennaAngle=length(ia);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
