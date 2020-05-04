@@ -115,6 +115,11 @@ nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/numberOfHotSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/numberOfColdSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/numberOfAntennaSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
 if isfield(calibratedSpectra,'errorVector')
@@ -124,7 +129,7 @@ if isfield(calibratedSpectra,'errorVector')
     
     % We input a (1xerrorVectorSize) int vector to identify the errors
     nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(calibratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
-    nccreate(filename,'/flags/number_of_spectra','Dimensions',{'indices',length(calibratedSpectra(1).numberOfIndices),'time',Inf},'Datatype','int64','FillValue',-9999)
+    %nccreate(filename,'/flags/number_of_spectra','Dimensions',{'indices',length(calibratedSpectra(1).numberOfIndices),'time',Inf},'Datatype','int64','FillValue',-9999)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -205,6 +210,10 @@ if isfield(calibratedSpectra,'TempWindow')
 else
     ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(calibratedSpectra),1));
 end
+
+ncwrite(filename,'/spectrometer1/numberOfHotSpectra',[calibratedSpectra.numberOfIndices(1)]);
+ncwrite(filename,'/spectrometer1/numberOfColdSpectra',[calibratedSpectra.numberOfIndices(2)]);
+ncwrite(filename,'/spectrometer1/numberOfAntennaSpectra',[calibratedSpectra.numberOfIndices(3)]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
@@ -287,9 +296,9 @@ if isfield(calibratedSpectra,'errorVector')
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','hotLoadOK');
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','FFT_adc_overload_OK');
 
-    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_1','hotSpectra');
-    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_2','coldSpectra');
-    ncwriteatt(filename,'/flags/number_of_spectra','errorCode_3','AntennaSpectra');
+    ncwriteatt(filename,'/flags/number_of_spectra','number1','hotSpectra');
+    ncwriteatt(filename,'/flags/number_of_spectra','number2','coldSpectra');
+    ncwriteatt(filename,'/flags/number_of_spectra','number3','AntennaSpectra');
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

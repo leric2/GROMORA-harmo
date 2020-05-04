@@ -122,6 +122,10 @@ nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','do
 
 nccreate(filename,'/spectrometer1/number_calibrated_spectra','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/numberOfHotSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/numberOfColdSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/numberOfAntennaSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+
 % Tropospheric correction data:
 nccreate(filename,'/spectrometer1/trospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/trospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -225,6 +229,10 @@ if isfield(integratedSpectra,'TempWindow')
 else
     ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(integratedSpectra),1));
 end
+
+ncwrite(filename,'/spectrometer1/numberOfHotSpectra',[integratedSpectra.numHotSpectra]);
+ncwrite(filename,'/spectrometer1/numberOfColdSpectra',[integratedSpectra.numColdSpectra]);
+ncwrite(filename,'/spectrometer1/numberOfAntennaSpectra',[integratedSpectra.numAntSpectra]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
