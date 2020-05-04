@@ -51,6 +51,7 @@ for h = 1:length(timeThresh)
         integratedSpectra(h).numHotSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numHotSpectra));
         integratedSpectra(h).numColdSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numColdSpectra));
         integratedSpectra(h).numAntSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numAntSpectra));
+
     end
 
     integratedSpectra(h).if=level1b.calibratedSpectra(indSpectra(1)).if;

@@ -300,7 +300,7 @@ if isfield(calibratedSpectra,'errorVector')
     %ncwriteatt(filename,'/flags/number_of_spectra','number1','hotSpectra');
     %ncwriteatt(filename,'/flags/number_of_spectra','number2','coldSpectra');
     %ncwriteatt(filename,'/flags/number_of_spectra','number3','AntennaSpectra');
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers group
