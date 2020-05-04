@@ -41,6 +41,11 @@ correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
 
 correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/meanAngleAntenna')';
 
+
+correctedSpectra.numHotSpectra=ncread(filename,'/spectrometer1/numberOfHotSpectra')';
+correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/numberOfColdSpectra')';
+correctedSpectra.numAntSpectra=ncread(filename,'/spectrometer1/numberOfAntennaSpectra')';
+
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
 
 correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
@@ -105,24 +110,27 @@ retrievalTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 disp(['File read : ' filename])
 
 for i = 1:length(correctedSpectra.meanTime)
-    calib(i).Tb=correctedSpectra.Tb(i,:);
-    calib(i).meanDatetime=correctedSpectra.meanTime(i);
-    calib(i).freq=correctedSpectra.freq(:)';
-    calib(i).if=correctedSpectra.if(:)';
-    calib(i).year=correctedSpectra.year(i);
-    calib(i).month=correctedSpectra.month(i);
-    calib(i).day=correctedSpectra.day(i);
-    calib(i).THot=correctedSpectra.THot(i);
-    calib(i).stdTHot=correctedSpectra.stdTHot(i);
-    calib(i).TSys=correctedSpectra.TSys(i);
-    calib(i).TWindow=correctedSpectra.TWindow(i);
-    calib(i).meanAngleAntenna = correctedSpectra.meanAngleAntenna(i);
-    calib(i).stdTSys=correctedSpectra.stdTSys(i);
-    calib(i).calibrationTime=correctedSpectra.calibrationTime(i);
-    calib(i).firstSkyTime=correctedSpectra.firstSkyTime(i);
-    calib(i).lastSkyTime=correctedSpectra.lastSkyTime(i);
-    calib(i).timeMin=correctedSpectra.timeMin(i);
-    calib(i).TOD=correctedSpectra.tod(i);
+    calib(i).Tb = correctedSpectra.Tb(i,:);
+    calib(i).meanDatetime = correctedSpectra.meanTime(i);
+    calib(i).freq = correctedSpectra.freq(:)';
+    calib(i).if = correctedSpectra.if(:)';
+    calib(i).year = correctedSpectra.year(i);
+    calib(i).month = correctedSpectra.month(i);
+    calib(i).day = correctedSpectra.day(i);
+    calib(i).THot = correctedSpectra.THot(i);
+    calib(i).stdTHot = correctedSpectra.stdTHot(i);
+    calib(i).TSys = correctedSpectra.TSys(i);
+    calib(i).TWindow = correctedSpectra.TWindow(i);
+    calib(i).meanAngleAntenna  =  correctedSpectra.meanAngleAntenna(i);
+    calib(i).numHotSpectra  =  correctedSpectra.numHotSpectra(i);
+    calib(i).numColdSpectra  =  correctedSpectra.numColdSpectra(i);
+    calib(i).numAntSpectra  =  correctedSpectra.numAntSpectra(i);    
+    calib(i).stdTSys = correctedSpectra.stdTSys(i);
+    calib(i).calibrationTime = correctedSpectra.calibrationTime(i);
+    calib(i).firstSkyTime = correctedSpectra.firstSkyTime(i);
+    calib(i).lastSkyTime = correctedSpectra.lastSkyTime(i);
+    calib(i).timeMin = correctedSpectra.timeMin(i);
+    calib(i).TOD = correctedSpectra.tod(i);
     
-    calib(i).flags=correctedSpectra.flagVector(i,:);
+    calib(i).flags = correctedSpectra.flagVector(i,:);
 end

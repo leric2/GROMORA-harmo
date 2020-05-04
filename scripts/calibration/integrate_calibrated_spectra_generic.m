@@ -1,4 +1,4 @@
-function level1b = integrate_calibrated_spectra_generic(retrievalTool,level1b)
+function level1b = integrate_calibrated_spectra_generic(calibrationTool,level1b)
 %==========================================================================
 % NAME          | integrate_calibrated_spectra_generic.m
 % TYPE          | Function
@@ -21,7 +21,7 @@ function level1b = integrate_calibrated_spectra_generic(retrievalTool,level1b)
 
 %==========================================================================
 % Threshold for the integration, calibTime has to be in [min]
-dt=retrievalTool.integrationTime/60;
+dt=calibrationTool.integrationTime/60;
 timeThresh=0:dt:23;
 
 for h = 1:length(timeThresh)
@@ -39,13 +39,18 @@ for h = 1:length(timeThresh)
     end
     
     if isempty(goodSpectra)
-        intSpectra=-9999*ones(1,retrievalTool.numberOfChannels);
+        intSpectra=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedSpectra(h).numberOfAveragedSpectra=-9999;
         goodSpectra=indSpectra;
     else
         % Averaging the good spectra together
         intSpectra=mean(vertcat(level1b.calibratedSpectra(goodSpectra).Tb),1);
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
+        
+        % Summing the number of spectra for hot, cold and antenna:
+        integratedSpectra(h).numHotSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numHotSpectra));
+        integratedSpectra(h).numColdSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numColdSpectra));
+        integratedSpectra(h).numAntSpectra = sum(vertcat(level1b.calibratedSpectra(goodSpectra).numAntSpectra));
     end
 
     integratedSpectra(h).if=level1b.calibratedSpectra(indSpectra(1)).if;
@@ -60,7 +65,7 @@ for h = 1:length(timeThresh)
     integratedSpectra(h).day=level1b.calibratedSpectra(indSpectra(1)).day;
     
     integratedSpectra(h).calibrationTime=level1b.calibratedSpectra(1).calibrationTime;
-    integratedSpectra(h).integrationTime=retrievalTool.integrationTime*60;
+    integratedSpectra(h).integrationTime=calibrationTool.integrationTime*60;
     integratedSpectra(h).Tb=intSpectra;
     integratedSpectra(h).meanAngleAntenna=nanmean([level1b.calibratedSpectra(goodSpectra).meanAngleAntenna]);
     

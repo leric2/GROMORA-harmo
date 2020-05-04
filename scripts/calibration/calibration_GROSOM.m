@@ -31,7 +31,7 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName="GROMOS";
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard of debug
 calibrationType="standard";
