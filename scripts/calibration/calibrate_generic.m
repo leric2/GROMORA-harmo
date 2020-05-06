@@ -383,7 +383,7 @@ switch calType
             angleCheckDown=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaIndDown)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
             
             % Cleaning the angle for "Mean Up/Down" calibration
-            if any(angleCheckUp)==1
+            if any(angleCheckUp)
                 calibratedSpectra(i).antennaUpAngleRemoved=sum(angleCheckUp); 
             else
                 calibratedSpectra(i).antennaUpAngleRemoved=0;
@@ -392,7 +392,7 @@ switch calType
             calibratedSpectra(i).numberOfCleanAntennaUpAngle=length(calibratedSpectra(i).antennaIndCleanUpAngle);
             
             % Cleaning the angle for "Mean Up/Down" calibration
-            if any(angleCheckDown)==1
+            if any(angleCheckDown)
                 calibratedSpectra(i).antennaDownAngleRemoved=sum(angleCheckDown); 
             else
                 calibratedSpectra(i).antennaDownAngleRemoved=0;

@@ -5,66 +5,62 @@ function calibrationTool = save_level1b_daily(calibrationTool,level1b)
 % AUTHOR(S)     | Eric Sauvageat
 % CREATION      | 01.2020
 %               |
-% ABSTRACT      |
-%               | 
+% ABSTRACT      | Function saving the integrated spectra for a complete day
+%               | in the form of netCDF4 file. 
+%               | The file contains one entry
+%               | per integration cylce (typically 1 hour) on a time 
+%               | coordinate as well as all necessery metadata to identify
+%               | and re-use the data.
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | INPUTS: - calibrationTool
+%               |         - logFile
+%               |         - calibratedSpectra
+%               |         - warningLevel0
+%               |         
+%               | OUTPUTS: - calibrationTool with added field
+%               |          
 %               |
-%               | OUTPUTS:
+% SAVE          | Level1b netCDF4 containing the following groups:
+%               |   - '/' for global attributes
+%               |   - '/spectrometer1/' for integration
+%               |   - '/flags/' for
+%               |   - '/meteo/' 
 %               |
-% CALLS         |
 %               |
-%               |
-%               |
-
 %==========================================================================
-%
-%
-% Saving level1a into DAILY netCDF file
-% We are using the netcdf package because it offers far more flexibility
-% for the writing.
-locationLevel1b=calibrationTool.level1Folder;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Here LOOOP in all calibration cycle and write every variable into daily vector
-% of matrices
+% TO CHECK IF OK COMMENTED
+% 
+% %initialize some variable (only the matrices)
+% channelId=int64(ones(length(integratedSpectra),calibrationTool.numberOfChannels)*NaN);
+% %Tb=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
+% %frequencyVector=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
+% 
+% if isfield(integratedSpectra,'errorVector')
+%     error=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
+%     errorCalib=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
+% end
+% for t = 1:length(integratedSpectra)
+%     channelId(t,:)=1:calibrationTool.numberOfChannels;
+%     %Tb(t,:)=calibratedSpectra(t).Tb;
+%     %frequencyVector(t,:)=calibratedSpectra(t).freq;
+%     
+%     if isfield(integratedSpectra,'errorVector')
+%         error(t,:)=1:length(integratedSpectra(1).errorVector);
+%         errorCalib(t,:)=integratedSpectra(t).errorVector;
+%     end
+% end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Filename and location for DAILY netCDF file
+
+locationLevel1b=calibrationTool.level1Folder;
 integratedSpectra=level1b.integration;
 
-% Convert NaN's into the standard FillValue
-%fields=fieldnames(integratedSpectra);
-%for field = 
-
-
-
-%initialize some variable (only the matrices)
-channelId=int64(ones(length(integratedSpectra),calibrationTool.numberOfChannels)*NaN);
-%Tb=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
-%frequencyVector=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
-
-if isfield(integratedSpectra,'errorVector')
-    error=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
-    errorCalib=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
-end
-for t = 1:length(integratedSpectra)
-    channelId(t,:)=1:calibrationTool.numberOfChannels;
-    %Tb(t,:)=calibratedSpectra(t).Tb;
-    %frequencyVector(t,:)=calibratedSpectra(t).freq;
-    
-    if isfield(integratedSpectra,'errorVector')
-        error(t,:)=1:length(integratedSpectra(1).errorVector);
-        errorCalib(t,:)=integratedSpectra(t).errorVector;
-    end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Now write daily level 1a file
 filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 calibrationTool.filenameLevel1b=filename;
-
-%filename=[calibrationTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
-%title=[calibrationTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
 
 if isfile(filename)
     delete(filename)
@@ -73,11 +69,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create the different dataset and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % Scientific Dataset (spectrometer1,2,...)
 
-% First create coordinates variable (enable 'netcdf4' format)
-% 
+% Coordinates variable (enable 'netcdf4' format)
 nccreate(filename,'/spectrometer1/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
 nccreate(filename,'/spectrometer1/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
 
@@ -89,19 +83,17 @@ nccreate(filename,'/spectrometer1/lon','Dimensions',{'time',Inf},'Datatype','sin
 nccreate(filename,'/spectrometer1/alt','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 nccreate(filename,'/spectrometer1/azimuthAngle','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 
-% some variable for better identifying the time period of the measurements
+% time variables
 nccreate(filename,'/spectrometer1/year','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/month','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/day','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/timeOfDay','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-
 nccreate(filename,'/spectrometer1/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-
 nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
-% the variables linked with the calibration    
+% Integration variables   
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
@@ -135,17 +127,21 @@ nccreate(filename,'/meteo/air_temperature','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/meteo/relative_humidity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/meteo/precipitation','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
+
+% Coordinates time and flags
+nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
 if isfield(integratedSpectra,'errorVector')
-    nccreate(filename,'/flags/time','Dimensions',{'time',Inf},'Datatype','double')
-    nccreate(filename,'/flags/flags','Dimensions',{'flags',length(integratedSpectra(1).errorVector)},'Datatype','int64')
-    
-    % We input a (1xerrorVectorSize) int vector to identify the errors
-    nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',length(integratedSpectra(1).errorVector),'time',Inf},'Datatype','int64','FillValue',-9999)
-    %nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
+    lenErrorVect=length(integratedSpectra(1).errorVector);
+else
+    lenErrorVect=1;
 end
+
+nccreate(filename,'/flags/flags','Dimensions',{'flags',lenErrorVect},'Datatype','int64')
+nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,'time',Inf},'Datatype','int64','FillValue',-9999)
+%nccreate(filename,'/error/errorLabel','Dimensions',{'errorLabel',20,'time',Inf},'Datatype','char','FillValue','')
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing netCDF variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -242,14 +238,18 @@ ncwrite(filename,'/meteo/precipitation',[integratedSpectra.rainAccumulation]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables
+
+ncwrite(filename,'/flags/time',[integratedSpectra.meanDatetime]);
+ncwriteatt(filename,'/flags/time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/flags/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
+
 if isfield(integratedSpectra,'errorVector')
-    ncwrite(filename,'/flags/time',[integratedSpectra.meanDatetime]);
-    ncwriteatt(filename,'/flags/time','units',calibrationTool.meanDatetimeUnit);
-    ncwriteatt(filename,'/flags/time','calendar',calibrationTool.calendar);
-    ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
-    
     ncwrite(filename,'/flags/flags',1:length(integratedSpectra(1).errorVector));
-    ncwrite(filename,'/flags/calibration_flags',errorCalib');
+    ncwrite(filename,'/flags/calibration_flags',vertcat(integratedSpectra.errorVector)');
+else 
+    ncwrite(filename,'/flags/flags',1);
+    ncwrite(filename,'/flags/calibration_flags',-9999);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -263,15 +263,12 @@ ncwriteatt(filename,'/','name',calibrationTool.PI_NAME);
 ncwriteatt(filename,'/','institution',calibrationTool.PI_AFFILIATION);
 ncwriteatt(filename,'/','contact',calibrationTool.PI_ADDRESS);
 ncwriteatt(filename,'/','mail',calibrationTool.PI_EMAIL);
-
 ncwriteatt(filename,'/','history','');
 ncwriteatt(filename,'/','references','');
 ncwriteatt(filename,'/','comment','');
 %ncwriteatt(filename,'/','DATA_VARIABLES','');
-
 ncwriteatt(filename,'/','instrument',calibrationTool.instrumentName);
 ncwriteatt(filename,'/','number_of_spectrometer',calibrationTool.numberOfSpectrometer);
-
 ncwriteatt(filename,'/','raw_data_filename',calibrationTool.logFile.rawFilename);
 ncwriteatt(filename,'/','raw_data_software_version',calibrationTool.logFile.raw_data_software_version);
 ncwriteatt(filename,'/','calibrated_version',calibrationTool.logFile.calibration_version);
@@ -303,13 +300,13 @@ if isfield(integratedSpectra,'errorVector')
     %ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
     ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','LN2SensorsOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_7','LN2LevelOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_8','hotLoadOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_9','FFT_adc_overload_OK');
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','LN2SensorsOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','LN2LevelOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','hotLoadOK');
+    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','FFT_adc_overload_OK');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers group
