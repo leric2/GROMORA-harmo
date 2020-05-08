@@ -114,7 +114,12 @@ calibratedSpectra = calibrationTool.check_calibrated(logFile,calibrationTool,cal
 
 % Option for plotting and saving drift and calibrated spectra
 if calibrationTool.calibratedSpectraPlot
-    calibrationTool.plot_calibrated_spectra(calibrationTool,drift,calibratedSpectra,50,300,24);
+    try
+        calibrationTool.plot_calibrated_spectra(calibrationTool,drift,calibratedSpectra,50,300,24);
+    catch ME
+        warning(ME.identifier,'problem with the plotting:');
+        disp(ME.message)
+    end
 end
 
 % Saving calibrated spectra (level1a) into NetCDF-4 file

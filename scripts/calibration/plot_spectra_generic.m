@@ -1,6 +1,5 @@
 function plot_spectra_generic(calibrationTool,drift,calibratedSpectra,lowerLim,upperLim,N)
 % Just for a first look
-try
 % plotting a spectra every N measurements 
 l=floor(linspace(1,length(calibratedSpectra),N));
 
@@ -9,7 +8,7 @@ l=floor(linspace(1,length(calibratedSpectra),N));
 figure
 clf
 set(gcf, 'PaperPosition', [1 1 19 27.7])
-suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
+%suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
 subplot(3,2,1); plot(drift.t, drift.Tn, 'k'), hold on, plot(drift.t,drift.TSysLog,'y'), ylabel('Tn [K]'), xlim([0,24]),ylim([nanmedian(drift.Tn)-80,nanmedian(drift.Tn)+80])
 subplot(3,2,2); plot(drift.t, drift.Ta ,'g'), ylabel('Ta [K]'), xlim([0,24])
 %set(gca, 'ColorOrder', [1 0.5 0.5; 0.2 0.2 0.2, 0 0 1],'NextPlot', 'replacechildren');
@@ -50,10 +49,4 @@ print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr
 
 %saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'jpg')
 close
-
-catch ME
-    warning(ME.identifier,'Problem Plotting')
-end
-
-end
 

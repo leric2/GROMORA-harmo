@@ -26,26 +26,7 @@ function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibrated
 %               |   - '/flags/' for
 %==========================================================================
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TO CHECK IF OK COMMENTED
-% if isfield(calibratedSpectra,'errorVector')
-%     error=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-%     errorCalib=int64(ones(length(calibratedSpectra),length(calibratedSpectra(1).errorVector))*NaN);
-% end
-% for t = 1:length(calibratedSpectra)
-%     channelId(t,:)=1:calibrationTool.numberOfChannels;
-%     %Tb(t,:)=calibratedSpectra(t).Tb;
-%     %frequencyVector(t,:)=calibratedSpectra(t).freq;
-%     
-%     if isfield(calibratedSpectra,'errorVector')
-%         error(t,:)=1:length(calibratedSpectra(1).errorVector);
-%         errorCalib(t,:)=calibratedSpectra(t).errorVector;
-%     end
-% end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Filename and location for DAILY netCDF file
-
 locationLevel1a=calibrationTool.level1Folder;
 
 if calibrationTool.calType=="debug"

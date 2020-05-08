@@ -1,6 +1,6 @@
-function warningLevel0 = check_level0_generic(log,rawSpectra,retrievalTool)
+function warningLevel0 = check_level0_generic(log,rawSpectra,calibrationTool)
 %==========================================================================
-% NAME          | 
+% NAME          | check_level0_generic 
 % TYPE          |
 % AUTHOR(S)     |
 % CREATION      |
@@ -19,21 +19,6 @@ function warningLevel0 = check_level0_generic(log,rawSpectra,retrievalTool)
 %               |
 
 %==========================================================================
-% 
-% 
-%
-% INPUT
-% log:          Housekeeping structure with field names for each parameter
-% rawSpectra:   [N,channels] array of binary file
-%
-% OUTPUT
-%
-%
-% DATA FORMAT
-%
-%
-% Revisions
-
 % Initialize structure containing the error that are non fatal for the
 % retrieval
 warningLevel0='';
@@ -44,13 +29,12 @@ mLog = size(log.x,2);
 % Check if the size of the binary is consistent with the log
 w=whos('rawSpectra');
 try
-    assert(w.bytes()==(mLog*retrievalTool.numberOfChannels*retrievalTool.bytesPerValue),'consistency:unconsistentBinarySize_','Size of the binary unconsistent');
+    assert(w.bytes()==(mLog*calibrationTool.numberOfChannels*calibrationTool.bytesPerValue),'consistency:unconsistentBinarySize_','Size of the binary unconsistent');
 catch ME
     warningLevel0=append(warningLevel0,ME.identifier);
 end
 
 % Check the number of channels
-% n=
 % try
 %     assert(n==retrievalTool.numberOfChannels,'consistency:numberOfChannel');
 % catch ME
@@ -58,10 +42,10 @@ end
 % end
 
 % Number of tipping curve calibration for this day
-nTipping=sum(log.Tipping_Curve_active==1)/retrievalTool.tippingSize;
+nTipping=sum(log.Tipping_Curve_active==1)/calibrationTool.tippingSize;
 
 try
-    assert(((nTipping<retrievalTool.numberOfTippingCurveExpected+retrievalTool.toleranceTippingCurves)&&(nTipping>retrievalTool.numberOfTippingCurveExpected-retrievalTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve_','Number of Tipping unconsistent');
+    assert(((nTipping<calibrationTool.numberOfTippingCurveExpected+calibrationTool.toleranceTippingCurves)&&(nTipping>calibrationTool.numberOfTippingCurveExpected-calibrationTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve_','Number of Tipping unconsistent');
 catch ME
     warningLevel0=append(warningLevel0,ME.identifier);
 end
@@ -69,7 +53,7 @@ end
 % Approximate number of cycles completed for this day
 nCycles=sum(log.Tipping_Curve_active==0)/6;
 try
-    assert(((nCycles<retrievalTool.numberOfCyclesExpected+retrievalTool.toleranceNumberCycles)&&(nCycles>retrievalTool.numberOfCyclesExpected-retrievalTool.toleranceNumberCycles)),'consistency:numberCycles_','Number of cycles unconsistent');
+    assert(((nCycles<calibrationTool.numberOfCyclesExpected+calibrationTool.toleranceNumberCycles)&&(nCycles>calibrationTool.numberOfCyclesExpected-calibrationTool.toleranceNumberCycles)),'consistency:numberCycles_','Number of cycles unconsistent');
 catch ME
     warningLevel0=append(warningLevel0,ME.identifier);
 end

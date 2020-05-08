@@ -30,32 +30,7 @@ function calibrationTool = save_level1b_daily(calibrationTool,level1b)
 %               |
 %==========================================================================
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TO CHECK IF OK COMMENTED
-% 
-% %initialize some variable (only the matrices)
-% channelId=int64(ones(length(integratedSpectra),calibrationTool.numberOfChannels)*NaN);
-% %Tb=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
-% %frequencyVector=ones(length(calibratedSpectra),calibrationTool.numberOfChannels)*NaN;
-% 
-% if isfield(integratedSpectra,'errorVector')
-%     error=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
-%     errorCalib=int64(ones(length(integratedSpectra),length(integratedSpectra(1).errorVector))*NaN);
-% end
-% for t = 1:length(integratedSpectra)
-%     channelId(t,:)=1:calibrationTool.numberOfChannels;
-%     %Tb(t,:)=calibratedSpectra(t).Tb;
-%     %frequencyVector(t,:)=calibratedSpectra(t).freq;
-%     
-%     if isfield(integratedSpectra,'errorVector')
-%         error(t,:)=1:length(integratedSpectra(1).errorVector);
-%         errorCalib(t,:)=integratedSpectra(t).errorVector;
-%     end
-% end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Filename and location for DAILY netCDF file
-
 locationLevel1b=calibrationTool.level1Folder;
 integratedSpectra=level1b.integration;
 

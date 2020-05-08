@@ -31,13 +31,13 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard of debug
 calibrationType="standard";
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_12','yyyy_mm_dd'):datenum('2019_02_12','yyyy_mm_dd');
+dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
@@ -168,11 +168,14 @@ for k = 1:numel(dates)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % SOMORA
     elseif string(instrumentName) == "SOMORA"
-        calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
-        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+        %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
+        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+        %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         % TOCHANGE
-        calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
+        %calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
+        calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
         
         
         calibrationTool.badChannels=1:104;
