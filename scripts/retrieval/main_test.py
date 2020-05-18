@@ -95,6 +95,7 @@ class DataRetrievalGROSOM(ABC):
     
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
         plt.plot(level1b_dataset.frequencies.values,level1b_dataset.Tb[calibration_cycle].values)
+        plt.ylim((0,300))
         pass
     
     def plot_meteo_ds_level1b_dataset(self, meteo_ds):
@@ -235,6 +236,7 @@ if __name__=="__main__":
     
     # For testing
     basename="/home/eric/Documents/PhD/GROSOM/Level1/"
+    level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     
@@ -251,19 +253,19 @@ if __name__=="__main__":
        instrument = SOMORA_LvL2(filename)
     
     retrieval_param = dict()
-    retrieval_param["integration_cycle"] = 2
+    retrieval_param["integration_cycle"] = 1
     retrieval_param["plot_meteo_ds"] = True
     retrieval_param["number_of_freq_points"] = 601
     retrieval_param["altitude"] = 461
-    retrieval_param["zenith_angle"]=80
+
     retrieval_param["azimuth_angle"]=32
-    retrieval_param["observation_altitude"] = 10e3
+    retrieval_param["observation_altitude"] =  461
     retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['line_file'] = line_file
     
     
     fascod_atmosphere = 'midlatitude-summer'
-    retrieval_param['prefix_atm'] = ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}".format(fascod_atmosphere,fascod_atmosphere)
+    retrieval_param['prefix_atm'] = ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_atmosphere,fascod_atmosphere)
     
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
@@ -272,11 +274,11 @@ if __name__=="__main__":
     
     level1b_dataset, meteo_ds, global_attrs_level1b = instrument.read_level1b()
     
-    if global_attrs_level1b['instument'] == instrument_name:
+    #if global_attrs_level1b['instument'] == instrument_name:
         # merge attrs level1b in retrievalParam
-        retrieval_param = {**global_attrs_level1b, **retrieval_param}
-    else :
-        raise ValueError('incoherent instrument definition')
+    retrieval_param = {**global_attrs_level1b, **retrieval_param}
+    #else :
+    #    raise ValueError('incoherent instrument definition')
     
     level1b_dataset = instrument.apply_correction(level1b_dataset, meteo_ds)
     
@@ -287,7 +289,7 @@ if __name__=="__main__":
     
     figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, 'first try')
     
-    save_single_pdf('firstTryO3retrieval.pdf', figure_list)
+    save_single_pdf(level2_data_folder+'secondTryO3retrieval.pdf', figure_list)
 # Check if this is the right instument
 """
 if attributes["title"] != retrievalTool["instrument"]:

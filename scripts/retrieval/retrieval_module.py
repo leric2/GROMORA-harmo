@@ -65,7 +65,7 @@ def plot(ds, ac, retrieval_param, title=""):
     ozone_ret, = ac.retrieval_quantities
 
     f_backend = ds.frequencies.values
-    y = ds.Tb_trop_corr[retrieval_param['integration_cycle']].values
+    y = ds.Tb[retrieval_param['integration_cycle']].values
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
@@ -75,11 +75,11 @@ def plot(ds, ac, retrieval_param, title=""):
     fig, axs = plt.subplots(2, sharex=True)
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
-    axs[0].set_ylim(-15, 50)
+    axs[0].set_ylim(-15, 150)
     axs[0].legend()
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
-    axs[1].set_ylim(-15, 15)
+    axs[1].set_ylim(-15, 50)
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
 
@@ -195,7 +195,7 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
     # spectroscopy
     ac.set_spectroscopy_from_file(
         abs_lines_file = retrieval_param['line_file'],
-        abs_species = ["O3", "H2O-PWR98", "O2-PWR98","N2-SelfContStandardType"],
+        abs_species = ["O3","H2O-PWR98", "O2-PWR98","N2-SelfContStandardType","CO2-SelfContPWR93"],
         format = 'Arts',
         line_shape = ("Voigt_Kuntz6", "VVH", 750e9),
         )
@@ -250,18 +250,20 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
 
     ac.define_retrieval([ozone_ret], y_var)
     #ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
-
-    # Let a priori be off by 0.5 ppm
-    #vmr_offset = 0.5e-6
+    
+    # Let a priori be off by 0.5 ppm (testing purpose)
+    #vmr_offset = -0.5e-6
     #ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
     
-    # Run retrieval
+    # Run retrieval (parameter taken from MOPI)
+    # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
     ac.oem(
         method='gn',
         max_iter=10,
         stop_dx=0.1,
+        lm_ga_settings=None,
         inversion_iterate_agenda=inversion_iterate_agenda,
-        )
+      )
     
     if not ac.oem_converged:
         print("OEM did not converge.")
