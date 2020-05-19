@@ -94,8 +94,8 @@ class DataRetrievalGROSOM(ABC):
         return data_GROSOM.read_level1b(self._filename)
     
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
-        plt.plot(level1b_dataset.frequencies.values,level1b_dataset.Tb[calibration_cycle].values)
-        plt.ylim((0,300))
+        plt.plot(level1b_dataset.frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
+        plt.ylim((0,200))
         pass
     
     def plot_meteo_ds_level1b_dataset(self, meteo_ds):
@@ -126,7 +126,7 @@ class DataRetrievalGROSOM(ABC):
         return retrieval_param
     '''     
 
-    def apply_correction(self, level1b_dataset, meteo_ds):   
+    def smooth_and_apply_correction(self, level1b_dataset, meteo_ds):   
         '''
         doing quick tropospheric correction as it was not saved in lvl1b
 
@@ -143,7 +143,25 @@ class DataRetrievalGROSOM(ABC):
             DESCRIPTION.
 
         '''
-        return data_GROSOM.apply_correction(level1b_dataset, meteo_ds)
+        return data_GROSOM.smooth_and_apply_correction(level1b_dataset, meteo_ds)
+    
+    def smooth_corr_spectra(self, level1b_dataset, retrieval_param):
+        '''
+        
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
+        return data_GROSOM.smooth_corr_spectra(level1b_dataset, retrieval_param)
     
     def plot_level2(self, level1b_dataset, ac, retrieval_param, title):
         '''
@@ -259,9 +277,11 @@ if __name__=="__main__":
     retrieval_param["altitude"] = 461
 
     retrieval_param["azimuth_angle"]=32
-    retrieval_param["observation_altitude"] =  461
+    retrieval_param["observation_altitude"] =  12000
     retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['line_file'] = line_file
+    
+    retrieval_param['boxcar_size'] = 1405
     
     
     fascod_atmosphere = 'midlatitude-summer'
@@ -280,16 +300,17 @@ if __name__=="__main__":
     #else :
     #    raise ValueError('incoherent instrument definition')
     
-    level1b_dataset = instrument.apply_correction(level1b_dataset, meteo_ds)
+    level1b_dataset = instrument.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     
+    #level1b_dataset = instrument.smooth_corr_spectra(level1b_dataset, retrieval_param)
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
     #plt.plot(f_sim, y_sim[0], level1b_dataset.frequencies.values, level1b_dataset.Tb[1].values)
     
-    ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
+    #ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
     
-    figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, 'first try')
+    #figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, 'first try')
     
-    save_single_pdf(level2_data_folder+'secondTryO3retrieval.pdf', figure_list)
+    #save_single_pdf(level2_data_folder+'secondTryO3retrieval.pdf', figure_list)
 # Check if this is the right instument
 """
 if attributes["title"] != retrievalTool["instrument"]:

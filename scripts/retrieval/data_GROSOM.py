@@ -51,7 +51,37 @@ def read_level1b(filenameLevel1b):
         
     return DS, METEO, globalAttributes
 
-def apply_correction(level1b_dataset, meteo_ds):
+def smooth_corr_spectra(level1b_dataset, retrieval_param):
+    '''
+    
+
+    Parameters
+    ----------
+    level1b_dataset : TYPE
+        DESCRIPTION.
+    retrieval_param : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    boxcar_size = retrieval_param['boxcar_size']
+    
+    # good_indices = np.ones(len(level1b_dataset.Tb[1]))
+    
+    Tb_trop_smoothed = np.ones((len(level1b_dataset.time),len(level1b_dataset.Tb[1])))*np.nan
+    for i in range(len(level1b_dataset.time)):
+        r = level1b_dataset.Tb_trop_corr[i].values
+        Tb_trop_smoothed[i,:] = np.convolve(r, np.ones((boxcar_size,)) / boxcar_size, mode="same")
+    
+    level1b_dataset = level1b_dataset.assign(
+        Tb_trop_corr_smoothed = xr.DataArray(Tb_trop_smoothed, dims = ['time', 'channel_idx']))
+    
+    return level1b_dataset
+
+def smooth_and_apply_correction(level1b_dataset, meteo_ds):
     '''
     Function coming from pywdp, in "troposphere.py" and adapted to GROSOM
 
@@ -68,14 +98,18 @@ def apply_correction(level1b_dataset, meteo_ds):
     tau = level1b_dataset.trospheric_opacity.values
     T_trop = meteo_ds.air_temperature.values
     
+    Tb_tropospheric_corr_smoothed = np.ones((len(level1b_dataset.time),len(level1b_dataset.Tb[1])))*np.nan
     Tb_tropospheric_corr = np.ones((len(level1b_dataset.time),len(level1b_dataset.Tb[1])))*np.nan
     for i in range(len(level1b_dataset.time)):
+        Tb_smoothed = np.convolve(level1b_dataset.Tb[i].values, np.ones((1035,)) / 1035, mode="same")
+        Tb_tropospheric_corr_smoothed[i,] = (Tb_smoothed - T_trop[i] * (1 - xr.ufuncs.exp(-tau[i]))) / xr.ufuncs.exp(-tau[i])
         Tb_tropospheric_corr[i,:] = (level1b_dataset.Tb[i].values - T_trop[i] * (1 - xr.ufuncs.exp(-tau[i]))) / xr.ufuncs.exp(-tau[i])
     
     tbco = xr.DataArray(Tb_tropospheric_corr, dims = ['time', 'channel_idx'])
+    tbco_smoothed = xr.DataArray(Tb_tropospheric_corr_smoothed, dims = ['time', 'channel_idx'])
     
     level1b_dataset = level1b_dataset.assign(Tb_trop_corr = tbco)
-    
+    level1b_dataset = level1b_dataset.assign(Tb_trop_corr_smoothed = tbco_smoothed)
     return level1b_dataset
 
 def plot_meteo_level1b(METEO):

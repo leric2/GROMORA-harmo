@@ -42,6 +42,7 @@ def plot_FM_comparison(ds_freq,f_grid,y,ds_Tb_corr):
     ax.set_ylim((-5,25))
     pass
 
+
 def plot(ds, ac, retrieval_param, title=""):
     '''
     Plotting function directly taken from Jonas ;)
@@ -65,7 +66,7 @@ def plot(ds, ac, retrieval_param, title=""):
     ozone_ret, = ac.retrieval_quantities
 
     f_backend = ds.frequencies.values
-    y = ds.Tb[retrieval_param['integration_cycle']].values
+    y = ds.Tb_trop_corr[retrieval_param['integration_cycle']].values
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
@@ -200,9 +201,9 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
         line_shape = ("Voigt_Kuntz6", "VVH", 750e9),
         )
     
-    ac.set_atmosphere_fascod('midlatitude-winter')
-    #fascod_atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
-    #ac.set_atmosphere(fascod_atm)
+    #ac.set_atmosphere_fascod('midlatitude-winter')
+    fascod_atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
+    ac.set_atmosphere(fascod_atm)
     
     # create an observation: 
     # only one for now, but then the whole day ?
@@ -216,7 +217,7 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
         )
     
     ac.set_observations([obs])
-    ac.set_y([ds_Tb])
+    ac.set_y([ds_Tb_corr])
     
     # Defining our sensors
     sensor = arts.SensorFFT(ds_freq, ds_df)
