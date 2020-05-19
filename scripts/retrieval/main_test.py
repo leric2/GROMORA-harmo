@@ -199,6 +199,23 @@ class GROMOS_LvL2(DataRetrievalGROSOM):
     
     def plot_meteo_ds_level1b_dataset(self, meteo_ds):
         print('overcoming this function')
+        
+    def define_bad_channels(self,level1b_dataset,retrieval_param):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        return data_GROSOM.define_bad_channels_SOMORA(level1b_dataset,retrieval_param)
     
 class SOMORA_LvL2(DataRetrievalGROSOM):
     '''
@@ -212,6 +229,23 @@ class SOMORA_LvL2(DataRetrievalGROSOM):
         """
         return self.get_temerature_reading(time, 2)    
 
+
+    def define_bad_channels(self,level1b_dataset,retrieval_param):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        return data_GROSOM.define_bad_channels_SOMORA(level1b_dataset,retrieval_param)
 
 def run_retrieval(instrument,retrieval_param):
     '''
@@ -264,14 +298,14 @@ if __name__=="__main__":
     #retrievalTool["reading_level1b"]=reading_level1b.read_level1b
 
     if instrument_name=="GROMOS":
-       filename = basename+"GROMOS_level1b_AC240_2019_02_12"
+       filename = basename+"GROMOS_level1b_AC240_2019_04_16"
        instrument = GROMOS_LvL2(filename)
     else:
        filename = basename+"SOMORA_level1b_AC240_2019_04_16"
        instrument = SOMORA_LvL2(filename)
     
     retrieval_param = dict()
-    retrieval_param["integration_cycle"] = 1
+    retrieval_param["integration_cycle"] = 4
     retrieval_param["plot_meteo_ds"] = True
     retrieval_param["number_of_freq_points"] = 601
     retrieval_param["altitude"] = 461
@@ -281,7 +315,7 @@ if __name__=="__main__":
     retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['line_file'] = line_file
     
-    retrieval_param['boxcar_size'] = 1405
+    retrieval_param['boxcar_size'] = 128
     
     
     fascod_atmosphere = 'midlatitude-summer'
@@ -300,7 +334,9 @@ if __name__=="__main__":
     #else :
     #    raise ValueError('incoherent instrument definition')
     
-    level1b_dataset = instrument.smooth_and_apply_correction(level1b_dataset, meteo_ds)
+    #level1b_dataset = instrument.smooth_and_apply_correction(level1b_dataset, meteo_ds)
+    
+    #level1b_dataset = instrument.define_bad_channels(level1b_dataset,retrieval_param)
     
     #level1b_dataset = instrument.smooth_corr_spectra(level1b_dataset, retrieval_param)
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
@@ -310,7 +346,7 @@ if __name__=="__main__":
     
     #figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, 'first try')
     
-    #save_single_pdf(level2_data_folder+'secondTryO3retrieval.pdf', figure_list)
+    #save_single_pdf(level2_data_folder+'O3retrievalwithtropCorr.pdf', figure_list)
 # Check if this is the right instument
 """
 if attributes["title"] != retrievalTool["instrument"]:

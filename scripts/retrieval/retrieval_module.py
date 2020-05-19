@@ -66,7 +66,7 @@ def plot(ds, ac, retrieval_param, title=""):
     ozone_ret, = ac.retrieval_quantities
 
     f_backend = ds.frequencies.values
-    y = ds.Tb_trop_corr[retrieval_param['integration_cycle']].values
+    y = ds.Tb_corr[retrieval_param['integration_cycle']].values
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
@@ -162,7 +162,7 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
     ds_freq = level1b_dataset.frequencies.values
     ds_num_of_channel = len(ds_freq)
     ds_Tb = level1b_dataset.Tb[cycle].values
-    ds_Tb_corr = level1b_dataset.Tb_trop_corr[cycle].values
+    ds_Tb_corr = level1b_dataset.Tb_corr[cycle].values
     
     ds_bw = max(ds_freq) - min(ds_freq)
     
