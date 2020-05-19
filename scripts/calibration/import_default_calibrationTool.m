@@ -109,8 +109,8 @@ switch string(instrumentName)
         calibrationTool.numberOfTippingCurveExpected=48;
         calibrationTool.toleranceTippingCurves=2;
         calibrationTool.elevationAngleAntenna=40;
-        calibrationTool.elevationAngleCold=-85;
-        % -84 before 2019
+        calibrationTool.elevationAngleCold=-84;
+        % -84 before 2020 ?????
         %calibrationTool.elevationAngleCold=-84;
         calibrationTool.elevationAngleHot=160;
         

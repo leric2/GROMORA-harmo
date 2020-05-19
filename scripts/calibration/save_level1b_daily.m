@@ -96,8 +96,8 @@ nccreate(filename,'/spectrometer1/numberOfColdSpectra','Dimensions',{'time',Inf}
 nccreate(filename,'/spectrometer1/numberOfAntennaSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 
 % Tropospheric correction data:
-nccreate(filename,'/spectrometer1/trospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/trospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/tropospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/tropospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 % Meteo Data
 nccreate(filename,'/meteo/air_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -177,11 +177,11 @@ ncwrite(filename,'/spectrometer1/meanAngleAntenna',[integratedSpectra.meanAngleA
 ncwrite(filename,'/spectrometer1/number_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);
 
 % Tropospheric correction data:
-ncwrite(filename,'/spectrometer1/trospheric_transmittance',[integratedSpectra.troposphericTransmittance]);
-ncwriteatt(filename,'/spectrometer1/trospheric_transmittance','method',integratedSpectra(1).transmittanceMethod);
+ncwrite(filename,'/spectrometer1/tropospheric_transmittance',[integratedSpectra.troposphericTransmittance]);
+ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integratedSpectra(1).transmittanceMethod);
 
-ncwrite(filename,'/spectrometer1/trospheric_opacity',[integratedSpectra.troposphericOpacity]);
-ncwriteatt(filename,'/spectrometer1/trospheric_opacity','method',integratedSpectra(1).transmittanceMethod);
+ncwrite(filename,'/spectrometer1/tropospheric_opacity',[integratedSpectra.troposphericOpacity]);
+ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).transmittanceMethod);
 
 % Data that are not present for every instrument
 if isfield(integratedSpectra,'TempRoom')

@@ -175,7 +175,7 @@ level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.cal
 
 % Compute tropospheric transmittance and correction for every calibrated
 % spectra.
-level1b.calibratedSpectra = tropospheric_correction_generic(level1b.calibratedSpectra,10.4);
+level1b.calibratedSpectra = calibrationTool.tropospheric_correction(level1b.calibratedSpectra,10.4);
 
 % Integrating the "good spectra" based on tropospheric transmittance and
 % calibration flags. --> To improve. Maybe introduce weighted mean of

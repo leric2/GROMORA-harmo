@@ -21,7 +21,6 @@ function spectra = tropospheric_correction_generic(spectra,deltaT)
 %==========================================================================
 for t = 1:length(spectra)
     spectra(t).transmittanceMethod='Ingold_v1';
-
     if spectra(t).meanAirTemperature==-9999
         spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
         spectra(t).troposphericTransmittance = -9999;
@@ -42,7 +41,11 @@ for t = 1:length(spectra)
         
         % Clean brightness temperature (without spurious channels)
         % Achtung, we use now the corrected window Tb
-        Tb_temp=spectra(t).TbCorr;
+        if isfield(spectra,'TbCorr')
+            Tb_temp=spectra(t).TbCorr;
+        else 
+            Tb_temp=spectra(t).Tb;
+        end
         
         Tb_temp(find(spectra(t).channelsQuality==0))=NaN;
         

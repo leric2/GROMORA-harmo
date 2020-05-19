@@ -31,13 +31,13 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard of debug
 calibrationType="standard";
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
+dates=datenum('2019_04_16','yyyy_mm_dd'):datenum('2019_04_16','yyyy_mm_dd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
