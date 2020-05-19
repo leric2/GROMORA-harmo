@@ -40,7 +40,7 @@ try
     
     subplot(2,2,4);
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericCorr.*integratedSpectra(i).channelsQuality);
+        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality);
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
 

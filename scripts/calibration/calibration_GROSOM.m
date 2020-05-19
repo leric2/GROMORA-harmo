@@ -140,6 +140,8 @@ for k = 1:numel(dates)
     % Function for plotting the integrated spectra (when hourly)
     calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
     
+    calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
+    
     % Window correction for the calibrated spectra
     calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
     

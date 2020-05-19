@@ -71,6 +71,8 @@ nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype',
 % Integration variables   
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
@@ -161,6 +163,7 @@ ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoreti
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main set of variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
+ncwrite(filename,'/spectrometer1/Tb_corr',vertcat(integratedSpectra.TbTroposphericWindowCorr)');
 ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediateFreq',integratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
@@ -323,7 +326,12 @@ attrVal.azimuth = {'azimuth angle',...
 attrVal.Tb = {'Tb',...
     'brightness_temperature',...
     'K',...
-    'calibrated brightness temperature for this cycle'};
+    'integrated brightness temperature for this cycle'};
+
+attrVal.Tb_corr = {'Tb_corr',...
+    'corrected brightness_temperature',...
+    'K',...
+    'integrated brightness temperature for this cycle, corrected for window and troposphere'};
 
 attrVal.freq = {'f',...
     'frequency vector',...
@@ -391,12 +399,12 @@ attrVal.TWindow = {'TWindow',...
     'mean window temperature'};
 
 % Tropospheric correction data:
-attrVal.trospheric_transmittance = {'tropospheric transmittance',...
+attrVal.tropospheric_transmittance = {'tropospheric transmittance',...
     '',...
     '1',...
     ''};
 
-attrVal.trospheric_opacity = {'tropospheric opacity',...
+attrVal.tropospheric_opacity = {'tropospheric opacity',...
     '',...
     '1',...
     ''};
@@ -426,6 +434,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/azimuthAngle',attrName{i},attrVal.azimuth{i});
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
+    ncwriteatt(filename,'/spectrometer1/Tb_corr',attrName{i},attrVal.Tb_corr{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
@@ -445,10 +454,9 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/meteo/relative_humidity',attrName{i},attrVal.relative_humidity{i});
     ncwriteatt(filename,'/meteo/precipitation',attrName{i},attrVal.precipitation{i});
     
-    
     % Corrections
-    ncwriteatt(filename,'/spectrometer1/trospheric_transmittance',attrName{i},attrVal.trospheric_transmittance{i});
-    ncwriteatt(filename,'/spectrometer1/trospheric_opacity',attrName{i},attrVal.trospheric_opacity{i});
+    ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance',attrName{i},attrVal.tropospheric_transmittance{i});
+    ncwriteatt(filename,'/spectrometer1/tropospheric_opacity',attrName{i},attrVal.tropospheric_opacity{i});
     
 end
 

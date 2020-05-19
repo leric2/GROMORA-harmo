@@ -187,12 +187,12 @@ level1b = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1b);
 % flagging the potential bad ones (we do not remove any).
 level1b.integration = calibrationTool.checking_channel_quality(level1b.integration,calibrationTool,2);
 
-% Compute tropospheric transmittance and correction for every integrated
-% spectra.
-level1b.integration = tropospheric_correction_generic(level1b.integration,10.4);
-
 % Performing window correction
 level1b = calibrationTool.window_correction(calibrationTool,level1b);
+
+% Compute tropospheric transmittance and correction for every integrated
+% spectra.
+level1b.integration = calibrationTool.tropospheric_correction(level1b.integration,10.4);
 
 % sideband correction ?
 % TODO

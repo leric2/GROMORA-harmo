@@ -23,10 +23,11 @@ for t = 1:length(spectra)
     spectra(t).transmittanceMethod='Ingold_v1';
 
     if spectra(t).meanAirTemperature==-9999
-        spectra(t).TbTroposphericCorr = -9999*ones(1,length(spectra(1).if));
+        spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
         spectra(t).troposphericTransmittance = -9999;
         spectra(t).troposphericOpacity=-9999;
         spectra(t).meanTroposphericTransmittance  = -9999;
+        spectra(t).TbtropWinCorr = -9999;
         
     else
         % Mean tropospheric temperature
@@ -40,7 +41,8 @@ for t = 1:length(spectra)
         f_trop_corr  = [spectra(t).freq(100:2000) spectra(t).freq(end-2000:end-100)];
         
         % Clean brightness temperature (without spurious channels)
-        Tb_temp=spectra(t).Tb;
+        % Achtung, we use now the corrected window Tb
+        Tb_temp=spectra(t).TbCorr;
         
         Tb_temp(find(spectra(t).channelsQuality==0))=NaN;
         
@@ -81,7 +83,7 @@ for t = 1:length(spectra)
         
         %spectra(t).oldMeanTroposphericTransmittance=(meanTWings - Tmean)/(T_strat - Tmean);
         % Troposph. corr.
-        spectra(t).TbTroposphericCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
+        spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
         
         spectra(t).troposphericTransmittance = transmittance;
         spectra(t).troposphericOpacity=-log(transmittance);
