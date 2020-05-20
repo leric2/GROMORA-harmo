@@ -51,17 +51,13 @@ def read_level1b(filenameLevel1b):
         
     return DS, METEO, globalAttributes
 
-def define_bad_channels_SOMORA(level1b_dataset,retrieval_param):
+def find_bad_channels(level1b_dataset,retrieval_param):
     '''
     daily processing
     '''
-    spurious_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
+    good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
         
-    # identify additional spurious channels on this day
-    retrieval_param['Tb_max'] = 200
-    retrieval_param['Tb_min'] = 0
-    retrieval_param['boxcar_thresh'] = 7
-    
+    # identify additional spurious channels on this day    
     Tb_max = retrieval_param['Tb_max']
     Tb_min = retrieval_param['Tb_min']
     boxcar_size = retrieval_param['boxcar_size']
@@ -70,20 +66,24 @@ def define_bad_channels_SOMORA(level1b_dataset,retrieval_param):
     for i in range(len(level1b_dataset.time)):
         values = level1b_dataset.Tb[i].values
         smoothed_val = np.convolve(values, np.ones((boxcar_size,)) / boxcar_size, mode="same")
-        print(i)
+        
+        if sum(np.isnan(values))>0:
+            print('Some NANs are present in cycle {}'.format(i))
+            values[np.isnan(values)] = -9999
+            smoothed_val[np.isnan(smoothed_val)] = -9999
+        
         boxcar_filter_val = np.abs(values - smoothed_val)
-        
-        bad_channels_i = (values > Tb_max) | (values < Tb_min)
-        bad_channels_i = bad_channels_i | (boxcar_filter_val > boxcar_thresh)
-        
-        spurious_channels[i,:] = bad_channels_i
+        good_channels_i = np.all([(values < Tb_max),(values > Tb_min),(boxcar_filter_val < boxcar_thresh)], axis=0)
+               
+        good_channels[i,:] = good_channels_i
         
     # Some known spurious channels (all spectra)
-    spurious_channels[:,np.arange(0,104)] = 1
+    
+    good_channels[:,retrieval_param['bad_channels']] = 0
     
     
     level1b_dataset = level1b_dataset.assign(
-        spurious_channels = xr.DataArray(spurious_channels, dims = ['time', 'channel_idx']))
+        good_channels = xr.DataArray(good_channels, dims = ['time', 'channel_idx']))
     
     return level1b_dataset
 

@@ -244,8 +244,15 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
     
     #fshift_ret = arts.FreqShift(100e3, df=50e3)
     #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
-
-    y_var = 2e-2 * np.ones_like(ds_freq)
+    
+    # increase variance for spurious spectra by factor
+    retrieval_param['increased_var_factor'] = 100
+    factor = retrieval_param['increased_var_factor']
+    retrieval_param['unit_var_y']  = 2e-2
+    
+    y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
+    
+    y_var[(level1b_dataset.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = utils.var_allan(ds_Tb) * np.ones_like(ds_Tb)
 
@@ -259,10 +266,10 @@ def retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param):
     # Run retrieval (parameter taken from MOPI)
     # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
     ac.oem(
-        method='gn',
+        method='lm',
         max_iter=10,
-        stop_dx=0.1,
-        lm_ga_settings=None,
+        stop_dx=0.01,
+        lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
         inversion_iterate_agenda=inversion_iterate_agenda,
       )
     
