@@ -127,15 +127,12 @@ class DataRetrievalGROSOM(ABC):
         
         return retrieval_module.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
     
-    '''
-    def freq_grid(self, retrieval_param):
-        n_f = retrieval_param["number_of_freq_points"]# Number of points
-        bw = retrieval_param["bandwidth"]  # Bandwidth
-        x = np.linspace(-1, 1, n_f)
-        f_grid = x ** 3 + x / 10
-        f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
-        return retrieval_param
-    '''     
+    def retrieve_cycle_tropospheric_corrected(self, level1b_dataset, meteo_ds, retrieval_param):
+        ''' 
+        Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
+        '''
+        
+        return retrieval_module.retrieve_cycle_tropospheric_corrected(level1b_dataset, meteo_ds, retrieval_param)
 
     def smooth_and_apply_correction(self, level1b_dataset, meteo_ds):   
         '''
@@ -191,7 +188,7 @@ class DataRetrievalGROSOM(ABC):
         
         return data_GROSOM.find_bad_channels(level1b_dataset,retrieval_param)
     
-    def plot_level2(self, level1b_dataset, ac, retrieval_param, title):
+    def plot_level2_from_tropospheric_corrected_spectra(self, level1b_dataset, ac, retrieval_param, title):
         '''
         
 
@@ -212,6 +209,28 @@ class DataRetrievalGROSOM(ABC):
 
         '''
         return retrieval_module.plot(level1b_dataset, ac, retrieval_param, title)
+    
+    def plot_level2(self, level1b_dataset, ac, retrieval_param, title):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        ac : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+        title : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        return retrieval_module.plot_level2(level1b_dataset, ac, retrieval_param, title)
 
 class GROMOS_LvL2(DataRetrievalGROSOM):
     '''
@@ -258,8 +277,6 @@ class SOMORA_LvL2(DataRetrievalGROSOM):
         return self.get_temerature_reading(time, 2)    
 
 
-    
-
 def run_retrieval(instrument,retrieval_param):
     '''
     In this function we call the retrieval process step-by-step
@@ -304,6 +321,7 @@ if __name__=="__main__":
     level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
+    line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     
     instrument_name="GROMOS"
     
@@ -362,9 +380,9 @@ if __name__=="__main__":
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
     #plt.plot(f_sim, y_sim[0], level1b_dataset.frequencies.values, level1b_dataset.Tb[1].values)
     
-    ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
+    #ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
     
-    figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'modified var')
+    #figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'modified var')
     
     #save_single_pdf(level2_data_folder+'h2.pdf', figure_list)
 # Check if this is the right instument
