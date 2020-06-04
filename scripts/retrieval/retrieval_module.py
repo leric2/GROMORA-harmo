@@ -394,7 +394,7 @@ def retrieve_cycle_tropospheric_corrected(level1b_dataset, meteo_ds, retrieval_p
     cycle = retrieval_param["integration_cycle"] 
     ds_freq = level1b_dataset.frequencies.values
     ds_num_of_channel = len(ds_freq)
-    ds_Tb = level1b_dataset.Tb[cycle].values
+    #ds_Tb = level1b_dataset.Tb[cycle].values
     ds_Tb_corr = level1b_dataset.Tb_corr[cycle].values
     
     ds_bw = max(ds_freq) - min(ds_freq)
@@ -429,9 +429,9 @@ def retrieve_cycle_tropospheric_corrected(level1b_dataset, meteo_ds, retrieval_p
     # spectroscopy
     ac.set_spectroscopy_from_file(
         abs_lines_file = retrieval_param['line_file'],
-        abs_species = ["O3","H2O-PWR98", "O2-PWR98","N2-SelfContStandardType","CO2-SelfContPWR93"],
+        abs_species = ["O3","H2O-PWR98", "O2-PWR98"],
         format = 'Arts',
-        line_shape = ("Voigt_Kuntz6", "VVH", 750e9),
+        line_shape = ("VVH", 750e9),
         )
     
     #ac.set_atmosphere_fascod('midlatitude-winter')
@@ -499,10 +499,9 @@ def retrieve_cycle_tropospheric_corrected(level1b_dataset, meteo_ds, retrieval_p
     # Run retrieval (parameter taken from MOPI)
     # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
     ac.oem(
-        method='lm',
-        max_iter=10,
-        stop_dx=0.01,
-        lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
+        method='gn',
+        max_iter=5,
+        stop_dx=0.1,
         inversion_iterate_agenda=inversion_iterate_agenda,
       )
     

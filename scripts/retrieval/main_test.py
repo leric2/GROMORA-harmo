@@ -37,7 +37,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+load_dotenv('/home/eric/Documents/ARTS/.env.moench-arts2.3')
+
+
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 
 # Following variables could already be set in ~/.bashrc
@@ -56,8 +59,6 @@ class Level1bDataProcessingGROSOM(ABC):
     def __init__(self,filename=None):
         self._filename = filename
     
-    
-
 
 class DataRetrievalGROSOM(ABC):
     def __init__(self, filename=None):
@@ -313,15 +314,17 @@ def save_single_pdf(filename, figures):
             pdf.savefig(fig)
 
 
-
 if __name__=="__main__":
     
     # For testing
-    basename="/home/eric/Documents/PhD/GROSOM/Level1/"
-    level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
+    #basename="/home/eric/Documents/PhD/GROSOM/Level1/"
+    #level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
+    
+    basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
+    level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
-    line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
+    #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     
     instrument_name="GROMOS"
     
@@ -380,11 +383,11 @@ if __name__=="__main__":
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
     #plt.plot(f_sim, y_sim[0], level1b_dataset.frequencies.values, level1b_dataset.Tb[1].values)
     
-    #ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
+    ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
     
-    #figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'modified var')
+    figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'retrieval_trop_corr')
     
-    #save_single_pdf(level2_data_folder+'h2.pdf', figure_list)
+    save_single_pdf(level2_data_folder+'Perrin_with_h2o.pdf', figure_list)
 # Check if this is the right instument
 """
 if attributes["title"] != retrievalTool["instrument"]:
