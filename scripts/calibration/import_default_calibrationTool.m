@@ -398,6 +398,7 @@ switch instrumentName
 %         % Calibration outlier management
 %         calibrationTool.threshNumRawSpectraHot=%0.05*calibrationTool.numberOfChannels;
 %         calibrationTool.threshNumRawSpectraCold=%0.05*calibrationTool.numberOfChannels;
+        calibrationTool.delimiter_logfile = ';';
 % paths
         calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
         %calibrationTool.rawFileFolder=['/scratch/mopi_rawData/'];
