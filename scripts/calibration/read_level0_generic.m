@@ -49,12 +49,28 @@ end
 
 if s(1)=='%';  s(1)=[]; end
 
-% header = textscan(s, '%s','delimiter', ';');
-header = textscan(s, '%s'); 
-header = header{1}; % cell array with all header parameters
-N = length(header); % number of header parameters
-% x = fscanf(fid, '%f;', [N, inf]);  % data array
-x = fscanf(fid, '%f ', [N, inf]);  % data array
+if isfield(calibrationTool,'delimiter_logfile')
+    header = textscan(s, '%s','delimiter', retrievalTool.delimiter_logfile);
+    header = header{1}; % cell array with all header parameters
+    N = length(header); % number of header parameters
+
+    [y, result] = readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
+    if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
+
+    x = cell2mat(y(2:end,:));
+    
+else
+    header = textscan(s, '%s'); 
+    
+    header = header{1}; % cell array with all header parameters
+    N = length(header); % number of header parameters
+    % x = fscanf(fid, '%f;', [N, inf]);  % data array
+
+    x = fscanf(fid, '%f ', [N, inf]);  % data array
+    
+end
+
+
 M = size(x,2);     % number of data entries
 fclose(fid);
 
