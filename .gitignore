@@ -184,3 +184,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# ---> Windows
+# Vim
+*.swp
