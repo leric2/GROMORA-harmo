@@ -57,7 +57,7 @@ if isfield(calibrationTool,'delimiter_logfile')
     [y, result] = readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
     if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
 
-    x = cell2mat(y(2:end,:));
+    x = cell2mat(y(2:end,:))';
     
 else
     header = textscan(s, '%s'); 
