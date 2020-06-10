@@ -38,20 +38,13 @@ from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
-load_dotenv('/home/eric/Documents/ARTS/.env.moench-arts2.3')
-
-
+load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
-
-# Following variables could already be set in ~/.bashrc
-
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import data_GROSOM
 import retrieval_module
-
-
 
 class Level1bDataProcessingGROSOM(ABC):
     '''
@@ -211,7 +204,7 @@ class DataRetrievalGROSOM(ABC):
         None.
 
         '''
-        return retrieval_module.plot(level1b_dataset, ac, retrieval_param, title)
+        return data_GROSOM.plot(level1b_dataset, ac, retrieval_param, title)
     
     def plot_level2(self, level1b_dataset, ac, retrieval_param, title):
         '''
@@ -233,7 +226,7 @@ class DataRetrievalGROSOM(ABC):
         None.
 
         '''
-        return retrieval_module.plot_level2(level1b_dataset, ac, retrieval_param, title)
+        return data_GROSOM.plot_level2(level1b_dataset, ac, retrieval_param, title)
 
 class GROMOS_LvL2(DataRetrievalGROSOM):
     '''
@@ -319,11 +312,11 @@ def save_single_pdf(filename, figures):
 if __name__=="__main__":
     
     # For testing
-    #basename="/home/eric/Documents/PhD/GROSOM/Level1/"
-    #level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
+    basename="/home/eric/Documents/PhD/GROSOM/Level1/"
+    level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
     
-    basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
-    level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
+    #basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
+    #level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -388,13 +381,13 @@ if __name__=="__main__":
     ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
     
     figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'retrieval_trop_corr')
-    
+
     save_single_pdf(level2_data_folder+'Perrin_with_h2o.pdf', figure_list)
-# Check if this is the right instument
-"""
-if attributes["title"] != retrievalTool["instrument"]:
+    # Check if this is the right instument
+    '''
+    if attributes["title"] != retrievalTool["instrument"]:
     raise ValueError("The provided instrument does not correspond to the one "
-                    "provided !")
-"""
+                    "provided !")   
+    '''
     
     
