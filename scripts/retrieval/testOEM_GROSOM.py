@@ -16,6 +16,7 @@ from typhon.arts.workspace import arts_agenda
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import os
 import warnings
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
@@ -27,13 +28,11 @@ ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 show_plots = True
-save_plots = False
-save_netcdf = False
+save_plots = True
+save_netcdf = True
 
-'''
-Define to make the retrieval work as if launched from main_test.py,
-therefore using the retrieval_param structure even if not really needed...
-'''
+name = 'testOEM_GROMOS_ECMWF_apriori'
+
 # For testing
 basename = "/home/eric/Documents/PhD/GROSOM/Level1/"
 level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
@@ -44,11 +43,38 @@ level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
 line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
 # line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
 
+'''
+Define to make the retrieval work as if launched from main_test.py,
+therefore using the retrieval_param structure even if not really needed...
+'''
+@arts_agenda
+def inversion_iterate_agenda(ws):
+    """Custom inversion iterate agenda to ignore bad partition functions."""
+    ws.Ignore(ws.inversion_iteration_counter)
+
+    # Map x to ARTS' variables
+    ws.x2artsAtmAndSurf()
+    ws.x2artsSensor()
+
+    # To be safe, rerun some checks
+    ws.atmfields_checkedCalc(negative_vmr_ok=0)
+    ws.atmgeom_checkedCalc()
+
+    # Calculate yf and Jacobian matching x
+    ws.yCalc(y=ws.yf)
+
+    # Add baseline term
+    ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
+
+    # This method takes cares of some "fixes" that are needed to get the Jacobian
+    # right for iterative solutions. No need to call this WSM for linear inversions.
+    ws.jacobianAdjustAndTransform()
+
 instrument_name = "GROMOS"
 filename = basename+"GROMOS_level1b_AC240_2019_04_16"
 
 retrieval_param = dict()
-retrieval_param["integration_cycle"] = 4
+retrieval_param["integration_cycle"] = 6
 retrieval_param["plot_meteo_ds"] = True
 retrieval_param["number_of_freq_points"] = 601
 
@@ -75,7 +101,7 @@ retrieval_param['prefix_atm'] = ARTS_DATA_PATH + \
 level1b_dataset, meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(
     filename)
 
-retrieval_param = {**global_attrs_level1b, **retrieval_param}
+#retrieval_param = {**global_attrs_level1b, **retrieval_param}
 
 level1b_dataset = data_GROSOM.find_bad_channels(
     level1b_dataset, retrieval_param)
@@ -95,6 +121,8 @@ ds_df = ds_bw/(ds_num_of_channel-1)
 retrieval_param["zenith_angle"] = level1b_dataset.meanAngleAntenna.values[cycle]
 
 retrieval_param["time"] = level1b_dataset.time[cycle].values
+retrieval_param['time_start'] = level1b_dataset.firstSkyTime[cycle].values
+retrieval_param['time_stop'] = level1b_dataset.lastSkyTime[cycle].values
 retrieval_param["lat"] = level1b_dataset.lat[cycle].values
 retrieval_param["lon"] = level1b_dataset.lon[cycle].values
 
@@ -108,6 +136,9 @@ ac.setup(atmosphere_dim=1, iy_unit='RJBT', ppath_lmax=-1, stokes_dim=1)
 
 #TODO
 # Simulation grids
+lat_grid = np.array([retrieval_param["lat"]])
+lon_grid = np.array([retrieval_param["lon"]])
+
 # frequency grid
 n_f = retrieval_param["number_of_freq_points"]  # Number of points
 bw = 1.5e9  # Bandwidth
@@ -117,9 +148,9 @@ f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
 
 f_grid = f_grid + f0
 
-# Pressure grid 
-z_bottom = 1000
-z_top = 95e3
+# Pressure grid != retrieval grid 
+z_bottom = 1e3
+z_top = 112e3
 z_res = 1e3
 z_grid = np.arange(z_bottom, z_top + 2 * z_res, z_res)
 p_grid = z2p_simple(z_grid)
@@ -150,10 +181,22 @@ retrieval_param['cira86_path'] = os.path.join(
 
 #fascod_atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
 
-retrieval_param['ecmwf_store_path'] = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+t1 = pd.to_datetime(retrieval_param['time_start'])
+t2 = pd.to_datetime(retrieval_param['time_stop'])
+extra_time_ecmwf = 6
 
-atm = apriori_data_GROSOM.get_apriori_atmosphere_ecmwf_cira86(
-    retrieval_param)
+ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+cira86_path = retrieval_param['cira86_path']
+
+atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+    retrieval_param,
+    ecmwf_store,
+    cira86_path,
+    t1,
+    t2,
+    extra_time_ecmwf
+)
+
 # ecmwf_atm = apriori_data_GROSOM.get_apriori_atmosphere(retrieval_param)
 
 # Does not work now:
@@ -183,21 +226,23 @@ ac.set_sensor(sensor)
 
 # doing the checks
 ac.checked_calc()
-y_FM = ac.y_calc()
+y_FM, = ac.y_calc()
 
-# Setup the retrieval #TODO
-p_ret_grid = np.logspace(5, -1, 81)
-
-lat_ret_grid = np.array([retrieval_param["lat"]])
-lon_ret_grid = np.array([retrieval_param["lon"]])
+# Setup the retrieval grid 
+# for GROMOS, 51 levels and 30 for SOMORA, we go for 32
+z_bottom_ret = z_bottom
+z_top_ret = 95e3
+z_res_ret = 3e3
+p_ret_grid = z2p_simple(np.arange(z_bottom_ret, z_top_ret, z_res_ret))
 
 sx_O3 = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
-# sx_H2O = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
+#sx_H2O = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
 
 # The different things we want to retrieve
 ozone_ret = arts.AbsSpecies(
-    'O3', p_ret_grid, lat_ret_grid, lon_ret_grid, sx_O3, unit='vmr')
-# h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_ret_grid, lon_ret_grid, sx_H2O, unit='vmr')
+    'O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='vmr')
+
+# h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_grid, lon_grid, sx_H2O, unit='vmr')
 
 # fshift_ret = arts.FreqShift(100e3, df=50e3)
 # polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
@@ -242,16 +287,18 @@ fig, axs = plt.subplots(2, sharex=True)
 axs[0].plot((ds_freq - f0) / 1e6, ds_Tb_corr, label='observed')
 axs[0].plot((ds_freq - f0) / 1e6, yf, label='fitted')
 # axs[0].plot((ds_freq - f0) / 1e6, bl, label='baseline')
+axs[0].set_ylabel('$T_B$ [K]')
+axs[0].set_ylim((-10,50))
 axs[0].legend()
 axs[1].plot((ds_freq - f0) / 1e6, ds_Tb_corr -
             yf, label='observed - computed')
 axs[1].legend()
 axs[1].set_xlabel('f - {:.3f} GHz [MHz]'.format(f0/1e9))
-axs[0].set_ylabel('$T_B$ [K]')
 axs[1].set_ylabel('$T_B$ [K]')
+axs[1].set_ylim((-10,10))
 fig.tight_layout()
 if save_plots:
-    fig.savefig('testOEM_spectrum_GROSOM.png')
+    fig.savefig(level2_data_folder+name+'_spectrum.pdf')
 if show_plots:
     fig.show()
 fig, axs = plt.subplots(2, 2, sharey=True)
@@ -271,34 +318,15 @@ for avk in ozone_ret.avkm:
     if 0.8 <= np.sum(avk) <= 1.2:
         axs[1][1].plot(avk, ozone_ret.z_grid / 1e3)
 fig.tight_layout()
+
 if save_plots:
-    fig.savefig('test_oem_ozone.png')
-    print('\nSaved plots to TestOEM_*.png')
+    fig.savefig(level2_data_folder+name+'.pdf')
+    print('\nSaved plots to :', level2_data_folder)
+
 if show_plots:
     fig.show()
-# if save_netcdf:
-#    ac.get_level2_xarray().to_netcdf('TestOEM_result.nc')
-#    print('\nSaved results to TestOEM_result.nc')
 
-@arts_agenda
-def inversion_iterate_agenda(ws):
-    """Custom inversion iterate agenda to ignore bad partition functions."""
-    ws.Ignore(ws.inversion_iteration_counter)
+if save_netcdf:
+    ac.get_level2_xarray().to_netcdf(level2_data_folder+name+'.nc')
+    print('\nSaved results to :', level2_data_folder)
 
-    # Map x to ARTS' variables
-    ws.x2artsAtmAndSurf()
-    ws.x2artsSensor()
-
-    # To be safe, rerun some checks
-    ws.atmfields_checkedCalc(negative_vmr_ok=1)
-    ws.atmgeom_checkedCalc()
-
-    # Calculate yf and Jacobian matching x
-    ws.yCalc(y=ws.yf)
-
-    # Add baseline term
-    ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
-
-    # This method takes cares of some "fixes" that are needed to get the Jacobian
-    # right for iterative solutions. No need to call this WSM for linear inversions.
-    ws.jacobianAdjustAndTransform()

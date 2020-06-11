@@ -26,6 +26,8 @@ from retrievals.data import p_interpolate
 
 from typhon.arts.xml import load
 
+ARTS_DATA_PATH = os.environ.get("ARTS_DATA_PATH", None)
+
 class APrioriDataGROSOM(arts.Atmosphere):
     '''
     TO DO ?
@@ -41,11 +43,56 @@ def extract_ecmwf_ds(ECMWF_store_path, t1, t2):
     '''
     ecmwf_store = ECMWFLocationFileStore('/home/eric/Documents/PhD/GROSOM/ECMWF', 'ecmwf_oper_v2BERN_%Y%m%d.nc')
     ecmwf_ds = (
-        ecmwf_store.select_time(t1, t2 )
+        ecmwf_store.select_time(t1, t2, combine='by_coords')
         .mean(dim='time')
         .swap_dims({"level":"pressure"})
     )
     return ecmwf_ds
+
+def read_o3_apriori_ecmwf_mls_gromosOG(filename):
+    '''
+    read the apriori o3 used in gromos retrieval
+    
+    just for fun, no idea where that file come from...
+    '''
+    ds = pd.read_csv(
+        filename,
+        sep=' ',
+        skiprows=6,
+        header=None,
+        usecols=[0,1]
+        )
+
+    o3_apriori_ds = xr.Dataset({'o3': ('p', ds.iloc[:,1])},
+                            coords = {
+                                'p' : ('p', ds.iloc[:,0]),
+                            }
+    )
+    return o3_apriori_ds
+
+def read_o3_apriori_OG_SOMORA(filename, m):
+    '''
+    read the apriori o3 used in somora retrieval
+    
+    just for fun, no idea where that file come from...
+
+    is a mix of MLS and RS ?
+    '''
+    ds = pd.read_csv(
+        filename,
+        sep=',',
+        skiprows=0,
+        header=None,
+        #usecols=[0,1]
+        )
+
+    o3_apriori_ds = xr.Dataset({'o3': (['altitude','month'], ds.iloc[:,1:])},
+                            coords = {
+                                'altitude' : ('altitude', ds.iloc[:,0]),
+                                'month' : ('month', np.arange(1,13,1))
+                            }
+    )
+    return o3_apriori_ds.sel(month = m)
 
 def plot_apriori_cira86(retrieval_param):
     lat = retrieval_param['lat']
@@ -57,6 +104,9 @@ def plot_apriori_cira86(retrieval_param):
     pass 
 
 def get_apriori_fascod(retrieval_param):
+    '''
+    All in one.
+    '''
     fascod_atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
     return fascod_atm
 
@@ -83,41 +133,19 @@ def get_apriori_atmosphere(retrieval_param):
     atm.set_z_field(ds_ecmwf["pressure"].values, ds_ecmwf["pressure"].values)
 
     # Ozone
-    atm.set_vmr_field(
-        "O3", ds_ecmwf["pressure"].values, ds_ecmwf['ozone_mass_mixing_ratio'].values
-        )
+    #atm.set_vmr_field(
+    #    "O3", ds_ecmwf["pressure"].values, ds_ecmwf['ozone_mass_mixing_ratio'].values
+    #    )
     
     return atm
 
-def get_apriori_atmosphere_ecmwf_cira86(retrieval_param):
+def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path,t1,t2,extra_time_ecmwf):
     '''
     Defining a-priori atmosphere from ECMWF operationnal dataset and CIRA86 clim
 
-    First, we initiate an Atmosphere from Fascod climatology (not needed) before
-    updating the required fields from ECMWF operationnal dataset.
+    First, we initiate an Atmosphere from Fascod climatology before
+    updating the fields from ECMWF operationnal dataset.
 
-    TO DO: add the CIRA86 cimatology, otherwise the ecmwf data do not go high enough.
-    '''
-    
-    # Read EACMWF data (oper for now)
-    ECMWF_store_path = retrieval_param['ecmwf_store_path']
-    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, t1 = '2019-04-16 03:30', t2 = '2019-04-16 16:45')
-    
-    # Reading CIRA86
-    lat = retrieval_param['lat']
-    month = pd.to_datetime(retrieval_param['time']).month
-
-    cira86 = read_cira86_monthly(retrieval_param['cira86_path'], month, lat)
-
-    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
-
-    # Merging ecmwf and CIRA86
-    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
-
-    
-    plot_apriori_ptz(ds_ptz)
-
-    '''
     At this point we have 2 choice:
     1. Create atm using the fascod and overwrite our variable from ds_ptz
 
@@ -130,10 +158,47 @@ def get_apriori_atmosphere_ecmwf_cira86(retrieval_param):
     abs_species ......
 
     '''
+    summer_months = [4, 5, 6, 7, 8, 9]
 
+    lat = retrieval_param['lat']
+    month = pd.to_datetime(retrieval_param['time']).month
+
+    if month in summer_months:
+        fascod_clim = 'midlatitude-summer'
+    else:
+        fascod_clim = 'midlatitude-winter'
+
+    clim_prefix = os.path.join(ARTS_DATA_PATH, "planets/Earth/Fascod/{0}/{0}.".format(fascod_clim))
+    
     #ds_ptz = ds_ptz.expand_dims(dim=['lat','lon'])
     # atm = arts.Atmosphere.from_dataset(ds_ptz)
-    atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
+    atm = arts.Atmosphere.from_arts_xml(clim_prefix)
+
+    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf/2, "h")
+    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf/2, "h")
+
+    # Read EACMWF data (oper for now)
+    ECMWF_store_path = ecmwf_store
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_time1, ecmwf_time2)
+    
+    if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
+        raise ValueError('no ECMWF data')
+
+    # Reading CIRA86
+    cira86 = read_cira86_monthly(cira86_path, month, lat)
+
+    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
+    filename_GROMOS_CLIM = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(filename_GROMOS_CLIM)
+
+    filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(filename, month)
+
+    # Merging ecmwf and CIRA86
+    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
+
+    plot_apriori_ptz(ds_ptz)
+    compare_o3_apriori_OG(o3_apriori,o3_apriori_SOMORA)
 
     # Temperature
     atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
@@ -141,16 +206,17 @@ def get_apriori_atmosphere_ecmwf_cira86(retrieval_param):
     # z field
     atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
     
+    # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
     atm.set_vmr_field(
-        "O3", ds_ecmwf["pressure"].values, ds_ecmwf['ozone_mass_mixing_ratio'].values
+        "O3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
-
+    """
     # Water vapor
     atm.set_vmr_field(
         "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
         )
-    
+    """
     return atm
 
 def merge_ecmwf_cira86(ds_ecmwf, cira86):
@@ -252,8 +318,7 @@ def plot_ecmwf_cira86_profile(ds_ecmwf, cira86):
     axs[1].set_xlabel('T [K]')
     axs[1].set_ylabel('$P$ [Pa]')
 
-    #fig.suptitle('CIRA86 Temperature profile')
-    fig.tight_layout()
+    fig.suptitle('Merged PTZ profile from ECMWF and CIRA86')
 
     fig.show()
     pass
@@ -272,8 +337,7 @@ def plot_apriori_ptz(ds_ptz):
     axs[1].set_xlabel('T [K]')
     axs[1].set_ylabel('$Z$ [km]')
 
-    #fig.suptitle('CIRA86 Temperature profile')
-    fig.tight_layout()
+    fig.suptitle('Apriori ptz profile')
 
     fig.show()
     pass
@@ -291,7 +355,36 @@ def plot_cira86_profile(cira86):
     axs[1].set_ylabel('$Z$ [m]')
 
     fig.suptitle('CIRA86 Temperature profile')
-    fig.tight_layout()
+
+    fig.show()
+    pass
+
+def plot_o3_apriori(o3_apriori):
+    fig, ax = plt.subplots()
+    ax.plot(o3_apriori.o3*1e6, o3_apriori.p)
+    ax.invert_yaxis()
+    ax.set_yscale('log')
+    ax.set_xlabel('$O_3$ [PPM]')
+    ax.set_ylabel('$P$ [Pa]')
+
+    fig.suptitle('$O_3$ apriori from GROMOS OG')
+
+    fig.show()
+    pass
+
+def compare_o3_apriori_OG(o3_apriori, o3_apriori_SOMORA):
+    fig, axs = plt.subplots(1,2, sharex=True)
+    axs[0].plot(o3_apriori.o3*1e6, o3_apriori.p)
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+    axs[0].set_xlabel('$O_3$ [PPM]')
+    axs[0].set_ylabel('$P$ [Pa]')
+
+    axs[1].plot(o3_apriori_SOMORA.o3, o3_apriori_SOMORA.altitude)
+    axs[1].set_xlabel('$O_3$ [PPM]')
+    axs[1].set_ylabel('$Z$ [km]')
+
+    fig.suptitle('$O_3$ apriori from OG retrievals')
 
     fig.show()
     pass
