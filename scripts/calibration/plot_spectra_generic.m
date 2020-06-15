@@ -13,6 +13,7 @@ subplot(3,2,1); plot(drift.t, drift.Tn, 'k'), hold on, plot(drift.t,drift.TSysLo
 subplot(3,2,2); plot(drift.t, drift.Ta ,'g'), ylabel('Ta [K]'), xlim([0,24])
 %set(gca, 'ColorOrder', [1 0.5 0.5; 0.2 0.2 0.2, 0 0 1],'NextPlot', 'replacechildren');
 colors = {'r','g','b'};
+cm = colormap(parula(N));
 subplot(3,2,3); 
 for i=1:3
     plot(drift.t, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),xlim([0,24]),ylim([nanmedian(drift.a(3,:))-200,nanmedian(drift.a(1,:))+200])
@@ -20,7 +21,7 @@ end
 subplot(3,2,4); plot(drift.t, drift.T, 'r'),  ylabel('T Hot  [K]'), ylim([mean(drift.T)-0.5 mean(drift.T)+0.5]),xlim([0,24])
 subplot(3,2,5);
 for i=1:N
-    plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb);
+    plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
     
     %plot(calibratedSpectra(l(i)).Tb)
     %hold on
@@ -37,7 +38,7 @@ end
 
 subplot(3,2,6);
 for i=1:N
-    plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN);
+    plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
     ylabel('TN [K]')
     ylim([100,5000])
     hold on

@@ -37,7 +37,7 @@ instrumentName='GROMOS';
 calibrationType="standard";
 
 % Define the dates for the calibration:
-dates=datenum('2019_04_16','yyyy_mm_dd'):datenum('2019_04_16','yyyy_mm_dd');
+dates=datenum('2019_03_11','yyyy_mm_dd'):datenum('2019_03_11','yyyy_mm_dd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
@@ -201,7 +201,7 @@ for k = 1:numel(dates)
     if calibrationTool.numberOfSpectrometer==1
         try
             % if commented, nothing happens --> developping purposes
-            % run_calibration(calibrationTool)
+            run_calibration(calibrationTool)
         end
     else
         for m=1:3

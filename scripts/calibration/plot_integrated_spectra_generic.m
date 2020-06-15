@@ -1,4 +1,4 @@
-function plot_hourly_spectra_generic(retrievalTool,integratedSpectra,lowerLim,upperLim)
+function plot_integrated_spectra_generic(calibrationTool,integratedSpectra,lowerLim,upperLim)
 % Just for a first look
 try   
     % plotting a spectra every numberOfSpectraToGroup measurements
@@ -7,13 +7,13 @@ try
     fig=figure();
     clf
     set(gcf, 'PaperPosition', [1 1 19 27.7])
-    suptitle([retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)])
-    
+    suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
+    cm = colormap(jet(N));
     TOD{1}=[num2str(0) ' h'];
     hold on
     subplot(2,2,[1,3]); 
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).Tb);
+        plot(integratedSpectra(i).if,integratedSpectra(i).Tb,'Color',cm(i,:));
         title('')
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
@@ -24,11 +24,11 @@ try
     end
     title('Non Corrected, all channels')
     grid on
-    legend(TOD,'Location','south','NumColumns',4)
+    legend(TOD,'Location','southoutside','NumColumns',4)
     
     subplot(2,2,2); 
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).Tbcorr.*integratedSpectra(i).channelsQuality);
+        plot(integratedSpectra(i).if,integratedSpectra(i).Tbcorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
         
@@ -40,7 +40,7 @@ try
     
     subplot(2,2,4);
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality);
+        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
 
@@ -52,7 +52,7 @@ try
     
     orient(fig,'landscape')
     % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
-    print([retrievalTool.level1Folder 'integratedSpectra' retrievalTool.dateStr '_' retrievalTool.spectrometer],'-dpdf','-fillpage')
+    print([calibrationTool.level1Folder 'integratedSpectra' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
     close
 
 catch ME
