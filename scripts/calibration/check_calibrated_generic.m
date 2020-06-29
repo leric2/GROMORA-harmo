@@ -215,9 +215,7 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).timeOfDay=mean(standardLog.t(ia));
     
     %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
-   
     
-        
     % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
     effectiveTime=0;
     %if i<size(calibratedSpectra,2)

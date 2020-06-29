@@ -65,6 +65,9 @@ disp('Reading level0 data...')
 % Reading raw data
 [logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool);
 
+% Check the temporal content of the file
+% TODO 
+
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
 % instrument and might need date information later ?).

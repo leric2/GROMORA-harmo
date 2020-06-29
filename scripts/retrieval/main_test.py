@@ -26,6 +26,7 @@ Todo: all
 """
 from abc import ABC
 import os
+import datetime
 
 import numpy as np
 import xarray as xr
@@ -54,17 +55,17 @@ class Level1bDataProcessingGROSOM(ABC):
     def __init__(self,filename=None):
         self._filename = filename
     
-
 class DataRetrievalGROSOM(ABC):
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, date=None):
         self._filename = filename
+        self.date = date
 
         # some attributes for the class (_sss) should be used internally
         self._data = dict()
         self._data["Temperature.0"] = 10
         self._data["Temperature.1"] = 20
         self._data["Temperature.2"] = 30
-        
+
     # methods for this class
     def get_temerature_reading(self, time, channel):
         ''' Get the temperature form a specific temperature channel.
@@ -76,37 +77,41 @@ class DataRetrievalGROSOM(ABC):
         '''
         raise NotImplementedError("abstract base class")
     
-    
     def read_level1b(self):
-        print('reading : ', self._filename)
-    
-        # self.DS = xr.open_dataset(
-        #     self._filename + ".nc",
-        #     group="spectrometer1",
-        #     mask_and_scale=True,
-        #     decode_times=True,
-        #     decode_coords=True,
-        #     #use_cftime=True,
-        #     )
-    
-        # self.global_attrs = xr.open_dataset(self._filename + ".nc").attrs
+        ''' 
+        Reading level1b dataset and completing the information on the instrument
         
-        # self.meteo=xr.open_dataset(
-        #     self._filename+".nc",
-        #     group="meteo",
-        #     decode_times=True,
-        #     decode_coords=True,
-        #     )       
-        # return self.DS, self.global_attrs, self.meteo
-        return data_GROSOM.read_level1b(self._filename)
+        '''
+
+        print('reading : ', self._filename)
+
+        self.level1b_ds, self.meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(self._filename)
+
+        self.instrument_name = global_attrs_level1b['instrument']
+        self.location = global_attrs_level1b['location']
+
+        self.number_of_spectrometer = global_attrs_level1b['number_of_spectrometer']
+        self.calibration_version = global_attrs_level1b['calibrated_version']
+
+        # some information from the ds
+        self.number_of_channels = len(self.level1b_ds.channel_idx.values)
+
+        self.frequencies = self.level1b_ds.frequencies.values
+        self.IF = self.level1b_ds.intermediateFreq.values
+
+        self.time = self.level1b_ds.time.values
+        self.number_of_time_records = len(self.time)
+
+        return self.level1b_ds, self.meteo_ds
     
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
         plt.plot(level1b_dataset.frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
         plt.ylim((0,200))
         pass
     
-    def plot_meteo_ds_level1b_dataset(self, meteo_ds):
-        return data_GROSOM.plot_meteo_level1b(meteo_ds)
+    def plot_meteo_ds_level1b_dataset(self):
+        data_GROSOM.plot_meteo_level1b(self.meteo_ds)
+        pass 
     
     def forward_model(self, retrieval_param):
         ''' 
@@ -116,12 +121,12 @@ class DataRetrievalGROSOM(ABC):
         '''
         return retrieval_module.forward_model(retrieval_param)
     
-    def retrieve_cycle(self, level1b_dataset, meteo_ds, retrieval_param):
+    def retrieve_cycle(self, retrieval_param):
         ''' 
         Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
         '''
-        
-        return retrieval_module.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
+        retrieval_param['obs_freq'] = self.observation_frequency
+        return retrieval_module.retrieve_cycle(self.level1b_ds, self.meteo_ds, retrieval_param)
     
     def retrieve_cycle_tropospheric_corrected(self, level1b_dataset, meteo_ds, retrieval_param):
         ''' 
@@ -167,10 +172,8 @@ class DataRetrievalGROSOM(ABC):
         '''
         return data_GROSOM.smooth_corr_spectra(level1b_dataset, retrieval_param)
     
-    def find_bad_channels(self,level1b_dataset,retrieval_param):
+    def find_bad_channels(self, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
         '''
-        
-
         Parameters
         ----------
         level1b_dataset : TYPE
@@ -181,8 +184,7 @@ class DataRetrievalGROSOM(ABC):
         None.
 
         '''
-        
-        return data_GROSOM.find_bad_channels(level1b_dataset,retrieval_param)
+        return data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
     
     def plot_level2_from_tropospheric_corrected_spectra(self, level1b_dataset, ac, retrieval_param, title):
         '''
@@ -234,19 +236,37 @@ class GROMOS_LvL2(DataRetrievalGROSOM):
     Hereafter we define some parameters and methods specific to this 
     instrument.
     '''
+    def __init__(self, filename, date):
+        '''
+        Some specific parameters to implement for the GROMOS instances (only constant stuff...)
+        '''
+        # from old GROMOS routine
+        self.observation_frequency = 1.4217504e11
+        super().__init__(filename, date)
     
+    @staticmethod
+    def return_bad_channel_GROMOS(date):
+        '''
+        to get the bad channels as a function of the date for GROMOS
+        
+        Parameters
+        ----------
+        date : datetime object
+            DESCRIPTION.
+        
+        '''
+        #if year == 2019,....
+        bad_channels = np.arange(16350,16420)
+
+        return bad_channels
+
     def get_hot_load_temperature(self, time):
         """ On GROMOS, hot load temperature is on channel 0.
         """
         return self.get_temerature_reading(time, 0)
-    
-    def plot_meteo_ds_level1b_dataset(self, meteo_ds):
-        print('overcoming this function')
-        
-    def define_bad_channels(self,level1b_dataset,retrieval_param):
-        '''
-        
 
+    def find_bad_channels(self, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
+        '''
         Parameters
         ----------
         level1b_dataset : TYPE
@@ -257,8 +277,13 @@ class GROMOS_LvL2(DataRetrievalGROSOM):
         None.
 
         '''
-        
-        return data_GROSOM.define_bad_channels_SOMORA(level1b_dataset,retrieval_param)
+        bad_channels = self.return_bad_channel_GROMOS(self.date)
+        #self.level1b_ds = super().find_bad_channels(bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+        #
+
+        # ATTENTION, if we return directly the function, the self.level1b_ds is not updated ! TOTHINK !
+        self.level1b_ds = data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+        return self.level1b_ds
     
 class SOMORA_LvL2(DataRetrievalGROSOM):
     '''
@@ -266,13 +291,51 @@ class SOMORA_LvL2(DataRetrievalGROSOM):
     Hereafter we define some parameters and methods specific to this 
     instrument.
     '''
-    
+    def __init__(self, filename, date):
+        '''
+        Some specific parameters to implement for the SOMORA instances (only constant stuff...)
+        '''
+        self.observation_frequency = 1.4217504e11
+        super().__init__(filename, date)
+
     def get_hot_load_temperature(self, time):
         """ On SOMORA, hot load temperature is on channel 2.
         """
         return self.get_temerature_reading(time, 2)    
+    
+    @staticmethod
+    def return_bad_channel_SOMORA(date):
+        '''
+        to get the bad channels as a function of the date for SOMORA
+        
+        Parameters
+        ----------
+        date : datetime object
+            DESCRIPTION.
+        
+        '''
+        #if year == 2019,....
+        bad_channels = np.arange(0,104)
 
+        return bad_channels
+    
+    def find_bad_channels(self, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
 
+        Returns
+        -------
+        None.
+
+        '''
+        bad_channels = self.return_bad_channel_SOMORA(self.date)
+        #self.level1b_ds = super().find_bad_channels(bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+        #
+        return data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+    
 def run_retrieval(instrument,retrieval_param):
     '''
     In this function we call the retrieval process step-by-step
@@ -321,17 +384,18 @@ if __name__=="__main__":
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     
-    instrument_name="GROMOS"
+    instrument_name="GROMOS"    # SOMORA has not yet the instrument attributes in lvl 1b !
+    date = datetime.date(2019,4,16)
     
     # Reading function
     #retrievalTool["reading_level1b"]=reading_level1b.read_level1b
 
     if instrument_name=="GROMOS":
        filename = basename+"GROMOS_level1b_AC240_2019_04_16"
-       instrument = GROMOS_LvL2(filename)
+       instrument = GROMOS_LvL2(filename, date)
     else:
        filename = basename+"SOMORA_level1b_AC240_2019_04_16"
-       instrument = SOMORA_LvL2(filename)
+       instrument = SOMORA_LvL2(filename, date)
     
     retrieval_param = dict()
     retrieval_param["integration_cycle"] = 4
@@ -341,18 +405,8 @@ if __name__=="__main__":
 
     retrieval_param["azimuth_angle"]=32
     retrieval_param["observation_altitude"] =  461
-    retrieval_param['obs_freq'] = 1.4217504e11
+    #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['line_file'] = line_file
-    
-    retrieval_param['boxcar_size'] = 128
-    
-    # known bad channel for this instrument (in the form of a numpy array):
-    retrieval_param['bad_channels'] = np.arange(0,104)
-    
-    retrieval_param['Tb_max'] = 200
-    retrieval_param['Tb_min'] = 0
-    retrieval_param['boxcar_thresh'] = 7
-    
     
     fascod_atmosphere = 'midlatitude-summer'
     retrieval_param['prefix_atm'] = ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_atmosphere,fascod_atmosphere)
@@ -360,34 +414,36 @@ if __name__=="__main__":
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
     
-    #level1b_dataset, meteo_ds, global_attr_lvl1b_ds = run_retrieval(instrument,retrievalParam)
+    # level1b_dataset, meteo_ds, global_attr_lvl1b_ds = run_retrieval(instrument,retrievalParam)
     
-    level1b_dataset, meteo_ds, global_attrs_level1b = instrument.read_level1b()
+    level1b_ds, meteo_ds = instrument.read_level1b()
     
-    #if global_attrs_level1b['instument'] == instrument_name:
-        # merge attrs level1b in retrievalParam
-    retrieval_param = {**global_attrs_level1b, **retrieval_param}
+    if instrument.instrument_name != instrument_name:
+        raise ValueError('incoherent instrument definition')
+    #retrieval_param = {**global_attrs_level1b, **retrieval_param}
     #else :
     #    raise ValueError('incoherent instrument definition')
     
     #level1b_dataset = instrument.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     
-    level1b_dataset = instrument.find_bad_channels(level1b_dataset,retrieval_param)
+    level1b_ds = instrument.find_bad_channels(
+        Tb_min=0, 
+        Tb_max=260, 
+        boxcar_size=128, 
+        boxcar_thresh=7
+    )
     
+    instrument.plot_meteo_ds_level1b_dataset()
+
     #level1b_dataset = instrument.smooth_corr_spectra(level1b_dataset, retrieval_param)
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
     #plt.plot(f_sim, y_sim[0], level1b_dataset.frequencies.values, level1b_dataset.Tb[1].values)
     
-    ac, retrieval_param = instrument.retrieve_cycle(level1b_dataset, meteo_ds, retrieval_param)
+    ac, retrieval_param = instrument.retrieve_cycle(retrieval_param)
     
-    figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'retrieval_trop_corr')
+    #figure_list = instrument.plot_level2(level1b_dataset, ac, retrieval_param, title = 'retrieval_trop_corr')
 
-    save_single_pdf(level2_data_folder+'Perrin_with_h2o.pdf', figure_list)
-    # Check if this is the right instument
-    '''
-    if attributes["title"] != retrievalTool["instrument"]:
-    raise ValueError("The provided instrument does not correspond to the one "
-                    "provided !")   
-    '''
+    #save_single_pdf(level2_data_folder+'Perrin_with_h2o.pdf', figure_list)
+    
     
     

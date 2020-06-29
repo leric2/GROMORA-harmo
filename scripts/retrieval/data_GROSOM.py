@@ -53,18 +53,13 @@ def read_level1b(filenameLevel1b):
         
     return DS, METEO, globalAttributes
 
-def find_bad_channels(level1b_dataset,retrieval_param):
+def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
     '''
     daily processing
     '''
     good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
         
     # identify additional spurious channels on this day    
-    Tb_max = retrieval_param['Tb_max']
-    Tb_min = retrieval_param['Tb_min']
-    boxcar_size = retrieval_param['boxcar_size']
-    boxcar_thresh = retrieval_param['boxcar_thresh']
-    
     for i in range(len(level1b_dataset.time)):
         values = level1b_dataset.Tb[i].values
         smoothed_val = np.convolve(values, np.ones((boxcar_size,)) / boxcar_size, mode="same")
@@ -81,7 +76,7 @@ def find_bad_channels(level1b_dataset,retrieval_param):
         
     # Some known spurious channels (all spectra)
     
-    good_channels[:,retrieval_param['bad_channels']] = 0
+    good_channels[:,bad_channels] = 0
     
     
     level1b_dataset = level1b_dataset.assign(
