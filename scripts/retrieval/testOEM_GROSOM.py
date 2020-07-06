@@ -12,6 +12,8 @@ import data_GROSOM
 from retrievals import covmat
 from retrievals import arts
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
+from retrievals.data import p_interpolate
+#from pyarts.workspace import arts_agenda
 from typhon.arts.workspace import arts_agenda
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
@@ -21,8 +23,8 @@ import os
 import warnings
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
 
-# load_dotenv('/home/esauvageat/Documents/ARTS/arts-examples/.env')
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+load_dotenv('/home/esauvageat/Documents/ARTS/arts-examples/.env')
+#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -34,11 +36,11 @@ save_netcdf = True
 name = 'testOEM_GROMOS_ECMWF_apriori'
 
 # For testing
-basename = "/home/eric/Documents/PhD/GROSOM/Level1/"
-level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
+#basename = "/home/eric/Documents/PhD/GROSOM/Level1/"
+#level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
 
-# basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
-# level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
+basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
+level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
 
 line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
 # line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -104,14 +106,14 @@ level1b_dataset, meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(
 #retrieval_param = {**global_attrs_level1b, **retrieval_param}
 
 level1b_dataset = data_GROSOM.find_bad_channels(
-    level1b_dataset, retrieval_param)
+    level1b_dataset, np.arange(0, 104), 0, 260, 128, 7)
 
 # Extracting some parameters
 f0 = retrieval_param['obs_freq']
 cycle = retrieval_param["integration_cycle"]
 ds_freq = level1b_dataset.frequencies.values
 ds_num_of_channel = len(ds_freq)
-# ds_Tb = level1b_dataset.Tb[cycle].values
+ds_Tb = level1b_dataset.Tb[cycle].values
 ds_Tb_corr = level1b_dataset.Tb_corr[cycle].values
 
 ds_bw = max(ds_freq) - min(ds_freq)
@@ -165,7 +167,7 @@ ac.set_surface(retrieval_param["surface_altitude"])
 # Spectroscopy
 ac.set_spectroscopy_from_file(
     abs_lines_file=retrieval_param['line_file'],
-    abs_species=["O3", "H2O-PWR98", "O2-PWR98", "N2-SelfContStandardType"],
+    abs_species=["O3", "H2O", "H2O-PWR98", "O2-PWR98", "N2-SelfContStandardType"],
     format='Arts',
     line_shape=["VVH", 750e9],
 )
@@ -183,9 +185,10 @@ retrieval_param['cira86_path'] = os.path.join(
 
 t1 = pd.to_datetime(retrieval_param['time_start'])
 t2 = pd.to_datetime(retrieval_param['time_stop'])
-extra_time_ecmwf = 6
+extra_time_ecmwf = 4
 
-ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+#ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+ecmwf_store = '/home/esauvageat/Documents/GROSOM/Analysis/ECMWF'
 cira86_path = retrieval_param['cira86_path']
 
 atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
@@ -213,7 +216,7 @@ obs = arts.Observation(
     aa=32,
     lat=46,
     lon=7,
-    alt=15e3,
+    alt=12e3,
     time=12
 )
 
@@ -235,14 +238,46 @@ z_top_ret = 95e3
 z_res_ret = 3e3
 p_ret_grid = z2p_simple(np.arange(z_bottom_ret, z_top_ret, z_res_ret))
 
+o3_std_value=0.7e-6
+o3_std_const = o3_std_value * np.ones_like(p_ret_grid)
+o3_apriori = atm.vmr_field('o3').data[:,0][:,0]
+o3_std_limit = p_interpolate(
+    p_ret_grid, atm.vmr_field('o3').grids[0], o3_apriori, fill=0
+)
+
+o3_std = np.minimum(o3_std_limit, o3_std_const)
+std_correction_o3 = 1
+ozone_covmat = covmat.covmat_1d_sparse(
+    np.log10(p_ret_grid),
+    std_correction_o3 * o3_std,
+    0.3 * np.ones_like(p_ret_grid),
+    fname="lin",
+    cutoff=0.001,
+)
+
+h2o_std_value=0.7e-6
+h2o_std_const = h2o_std_value * np.ones_like(p_ret_grid)
+h2o_apriori = atm.vmr_field('h2o').data[:,0][:,0]
+h2o_std_limit = p_interpolate(
+    p_ret_grid, atm.vmr_field('h2o').grids[0], h2o_apriori, fill=0
+)
+
+h2o_std = np.minimum(h2o_std_limit, h2o_std_const)
+std_correction_h2o = 1
+h2o_covmat = covmat.covmat_1d_sparse(
+    np.log10(p_ret_grid),
+    std_correction_h2o * h2o_std,
+    0.3 * np.ones_like(p_ret_grid),
+    fname="lin",
+    cutoff=0.001,
+)
+
 sx_O3 = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
 #sx_H2O = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
 
 # The different things we want to retrieve
-ozone_ret = arts.AbsSpecies(
-    'O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='vmr')
-
-# h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_grid, lon_grid, sx_H2O, unit='vmr')
+ozone_ret = arts.AbsSpecies('O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='vmr')
+#h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_grid, lon_grid, h2o_covmat, unit='vmr')
 
 # fshift_ret = arts.FreqShift(100e3, df=50e3)
 # polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
@@ -260,9 +295,9 @@ y_var[(level1b_dataset.good_channels[cycle].values == 0)] = factor*retrieval_par
 ac.define_retrieval([ozone_ret], y_var)
 # ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
 
-# Let a priori be off by 0.5 ppm (testing purpose)
-# vmr_offset = -0.5e-6
-# ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
+#Let a priori be off by 0.5 ppm (testing purpose)
+vmr_offset = +0.5e-6
+ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
 
 # Run retrieval (parameter taken from MOPI)
 # SOMORA is using 'lm': Levenberg-Marquardt (LM) method

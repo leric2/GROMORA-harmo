@@ -37,11 +37,11 @@ class APrioriDataGROSOM(arts.Atmosphere):
 
         pass
 
-def extract_ecmwf_ds(ECMWF_store_path, t1, t2):
-    '''
+def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
+    '''i
     Building the ecmwf store for atmospheric state
     '''
-    ecmwf_store = ECMWFLocationFileStore('/home/eric/Documents/PhD/GROSOM/ECMWF', 'ecmwf_oper_v2BERN_%Y%m%d.nc')
+    ecmwf_store = ECMWFLocationFileStore(ECMWF_store_path, ecmwf_prefix)
     ecmwf_ds = (
         ecmwf_store.select_time(t1, t2, combine='by_coords')
         .mean(dim='time')
@@ -122,7 +122,7 @@ def get_apriori_atmosphere(retrieval_param):
     
     ECMWF_store_path = retrieval_param['ecmwf_store_path']
 
-    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, t1 = '2019-04-16 03:30', t2 = '2019-04-16 16:45')
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1 = '2019-04-16 03:30', t2 = '2019-04-16 16:45')
 
     atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
 
@@ -139,7 +139,23 @@ def get_apriori_atmosphere(retrieval_param):
     
     return atm
 
-def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path,t1,t2,extra_time_ecmwf):
+def compare_ecmwf_oper_dataset():
+    # for comparing between ECMWF oper version or between GRIB and netCDF file
+    ECMWF_store_path = '/home/esauvageat/Documents/GROSOM/Analysis/ECMWF'
+    location = 'BERN'
+
+    t1 = pd.to_datetime('2020-01-03 03:00:00')
+    t2 = pd.to_datetime('2020-01-03 09:00:00')
+
+    ecmwf_prefix = f'ecmwf_oper_v{2}_{location}_%Y%m%d.nc'
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2)
+    
+    ecmwf_prefix2 = f'ecmwf_oper_v{2}_from_grib{location}_%Y%m%d.nc'
+    ds_ecmwf_2 = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix2, t1, t2)
+    
+    plot_ecmwf_comparison(ds_ecmwf, ds_ecmwf_2)
+
+def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf):
     '''
     Defining a-priori atmosphere from ECMWF operationnal dataset and CIRA86 clim
 
@@ -170,7 +186,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     clim_prefix = os.path.join(ARTS_DATA_PATH, "planets/Earth/Fascod/{0}/{0}.".format(fascod_clim))
     
-    #ds_ptz = ds_ptz.expand_dims(dim=['lat','lon'])
     # atm = arts.Atmosphere.from_dataset(ds_ptz)
     atm = arts.Atmosphere.from_arts_xml(clim_prefix)
 
@@ -179,27 +194,30 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     # Read EACMWF data (oper for now)
     ECMWF_store_path = ecmwf_store
-    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_time1, ecmwf_time2)
-    
+    location = 'BERN'
+    ecmwf_prefix = f'ecmwf_oper_v{2}_{location}_%Y%m%d.nc'
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+
     if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
         raise ValueError('no ECMWF data')
 
     # Reading CIRA86
     cira86 = read_cira86_monthly(cira86_path, month, lat)
 
-    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
-    filename_GROMOS_CLIM = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
+    
+    #filename_GROMOS_CLIM = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    filename_GROMOS_CLIM = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(filename_GROMOS_CLIM)
 
-    filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(filename, month)
+    #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    filename_SOMORA_AP = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(filename_SOMORA_AP, month)
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
-
     plot_apriori_ptz(ds_ptz)
-    compare_o3_apriori_OG(o3_apriori,o3_apriori_SOMORA)
-
+    
     # Temperature
     atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
 
@@ -208,15 +226,20 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
+    compare_o3_apriori_OG(o3_apriori,o3_apriori_SOMORA)
     atm.set_vmr_field(
         "O3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
-    """
+    
     # Water vapor
+    # merging Fascod with ECMWF
+    #h2o_apriori = merge_ecmwf_Fascod_atm(ds_ecmwf, atm)
+    #plot_apriori_ptz(h2o_apriori)
+    
     atm.set_vmr_field(
         "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
         )
-    """
+    
     return atm
 
 def merge_ecmwf_cira86(ds_ecmwf, cira86):
@@ -258,6 +281,56 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86):
 
     ds_merged = xr.Dataset({'t': ('p', temperature),
                             'z': ('p', cira86_alt_i)},
+                            coords = {
+                                'p' : ('p', p_grid),
+                            }
+    )
+
+    return ds_merged
+
+def merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm):
+    '''
+    Merging profile from ECMWF oper and Fascod monthly climatology.
+
+    Start with a very simple scheme, we just take Fascod values when we reach the top
+    of the ECMWF ones.
+
+    Parameters
+        ----------
+        ds_ecmwf : xarray.Dataset
+            
+        cira86 : xarray.Dataset
+    
+    Returns
+        -------
+        TYPE
+            DESCRIPTION.
+    '''
+    fascod = fascod_atm.vmr_field('h2o').to_xarray()
+    fascod_altitude = fascod_atm.z_field.to_xarray()
+    fascod = fascod.sel(Latitude=0, Longitude=0)
+    fascod_altitude = fascod_altitude.sel(Latitude=0, Longitude=0)
+
+    upper_p_grid = fascod.Pressure.data[fascod.Pressure < np.min(ds_ecmwf.pressure.data)]
+    #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
+    
+    upper_Fascod_ds = fascod.sel(Pressure = upper_p_grid)
+
+    p_grid = np.hstack((ds_ecmwf.pressure.data, upper_p_grid))
+
+    #ecmwf_t_i = p_interpolate(
+    #    p_grid, ds_ecmwf.pressure.data, ds_ecmwf.temperature.data, fill=np.nan
+    #)
+
+    specific_humidity = np.hstack((ds_ecmwf.specific_humidity.data, upper_Fascod_ds.data))
+
+    # interpolate Fascod altitude on p_grid
+    fascod_alt_i = p_interpolate(
+        p_grid, fascod.Pressure.data, fascod_altitude.data, fill = np.nan
+    )
+
+    ds_merged = xr.Dataset({'t': ('p', specific_humidity),
+                            'z': ('p', fascod_alt_i)},
                             coords = {
                                 'p' : ('p', p_grid),
                             }
@@ -318,10 +391,52 @@ def plot_ecmwf_cira86_profile(ds_ecmwf, cira86):
     axs[1].set_xlabel('T [K]')
     axs[1].set_ylabel('$P$ [Pa]')
 
-    fig.suptitle('Merged PTZ profile from ECMWF and CIRA86')
+    fig.suptitle('PTZ profile from ECMWF and CIRA86')
 
     fig.show()
-    pass
+
+def plot_ecmwf_comparison(ds_ecmwf, ds_ecmwf_2):
+
+    print(f'Geopotential :{ds_ecmwf.geopotential.values} vs {ds_ecmwf_2.geopotential.values}')
+    print()
+    print(f'lnsp :{ds_ecmwf.logarithm_of_surface_pressure.values} vs {ds_ecmwf_2.logarithm_of_surface_pressure.values}')
+    print()
+
+    #plt.rcParams['axes.grid'] = True
+
+    fig, axs = plt.subplots(1,4, sharex= False, sharey = True)
+    
+    axs[0].plot(ds_ecmwf.temperature, ds_ecmwf.pressure, 'k')
+    axs[0].plot(ds_ecmwf_2.temperature, ds_ecmwf_2.pressure, 'r--')
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+    axs[0].set_xlabel('T [K]')
+    axs[0].set_ylabel('$P$ [Pa]')
+
+    axs[1].plot(ds_ecmwf.ozone_mass_mixing_ratio*1e6, ds_ecmwf.pressure, 'k')
+    axs[1].plot(ds_ecmwf_2.ozone_mixing_ratio*1e6, ds_ecmwf_2.pressure, 'r--')
+    #axs[1].invert_yaxis()
+    axs[1].set_yscale('log')
+    axs[1].set_xlabel('O3 [ppm]')
+    axs[1].set_ylabel('$P$ [Pa]')
+
+    axs[2].plot(ds_ecmwf.specific_humidity, ds_ecmwf.pressure, 'k')
+    axs[2].plot(ds_ecmwf_2.specific_humidity, ds_ecmwf_2.pressure, 'r--')
+    #axs[1].invert_yaxis()
+    axs[2].set_yscale('log')
+    axs[2].set_xlabel('specific humidity')
+    axs[2].set_ylabel('$P$ [Pa]')
+
+    axs[3].plot(ds_ecmwf.vorticity_relative, ds_ecmwf.pressure, 'k')
+    axs[3].plot(ds_ecmwf_2.relative_vorticity, ds_ecmwf_2.pressure, 'r--')
+    #axs[1].invert_yaxis()
+    axs[3].set_yscale('log')
+    axs[3].set_xlabel('relative vorticity')
+    axs[3].set_ylabel('$P$ [Pa]')
+    
+    fig.suptitle('Comparison between ECMWF datasets')
+
+    fig.show()
 
 def plot_apriori_ptz(ds_ptz):
     fig, axs = plt.subplots(1,2, sharex= True)
@@ -387,4 +502,3 @@ def compare_o3_apriori_OG(o3_apriori, o3_apriori_SOMORA):
     fig.suptitle('$O_3$ apriori from OG retrievals')
 
     fig.show()
-    pass
