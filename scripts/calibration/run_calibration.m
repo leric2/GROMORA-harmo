@@ -65,6 +65,8 @@ disp('Reading level0 data...')
 % Reading raw data
 [logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool);
 
+
+
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
 % instrument and might need date information later ?).
@@ -73,6 +75,8 @@ logFile = calibrationTool.harmonize_log(logFile);
 % Quality check of the raw data:
 if calibrationTool.checkLevel0
     warningLevel0 = calibrationTool.check_level0(logFile,rawSpectra,calibrationTool);
+    
+    %==============> write overflow spectra
 else
     warningLevel0 = '';
 end
@@ -88,10 +92,34 @@ if calibrationTool.flipped_spectra
     rawSpectra = calibrationTool.flip_spectra(rawSpectra);
 end
 
+% TODO
+% remove channels which are known to be bad (2pol)
+% do not delete channels yet, -> set high error during retrieval
+
+% TODO
+% check_level0
+
+
 % Option for plotting spectra (to be improved...)
 if calibrationTool.rawSpectraPlot
-    calibrationTool.plot_raw_spectra(rawSpectra,0,1e9,20);
+    calibrationTool.plot_raw_spectra(rawSpectra,0,1e4,20);
 end
+
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% get_meteo_data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+logFile.meteo = calibrationTool.get_meteo_data(calibrationTool);
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tipping Curve
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +129,7 @@ disp('Calibrating...')
 
 % Calibration of the spectra using hot and cold load.  TODO: Add tipping
 % There are different option for the calibration:
-% - standard
+% - standard 
 % - debug
 % - time
 % - all
@@ -115,7 +143,7 @@ calibratedSpectra = calibrationTool.check_calibrated(logFile,calibrationTool,cal
 % Option for plotting and saving drift and calibrated spectra
 if calibrationTool.calibratedSpectraPlot
     try
-        calibrationTool.plot_calibrated_spectra(calibrationTool,drift,calibratedSpectra,50,300,24);
+        calibrationTool.plot_calibrated_spectra(calibrationTool,drift,calibratedSpectra,-1,1,16);
     catch ME
         warning(ME.identifier,'problem with the plotting:');
         disp(ME.message)

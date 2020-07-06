@@ -1,8 +1,8 @@
 
 
-function log = harmonize_log_miawarac(log)
+function logFile = harmonize_log_miawarac(logFile)
 %==========================================================================
-% NAME          | harmonize_log_miawarac(log)
+% NAME          | harmonize_log_miawarac(logFile)
 % TYPE          | function
 % AUTHOR(S)     | Franziska Schranz
 % CREATION      | 2020-06-08
@@ -43,36 +43,117 @@ function log = harmonize_log_miawarac(log)
 % For MIAWARA-C
 
 % Add variable time
-log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second)
+logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
 
 % Rainhood
-g = log.DIO1;
+g = logFile.DIO1;
 openbit= 4; 
 closedbit = 2;
-log.rainhood_open = (bitand(g,openbit))==0;
-log.rainhood_closed = (bitand(g,closedbit))==0;
+logFile.rainhood_open = (bitand(g,openbit))==0;
+logFile.rainhood_closed = (bitand(g,closedbit))==0;
 
 % Nyalesund: Bad contact, TH5-Th7 = copy of THot0-4
-if datenum(log.time(1,:),31)>datenum(2015,09,01)
-log.THot4=log.THot0;
-log.THot5=log.THot1;
-log.THot6=log.THot2;
-log.THot7=log.THot3;
+if logFile.time(1,:)>datenum(2015,09,01)
+logFile.THot4=logFile.THot0;
+logFile.THot5=logFile.THot1;
+logFile.THot6=logFile.THot2;
+logFile.THot7=logFile.THot3;
 end
 
 % after June 2013: THot8-15 = copy of THot0-7
-if datenum(log.time(1,:),31)>datenum(2013,06,01)
-log.THot8=log.THot0;
-log.THot9=log.THot1;
-log.THot10=log.THot2;
-log.THot11=log.THot3;
-log.THot12=log.THot4;
-log.THot13=log.THot5;
-log.THot14=log.THot6;
-log.THot15=log.THot7;
+if logFile.time(1,:)>datenum(2013,06,01)
+logFile.THot8=logFile.THot0;
+logFile.THot9=logFile.THot1;
+logFile.THot10=logFile.THot2;
+logFile.THot11=logFile.THot3;
+logFile.THot12=logFile.THot4;
+logFile.THot13=logFile.THot5;
+logFile.THot14=logFile.THot6;
+logFile.THot15=logFile.THot7;
 end
 
+% % add additional field with status(k) balancing
+% for k = 1:length(logFile.Year)
+%     if logFile.Mode_nr(k) == 0
+%         status(k)= 2;   %'tipping_all_sky'; 
+%     elseif logFile.Mode_nr(k) == 2
+%         fprintf('ALLAN VARIANCE => not in db, %s \n',logFile.time(k,:)); 
+%         k=k+1;
+%         continue;
+%     elseif logFile.Mode_nr(k) == 3
+%         status(k)= 3;   %'tipping';
+%     elseif logFile.Mode_nr(k) == 8
+%         status(k)= 4;   %'calib_ln2';
+%     elseif logFile.Mode_nr(k) == 9
+%         status(k)= 5;   %'sun_scan';
+%     elseif logFile.Mode_nr(k) == 10
+%         status(k)= 1;   %'balancing'; %search reference
+%         balancing_mode=3;
+%     elseif logFile.Mode_nr(k) == 11 && logFile.program(k) == 1
+%         status(k)= 1;   %'balancing'; %search sky, balancing left
+%         balancing_mode=1;
+%     elseif logFile.Mode_nr(k) == 12 && logFile.program(k) == 2
+%         status(k)= 1;   %'balancing'; %search sky with auto-ref, balancing left
+%         balancing_mode=2;
+%     elseif logFile.Mode_nr(k) == 15 && logFile.program(k) == 5
+%         status(k)= 1;   %'balancing'; %search sky, balancing right
+%         balancing_mode=1;
+%     elseif logFile.Mode_nr(k) == 16 && logFile.program(k) == 6
+%         status(k)= 1;   %'balancing'; %search sky with auto-ref, balancing right
+%         balancing_mode=2;  
+% 
+%         %%% dual balancing
+%     elseif logFile.Mode_nr(k) == 11 && logFile.program(k) == 7
+%         status(k)= 1;   %'dual_balancing_left'; %dual balancing, search sky, balancing left
+%         balancing_mode=1;
+%     elseif logFile.Mode_nr(k) == 12 && logFile.program(k) == 8
+%         status(k)= 1;   %'dual_balancing_left'; %dual balancing, search sky with auto-ref, balancing left
+%         balancing_mode=2;
+%     elseif logFile.Mode_nr(k) == 15 && logFile.program(k) == 7
+%         status(k)= 1;   %'dual_balancing_right'; %dual balancing, search sky, balancing right
+%         balancing_mode=1;
+%     elseif logFile.Mode_nr(k) == 16 && logFile.program(k) == 8
+%         status(k)= 1;   %'dual_balancing_right'; %dual balancing, search sky with auto-ref, balancing right
+%         balancing_mode=2;  
+%     end
+% end
+  
 
+
+% indices for calibration
+
+isBalancing = logFile.Mode_nr == 11 | logFile.Mode_nr == 12 | logFile.Mode_nr == 15 | logFile.Mode_nr == 16 ;
+isTipping   = logFile.Mode_nr == 3;
+rainhoodOK  = logFile.rainhood_open | logFile.rainhood_open == logFile.RH_closed;
+angleOK     = ( logFile.Mirror_elevation < 65 & logFile.Mirror_elevation  >  5 ) | ( logFile.Mirror_elevation < 175 & logFile.Mirror_elevation > 140 ); % for line
+
+
+logFile.isLine      = isBalancing & rainhoodOK & angleOK & (logFile.Mirror_pos == 0 | logFile.Mirror_pos == 5 | logFile.Mirror_pos == 6 | logFile.Mirror_pos == 7);
+logFile.isHot       = logFile.Mirror_pos == 1 & isTipping;
+logFile.isColdSky   = logFile.Mirror_pos == 3 & isTipping;
+logFile.isRef       = isBalancing & rainhoodOK & logFile.Mirror_pos == 4;
+
+
+% name adaptations
+
+logFile.Elevation_Angle = logFile.Mirror_elevation;
+
+logFile.dir = (logFile.Mode_nr == 11 |logFile.Mode_nr ==12) + 2*(logFile.Mode_nr==15 | logFile.Mode_nr == 16);
+
+% %%% dual balancing
+%         elseif log1.Mode_nr(k) == 11 && log1.program(k) == 7
+%             status='dual_balancing_left'; %dual balancing, search sky, balancing left
+%             balancing_mode=1;
+%         elseif log1.Mode_nr(k) == 12 && log1.program(k) == 8
+%             status='dual_balancing_left'; %dual balancing, search sky with auto-ref, balancing left
+%             balancing_mode=2;
+%         elseif log1.Mode_nr(k) == 15 && log1.program(k) == 7
+%             status='dual_balancing_right'; %dual balancing, search sky, balancing right
+%             balancing_mode=1;
+%         elseif log1.Mode_nr(k) == 16 && log1.program(k) == 8
+%             status='dual_balancing_right'; %dual balancing, search sky with auto-ref, balancing right
+%             balancing_mode=2;  
+%     end
 
 
 end

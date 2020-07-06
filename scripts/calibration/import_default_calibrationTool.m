@@ -24,6 +24,9 @@ function calibrationTool = import_default_calibrationTool(instrumentName,dateStr
 %==========================================================================
 calibrationTool = struct();
 
+% dateStr
+calibrationTool.dateStr=dateStr;
+
 % Name of the instrument
 calibrationTool.instrumentName=instrumentName;
 calibrationTool.dateStr=dateStr;
@@ -328,6 +331,7 @@ switch instrumentName
         calibrationTool.altitude=0;
         calibrationTool.azimuthAngle=0;
         
+            
         % Observation frequency
 %         calibrationTool.observationFreq=%;
 %         
@@ -380,14 +384,15 @@ switch instrumentName
 %         % Corrections
 %         calibrationTool.tWindow=%0.99;
 %         
-%         calibrationTool.checkLevel0=true;
+        calibrationTool.checkLevel0=false;
 % 
-%         calibrationTool.flipped_spectra=%true;
+        calibrationTool.flipped_spectra=false;
 %         calibrationTool.flip_spectra=%@(rawSpectra) flip_spectra_gromos(rawSpectra);
 %         
 %         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %         % Log file from the instrument:
 %         calibrationTool.THotUnit='degreeC';
+
 %         % Function for the harmonization of the log
         calibrationTool.harmonize_log=@(log) harmonize_log_miawarac(log);  
 %         
@@ -407,7 +412,7 @@ switch instrumentName
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
         
         calibrationTool.meteoFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
-        calibrationTool.observationFreq=22;
+        calibrationTool.observationFreq=22.235;
         
         calibrationTool.calibrationTime=60;
         
@@ -419,13 +424,112 @@ switch instrumentName
         calibrationTool.LOFreqTot=1.10e11;
         calibrationTool.DCChannel=1; %=Nchannel/2 ??
         
+        % files for the calibration
+        calibrationTool.channel_freqs = 'miawarac_mysql_channels_freqs.dat';
+        calibrationTool.elcorr_file   = 'miawarac_elcorr.mat';
+        calibrationTool.antenna_file  = 'miawarac_antenna.txt';
 
-        %calibrationTool.read_level0=@(calibrationTool) MIAWARA-C_read(calibrationTool); 
+        calibrationTool.read_level0=@(calibrationTool) read_level0_missing(calibrationTool); 
         
         calibrationTool.filenameLevel1a=['/home/franziska/Documents/MW/play_MIA-C_calibration/MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
         
-        calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,TCold,calType) calibrate_MIAWARA-C(rawSpectra,log,calibrationTool,TCold,calType);
-        calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_MIAWARA-C(log,calibrationTool,calibratedSpectra);
+        calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) run_balancing_calibration(rawSpectra,log,calibrationTool,calType);
+        calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_miawara_c(log,calibrationTool,calibratedSpectra);
+        
+        % tipping curve
+        calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
+        calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_miawarac(rawSpectra,log, calibrationTool);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %% From calibration GROSOM
+    % Type of calibration to do: standard of debug
+    calibrationType='standard';
+
+    % working directory
+    root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
+    %cd work_path
+    addpath(genpath(root_dir))
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Editing the calibrationTool for this particular day and instrument:
+    % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
+    
+    % for gaining time.
+    calibrationTool.level1aExist=false;
+    
+    % Time interval for doing the calibration
+    calibrationTool.calibrationTime=360;
+    
+    % Total integration time
+    calibrationTool.integrationTime=360; %6h
+    
+    % Temperature of the cold load
+    %calibrationTool.TCold=80;
+    
+    %
+    calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
+    calibrationTool.calendar='standard';
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+    calibrationTool.hotSpectraNumberOfStdDev=3;
+    calibrationTool.coldSpectraNumberOfStdDev=3;
+
+    % Filters for flagging "bad channels"
+    % On 10 minutes spectra
+    %calibrationTool.filter1.TbMax=300;
+    %calibrationTool.filter1.TbMin=20;
+    %calibrationTool.filter1.boxCarSize=51;
+    %calibrationTool.filter1.boxCarThresh=7;
+    
+    % On hourly spectra
+    %calibrationTool.filter2.TbMax=300;
+    %calibrationTool.filter2.TbMin=20;
+    %calibrationTool.filter2.boxCarSize=51;
+    %calibrationTool.filter2.boxCarThresh=2;
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Debug mode and plot options
+    
+    calibrationTool.calType=calibrationType;
+    
+    calibrationTool.rawSpectraPlot=true;
+    calibrationTool.calibratedSpectraPlot=true;
+    calibrationTool.integratedSpectraPlot=true;
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Level0 -> Level1a
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    % Selecting the functions that will be used for processing this retrieval
+    % Reading routine to use for the raw data
+%    calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
+    
+    % Quality check for the raw data
+    calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
+    
+    % Reformatting of the raw spectra into a matrix (numberOfSpectra x
+    % numberOfChannels)
+    calibrationTool.reformat_spectra=@(rawSpectra,log,calibrationTool) reformat_spectra_generic(rawSpectra,log,calibrationTool);
+    
+    % Plotting some raw spectra:
+    calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
+    
+    % TODO
+    % Find the sky temperature at zenith with a tipping curve
+%    calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
+    
+    % Function to use for doing the calibration:
+%    calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
+    
+    % Plot some calibrated spectra:
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
+    
+    % Function for quality check of the calibrated spectra
+%    calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
+    
+    % Function saving the calibrated spectra into netCDF file
+    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
+    
+        
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -456,5 +560,23 @@ switch instrumentName
             calibrationTool.tWindow = 0.9922; %value from 30/05/2017 to 20/08/2018
         else
             calibrationTool.tWindow = 0.9980; %value since 21/08/2018
+        end
+    case 'MIAWARA-C'
+        % Meteo
+        YYYY = calibrationTool.dateStr(1:4);
+        MM   = calibrationTool.dateStr(6:7);
+        DD   = calibrationTool.dateStr(9:10);
+        
+        dat  = datenum(dateStr);
+        if dat > datenum('2015-09-01') && dat < datenum(2016,11,25)
+            calibrationTool.get_meteo_data = @(calibrationTool) get_meteo_data_grc(calibrationTool);
+            %calibrationTool.meteoFile = ['/data/miradara3/instrumentdata/gromosc/' YYYY '/GROMOS-C*' YYYY '_' MM '_' DD];
+            calibrationTool.meteoFile = [calibrationTool.rawFileFolder 'GROMOS-C*' YYYY '_' MM '_' DD];
+        elseif dat > datenum('2017-04-06 23:00')
+            calibrationTool.get_meteo_data = @(calibrationTool) get_meteo_data_miac_ownfile(calibrationTool);
+            calibrationTool.meteoFile = [ calibrationTool.rawFileFolder 'MIAWARA-C_meteo_' YYYY MM DD];
+
+        else
+            calibrationTool.get_meteo_data = @(log) get_meteo_data_miac(log);
         end
 end

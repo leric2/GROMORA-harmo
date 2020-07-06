@@ -52,7 +52,7 @@ end
 
 if s(1)=='%';  s(1)=[]; end
 
-if isfield(calibrationTool,'delimiter_logfile')
+if isfield(retrievalTool,'delimiter_logfile')
     header = textscan(s, '%s','delimiter', retrievalTool.delimiter_logfile);
     header = header{1}; % cell array with all header parameters
     N = length(header); % number of header parameters
