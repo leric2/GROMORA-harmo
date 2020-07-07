@@ -1,7 +1,7 @@
 # GROSOM_harmo
 
 ## Summary
-Main repository for the harmonization of GROMOS and SOMORA ozone calibration and retrieval routines. 
+Main repository for the harmonization of GROMOS and SOMORA ozone calibration and retrieval routines. To go in the direction of a unified calibration routine, the work from Franzisca on the MIAWARA-C instrument is now being incorporated to this routine as well. 
 
 The goal of this repository is to enable anyone concerned at the IAP and at MCH to follow and comment on the progression of the new harmonized retrieval routines. 
 
@@ -24,4 +24,3 @@ outdated for now, but might be useful for the final report time will come
 
 ## Contributions
 Contributions from anyone are more than welcome according to the rules defined in the **contributions.md** documents.
-
