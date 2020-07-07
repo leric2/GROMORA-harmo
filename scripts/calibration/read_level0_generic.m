@@ -15,7 +15,9 @@ function [log,rawSpectra] = read_level0_generic(retrievalTool)
 %               | OUTPUTS:  1. Housekeeping structure with field names for each parameter
 %               |           2. [length(file)*#channels] line vector of binary file
 %               |             
-% CALLS         | run_retrieval(retrievalTool);
+% CALLED by     | run_retrieval(retrievalTool);
+%               |
+% CALLS         | readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
 %               |
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DATA FORMAT:
@@ -25,6 +27,7 @@ function [log,rawSpectra] = read_level0_generic(retrievalTool)
 %    (e.g. instrument, software version, commnets of the observer...)
 % -  One line with the name of M housekeeping parameters separated by ' '
 % -  N lines of the houskeeping values with M entries each
+% -  Adapted for files separated with given delimiter e.g. ';' (F. Schranz 2020-06-08)
 %
 % file.bin
 % 32bit floatinig point data 
@@ -49,12 +52,28 @@ end
 
 if s(1)=='%';  s(1)=[]; end
 
-% header = textscan(s, '%s','delimiter', ';');
-header = textscan(s, '%s'); 
-header = header{1}; % cell array with all header parameters
-N = length(header); % number of header parameters
-% x = fscanf(fid, '%f;', [N, inf]);  % data array
-x = fscanf(fid, '%f ', [N, inf]);  % data array
+if isfield(retrievalTool,'delimiter_logfile')
+    header = textscan(s, '%s','delimiter', retrievalTool.delimiter_logfile);
+    header = header{1}; % cell array with all header parameters
+    N = length(header); % number of header parameters
+
+    [y, result] = readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
+    if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
+
+    x = cell2mat(y(2:end,:))';
+    
+else
+    header = textscan(s, '%s'); 
+    
+    header = header{1}; % cell array with all header parameters
+    N = length(header); % number of header parameters
+    % x = fscanf(fid, '%f;', [N, inf]);  % data array
+
+    x = fscanf(fid, '%f ', [N, inf]);  % data array
+    
+end
+
+
 M = size(x,2);     % number of data entries
 fclose(fid);
 
@@ -72,7 +91,7 @@ if isfield(log, {'Hour' 'Minute' 'Second'})
     log.t = log.Hour + log.Minute/60 + log.Second/3600;
 end
 
-% calculate time in [s]
+% calculate time in [s] ?? also hours?
 if isfield(log, {'Hour' 'Min' 'Sec'})
     log.t = log.Hour + log.Min/60 + log.Sec/3600;
 end

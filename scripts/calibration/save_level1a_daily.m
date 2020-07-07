@@ -72,10 +72,10 @@ nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype',
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+% nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+% nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -152,9 +152,9 @@ ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoreti
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
-ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
+% ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
-ncwrite(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
+% ncwrite(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
 ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibrationTime',60*[calibratedSpectra.calibrationTime]);
@@ -298,20 +298,20 @@ attrVal.freq = {'f',...
     'Hz',...
     'frequency vector for the spectrometer'};
 
-attrVal.if = {'if',...
-    'intermediate frequency vector',...
-    'Hz',...
-    'intermediate frequency vector for the spectrometer'};
+% attrVal.if = {'if',...
+%     'intermediate frequency vector',...
+%     'Hz',...
+%     'intermediate frequency vector for the spectrometer'};
 
 attrVal.THot = {'THot',...
     '',...
     'K',...
     'Mean temperature of the hot load'};
 
-attrVal.stdTHot = {'stdTHot',...
-    '',...
-    'K',...
-    'standard deviation of the hot load temperature'};
+% attrVal.stdTHot = {'stdTHot',...
+%     '',...
+%     'K',...
+%     'standard deviation of the hot load temperature'};
 
 attrVal.TSys = {'TSys',...
     '',...
@@ -363,9 +363,9 @@ for i=1:length(attrName)
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
-    ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});
+%     ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
-    ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
+%     ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
     ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
     ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
     ncwriteatt(filename,'/spectrometer1/calibrationTime',attrName{i},attrVal.calibrationTime{i});

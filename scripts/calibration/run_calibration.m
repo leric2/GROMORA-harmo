@@ -76,6 +76,8 @@ logFile = calibrationTool.harmonize_log(logFile);
 % Quality check of the raw data:
 if calibrationTool.checkLevel0
     warningLevel0 = calibrationTool.check_level0(logFile,rawSpectra,calibrationTool);
+    
+    %==============> write overflow spectra
 else
     warningLevel0 = '';
 end
@@ -91,10 +93,34 @@ if calibrationTool.flipped_spectra
     rawSpectra = calibrationTool.flip_spectra(rawSpectra);
 end
 
+% TODO
+% remove channels which are known to be bad (2pol)
+% do not delete channels yet, -> set high error during retrieval
+
+% TODO
+% check_level0
+
+
 % Option for plotting spectra (to be improved...)
 if calibrationTool.rawSpectraPlot
-    calibrationTool.plot_raw_spectra(rawSpectra,0,1e9,20);
+    calibrationTool.plot_raw_spectra(rawSpectra,0,1e4,20);
 end
+
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% get_meteo_data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%logFile.meteo = calibrationTool.get_meteo_data(calibrationTool);
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tipping Curve
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,7 +130,7 @@ disp('Calibrating...')
 
 % Calibration of the spectra using hot and cold load.  TODO: Add tipping
 % There are different option for the calibration:
-% - standard
+% - standard 
 % - debug
 % - time
 % - all
