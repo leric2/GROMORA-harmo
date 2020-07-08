@@ -1,4 +1,4 @@
-function feedback = save_level1a_generic(retrievalTool,log,calibratedSpectra)
+function feedback = save_level1a_generic(calibrationTool,log,calibratedSpectra)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -24,7 +24,7 @@ function feedback = save_level1a_generic(retrievalTool,log,calibratedSpectra)
 % Saving level1a into netCDF file
 % We are using the netcdf package because it offers far more flexibility
 % for the writing.
-locationLevel1a=retrievalTool.level1Folder;
+locationLevel1a=calibrationTool.level1Folder;
 
 % Some additional variables to save in every netCDF files:
 softwareVersion=log.SW_version(1);
@@ -37,7 +37,7 @@ commentRawFile=log.comment;
 
 % Here LOOOP in all calibration cycle
 for t = 1:length(calibratedSpectra)
-    filename=[locationLevel1a retrievalTool.instrumentName '_level1a_' retrievalTool.dateStr '_' sprintf('%02d',t) '.nc'];
+    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.dateStr '_' sprintf('%02d',t) '.nc'];
     %filename=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(t) '.nc'];
     %title=[retrievalTool.instrumentName '_level1a_' dateStr '_' num2str(i)];
     
@@ -60,7 +60,7 @@ for t = 1:length(calibratedSpectra)
     % Scientific Dataset (SDS)
     % First create coordinates variable (enable 'netcdf4' format)
     nccreate(filename,'/SDS/time','Dimensions',{'time',Inf},'Datatype','double','Format','netcdf4');
-    nccreate(filename,'/SDS/channel_idx','Dimensions',{'channel_idx',retrievalTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+    nccreate(filename,'/SDS/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
     
     nccreate(filename,'/SDS/year','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
     nccreate(filename,'/SDS/month','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
@@ -69,7 +69,7 @@ for t = 1:length(calibratedSpectra)
     %nccreate(filename,'/SDS/startTime','Dimensions',{'time',Inf},'Datatype','char','FillValue','NA');
     %nccreate(filename,'/SDS/stopTime','Dimensions',{'time',Inf},'Datatype','char','FillValue','NA');
     
-    nccreate(filename,'/SDS/Tb','Dimensions',{'channel_idx',retrievalTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/SDS/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
     nccreate(filename,'/SDS/meanTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
     nccreate(filename,'/SDS/STD_THOT','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
     nccreate(filename,'/SDS/MEAN_TSYS','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -96,10 +96,10 @@ for t = 1:length(calibratedSpectra)
     % Writing the GLOBAL attributes of the files
     %varid = netcdf.getConstant('NC_GLOBAL');
     % Originator attributes
-    ncwriteatt(filename,'/','PI_NAME',retrievalTool.PI_NAME);
-    ncwriteatt(filename,'/','PI_AFFILIATION',retrievalTool.PI_AFFILIATION);
-    ncwriteatt(filename,'/','PI_ADDRESS',retrievalTool.PI_ADDRESS);
-    ncwriteatt(filename,'/','PI_EMAIL',retrievalTool.PI_EMAIL);
+    ncwriteatt(filename,'/','PI_NAME',calibrationTool.PI_NAME);
+    ncwriteatt(filename,'/','PI_AFFILIATION',calibrationTool.PI_AFFILIATION);
+    ncwriteatt(filename,'/','PI_ADDRESS',calibrationTool.PI_ADDRESS);
+    ncwriteatt(filename,'/','PI_EMAIL',calibrationTool.PI_EMAIL);
     ncwriteatt(filename,'/','DO_NAME','');
     ncwriteatt(filename,'/','DO_AFFILIATION','');
     ncwriteatt(filename,'/','DO_ADDRESS','');
@@ -112,8 +112,8 @@ for t = 1:length(calibratedSpectra)
     ncwriteatt(filename,'/','DATA_DESCRIPTION','Brightness temperature measured by ground-based radiometer');
     ncwriteatt(filename,'/','DATA_DISCIPLINE','ATMOSPHERIC.PHYSICS');
     ncwriteatt(filename,'/','DATA_GROUP','EXPERIMENTAL;...');
-    ncwriteatt(filename,'/','DATA_LOCATION',retrievalTool.dataLocation);
-    ncwriteatt(filename,'/','DATA_SOURCE',retrievalTool.dataSource);
+    ncwriteatt(filename,'/','DATA_LOCATION',calibrationTool.dataLocation);
+    ncwriteatt(filename,'/','DATA_SOURCE',calibrationTool.dataSource);
     ncwriteatt(filename,'/','DATA_VARIABLES','');
     
     ncwriteatt(filename,'/','RAW_DATA',log.file);
@@ -128,9 +128,9 @@ for t = 1:length(calibratedSpectra)
     ncwriteatt(filename,'/','DATA_RULES_OF_USE','');
     
     % Create global variables
-    ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',retrievalTool.lat);
-    ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',retrievalTool.lon);
-    ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',retrievalTool.altitude);
+    ncwriteatt(filename,'/','LATITUDE.INSTRUMENT',calibrationTool.lat);
+    ncwriteatt(filename,'/','LONGITUDE.INSTRUMENT',calibrationTool.lon);
+    ncwriteatt(filename,'/','ALTITUDE.INSTRUMENT',calibrationTool.altitude);
     
     % Global file attributes
     ncwriteatt(filename,'/','FILE_NAME',filename);
@@ -159,7 +159,7 @@ for t = 1:length(calibratedSpectra)
     ncwriteatt(filename,'/SDS/time','units',calibratedSpectra(t).meanDatetimeUnit);
     ncwriteatt(filename,'/SDS/time','calendar',calibratedSpectra(t).calendar);
     
-    ncwrite(filename,'/SDS/channel_idx',1:retrievalTool.numberOfChannels);
+    ncwrite(filename,'/SDS/channel_idx',1:calibrationTool.numberOfChannels);
     
     ncwrite(filename,'/SDS/year',calibratedSpectra(t).year);
     ncwrite(filename,'/SDS/month',calibratedSpectra(t).month);

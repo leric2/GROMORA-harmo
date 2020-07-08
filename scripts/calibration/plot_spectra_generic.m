@@ -8,6 +8,7 @@ l=floor(linspace(1,length(calibratedSpectra),N));
 figure
 clf
 set(gcf, 'PaperPosition', [1 1 19 27.7])
+cm = colormap(parula(N));
 
 if ~isempty(drift)
 
@@ -35,7 +36,7 @@ for i=1:N
     %xlabel('f [GHz]')
     %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
     ylabel('T_B [K]')
-   % ylim([lowerLim,upperLim])
+    ylim([lowerLim,upperLim])
     %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
     hold on
 end
@@ -45,7 +46,7 @@ for i=1:N
     plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
     %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
     ylabel('TN [K]')
-    %ylim([100,5000])
+    ylim([100,5000])
     hold on
 end
 for i=5:6 subplot(3,2,i); xlabel('IF [MHz]'); end
