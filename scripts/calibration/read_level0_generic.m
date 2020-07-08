@@ -1,4 +1,4 @@
-function [log,rawSpectra] = read_level0_generic(retrievalTool)
+function [log,rawSpectra] = read_level0_generic(calibrationTool)
 %==========================================================================
 % NAME          | read_level0_generic.m
 % TYPE          | function
@@ -33,7 +33,7 @@ function [log,rawSpectra] = read_level0_generic(retrievalTool)
 % 32bit floatinig point data 
 %==========================================================================
 
-file=retrievalTool.file;
+file=calibrationTool.file;
 % initialize return value
 log.file = file;
 log.comment = [];
@@ -52,12 +52,12 @@ end
 
 if s(1)=='%';  s(1)=[]; end
 
-if isfield(retrievalTool,'delimiter_logfile')
-    header = textscan(s, '%s','delimiter', retrievalTool.delimiter_logfile);
+if isfield(calibrationTool,'delimiter_logfile')
+    header = textscan(s, '%s','delimiter', calibrationTool.delimiter_logfile);
     header = header{1}; % cell array with all header parameters
     N = length(header); % number of header parameters
 
-    [y, result] = readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
+    [y, result] = readtext([file '.txt'], calibrationTool.delimiter_logfile, '', '"');
     if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
 
     x = cell2mat(y(2:end,:))';
@@ -96,19 +96,18 @@ if isfield(log, {'Hour' 'Min' 'Sec'})
     log.t = log.Hour + log.Min/60 + log.Sec/3600;
 end
 
-
 D = dir([file '.bin']);
 
 if isempty(D)
     rawSpectra=NaN;
 else
-    theoreticalNumberDataEntries=D.bytes/retrievalTool.numberOfChannels/4;    % 4 bytes for each floating point value
+    theoreticalNumberDataEntries=D.bytes/calibrationTool.numberOfChannels/4;    % 4 bytes for each floating point value
 end
 
 % read complete binary data in one vector
 if nargout>1
-    fid = fopen( [file '.bin'], 'r', retrievalTool.binaryType);
-    rawSpectra = fread(fid ,retrievalTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
+    fid = fopen( [file '.bin'], 'r', calibrationTool.binaryType);
+    rawSpectra = fread(fid ,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
 

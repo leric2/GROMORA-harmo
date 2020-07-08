@@ -1,4 +1,4 @@
-function warningLevel0 = check_level0_generic(log,rawSpectra,calibrationTool)
+function warningLevel0 = check_level0_generic(logFile,rawSpectra,calibrationTool)
 %==========================================================================
 % NAME          | check_level0_generic 
 % TYPE          |
@@ -24,7 +24,7 @@ function warningLevel0 = check_level0_generic(log,rawSpectra,calibrationTool)
 warningLevel0='';
 
 % Compare size of the log and raw spectra for this day
-mLog = size(log.x,2);
+mLog = size(logFile.x,2);
 
 % Check if the size of the binary is consistent with the log
 w=whos('rawSpectra');
@@ -42,7 +42,7 @@ end
 % end
 
 % Number of tipping curve calibration for this day
-nTipping=sum(log.Tipping_Curve_active==1)/calibrationTool.tippingSize;
+nTipping=sum(logFile.Tipping_Curve_active==1)/calibrationTool.tippingSize;
 
 try
     assert(((nTipping<calibrationTool.numberOfTippingCurveExpected+calibrationTool.toleranceTippingCurves)&&(nTipping>calibrationTool.numberOfTippingCurveExpected-calibrationTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve_','Number of Tipping unconsistent');
@@ -51,12 +51,29 @@ catch ME
 end
 
 % Approximate number of cycles completed for this day
-nCycles=sum(log.Tipping_Curve_active==0)/6;
+nCycles=sum(logFile.Tipping_Curve_active==0)/6;
 try
     assert(((nCycles<calibrationTool.numberOfCyclesExpected+calibrationTool.toleranceNumberCycles)&&(nCycles>calibrationTool.numberOfCyclesExpected-calibrationTool.toleranceNumberCycles)),'consistency:numberCycles_','Number of cycles unconsistent');
 catch ME
     warningLevel0=append(warningLevel0,ME.identifier);
 end
 
+% Temporal check to keep only exact daily file for the calibration
+t0 = datenum(calibrationTool.dateStr,'yyyy_mm_dd');
+isDayAfter = logFile.time >= t0+1;
+isDayBefore = logFile.time < t0;
+isExtra = (isDayAfter | isDayBefore);
+
+if sum(isExtra) > 0    
+    f = [calibrationTool.extraFileFolder calibrationTool.filename '_extra'];
+    
+    M = rawSpectra(isExtra,:)';
+    fid = fopen([f '.bin'], 'w');
+    fwrite(fid,M(:));
+    fclose(fid);
+    
+    writecell(logFile.header',[f '.txt'],'Delimiter',';')
+    dlmwrite([f '.txt'],logFile.x(:,isExtra)','delimiter',';','-append');
+end
 end
 
