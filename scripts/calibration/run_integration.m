@@ -1,4 +1,4 @@
-function run_integration(calibrationTool)
+function calibrationTool = run_integration(calibrationTool)
 %==========================================================================
 % NAME      | run_integration.m
 % TYPE      | function

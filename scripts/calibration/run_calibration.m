@@ -1,4 +1,4 @@
-function run_calibration(calibrationTool)
+function calibrationTool = run_calibration(calibrationTool)
 %==========================================================================
 % NAME      | run_calibration.m
 % TYPE      | function
@@ -56,7 +56,6 @@ assert(exist([calibrationTool.file '.txt'],'file') && exist([calibrationTool.fil
 % Start calibration
 disp(['Starting the calibration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
 %%
-if ~calibrationTool.level1aExist
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,13 +86,6 @@ end
 if calibrationTool.flipped_spectra
     rawSpectra = calibrationTool.flip_spectra(rawSpectra);
 end
-
-% TODO
-% remove channels which are known to be bad (2pol)
-% do not delete channels yet, -> set high error during retrieval
-
-% TODO
-% check_level0
 
 % Option for plotting spectra (to be improved...)
 if calibrationTool.rawSpectraPlot
@@ -147,16 +139,16 @@ calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,calibrate
 disp('Warning Level0-1a :')
 disp(warningLevel0)
 
-disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+disp('Calibration successful')
+calibrationTool.successfulCalibration = true;
 
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 %%
 % Clearing some variables for space
 clear rawSpectra; 
 clear calibratedSpectra;
 
-end
-
-% %%
+%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % Level 1a to level 1b
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

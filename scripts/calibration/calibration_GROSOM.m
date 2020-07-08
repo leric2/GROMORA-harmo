@@ -37,7 +37,7 @@ instrumentName='GROMOS';
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_03_07','yyyy_mm_dd'):datenum('2019_03_07','yyyy_mm_dd');
+dates=datenum('2019_01_11','yyyy_mm_dd'):datenum('2019_01_11','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
@@ -49,8 +49,8 @@ addpath(genpath(root_dir))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for k = 1:numel(dates)
-    dateStr=datestr(dates(k),'yyyy_mm_dd');
+for d = 1:numel(dates)
+    dateStr=datestr(dates(d),'yyyy_mm_dd');
     
     % Import default tools for running a retrieval for a given instrument
     calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
@@ -73,7 +73,7 @@ for k = 1:numel(dates)
     % Debug mode and plot options
     calibrationTool.calType=calibrationType;
     
-    calibrationTool.rawSpectraPlot=true;
+    calibrationTool.rawSpectraPlot=false;
     calibrationTool.calibratedSpectraPlot=true;
     calibrationTool.integratedSpectraPlot=true;
 
@@ -101,8 +101,8 @@ for k = 1:numel(dates)
         % Temperature of the cold load
         calibrationTool.TCold=80;        
         % TOCHANGE
-        %calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
-        calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
+        calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
+        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
     
         % Function specific to this instrument
         % meteo Data
@@ -134,9 +134,9 @@ for k = 1:numel(dates)
         try
             % if commented, nothing happens --> developping purposes
             if ~calibrationTool.level1aExist
-                %run_calibration(calibrationTool)
+                calibrationTool = run_calibration(calibrationTool);
             end
-            %run_integration(calibrationTool)  
+            calibrationTool = run_integration(calibrationTool);
         end
     else
         for m=1:3
