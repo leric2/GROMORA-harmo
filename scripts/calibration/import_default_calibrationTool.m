@@ -36,21 +36,8 @@ calibrationTool.lightSpeed=299792458; % [m/s]
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
-   
 calibrationTool.h=6.62606876e-34; % [J/s]
 calibrationTool.kb=1.38065e-23;    % [J/K]
-
-%calibrationTool.hotTemperatureStdThreshold=0.05;
-
-% minimum number of indices (h-a-c) we want in a calibration cycle for it
-% to be valid
-%calibrationTool.minNumberOfIndicePerCycle=5;
-
-%calibrationTool.numberOfAquisitionSpectraHot=60000;
-%calibrationTool.numberOfAquisitionSpectraAntenna=120000;
-%calibrationTool.numberOfAquisitionSpectraCold=120000;
-
-%calibrationTool.TSysThresh=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Importing default parameters for each instruments
@@ -58,10 +45,12 @@ calibrationTool.kb=1.38065e-23;    % [J/K]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GROMOS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch instrumentName
     case 'GROMOS'
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Meta data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.dataLocation='BERN';
         calibrationTool.PI_NAME='Murk;Axel';
         calibrationTool.PI_AFFILIATION='Universtiy of Bern;UBERN';
@@ -78,13 +67,13 @@ switch instrumentName
         % Observation frequency
         calibrationTool.observationFreq=1.4217504e11;
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Spectrometer data:
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.numberOfSpectrometer=1;
         calibrationTool.spectrometer='AC240';
-        
         calibrationTool.samplingRateFFTS=2000;
-        
+       
         calibrationTool.numberOfChannels=32768;
         
         % Local oscillators information
@@ -97,44 +86,31 @@ switch instrumentName
         %calibrationTool.DCChannel=16384;
         calibrationTool.instrumentBandwidth=1e9;
         %calibrationTool.LOFreq=1.45875e11;
-  
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Parameters for flagging
-        calibrationTool.TSysCenterTh=2750;
-        calibrationTool.TSysThresh=100;
-        calibrationTool.stdTSysThresh=8;
+        % Known bad channels for the instrument
+        calibrationTool.badChannels=[16384 16385];
         
-        calibrationTool.THotTh=313.9;
-        calibrationTool.THotAbsThresh=2;
+        calibrationTool.numberOfAquisitionSpectraHot=60000;
+        calibrationTool.numberOfAquisitionSpectraAntenna=120000;
+        calibrationTool.numberOfAquisitionSpectraCold=120000;
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Folder, Raw and log file data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Path definition (for local computer only)
+        % calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
+        % taken on the IAP lake, To Be mounted beforehand
+        calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
+        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/';
         
-        calibrationTool.numberOfTippingCurveExpected=48;
-        calibrationTool.toleranceTippingCurves=2;
-        calibrationTool.elevationAngleAntenna=40;
-        calibrationTool.elevationAngleCold=-89;
-        % -89 before 2020 ?????
-        %calibrationTool.elevationAngleCold=-84;
-        calibrationTool.elevationAngleHot=160;
+        calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
+        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
-        calibrationTool.elevationAngleTolerance=5;
-        % Considering the expected number of tipping curve:
-        calibrationTool.numberOfCyclesExpected=1500;
-        calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
-        calibrationTool.tippingSize=27;
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Corrections
-        calibrationTool.tWindow=0.99;
-        
-        calibrationTool.checkLevel0=true;
-
-        calibrationTool.flipped_spectra=true;
-        calibrationTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Log file from the instrument:
+        % Log file
+        calibrationTool.delimiter_logfile = '\t';
         calibrationTool.THotUnit='degreeC';
+        
         % Function for the harmonization of the log
         calibrationTool.harmonize_log=@(log) harmonize_log_gromos(log);  
         
@@ -142,14 +118,137 @@ switch instrumentName
         calibrationTool.indiceAntenna=1;
         calibrationTool.indiceHot=2;
         
-        % Calibration outlier management
+        calibrationTool.elevationAngleAntenna=40;
+        calibrationTool.elevationAngleCold=-89;
+        % -89 before 2020 ?????
+        %calibrationTool.elevationAngleCold=-84;
+        calibrationTool.elevationAngleHot=160;
+
+        
+        calibrationTool.flipped_spectra=true;
+        calibrationTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);   
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Flags parameters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Raw File and Log
+        calibrationTool.numberOfTippingCurveExpected=48;
+        calibrationTool.toleranceTippingCurves=2;
+        
+        calibrationTool.elevationAngleTolerance=5;
+        % Considering the expected number of tipping curve:
+        calibrationTool.numberOfCyclesExpected=1500;
+        calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
+        calibrationTool.tippingSize=27;
+        
+        % Temperatures
+        calibrationTool.TSysCenterTh=2750;
+        calibrationTool.TSysThresh=100;
+        calibrationTool.stdTSysThresh=8;
+        
+        calibrationTool.THotTh=313.9;
+        calibrationTool.THotAbsThresh=2;
+        
+        calibrationTool.hotTemperatureStdThreshold=0.05;
+        
+        % Calibration
+        % minimum number of indices (h-a-c) we want in a calibration cycle for it
+        % to be valid
+        calibrationTool.minNumberOfIndicePerCycle=5;
         calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
+        
+        % Filters for flagging "bad channels"
+        % On 10 minutes spectra
+        calibrationTool.filter1.TbMax=300;
+        calibrationTool.filter1.TbMin=20;
+        calibrationTool.filter1.boxCarSize=51;
+        calibrationTool.filter1.boxCarThresh=7;
+        
+        % On hourly spectra
+        calibrationTool.filter2.TbMax=300;
+        calibrationTool.filter2.TbMin=20;
+        calibrationTool.filter2.boxCarSize=51;
+        calibrationTool.filter2.boxCarThresh=2;
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Meteo Data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Corrections
+        calibrationTool.tWindow=0.99;
+        
+        calibrationTool.checkLevel0=true;
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Level0 -> Level1a functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+        % Selecting the functions that will be used for processing this
+        % calibration
+        
+        % Reading routine to use for the raw data
+        calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
+    
+        % Quality check for the raw data
+        calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
+        
+        % Reformatting of the raw spectra into a matrix (numberOfSpectra x
+        % numberOfChannels)
+        calibrationTool.reformat_spectra=@(rawSpectra,log,calibrationTool) reformat_spectra_generic(rawSpectra,log,calibrationTool);
+        
+        % Plotting some raw spectra:
+        calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
+        
+        % TODO
+        % Find the sky temperature at zenith with a tipping curve
+        %    calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
+        
+        % Function to use for doing the calibration:
+        calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
+        
+        % Plot some calibrated spectra:
+        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
+        
+        % Function for quality check of the calibrated spectra
+        calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
+        
+        % Function saving the calibrated spectra into netCDF file
+        calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Level1a -> Level1b functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        % Function reading the daily calibrated spectra from netCDF file
+        calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
+        
+        % Check of the channels quality on the calibrated spectra:
+        calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
+        
+        % Integration of level1a data
+        calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);
+        
+        % Function for plotting the integrated spectra (when hourly)
+        calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
+        
+        calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
+        
+        % Window correction for the calibrated spectra
+        calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
+        
+        % Function saving the calibrated spectra into netCDF file
+        calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);
+        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SOMORA    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     case 'SOMORA'
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Meta data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.dataLocation='PAYERNE';
         calibrationTool.PI_NAME='';
         calibrationTool.PI_AFFILIATION='Swiss Meteorological Institute;MCH';
@@ -166,8 +265,9 @@ switch instrumentName
         % Observation frequency
         calibrationTool.observationFreq=1.4217504e11;
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Spectrometer data:
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.numberOfSpectrometer=1;
         calibrationTool.spectrometer='AC240';
         
@@ -184,37 +284,29 @@ switch instrumentName
         calibrationTool.instrumentBandwidth=1e9;
         calibrationTool.LOFreq=1.4927504e11; %TOCHECK
         calibrationTool.samplingRateFFTS=2000;
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Parameters for flagging
         
-        calibrationTool.TSysCenterTh=2750;
-        calibrationTool.TSysThresh=100;
-        calibrationTool.stdTSysThresh=8;
+        calibrationTool.badChannels=1:104;
         
-        calibrationTool.THotTh=311.1;
-        calibrationTool.THotAbsThresh=2;
-        
-        calibrationTool.checkLevel0=true;
-        
-        calibrationTool.numberOfTippingCurveExpected=4;
-        calibrationTool.toleranceTippingCurves=2;
-        
-        
-        calibrationTool.numberOfCyclesExpected=3940;
-        calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
-        
-        calibrationTool.tippingSize=5;
-        calibrationTool.elevationAngleAntenna=38;
-        calibrationTool.elevationAngleCold=-90;
-        calibrationTool.elevationAngleHot=180;
-        calibrationTool.elevationAngleTolerance=5;
-
         calibrationTool.flipped_spectra=false;
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Log file from the instrument:
-        % The log needs to be harmonized, for now taking gromos as basis
+        calibrationTool.numberOfAquisitionSpectraHot=60000;
+        calibrationTool.numberOfAquisitionSpectraAntenna=120000;
+        calibrationTool.numberOfAquisitionSpectraCold=120000;
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Folder, Raw and log file data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
+        %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+        %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+        calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
+        %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+        calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
+        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
+        
+        % Log
+        calibrationTool.delimiter_logfile = '\t';
         calibrationTool.harmonize_log=@(log) harmonize_log_somora(log);
         calibrationTool.THotUnit='K';
         
@@ -222,13 +314,119 @@ switch instrumentName
         calibrationTool.indiceAntenna=1;
         calibrationTool.indiceHot=2;
         
-        % Calibration outlier management
+        calibrationTool.elevationAngleAntenna=38;
+        calibrationTool.elevationAngleCold=-90;
+        calibrationTool.elevationAngleHot=180;
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Flags parameters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Raw File and Log
+        calibrationTool.numberOfCyclesExpected=3940;
+        calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
+        
+        calibrationTool.tippingSize=5;
+
+        calibrationTool.elevationAngleTolerance=5;        
+        
+        %Temperature
+        calibrationTool.TSysCenterTh=2750;
+        calibrationTool.TSysThresh=100;
+        calibrationTool.stdTSysThresh=8;
+        
+        calibrationTool.THotTh=311.1;
+        calibrationTool.THotAbsThresh=2;
+        calibrationTool.hotTemperatureStdThreshold=0.05;
+        calibrationTool.checkLevel0=true;
+        
+        calibrationTool.numberOfTippingCurveExpected=4;
+        calibrationTool.toleranceTippingCurves=2;
+        
+        % Calibration
+        % minimum number of indices (h-a-c) we want in a calibration cycle for it
+        % to be valid
+        calibrationTool.minNumberOfIndicePerCycle=5;
         calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
+        
+        
+        
+        % Filters for flagging "bad channels"
+        % On 10 minutes spectra
+        calibrationTool.filter1.TbMax=300;
+        calibrationTool.filter1.TbMin=20;
+        calibrationTool.filter1.boxCarSize=51;
+        calibrationTool.filter1.boxCarThresh=7;
+        
+        % On hourly spectra
+        calibrationTool.filter2.TbMax=300;
+        calibrationTool.filter2.TbMin=20;
+        calibrationTool.filter2.boxCarSize=51;
+        calibrationTool.filter2.boxCarThresh=2;
 
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Level0 -> Level1a functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+        % Selecting the functions that will be used for processing this
+        % calibration
+        
+        % Selecting the functions that will be used for processing this retrieval
+        % Reading routine to use for the raw data
+        calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
+    
+        % Quality check for the raw data
+        calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
+        
+        % Reformatting of the raw spectra into a matrix (numberOfSpectra x
+        % numberOfChannels)
+        calibrationTool.reformat_spectra=@(rawSpectra,log,calibrationTool) reformat_spectra_generic(rawSpectra,log,calibrationTool);
+        
+        % Plotting some raw spectra:
+        calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
+        
+        % TODO
+        % Find the sky temperature at zenith with a tipping curve
+        %    calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
+        
+        % Function to use for doing the calibration:
+        calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
+        
+        % Plot some calibrated spectra:
+        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
+        
+        % Function for quality check of the calibrated spectra
+        calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
+        
+        % Function saving the calibrated spectra into netCDF file
+        calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Level1a -> Level1b functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        % Function reading the daily calibrated spectra from netCDF file
+        calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
+        
+        % Check of the channels quality on the calibrated spectra:
+        calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
+        
+        % Integration of level1a data
+        calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);
+        
+        % Function for plotting the integrated spectra (when hourly)
+        calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
+        
+        calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
+        
+        % Window correction for the calibrated spectra
+        calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
+        
+        % Function saving the calibrated spectra into netCDF file
+        calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);
+        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MOPI       
-    case 'mopi5'
+    case 'MOPI5'
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Meta data
         calibrationTool.dataLocation='BERN';
@@ -406,10 +604,12 @@ switch instrumentName
         calibrationTool.delimiter_logfile = ';';
 % paths
         calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
-        %calibrationTool.rawFileFolder=['/scratch/mopi_rawData/'];
+        calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
+        %calibrationTool.rawFileFolder=['/scratch/'];
         calibrationTool.level1Folder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
         
-        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
+        calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
+        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
         calibrationTool.meteoFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
         calibrationTool.observationFreq=22.235;

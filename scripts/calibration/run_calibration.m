@@ -73,6 +73,12 @@ disp('Reading level0 data...')
 % instrument and might need date information later ?).
 logFile = calibrationTool.harmonize_log(logFile);
 
+%% TO CHECK IF RIGHT
+% Reformat the raw spectra from vector to matrix
+if size(rawSpectra,1) == 1
+    rawSpectra = calibrationTool.reformat_spectra(rawSpectra,logFile,calibrationTool);
+end
+
 % Quality check of the raw data:
 if calibrationTool.checkLevel0
     warningLevel0 = calibrationTool.check_level0(logFile,rawSpectra,calibrationTool);
@@ -82,11 +88,6 @@ else
     warningLevel0 = '';
 end
 
-%% TO CHECK IF RIGHT
-% Reformat the raw spectra from vector to matrix
-if size(rawSpectra,1) == 1
-    rawSpectra = calibrationTool.reformat_spectra(rawSpectra,logFile,calibrationTool);
-end
 
 % when needed, flip it !
 if calibrationTool.flipped_spectra
@@ -99,7 +100,6 @@ end
 
 % TODO
 % check_level0
-
 
 % Option for plotting spectra (to be improved...)
 if calibrationTool.rawSpectraPlot

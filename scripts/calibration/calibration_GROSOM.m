@@ -30,18 +30,19 @@
 
 clear; close all; clc;
 
-% 'GROMOS' // 'SOMORA' // 'mopi5'
+% 'GROMOS' // 'SOMORA' // 'MOPI5' // 'MIAWARA-C'
 instrumentName='SOMORA';
 
 % Type of calibration to do: standard of debug
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2018_03_02','yyyy_mm_dd'):datenum('2018_03_02','yyyy_mm_dd');
+dates=datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_01_01','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
-% root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
+%root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
+root_dir = pwd;
 %cd work_path
 addpath(genpath(root_dir))
 
@@ -61,154 +62,70 @@ for k = 1:numel(dates)
     % for gaining time.
     calibrationTool.level1aExist=false;
     
-    % Time interval for doing the calibration
-    calibrationTool.calibrationTime=10;
-    
-    % Total integration time
-    calibrationTool.integrationTime=60;
-    
-    % Temperature of the cold load
-    calibrationTool.TCold=80;
-    
-    %
     calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
     calibrationTool.calendar='standard';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     calibrationTool.hotSpectraNumberOfStdDev=3;
     calibrationTool.coldSpectraNumberOfStdDev=3;
-
-    % Filters for flagging "bad channels"
-    % On 10 minutes spectra
-    %calibrationTool.filter1.TbMax=300;
-    %calibrationTool.filter1.TbMin=20;
-    %calibrationTool.filter1.boxCarSize=51;
-    %calibrationTool.filter1.boxCarThresh=7;
-    
-    % On hourly spectra
-    %calibrationTool.filter2.TbMax=300;
-    %calibrationTool.filter2.TbMin=20;
-    %calibrationTool.filter2.boxCarSize=51;
-    %calibrationTool.filter2.boxCarThresh=2;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Debug mode and plot options
-    
     calibrationTool.calType=calibrationType;
     
     calibrationTool.rawSpectraPlot=true;
     calibrationTool.calibratedSpectraPlot=true;
     calibrationTool.integratedSpectraPlot=true;
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Level0 -> Level1a
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    % Selecting the functions that will be used for processing this retrieval
-    % Reading routine to use for the raw data
-%    calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
-    
-    % Quality check for the raw data
-    calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
-    
-    % Reformatting of the raw spectra into a matrix (numberOfSpectra x
-    % numberOfChannels)
-    calibrationTool.reformat_spectra=@(rawSpectra,log,calibrationTool) reformat_spectra_generic(rawSpectra,log,calibrationTool);
-    
-    % Plotting some raw spectra:
-    calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
-    
-    % TODO
-    % Find the sky temperature at zenith with a tipping curve
-%    calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
-    
-    % Function to use for doing the calibration:
-%    calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
-    
-    % Plot some calibrated spectra:
-    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
-    
-    % Function for quality check of the calibrated spectra
-%    calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
-    
-    % Function saving the calibrated spectra into netCDF file
-    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Level1a -> Level1b
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-%     % Function reading the daily calibrated spectra from netCDF file
-%     calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
-%     
-%     % Check of the channels quality on the calibrated spectra:
-%     calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
-%     
-%     % Integration of level1a data
-%     calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);
-%     
-%     % Function for plotting the integrated spectra (when hourly)
-%     calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
-%     
-%     calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
-%     
-%     % Window correction for the calibrated spectra
-%     calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
-%     
-%     % Function saving the calibrated spectra into netCDF file
-%     calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % GROMOS
+    % On the long term this should be all taken from import_default_calTool
+    
     if strcmp(instrumentName,'GROMOS')
-        % Path definition (for local computer only)
-        %calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
-        calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
-        calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/';
-        calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
-        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
-        
-        % Some parameters to play with
-        calibrationTool.badChannels=[16384 16385];
-        
-        % Function specific to this instrument
-        % meteo Data
-        calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
-        
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % SOMORA
+        % Time interval for doing the calibration
+        calibrationTool.calibrationTime=10;
+    
+        % Total integration time
+        calibrationTool.integrationTime=60;
+    
+        % Temperature of the cold load
+        calibrationTool.TCold=80;
     elseif strcmp(instrumentName, 'SOMORA')
-        %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
-        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
-        %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
-        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-        calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
+        % Time interval for doing the calibration
+        calibrationTool.calibrationTime=10;
+    
+        % Total integration time
+        calibrationTool.integrationTime=60;
+    
+        % Temperature of the cold load
+        calibrationTool.TCold=80;        
         % TOCHANGE
         %calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
         calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
-        
-        
-        calibrationTool.badChannels=1:104;
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
         % Function specific to this instrument
         % meteo Data
         calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_payerne(calibrationTool,correctedSpectra);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MOPI
-    elseif strcmp(instrumentName,'mopi5')
+    elseif strcmp(instrumentName,'MOPI5')
         % FOR MOPI:
         % Everything stored into "import_default_calibrationTool"
+        calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
+        
+        % Time interval for doing the calibration
+        calibrationTool.calibrationTime=10;
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MIAWARA-C
+        % Total integration time
+        calibrationTool.integrationTime=60;
+    
+        % Temperature of the cold load
+        calibrationTool.TCold=80;
+        
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
         % Everything stored into "import_default_calibrationTool"
     end
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Launching the calibration process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
