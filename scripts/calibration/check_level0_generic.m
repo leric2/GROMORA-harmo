@@ -74,6 +74,8 @@ if sum(isExtra) > 0
     
     writecell(logFile.header',[f '.txt'],'Delimiter',';')
     dlmwrite([f '.txt'],logFile.x(:,isExtra)','delimiter',';','-append');
+    disp('Some extra timestamp have been saved, please make sure to use "read_level0_missing" function');
+    warningLevel0=append(warningLevel0,'extra_timestamp');
 end
 end
 
