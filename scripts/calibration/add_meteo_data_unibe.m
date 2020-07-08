@@ -1,4 +1,4 @@
-function calibratedSpectra = get_meteo_data_unibe(retrievalTool,calibratedSpectra)
+function calibratedSpectra = add_meteo_data_unibe(calibrationTool,calibratedSpectra)
 %==========================================================================
 % NAME          | get_meteo_data_unibe
 % TYPE          | function
@@ -22,10 +22,10 @@ function calibratedSpectra = get_meteo_data_unibe(retrievalTool,calibratedSpectr
 %==========================================================================
 
 
-if datetime(str2num(retrievalTool.dateStr(1:4)),str2num(retrievalTool.dateStr(6:7)),str2num(retrievalTool.dateStr(9:10))) > datetime(2017,08,10)
+if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateStr(6:7)),str2num(calibrationTool.dateStr(9:10))) > datetime(2017,08,10)
     % First reading the Meteo dataset for this day
-    dateStringMeteo=[retrievalTool.dateStr(1:4) '-' retrievalTool.dateStr(6:7) '-' retrievalTool.dateStr(9:10)];
-    meteoDataFile=[retrievalTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
+    dateStringMeteo=[calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)];
+    meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
     
     % Transforming it into matlab structure
     T=readtable(meteoDataFile);
