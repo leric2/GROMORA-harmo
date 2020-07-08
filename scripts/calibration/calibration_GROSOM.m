@@ -31,13 +31,13 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'MOPI5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard of debug
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_01_01','yyyy_mm_dd');
+dates=datenum('2019_03_07','yyyy_mm_dd'):datenum('2019_03_07','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
@@ -133,7 +133,10 @@ for k = 1:numel(dates)
     if calibrationTool.numberOfSpectrometer==1
         try
             % if commented, nothing happens --> developping purposes
-            %run_calibration(calibrationTool)
+            if ~calibrationTool.level1aExist
+                %run_calibration(calibrationTool)
+            end
+            %run_integration(calibrationTool)  
         end
     else
         for m=1:3
