@@ -31,8 +31,14 @@ if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateSt
     T=readtable(meteoDataFile);
     meteoData=table2struct(T);
     
+    meteoData(1).precipitation = meteoData(1).rain_accumulation;
     for i = 1:length(meteoData)
         meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-datenum(1970,1,1);
+        
+        % TODO Check units
+        if i>1
+            meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
+        end
     end
 else
     disp('format of meteo data changed before the 10th of August 2017') 

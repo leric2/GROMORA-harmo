@@ -32,6 +32,6 @@ for t=1:length(calibratedSpectra)
     calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData(rowInd).air_temperature))+273.15;
     calibratedSpectra(t).meanRelHumidity=0.01*nanmean(vertcat(meteoData(rowInd).rel_humidity));
     calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData(rowInd).air_pressure));
-    calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).rain_accumulation));
+    calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData(rowInd).precipitation));
 end
 end
