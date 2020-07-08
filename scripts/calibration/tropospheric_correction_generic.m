@@ -80,7 +80,7 @@ for t = 1:length(spectra)
         transmittance = (Tmean - Twing)./(Tmean - Tbg);
         
         % Method used in GROMOS and SOMORA
-        r = read_datafile(sprintf('/home/esauvageat/Documents/GROSOM/RetrievalFiles/standard.spectrum.above.troposphere.aa', path) , 'matrix');
+        r = read_datafile(sprintf('/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/standard.spectrum.above.troposphere.aa', path) , 'matrix');
         T_strat = ( mean(r(1:2)) + mean(r((end-1):end)) ) /2;
         meanTWings=mean(Twing);
         

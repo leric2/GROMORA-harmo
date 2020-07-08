@@ -119,9 +119,7 @@ switch instrumentName
         calibrationTool.indiceHot=2;
         
         calibrationTool.elevationAngleAntenna=40;
-        calibrationTool.elevationAngleCold=-89;
-        % -89 before 2020 ?????
-        %calibrationTool.elevationAngleCold=-84;
+        calibrationTool.elevationAngleCold=-84;
         calibrationTool.elevationAngleHot=160;
 
         
@@ -175,7 +173,21 @@ switch instrumentName
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
-        calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
+        
+        % Read meteo data
+        calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
+        
+        % Add meteo data to calibrated spectra
+        % calibrationTool.add_meteo_data = @(calibrationTool,correctedSpectra) add_meteo_data_unibe(calibrationTool,correctedSpectra);
+        calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Tipping curve
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % TODO
+        calibrationTool.doTippingCurve = false;
+        %calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
+        %calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_gromos(rawSpectra,log, calibrationTool);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Corrections
@@ -349,8 +361,6 @@ switch instrumentName
         calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
         
-        
-        
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
         calibrationTool.filter1.TbMax=300;
@@ -363,7 +373,20 @@ switch instrumentName
         calibrationTool.filter2.TbMin=20;
         calibrationTool.filter2.boxCarSize=51;
         calibrationTool.filter2.boxCarThresh=2;
-
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Meteo Data
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Tipping curve
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % TODO
+        calibrationTool.doTippingCurve = false;
+        %calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
+        %calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_gromos(rawSpectra,log, calibrationTool);
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Level0 -> Level1a functions
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
@@ -603,9 +626,9 @@ switch instrumentName
 %         calibrationTool.threshNumRawSpectraCold=%0.05*calibrationTool.numberOfChannels;
         calibrationTool.delimiter_logfile = ';';
 % paths
-        calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
+        %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
         calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
-        %calibrationTool.rawFileFolder=['/scratch/'];
+        calibrationTool.rawFileFolder=['/scratch/'];
         calibrationTool.level1Folder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
@@ -628,7 +651,7 @@ switch instrumentName
         calibrationTool.channel_freqs = 'miawarac_mysql_channels_freqs.dat';
         calibrationTool.elcorr_file   = 'miawarac_elcorr.mat';
         calibrationTool.antenna_file  = 'miawarac_antenna.txt';
-
+        
         calibrationTool.read_level0=@(calibrationTool) read_level0_missing(calibrationTool); 
         
         calibrationTool.filenameLevel1a=['/home/franziska/Documents/MW/play_MIA-C_calibration/MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
@@ -741,7 +764,17 @@ timeNumber=datenum(str2num(dateStr(1:4)),str2num(dateStr(6:7)),str2num(dateStr(9
 
 switch instrumentName
     case 'GROMOS'
-        % ...
+        % Elevation angle of the cold load
+        if timeNumber<datenum(2014,07,03)
+            calibrationTool.elevationAngleCold=NaN;
+            disp('elevation angle to determine for this period')
+        elseif (timeNumber>= datenum(2014,12,01) && timeNumber<datenum(2019,2,11)) 
+                calibrationTool.elevationAngleCold=-85;
+        elseif (timeNumber>= datenum(2019,12,02) && timeNumber<datenum(2019,2,27)) 
+                calibrationTool.elevationAngleCold=-89;
+        elseif timeNumber >= datenum(2019,04,01)
+            calibrationTool.elevationAngleCold=-84;
+        end
     case 'SOMORA'
         % window transmission 
         if timeNumber<datenum(2007,07,03) %attn anciennement  733957 cad 3 juillet 2009 mais FAUX
