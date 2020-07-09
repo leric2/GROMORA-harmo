@@ -1,4 +1,4 @@
-function [calib,calibrationTool] = read_level1a_daily(calibrationTool)
+function [calib, meteoData, calibrationTool] = read_level1a_daily(calibrationTool)
 %==========================================================================
 % NAME          | read_level1a_daily.m
 % TYPE          | function
@@ -100,6 +100,13 @@ calibrationTool.logFile.calibration_flags_meaning = [
     string(ncreadatt(filename,'/flags/calibration_flags','errorCode_5')),...
     string(ncreadatt(filename,'/flags/calibration_flags','errorCode_6'))];
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reading the meteo variables
+meteoData.dateTime = ncread(filename,'/meteo/time')';
+meteoData.air_pressure = ncread(filename,'/meteo/air_pressure')';
+meteoData.air_temperature = ncread(filename,'/meteo/air_temperature')';
+meteoData.rel_humidity = ncread(filename,'/meteo/relative_humidity')';
+meteoData.precipitation = ncread(filename,'/meteo/precipitation')';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading global attributes

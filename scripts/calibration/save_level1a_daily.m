@@ -108,6 +108,14 @@ nccreate(filename,'/flags/flags','Dimensions',{'flags',lenErrorVect},'Datatype',
 nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,'time',Inf},'Datatype','int64','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Meteo Data
+nccreate(filename,'/meteo/time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/air_pressure','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/air_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/relative_humidity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/precipitation','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Write netCDF variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % Scientific Dataset (spectrometer1,2,...)
@@ -211,6 +219,27 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Writing Meteo Data
+if isfield(logFile,'meteo') && ~isempty(logFile.meteo)
+    ncwrite(filename,'/meteo/time',[logFile.meteo.dateTime]);
+    ncwrite(filename,'/meteo/air_pressure',[logFile.meteo.air_pressure]);
+    ncwrite(filename,'/meteo/air_temperature',[logFile.meteo.air_temperature]);
+    ncwrite(filename,'/meteo/relative_humidity',[logFile.meteo.rel_humidity]);
+    ncwrite(filename,'/meteo/precipitation',[logFile.meteo.precipitation]);
+else
+    ncwrite(filename,'/meteo/time',-9999);
+    ncwrite(filename,'/meteo/air_pressure',-9999);
+    ncwrite(filename,'/meteo/air_temperature',-9999);
+    ncwrite(filename,'/meteo/relative_humidity',-9999);
+    ncwrite(filename,'/meteo/precipitation',-9999);
+end
+
+% add time attributes directly
+ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/time','description','time from the meteo stations');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global Attributes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Originator attributes
@@ -264,7 +293,7 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Variables attributes for the spectrometers group
+% Variables attributes for the spectrometers and meteo group
 % The following are required for each variable (CF convention):
 attrName={'long_name','standard_name','units','description'};
 
@@ -363,6 +392,27 @@ attrVal.TWindow = {'TWindow',...
     'K',...
     'mean window temperature'};
 
+% for Meteo data:
+attrVal.airP = {'air_pressure',...
+    '',...
+    'hPa',...
+    'air pressure at the station'};
+
+attrVal.airT = {'air_temperature',...
+    '',...
+    'K',...
+    'air temperature at the station'};
+
+attrVal.relH = {'relative_humidity',...
+    '',...
+    '1',...
+    'relative humidity of the air at the station'};
+
+attrVal.precipitation = {'precipitation',...
+    '',...
+    '...',...
+    'precipitation'};
+
 % Ugly and open to suggestion
 for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/timeOfDay',attrName{i},attrVal.tod{i});
@@ -384,6 +434,12 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
+    
+    % Meteo attr
+    ncwriteatt(filename,'/meteo/air_pressure',attrName{i},attrVal.airP{i});
+    ncwriteatt(filename,'/meteo/air_temperature',attrName{i},attrVal.airT{i});
+    ncwriteatt(filename,'/meteo/relative_humidity',attrName{i},attrVal.relH{i});
+    ncwriteatt(filename,'/meteo/precipitation',attrName{i},attrVal.precipitation{i});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

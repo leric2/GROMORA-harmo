@@ -12,7 +12,7 @@ function calibrationTool = run_integration(calibrationTool)
 %           | 
 %           |
 % ARGUMENTS | INPUTS: - calibrationTool: structure containing all
-%           | information about the calibration we want to perform.
+%           | information about the integration we want to perform.
 %           | Documentation about this structure can be found in external
 %           | document.
 %           |
@@ -56,16 +56,19 @@ disp(['Starting the integration process for ' calibrationTool.instrumentName ': 
 % integrated spectra that will be added later (level1b.integration) 
 level1b = struct();
 
-[level1b.calibratedSpectra, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
+[level1b.calibratedSpectra, meteoData, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now because no Payerne dataset
 % calibrationTool.meteoFolder = '/mnt/instrumentdata/meteo/exwi/meteo/';
 % calibrationTool.get_meteo_data  =  @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
 
-% Reading meteo data during this day --> to be done from lvl1a directly
-meteoData = calibrationTool.read_meteo_data(calibrationTool)
-level1b.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1b.calibratedSpectra);
+if isempty(meteoData)
+    %TODO
+    disp('no meteo data for this day...')
+else
+    level1b.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1b.calibratedSpectra);
+end
 
 % checking the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
@@ -103,6 +106,10 @@ end
 %%
 % Saving integrated spectra (level1b) into NetCDF-4 file
 disp('Saving Level 1b...')
-calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
+if calibrationTool.numberOfSpectrometer > 1
+    %TODO save the 4 integrated spectra in 1 level1b
+else
+    calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
+end
 
 end
