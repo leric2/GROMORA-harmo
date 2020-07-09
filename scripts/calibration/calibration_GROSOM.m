@@ -134,7 +134,7 @@ for d = 1:numel(dates)
         try
             % if commented, nothing happens --> developping purposes
             if ~calibrationTool.level1aExist
-                calibrationTool = run_calibration(calibrationTool);
+                %calibrationTool = run_calibration(calibrationTool);
             end
             %calibrationTool = run_integration(calibrationTool);
         end
