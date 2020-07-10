@@ -51,10 +51,12 @@ meteoData=struct();
 
 for i = 1:length(met)
     meteoData(i).dateTime=dateTime(i);
-    meteoData(i).air_temperature=met(i,2);
+    meteoData(i).air_temperature=met(i,2) + calibrationTool.zeroDegInKelvin;
     meteoData(i).rel_humidity=met(i,3);
     meteoData(i).air_pressure=met(i,4);
     meteoData(i).precipitation=met(i,5);
+    %meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
+    meteoData(i).tod = 24*(met(i,1) - met(1,1));
 end
 
 end

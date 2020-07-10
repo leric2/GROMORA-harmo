@@ -29,7 +29,7 @@ for t=1:length(calibratedSpectra)
     % Selecting the interesting values for each calibration cycle:
     rowInd=([meteoData.dateTime]>=calibratedSpectra(t).timeMin & [meteoData.dateTime]<=stop);
     
-    calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData.air_temperature(rowInd)))+273.15;
+    calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData.air_temperature(rowInd)));
     calibratedSpectra(t).meanRelHumidity=0.01*nanmean(vertcat(meteoData.rel_humidity(rowInd)));
     calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData.air_pressure(rowInd)));
     calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData.precipitation(rowInd)));
