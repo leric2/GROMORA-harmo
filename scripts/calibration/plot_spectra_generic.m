@@ -52,7 +52,7 @@ if ~isempty(meteoData)
     ylabel(ax2(1),({'relH [%]'}))
 end
 for i=1:6; subplot(3,2,i); grid on; end
-print(fig,[calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpsc','-fillpage')
+print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-fillpage')
 close
 
 fig2 = figure('visible','off');
@@ -92,7 +92,7 @@ for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
 
 %legend(TOD)
 %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
-print(fig2,[calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpsc','-append','-fillpage')
+print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
 %saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'jpg')
 close
 

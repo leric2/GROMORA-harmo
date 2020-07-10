@@ -4,17 +4,18 @@ try
     % plotting a spectra every numberOfSpectraToGroup measurements
     TOD={};
     N=24;
-    fig=figure();
+    fig=figure('visible','off');
     clf
     set(gcf, 'PaperPosition', [1 1 19 27.7])
-    suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
+    orient(fig,'landscape')
+    %suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
     cm = colormap(jet(N));
     TOD{1}=[num2str(0) ' h'];
     hold on
     subplot(2,2,[1,3]); 
     for i=1:N
         plot(integratedSpectra(i).if,integratedSpectra(i).Tb,'Color',cm(i,:));
-        title('')
+        %title([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
         
@@ -50,9 +51,9 @@ try
     title('Corrected (troposphere), good channels')
     grid on
     
-    orient(fig,'landscape')
+    
     % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
-    print([calibrationTool.level1Folder 'integratedSpectra' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
+    print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
     close
 
 catch ME
