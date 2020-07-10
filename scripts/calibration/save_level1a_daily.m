@@ -235,9 +235,9 @@ else
 end
 
 % add time attributes directly
-ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/time','description','time from the meteo stations');
+ncwriteatt(filename,'/meteo/time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/meteo/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/meteo/time','description','time from the meteo stations');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global Attributes
