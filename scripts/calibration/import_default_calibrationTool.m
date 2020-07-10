@@ -32,12 +32,18 @@ calibrationTool.instrumentName=instrumentName;
 calibrationTool.dateStr=dateStr;
 
 % Valid properties for all instruments
-calibrationTool.lightSpeed=299792458; % [m/s] 
+
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
+% Physical constant
+calibrationTool.lightSpeed=299792458; % [m/s] 
 calibrationTool.h=6.62606876e-34; % [J/s]
 calibrationTool.kb=1.38065e-23;    % [J/K]
+
+calibrationTool.zeroDegInKelvin = 273.15;
+
+calibrationTool.backgroundMWTb = 2.7;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Importing default parameters for each instruments
@@ -246,7 +252,7 @@ switch instrumentName
         % Function for plotting the integrated spectra (when hourly)
         calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
         
-        calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
+        calibrationTool.tropospheric_correction = @(integration,calibrationTool,TtropCorr) tropospheric_correction_generic(integration,calibrationTool,TtropCorr);
         
         % Window correction for the calibrated spectra
         calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
@@ -378,6 +384,12 @@ switch instrumentName
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Read meteo data
+        calibrationTool.meteoFolder=['/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/MeteoDataSOMORA/METEO_DATA_' dateStr(1:4) '/'];
+        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
+    
+        % Function specific to this instrument
+        % meteo Data
+        %calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_payerne(calibrationTool,correctedSpectra);
         calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_payerne(calibrationTool);
         calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -416,7 +428,7 @@ switch instrumentName
         calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
         
         % Plot some calibrated spectra:
-        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
+        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
         
         % Function for quality check of the calibrated spectra
         calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
@@ -440,7 +452,7 @@ switch instrumentName
         % Function for plotting the integrated spectra (when hourly)
         calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
         
-        calibrationTool.tropospheric_correction = @(integration,TtropCorr) tropospheric_correction_generic(integration,TtropCorr);
+        calibrationTool.tropospheric_correction = @(integration,calibrationTool,TtropCorr) tropospheric_correction_generic(integration,calibrationTool,TtropCorr);
         
         % Window correction for the calibrated spectra
         calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
@@ -769,9 +781,9 @@ switch instrumentName
         if timeNumber<datenum(2014,07,03)
             calibrationTool.elevationAngleCold=NaN;
             disp('elevation angle to determine for this period')
-        elseif (timeNumber>= datenum(2014,12,01) && timeNumber<datenum(2019,2,11)) 
+        elseif (timeNumber>= datenum(2014,12,01) && timeNumber<datenum(2018,2,11)) 
                 calibrationTool.elevationAngleCold=-85;
-        elseif (timeNumber>= datenum(2019,12,02) && timeNumber<datenum(2019,2,27)) 
+        elseif (timeNumber>= datenum(2018,12,02) && timeNumber<datenum(2019,3,11)) 
                 calibrationTool.elevationAngleCold=-89;
         elseif timeNumber >= datenum(2019,04,01)
             calibrationTool.elevationAngleCold=-84;

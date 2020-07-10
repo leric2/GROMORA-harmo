@@ -31,13 +31,13 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'MOPI5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard of debug
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_01_11','yyyy_mm_dd'):datenum('2019_01_11','yyyy_mm_dd');
+dates=datenum('2019_10_02','yyyy_mm_dd'):datenum('2019_10_02','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
@@ -100,13 +100,7 @@ for d = 1:numel(dates)
     
         % Temperature of the cold load
         calibrationTool.TCold=80;        
-        % TOCHANGE
-        calibrationTool.meteoFolder='/home/esauvageat/Documents/GROSOM/Analysis/MeteoFile/METEO_DATA/';
-        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
-    
-        % Function specific to this instrument
-        % meteo Data
-        calibrationTool.get_meteo_data = @(calibrationTool,correctedSpectra) get_meteo_data_payerne(calibrationTool,correctedSpectra);
+
     elseif strcmp(instrumentName,'MOPI5')
         % FOR MOPI:
         % Everything stored into "import_default_calibrationTool"
@@ -131,12 +125,20 @@ for d = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now, we keep it dirty for separating between GROSOM and MOPI
     if calibrationTool.numberOfSpectrometer==1
-        try
             % if commented, nothing happens --> developping purposes
-            if ~calibrationTool.level1aExist
-                %calibrationTool = run_calibration(calibrationTool);
+        if ~calibrationTool.level1aExist
+            try
+                calibrationTool = run_calibration(calibrationTool);
+            catch ME
+                warning('Problem with the calibration:');
+                disp(ME.message)
             end
-            %calibrationTool = run_integration(calibrationTool);
+        end
+        try
+            calibrationTool = run_integration(calibrationTool);
+        catch ME
+            warning('Problem with the integration:');
+            disp(ME.message)
         end
     else
         for m=1:3

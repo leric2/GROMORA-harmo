@@ -46,7 +46,7 @@ assert(exist([calibrationTool.file '.txt'],'file') && exist([calibrationTool.fil
 
 % Start calibration
 disp(['Starting the calibration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
-%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
