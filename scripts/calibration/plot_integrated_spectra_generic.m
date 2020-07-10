@@ -29,7 +29,7 @@ try
     
     subplot(2,2,2); 
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).Tbcorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
+        plot(integratedSpectra(i).if,integratedSpectra(i).TbWinCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
         
@@ -41,7 +41,9 @@ try
     
     subplot(2,2,4);
     for i=1:N
+       
         plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
+        
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
 

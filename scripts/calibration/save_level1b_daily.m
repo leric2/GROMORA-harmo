@@ -99,7 +99,10 @@ nccreate(filename,'/spectrometer1/numberOfAntennaSpectra','Dimensions',{'time',I
 nccreate(filename,'/spectrometer1/tropospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/tropospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
+nccreate(filename,'/meteo/time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/meteo/air_pressure','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/meteo/air_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/meteo/relative_humidity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/meteo/precipitation','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -178,10 +181,10 @@ ncwrite(filename,'/spectrometer1/number_calibrated_spectra',[integratedSpectra.n
 
 % Tropospheric correction data:
 ncwrite(filename,'/spectrometer1/tropospheric_transmittance',[integratedSpectra.troposphericTransmittance]);
-ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integratedSpectra(1).transmittanceMethod);
+ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integratedSpectra(1).troposphericCorrType);
 
 ncwrite(filename,'/spectrometer1/tropospheric_opacity',[integratedSpectra.troposphericOpacity]);
-ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).transmittanceMethod);
+ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).troposphericCorrType);
 
 % Data that are not present for every instrument
 if isfield(integratedSpectra,'TempRoom')
@@ -192,14 +195,14 @@ else
     ncwrite(filename,'/spectrometer1/stdTRoom',-9999*ones(length(integratedSpectra),1));
 end
 
-if isfield(integratedSpectra,'TempOut')
-    ncwrite(filename,'/spectrometer1/TOut',[integratedSpectra.TempOut]);
+if isfield(integratedSpectra,'TOut')
+    ncwrite(filename,'/spectrometer1/TOut',[integratedSpectra.TOut]);
 else
     ncwrite(filename,'/spectrometer1/TOut',-9999*ones(length(integratedSpectra),1));
 end
 
-if isfield(integratedSpectra,'TempWindow')
-    ncwrite(filename,'/spectrometer1/TWindow',[integratedSpectra.TempWindow]);
+if isfield(integratedSpectra,'TWindow')
+    ncwrite(filename,'/spectrometer1/TWindow',[integratedSpectra.TWindow]);
 else
     ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(integratedSpectra),1));
 end
@@ -210,7 +213,13 @@ ncwrite(filename,'/spectrometer1/numberOfAntennaSpectra',[integratedSpectra.numA
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
+ncwrite(filename,'/meteo/time',[integratedSpectra.meanDatetime]);
+ncwriteatt(filename,'/meteo/time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/meteo/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/meteo/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
+
 ncwrite(filename,'/meteo/air_temperature',[integratedSpectra.meanAirTemperature]);
+ncwrite(filename,'/meteo/air_pressure',[integratedSpectra.meanAirPressure]);
 ncwrite(filename,'/meteo/relative_humidity',[integratedSpectra.meanRelativeHumidity]);
 ncwrite(filename,'/meteo/precipitation',[integratedSpectra.rainAccumulation]);
 

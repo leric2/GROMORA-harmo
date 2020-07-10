@@ -76,12 +76,12 @@ level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.cal
 
 % Compute tropospheric transmittance and correction for every calibrated
 % spectra.
-level1b.calibratedSpectra = calibrationTool.tropospheric_correction(level1b.calibratedSpectra,10.4);
+level1b.calibratedSpectra = calibrationTool.tropospheric_correction(level1b.calibratedSpectra, calibrationTool,10.4);
 
 % Integrating the "good spectra" based on tropospheric transmittance and
 % calibration flags. --> To improve. Maybe introduce weighted mean of
 % spectra based on tropospheric transmittance ?
-level1b = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1b);
+level1b.integration = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1b.calibratedSpectra);
 
 %% Correction and checks
 % Now on the integrated spectra; checking the quality of the channels and 
@@ -89,11 +89,15 @@ level1b = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1b);
 level1b.integration = calibrationTool.checking_channel_quality(level1b.integration,calibrationTool,2);
 
 % Performing window correction
-level1b = calibrationTool.window_correction(calibrationTool,level1b);
+level1b.integration = calibrationTool.window_correction(calibrationTool,level1b.integration);
 
 % Compute tropospheric transmittance and correction for every integrated
 % spectra.
-level1b.integration = calibrationTool.tropospheric_correction(level1b.integration,10.4);
+level1b.integration = calibrationTool.tropospheric_correction(level1b.integration, calibrationTool,10.4);
+
+% Check integrated spectra and define the flags for level1b
+% level1b.integration = calibrationTool.check_integrated(level1b.integration, calibrationTool);
+
 
 % sideband correction ?
 % TODO
@@ -111,5 +115,8 @@ if calibrationTool.numberOfSpectrometer > 1
 else
     calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
 end
+
+disp('Integration successful')
+calibrationTool.successfulIntegration = true;
 
 end
