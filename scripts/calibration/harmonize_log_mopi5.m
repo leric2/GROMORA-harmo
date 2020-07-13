@@ -47,6 +47,10 @@ if length(log.Day)==1
     log.Day=ones(length(log.t),1)*log.Day;
 end
 
+log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+
+
 log.Tipping_Curve_active=zeros(length(log.t),1);
 
 % Hot temperature is in °C:

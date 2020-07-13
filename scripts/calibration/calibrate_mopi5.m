@@ -1,4 +1,4 @@
-function [drift,calibratedSpectra] = calibrate_mopi5(rawSpectra,log,retrievalTool,TCold,calType)
+function [drift,calibratedSpectra] = calibrate_mopi5(rawSpectra,logFile,calibrationTool,TCold,calType)
 %==========================================================================
 % NAME          | calibrate_generic.m
 % TYPE          | function
@@ -24,13 +24,13 @@ function [drift,calibratedSpectra] = calibrate_mopi5(rawSpectra,log,retrievalToo
 calibVersion='1.0.0';
 
 % CalibrationTime in Minute
-calibTime=retrievalTool.calibrationTime;
+calibTime=calibrationTool.calibrationTime;
 
 % Finding all indices of each type for this day that are not part of a
 % tipping curve calibration
-hotIndices=find(log.Position==retrievalTool.indiceHot & log.Measurement_NoiseDiode'==0);
-antennaIndices=find(log.Position==retrievalTool.indiceAntenna & log.Measurement_NoiseDiode'==0);
-coldIndices=find(log.Position==retrievalTool.indiceCold & log.Measurement_NoiseDiode'==0);
+hotIndices=find(logFile.Position==calibrationTool.indiceHot & logFile.Measurement_NoiseDiode'==0);
+antennaIndices=find(logFile.Position==calibrationTool.indiceAntenna & logFile.Measurement_NoiseDiode'==0);
+coldIndices=find(logFile.Position==calibrationTool.indiceCold & logFile.Measurement_NoiseDiode'==0);
 
 % % Indices for C-H-A with ND off/on
 % C={
@@ -44,7 +44,7 @@ coldIndices=find(log.Position==retrievalTool.indiceCold & log.Measurement_NoiseD
 
 % Checking the mean values to find the bug... From Axel
 % Variations of mean amplitude and Tsys with time
-TH=mean(log.T_Hot_Absorber);
+TH=mean(logFile.T_Hot_Absorber);
 % drift.t  = log.t(hotIndices);
 % drift.T  = log.T_Hot_Absorber(hotIndices,:);
 % drift.a(1,:) = mean(rawSpectra(coldIndices,:),2,'omitnan');
@@ -74,9 +74,9 @@ timeThresh=0:calibTime/60:24;
 
 % Starting time for the complete cycle (will be the basis for separating
 % the cycles according to calibrationTime). 
-startingTimesHot=log.t(hotIndices);
-startingTimesCold=log.t(coldIndices);
-startingTimesAntennaAll=log.t(antennaIndices);
+startingTimesHot=logFile.t(hotIndices);
+startingTimesCold=logFile.t(coldIndices);
+startingTimesAntennaAll=logFile.t(antennaIndices);
 % Storing the indices specific to each calibration cycle in a new
 % structure because by separating by time, we do not have the same
 % number of individual cycle per calibration cycle
@@ -118,8 +118,8 @@ for i=1:nCalibrationCycles
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Checking and removing any spurious angle for hot and cold
-    hotAngleCheck=~(log.Elevation_Angle(ih)==retrievalTool.elevationAngleHot);
-    coldAngleCheck=~(log.Elevation_Angle(ic)==retrievalTool.elevationAngleCold);
+    hotAngleCheck=~(logFile.Elevation_Angle(ih)==calibrationTool.elevationAngleHot);
+    coldAngleCheck=~(logFile.Elevation_Angle(ic)==calibrationTool.elevationAngleCold);
     
     if sum(hotAngleCheck>0)
         %ih=ih(~hotAngleCheck);
@@ -151,11 +151,11 @@ for i=1:nCalibrationCycles
     medianRawCountsHot=nanmedian(rawSpectra(ih,:),1);
     medianRawCountsCold=nanmedian(rawSpectra(ic,:),1);
     
-    medStdDevThreshHot=abs((rawSpectra(ih,:)-medianRawCountsHot))>retrievalTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:),1);
-    medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>retrievalTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
+    medStdDevThreshHot=abs((rawSpectra(ih,:)-medianRawCountsHot))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:),1);
+    medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>calibrationTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
     
-    ih=ih(sum(medStdDevThreshHot,2)<retrievalTool.threshNumRawSpectraHot);
-    ic=ic(sum(medStdDevThreshCold,2)<retrievalTool.threshNumRawSpectraCold);
+    ih=ih(sum(medStdDevThreshHot,2)<calibrationTool.threshNumRawSpectraHot);
+    ic=ic(sum(medStdDevThreshCold,2)<calibrationTool.threshNumRawSpectraCold);
     
     calibratedSpectra(i).spuriousHotSpectra=initSizeHot-length(ih);
     calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic);  
@@ -224,7 +224,7 @@ switch calType
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
-            antennaAngleCheck=abs(log.Elevation_Angle(calibratedSpectra(i).antennaInd)-retrievalTool.elevationAngleAntenna)>retrievalTool.elevationAngleTolerance;
+            antennaAngleCheck=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             if any(antennaAngleCheck)==1
                 calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck);
             else
@@ -237,12 +237,12 @@ switch calType
             
             allIndice=[calibratedSpectra(i).antennaIndCleanAngle; calibratedSpectra(i).hotInd ; calibratedSpectra(i).coldInd];
             
-            calibratedSpectra(i).tod=log.t(allIndice)';
+            calibratedSpectra(i).tod=logFile.t(allIndice)';
             
             % Hot temperature corresponding to all spectra in this cycle
-            calibratedSpectra(i).allTHot=log.T_Hot_Absorber(allIndice)';
-            calibratedSpectra(i).THot=nanmean(log.T_Hot_Absorber(allIndice));
-            calibratedSpectra(i).stdTHot=nanstd(log.T_Hot_Absorber(allIndice));
+            calibratedSpectra(i).allTHot=logFile.T_Hot_Absorber(allIndice)';
+            calibratedSpectra(i).THot=nanmean(logFile.T_Hot_Absorber(allIndice));
+            calibratedSpectra(i).stdTHot=nanstd(logFile.T_Hot_Absorber(allIndice));
             
             sizeToConsider=min([length(calibratedSpectra(i).globalAntennaCounts),length(calibratedSpectra(i).globalColdCounts),length(calibratedSpectra(i).globalHotCounts)]);
             
