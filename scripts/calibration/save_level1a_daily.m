@@ -27,12 +27,10 @@ function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibrated
 %==========================================================================
 
 % Filename and location for DAILY netCDF file
-locationLevel1a=calibrationTool.level1Folder;
-
 if calibrationTool.calType=="debug"
-    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
+    filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
 else
-    filename=[locationLevel1a calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+    filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 end
 calibrationTool.filenameLevel1a=filename;
 
@@ -295,6 +293,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers and meteo group
 % The following are required for each variable (CF convention):
+ncwriteatt(filename,'/spectrometer1','spectrometerType',calibrationTool.spectrometer);
+
 attrName={'long_name','standard_name','units','description'};
 
 attrVal.tod = {'TOD',...
