@@ -39,6 +39,7 @@ function log = harmonize_log_gromos(log)
 % For GROMOS
 % Add variable time
 log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
 
 % Hot temperature is in °C:
 log.T_Hot_Absorber=log.T_Hot + 273.15; % to replace with calibrationTool.zeroDegInKelvin ?

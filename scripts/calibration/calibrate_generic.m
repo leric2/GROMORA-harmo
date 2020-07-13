@@ -1,4 +1,4 @@
-function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,standardLog,calibrationTool,calType)
+function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,logFile,calibrationTool,calType)
 %==========================================================================
 % NAME          | calibrate_generic.m
 % TYPE          | function
@@ -40,15 +40,24 @@ calibVersion='1.0.0';
 % CalibrationTime in Minute
 calibTime=calibrationTool.calibrationTime;
 
-initialIndices={
-    find(standardLog.Position==calibrationTool.indiceHot & standardLog.Tipping_Curve_active==0);      % Hot
-    find(standardLog.Position==calibrationTool.indiceAntenna & standardLog.Tipping_Curve_active==0);  % Antenna
-    find(standardLog.Position==calibrationTool.indiceCold & standardLog.Tipping_Curve_active==0);     % Cold
-};
-
-% Now we read complete half cycle Up (c-a-h) and Down (h-a-c) separately
-[firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(standardLog,calibrationTool);
-
+if strcmp(calibrationTool.instrumentName,'mopi5')
+    initialIndices={
+        find(logFile.Position==calibrationTool.indiceHot & logFile.Measurement_NoiseDiode'==0);     % Hot
+        find(logFile.Position==calibrationTool.indiceAntenna & logFile.Measurement_NoiseDiode'==0); % Antenna
+        find(logFile.Position==calibrationTool.indiceCold & logFile.Measurement_NoiseDiode'==0);    % Cold
+        };
+else
+    initialIndices={
+        find(logFile.Position==calibrationTool.indiceHot & logFile.Tipping_Curve_active==0);      % Hot
+        find(logFile.Position==calibrationTool.indiceAntenna & logFile.Tipping_Curve_active==0);  % Antenna
+        find(logFile.Position==calibrationTool.indiceCold & logFile.Tipping_Curve_active==0);     % Cold
+        };
+end
+    
+if strcmp(calType,'debug')
+    % Now we read complete half cycle Up (c-a-h) and Down (h-a-c) separately
+    [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(logFile,calibrationTool);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Building the drift structure
 % --> mainly for visualization
@@ -60,16 +69,17 @@ initialIndices={
 for i=1:length(initialIndices); 	cn(i) = length(initialIndices{i}); end;
 for i=1:length(initialIndices); 	initialIndices{i}=initialIndices{i}(1:min(cn)); end;
 
-dailyMeanTHot=mean(standardLog.T_Hot_Absorber);
+dailyMeanTHot=mean(logFile.T_Hot_Absorber);
 
-drift.t  = standardLog.t(initialIndices{1});
-drift.T  = standardLog.T_Hot_Absorber(initialIndices{1});
+drift.t  = logFile.t(initialIndices{1});
+drift.dateTime  = logFile.dateTime(initialIndices{1});
+drift.T  = logFile.T_Hot_Absorber(initialIndices{1});
 drift.a(1,:) = mean(rawSpectra(initialIndices{1},:),2,'omitnan');
 drift.a(2,:) = mean(rawSpectra(initialIndices{2},:),2,'omitnan');
 drift.a(3,:) = mean(rawSpectra(initialIndices{3},:),2,'omitnan');
 drift.Y    = drift.a(1,:) ./  drift.a(3,:);
 drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.TCold)./ (drift.Y-1);
-drift.TSysLog=standardLog.FE_T_Sys(initialIndices{1});
+drift.TSysLog=logFile.FE_T_Sys(initialIndices{1});
 drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.TCold) + calibrationTool.TCold;
 
 drift.dailyMedianHotSpectra=median(rawSpectra(initialIndices{1},:),1,'omitnan');
@@ -82,18 +92,25 @@ drift.dailyStdColdSpectra=nanstd(rawSpectra(initialIndices{3},:));
 % into the different calibration cycle
 
 % Threshold for the separation, calibTime has to be in [min]
-dt=calibTime/60; % in [h]
-timeThresh=0:dt:24;
+%dt=calibTime/60; % in [h]
+%timeInter=0:dt:24;
+%timeThresh2 = [datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day) : dt : datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day +1)]
+%timeThresh = datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day) + timeInter;
+
+dt = hours(calibTime/60);
+
+timeThresh = datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day):dt:datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1);
 
 % Starting time for the complete cycle (will be the basis for separating
 % the cycles according to calibrationTime). 
-startingTimesHot=standardLog.t(initialIndices{1});
-startingTimesAntennaAll=standardLog.t(initialIndices{2});
-startingTimesCold=standardLog.t(initialIndices{3});
+startingTimesHot=logFile.dateTime(initialIndices{1});
+startingTimesAntennaAll=logFile.dateTime(initialIndices{2});
+startingTimesCold=logFile.dateTime(initialIndices{3});
 
-startingTimesUp=standardLog.t(firstIndHalfUp);
-startingTimesDown=standardLog.t(firstIndHalfDown);
-
+if strcmp(calType,'debug')
+    startingTimesUp=logFile.dateTime(firstIndHalfUp);
+    startingTimesDown=logFile.dateTime(firstIndHalfDown);
+end
 % Storing the indices specific to each calibration cycle in a new
 % structure because by separating by time, we do not have the same
 % number of individual cycle per calibration cycle
@@ -108,13 +125,14 @@ for i = 1:length(timeThresh)-1
     indices(i).validAntenna=initialIndices{2}(condAntenna);
     indices(i).validHot=initialIndices{1}(condHot);
     indices(i).validCold=initialIndices{3}(condCold);
+    if strcmp(calType,'debug')
+        % The same for Up and Down calibration
+        condUp=startingTimesUp>timeThresh(i) & startingTimesUp<timeThresh(i)+dt;
+        condDown=startingTimesDown>timeThresh(i) & startingTimesDown<timeThresh(i)+dt;
     
-    % The same for Up and Down calibration
-    condUp=startingTimesUp>timeThresh(i) & startingTimesUp<timeThresh(i)+dt;
-    condDown=startingTimesDown>timeThresh(i) & startingTimesDown<timeThresh(i)+dt;
-    
-    indices(i).validColdStartUp=[firstIndHalfUp(condUp); firstIndHalfUp(condUp)+1; firstIndHalfUp(condUp)+2];
-    indices(i).validHotStartDown=[firstIndHalfDown(condDown); firstIndHalfDown(condDown)+1; firstIndHalfDown(condDown)+2];
+        indices(i).validColdStartUp=[firstIndHalfUp(condUp); firstIndHalfUp(condUp)+1; firstIndHalfUp(condUp)+2];
+        indices(i).validHotStartDown=[firstIndHalfDown(condDown); firstIndHalfDown(condDown)+1; firstIndHalfDown(condDown)+2];
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,6 +147,7 @@ calibratedSpectra=struct();
 nCalibrationCycles=length(indices);
 
 for i=1:nCalibrationCycles
+
     calibratedSpectra(i).theoreticalStartTime=timeThresh(i);
     
     % hot and cold indices for this calib cycle
@@ -137,17 +156,17 @@ for i=1:nCalibrationCycles
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Checking and removing any spurious angle for hot and cold
-    hotAngleCheck=~(standardLog.Elevation_Angle(ih)==calibrationTool.elevationAngleHot);
-    coldAngleCheck=~(standardLog.Elevation_Angle(ic)==calibrationTool.elevationAngleCold);
+    hotAngleCheck=~(logFile.Elevation_Angle(ih)==calibrationTool.elevationAngleHot);
+    coldAngleCheck=~(logFile.Elevation_Angle(ic)==calibrationTool.elevationAngleCold);
     
-    if sum(hotAngleCheck>0)
+    if sum(hotAngleCheck)>0
         ih=ih(~hotAngleCheck);
         %calibratedSpectra(i).hotAngleRemoved=sum(hotAngleCheck);
 %     else
 %         calibratedSpectra(i).hotAngleRemoved=0;
     end
     
-    if sum(coldAngleCheck>0)
+    if sum(coldAngleCheck)>0
         ic=ic(~coldAngleCheck);
         %calibratedSpectra(i).coldAngleRemoved=sum(coldAngleCheck);
 %     else
@@ -175,37 +194,43 @@ for i=1:nCalibrationCycles
     %medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>calibrationTool.hotSpectraNumberOfStdDev*drift.dailyStdHotSpectra;
     %medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>calibrationTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
     
-    ih=ih(sum(medStdDevThreshHot,2)<calibrationTool.threshNumRawSpectraHot);
-    ic=ic(sum(medStdDevThreshCold,2)<calibrationTool.threshNumRawSpectraCold);
+    outlierDetectHot = sum(medStdDevThreshHot,2)<calibrationTool.threshNumRawSpectraHot;
+    outlierDetectCold = sum(medStdDevThreshCold,2)<calibrationTool.threshNumRawSpectraCold;
     
-    calibratedSpectra(i).spuriousHotSpectra=initSizeHot-length(ih);
-    calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic);  
+    ic=ic(outlierDetectCold);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isempty(ih)
         % Use drift structure for additionnal quality check
-        k=find(drift.t >= standardLog.t(ih(1)) & drift.t <=standardLog.t(ih(end)));
+        k=find(drift.dateTime >= logFile.dateTime(ih(1)) & drift.dateTime <= logFile.dateTime(ih(end)));
     
         Tn_drift_i=drift.Tn(k);
         Ta_drift_i=drift.Ta(k);
     
-        outliers = find( abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>6*std(Ta_drift_i));
-    
-        if ~isempty(outliers)
+        outliers = (abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>6*std(Ta_drift_i))';
+        
+        ih = ih(outliers | outlierDetectHot);
+        k = k(outliers | outlierDetectHot);
+        %if ~isempty(outliers)
 %             out=[];
 %             for n=1:length(outliers)
 %                 out=[out ih(standardLog.t(ih) == drift.t(k(outliers(n))))];
 %             end
-            ih(outliers)=[];
-            k(outliers)=[];
-        end
+            %ih(outliers )=[];
+            %k(outliers)=[];
+        %end
         % Also used for stddev TSYS
         calibratedSpectra(i).TSysDrift=drift.Tn(k);
+        calibratedSpectra(i).meanTSysDrift=nanmean(drift.Tn(k));
+        calibratedSpectra(i).stdTSys=nanstd(drift.Tn(k));
     else
         calibratedSpectra(i).TSysDrift=NaN;
+        calibratedSpectra(i).meanTSysDrift=NaN;
+        calibratedSpectra(i).stdTSys=NaN;
     end
-    calibratedSpectra(i).meanTSysDrift=nanmean(drift.Tn(k));
-    calibratedSpectra(i).stdTSys=nanstd(drift.Tn(k));
+    
+    calibratedSpectra(i).spuriousHotSpectra=initSizeHot-length(ih);
+    calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic);  
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -231,8 +256,8 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).stdColdSpectra=nanstd(rawSpectra(ic,:),1);
     
     % Hot temperature corresponding to the hot spectra (to all spectra ?)
-    calibratedSpectra(i).THot=nanmean(standardLog.T_Hot_Absorber([ih,ic]));
-    calibratedSpectra(i).stdTHot=nanstd(standardLog.T_Hot_Absorber([ih,ic]));
+    calibratedSpectra(i).THot=nanmean(logFile.T_Hot_Absorber([ih,ic]));
+    calibratedSpectra(i).stdTHot=nanstd(logFile.T_Hot_Absorber([ih,ic]));
     
     % Computation of Final (clean) Tsys and its std deviation for this
     % cycle
@@ -255,23 +280,23 @@ switch calType
             ia=reshape(indices(i).validAntenna,1,[]);
             
             % Antenna measurements inside a half cycle
-            iaUp=reshape(indices(i).validColdStartUp(2,:),1,[]);
-            iaDown=reshape(indices(i).validHotStartDown(2,:),1,[]);
+            %iaUp=reshape(indices(i).validColdStartUp(2,:),1,[]);
+            %iaDown=reshape(indices(i).validHotStartDown(2,:),1,[]);
             
             % Checking for NaN in the antenna spectra and keeping only complete
             % spectra for the calibration:
             ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
-            iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
-            iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
+            %iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
+            %iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
             
             % Saving all the indices for the Antenna
             calibratedSpectra(i).antennaInd=ia;
-            calibratedSpectra(i).antennaIndUp=iaUp;
-            calibratedSpectra(i).antennaIndDown=iaDown;
+            %calibratedSpectra(i).antennaIndUp=iaUp;
+            %calibratedSpectra(i).antennaIndDown=iaDown;
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
-            antennaAngleCheck=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
+            antennaAngleCheck=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             if sum(antennaAngleCheck)>0
                 ia=ia(~antennaAngleCheck);
                 %calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
@@ -342,7 +367,7 @@ switch calType
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Flaging and removing (from the mean spectra only) bad angles for the antenna
-            antennaAngleCheck=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
+            antennaAngleCheck=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             if sum(antennaAngleCheck)>0
                 ia=ia(~antennaAngleCheck);
                 %calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
@@ -379,8 +404,8 @@ switch calType
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration separately (Mean Up and Down) for this calibration cycle:
-            angleCheckUp=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaIndUp)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
-            angleCheckDown=abs(standardLog.Elevation_Angle(calibratedSpectra(i).antennaIndDown)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
+            angleCheckUp=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaIndUp)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
+            angleCheckDown=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaIndDown)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
             
             % Cleaning the angle for "Mean Up/Down" calibration
             if any(angleCheckUp)

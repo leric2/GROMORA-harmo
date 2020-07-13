@@ -182,20 +182,20 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).lastSkyTime=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
     
     % As we are always using daily raw files:
-    calibratedSpectra(i).year=standardLog.Year(1);
-    calibratedSpectra(i).month=standardLog.Month(1);
-    calibratedSpectra(i).day=standardLog.Day(1);
+    calibratedSpectra(i).year=calibratedSpectra(i).theoreticalStartTime.Year;
+    calibratedSpectra(i).month=calibratedSpectra(i).theoreticalStartTime.Month;
+    calibratedSpectra(i).day=calibratedSpectra(i).theoreticalStartTime.Day;
     
-    if standardLog.Month(1) < 10
-        m = ['0' num2str(standardLog.Month(1))];
+    if calibratedSpectra(i).theoreticalStartTime.Month < 10
+        m = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Month)];
     else
-        m = num2str(standardLog.Month(1));
+        m = num2str(calibratedSpectra(i).theoreticalStartTime.Month);
     end
     
-    if standardLog.Day(1) < 10
-        d = ['0' num2str(standardLog.Day(1))];
+    if calibratedSpectra(i).theoreticalStartTime.Day < 10
+        d = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Day)];
     else
-        d = num2str(standardLog.Day(1));
+        d = num2str(calibratedSpectra(i).theoreticalStartTime.Day);
     end
     
     calibratedSpectra(i).date=[num2str(standardLog.Year(1)) '_' m '_' d];
@@ -204,12 +204,13 @@ for i = 1:size(calibratedSpectra,2)
     % antenna measurements)
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(standardLog.t(ia))/24,'HH:MM:SS')];
     
-    theoreticalminTime=[calibratedSpectra(i).date '_' datestr(calibratedSpectra(i).theoreticalStartTime/24,'HH:MM:SS')];
+    %theoreticalminTime=[calibratedSpectra(i).date '_' datestr(calibratedSpectra(i).theoreticalStartTime/24,'HH:MM:SS')];
     %theoreticalmaxTime=[calibratedSpectra(i).date '_' datestr((calibratedSpectra(i).theoreticalStartTime+calibratedSpectra(i).calibrationTime/60)/24,'HH:MM:SS')];
+    theoreticalminTime = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
     
     calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     
-    calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    calibratedSpectra(i).meanDatetime=datenum(mean(standardLog.dateTime(ia)))-datenum(1970,1,1);
     %calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
     %calibratedSpectra(i).calendar='standard';
     calibratedSpectra(i).timeOfDay=mean(standardLog.t(ia));

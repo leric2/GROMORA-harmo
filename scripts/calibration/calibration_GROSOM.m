@@ -30,14 +30,14 @@
 
 clear; close all; clc;
 
-% 'GROMOS' // 'SOMORA' // 'MOPI5' // 'MIAWARA-C'
+% 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
 instrumentName='SOMORA';
 
 % Type of calibration to do: standard of debug
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_10_02','yyyy_mm_dd'):datenum('2019_10_02','yyyy_mm_dd');
+dates=datenum('2019_03_25','yyyy_mm_dd'):datenum('2019_03_25','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
@@ -101,11 +101,8 @@ for d = 1:numel(dates)
         % Temperature of the cold load
         calibrationTool.TCold=80;        
 
-    elseif strcmp(instrumentName,'MOPI5')
+    elseif strcmp(instrumentName,'mopi5')
         % FOR MOPI:
-        % Everything stored into "import_default_calibrationTool"
-        calibrationTool.extraFileFolder='/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/'; % no write permission on the IAP lake
-        
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
     
@@ -128,14 +125,14 @@ for d = 1:numel(dates)
             % if commented, nothing happens --> developping purposes
         if ~calibrationTool.level1aExist
             try
-                calibrationTool = run_calibration(calibrationTool);
+                %calibrationTool = run_calibration(calibrationTool);
             catch ME
                 warning('Problem with the calibration:');
                 disp(ME.message)
             end
         end
         try
-            calibrationTool = run_integration(calibrationTool);
+            %calibrationTool = run_integration(calibrationTool);
         catch ME
             warning('Problem with the integration:');
             disp(ME.message)
@@ -145,13 +142,26 @@ for d = 1:numel(dates)
             model=[1 3 4];
             fftsMopi=model(m);
             calibrationTool.ffts_model=fftsMopi;
-            S  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
-            calibrationTool.spectrometer=S{calibrationTool.ffts_model};
+            calibrationTool.instrumentBandwidth = calibrationTool.BW(calibrationTool.ffts_model);
+            calibrationTool.spectrometer=calibrationTool.spectrometerTypes{calibrationTool.ffts_model};
+            calibrationTool.FS=calibrationTool.samplingRateFFTS(calibrationTool.ffts_model);
+            calibrationTool.filenameLevel1a=['/scratch/MOPI5/Level1/mopi5_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
             try  
                 % Running the retrieval with the defined toolchain
                 %run_calibration(calibrationTool)
+            catch ME
+                warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
+                disp(ME.message)
             end
-        end       
+        end
+        
+        % Integrate the successful calibration into 1 output file
+        try
+            %calibrationTool = run_integration(calibrationTool);
+        catch ME
+            warning('Problem with the integration:');
+            disp(ME.message)
+        end
     end
 end
 

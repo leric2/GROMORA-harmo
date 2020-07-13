@@ -39,6 +39,7 @@ function log = harmonize_log_somora(log)
 % SOMORA
 % Add variable time
 log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
 
 log.Tipping_Curve_active=(log.Position==6);
 log.T_Hot_Absorber=log.AI_0*100;
