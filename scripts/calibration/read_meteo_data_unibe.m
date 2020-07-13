@@ -33,7 +33,10 @@ if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateSt
     
     meteoData(1).precipitation = meteoData(1).rain_accumulation;
     for i = 1:length(meteoData)
-        meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-datenum(1970,1,1);
+        dateN = datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ');
+        meteoData(i).dateNum=dateN-datenum(1970,1,1);
+        meteoData(i).dateTime=datetime(dateN,'ConvertFrom','datenum');
+        %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');
         meteoData(i).air_temperature=meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
         meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
         % TODO Check units

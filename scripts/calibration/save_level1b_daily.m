@@ -283,17 +283,10 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 % Writing the attributes of flags group
 if isfield(integratedSpectra,'errorVector')
     ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
-    
-    %ncwriteatt(filename,'/flags/calibration_flags','flag_meanings','sufficientNumberOfIndices systemTemperatureOK hotAngleRemoved coldAngleRemoved antennaAngleRemoved LN2SensorsOK LN2LevelOK hotLoadOK FFT_adc_overload_OK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
-%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','hotAngleRemoved');
-%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','coldAngleRemoved');
-%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','antennaAngleRemoved');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','LN2SensorsOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','LN2LevelOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','hotLoadOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','FFT_adc_overload_OK');
+    for i = 1:lenErrorVect
+        varName = ['errorCode_' num2str(i)];
+        ncwriteatt(filename,'/flags/calibration_flags',varName,integratedSpectra(1).errorVectorDescription(i));
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers group

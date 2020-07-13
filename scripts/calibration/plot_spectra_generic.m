@@ -24,28 +24,28 @@ end
 if ~isempty(meteoData)
     ax = subplot(3,2,5);
     yyaxis(ax(1),'left')
-    plot(ax(1),[meteoData.tod], [meteoData.air_temperature] ,'r')
+    plot(ax(1),[meteoData.dateTime], [meteoData.air_temperature] ,'r')
    % set(ax(1),'ylim', [0,300])
     set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','r');
     ylabel(ax(1),({'airT [K]'}))
     
     yyaxis(ax(1),'right')
-    plot(ax(1),[meteoData.tod], [meteoData.air_pressure] ,'k')
+    plot(ax(1),[meteoData.dateTime], [meteoData.air_pressure] ,'k')
     set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','k');
     ylabel(ax(1),({'airP [hPa]'}))
     
     ax2 = subplot(3,2,6);
     yyaxis(ax2(1),'left')
-    plot(ax2(1), [meteoData.tod], [meteoData.precipitation] ,'k')
+    plot(ax2(1), [meteoData.dateTime], [meteoData.precipitation] ,'k')
     %set(ax2(1),'ylim', [0,300])
     set(ax2(1),'xlim', [0,24])
     set(ax2(1),'YColor','k');
     ylabel(ax2(1),({'precipitation [?]'}))
     
     yyaxis(ax2(1),'right')
-    plot(ax2(1),[meteoData.tod], [meteoData.rel_humidity] ,'b')
+    plot(ax2(1),[meteoData.dateTime], [meteoData.rel_humidity] ,'b')
     set(ax2(1),'ylim', [0,100])
     set(ax2(1),'xlim', [0,24])
     set(ax2(1),'YColor','b');

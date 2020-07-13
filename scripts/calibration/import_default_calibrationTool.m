@@ -261,6 +261,9 @@ switch instrumentName
         % Window correction for the calibrated spectra
         calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
         
+        % Check of the integrated spectra
+        calibrationTool.check_integrated = @(calibrationTool,integratedSpectra) check_integrated_generic(calibrationTool,integratedSpectra);
+        
         % Function saving the calibrated spectra into netCDF file
         calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);
         
@@ -460,6 +463,9 @@ switch instrumentName
         
         % Window correction for the calibrated spectra
         calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
+        
+        % Check of the integrated spectra
+        calibrationTool.check_integrated = @(calibrationTool,integratedSpectra) check_integrated_generic(calibrationTool,integratedSpectra);
         
         % Function saving the calibrated spectra into netCDF file
         calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);

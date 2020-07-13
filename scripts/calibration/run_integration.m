@@ -96,7 +96,7 @@ level1b.integration = calibrationTool.window_correction(calibrationTool,level1b.
 level1b.integration = calibrationTool.tropospheric_correction(level1b.integration, calibrationTool,10.4);
 
 % Check integrated spectra and define the flags for level1b
-%level1b.integration = calibrationTool.check_integrated(level1b.integration, calibrationTool);
+level1b.integration = calibrationTool.check_integrated(calibrationTool, level1b.integration);
 
 % sideband correction ?
 % TODO

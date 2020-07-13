@@ -37,7 +37,7 @@ instrumentName='SOMORA';
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_03_25','yyyy_mm_dd'):datenum('2019_03_25','yyyy_mm_dd');
+dates=datenum('2019_02_01','yyyy_mm_dd'):datenum('2019_05_31','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
@@ -125,14 +125,14 @@ for d = 1:numel(dates)
             % if commented, nothing happens --> developping purposes
         if ~calibrationTool.level1aExist
             try
-                %calibrationTool = run_calibration(calibrationTool);
+                calibrationTool = run_calibration(calibrationTool);
             catch ME
                 warning('Problem with the calibration:');
                 disp(ME.message)
             end
         end
         try
-            %calibrationTool = run_integration(calibrationTool);
+            calibrationTool = run_integration(calibrationTool);
         catch ME
             warning('Problem with the integration:');
             disp(ME.message)

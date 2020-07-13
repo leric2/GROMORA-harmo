@@ -64,11 +64,6 @@ for i = 1:size(calibratedSpectra,2)
     %calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).LOFreqTot-df*(0:retrievalTool.DCChannel-1)),calibratedSpectra(i).LOFreqTot+df*(1:nChannel-retrievalTool.DCChannel));
     %calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
     %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Antenna angle
-    calibratedSpectra(i).meanAngleAntenna=mean(standardLog.Elevation_Angle(ia));
-    calibratedSpectra(i).stdAngleAntenna=std(standardLog.Elevation_Angle(ia));
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
@@ -105,7 +100,7 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
-    %%%%%%%%%%% Flag 6 %%%%%%%%%%%    
+    %%%%%%%%%%% Flag 3 %%%%%%%%%%%    
     % Liquid Nitrogen sensors
     if ~all(standardLog.LN2_Sensors_OK(ind)==1)
         LN2SensorsOK=0;
@@ -113,7 +108,7 @@ for i = 1:size(calibratedSpectra,2)
         LN2SensorsOK=1;
     end
     
-    %%%%%%%%%%% Flag 6 %%%%%%%%%%%
+    %%%%%%%%%%% Flag 4 %%%%%%%%%%%
     % Liquid Nitrogen level
     if ~all(standardLog.LN2_Level_OK(ind))
         LN2LevelOK=0;
@@ -121,7 +116,7 @@ for i = 1:size(calibratedSpectra,2)
         LN2LevelOK=1;
     end
 
-    %%%%%%%%%%% Flag 8 %%%%%%%%%%%
+    %%%%%%%%%%% Flag 5 %%%%%%%%%%%
     % Hot load check flag
     if (abs(calibratedSpectra(i).THot - calibrationTool.THotTh)>calibrationTool.THotAbsThresh | calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
         hotLoadOK=0;
@@ -129,7 +124,7 @@ for i = 1:size(calibratedSpectra,2)
         hotLoadOK=1;
     end
     
-    %%%%%%%%%%% Flag 9 %%%%%%%%%%%
+    %%%%%%%%%%% Flag 6 %%%%%%%%%%%
     % FFTS aquisition variable
     calibratedSpectra(i).FFT_adc_range=standardLog.FFT_adc_range(1);
     if sum(standardLog.FFT_adc_overload(ind))>0
@@ -144,6 +139,18 @@ for i = 1:size(calibratedSpectra,2)
         calibratedSpectra(i).FFT_nr_aquisition_OK=1;
     else
         calibratedSpectra(i).FFT_nr_aquisition_OK=0;
+    end
+    
+    %%%%%%%%%%% Flag 7 %%%%%%%%%%%
+    % Antenna angle
+    calibratedSpectra(i).meanAngleAntenna=mean(standardLog.Elevation_Angle(ia));
+    calibratedSpectra(i).stdAngleAntenna=std(standardLog.Elevation_Angle(ia));
+    
+    calibrationTool.stdAntAngleThresh = 0.5;
+    if calibratedSpectra(i).stdAngleAntenna > calibrationTool.stdAntAngleThresh
+        PointingAngleOK=0;
+    else
+        PointingAngleOK=1;
     end
        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,7 +256,8 @@ for i = 1:size(calibratedSpectra,2)
         LN2SensorsOK,...
         LN2LevelOK,...
         hotLoadOK,...
-        FFT_adc_overload_OK];
+        FFT_adc_overload_OK,...
+        PointingAngleOK];
     
     % Error vector description:
     calibratedSpectra(i).errorVectorDescription=[
@@ -258,9 +266,10 @@ for i = 1:size(calibratedSpectra,2)
         "LN2SensorsOK",...
         "LN2LevelOK",...
         "hotLoadOK",...
-        "FFT_adc_overload_OK"];
+        "FFT_adc_overload_OK",...
+        "PointingAngleOK"];
     
-    if (sum(calibratedSpectra(i).errorVector)<6)
+    if (sum(calibratedSpectra(i).errorVector)<7)
         errorV=num2str(calibratedSpectra(i).errorVector);
         disp(['Calibration Cycle number ' num2str(i) ', TOD: ' num2str(calibratedSpectra(i).timeOfDay)])
         warning(['Problem with this calibration, error code : ' errorV]);

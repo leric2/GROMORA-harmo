@@ -219,7 +219,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing Meteo Data
 if isfield(logFile,'meteo') && ~isempty(logFile.meteo)
-    ncwrite(filename,'/meteo/time',[logFile.meteo.dateTime]);
+    ncwrite(filename,'/meteo/time',[logFile.meteo.dateNum]);
     ncwrite(filename,'/meteo/air_pressure',[logFile.meteo.air_pressure]);
     ncwrite(filename,'/meteo/air_temperature',[logFile.meteo.air_temperature]);
     ncwrite(filename,'/meteo/relative_humidity',[logFile.meteo.rel_humidity]);
@@ -280,12 +280,17 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 % Writing the attributes of flags group
 if isfield(calibratedSpectra,'errorVector')
     ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_1','sufficientNumberOfIndices');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_2','systemTemperatureOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_3','LN2SensorsOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_4','LN2LevelOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_5','hotLoadOK');
-    ncwriteatt(filename,'/flags/calibration_flags','errorCode_6','FFT_adc_overload_OK');
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_1',calibratedSpectra(1).errorVectorDescription(1));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_2',calibratedSpectra(1).errorVectorDescription(2));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_3',calibratedSpectra(1).errorVectorDescription(3));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_4',calibratedSpectra(1).errorVectorDescription(4));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_5',calibratedSpectra(1).errorVectorDescription(5));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_6',calibratedSpectra(1).errorVectorDescription(6));
+%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_7',calibratedSpectra(1).errorVectorDescription(7));
+    for i = 1:lenErrorVect
+        varName = ['errorCode_' num2str(i)];
+        ncwriteatt(filename,'/flags/calibration_flags',varName,calibratedSpectra(1).errorVectorDescription(i));
+    end
 else
     ncwriteatt(filename,'/flags','description','No flags has been saved for this day...');
 end

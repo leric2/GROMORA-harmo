@@ -24,10 +24,11 @@ function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, 
 %%%%%% Storing values into calibratedSpectra
 for t=1:length(calibratedSpectra)
     %start=datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
-    stop=datenum(datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
-    
+    %stop=datenum(datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
+    timeMin = datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
+    stop = timeMin+seconds(calibratedSpectra(t).calibrationTime);
     % Selecting the interesting values for each calibration cycle:
-    rowInd=([meteoData.dateTime]>=calibratedSpectra(t).timeMin & [meteoData.dateTime]<=stop);
+    rowInd=([meteoData.dateTime]>=timeMin & [meteoData.dateTime]<=stop);
     
     calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData.air_temperature(rowInd)));
     calibratedSpectra(t).meanRelHumidity=0.01*nanmean(vertcat(meteoData.rel_humidity(rowInd)));

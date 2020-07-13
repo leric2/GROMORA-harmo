@@ -9,7 +9,7 @@ try
     set(gcf, 'PaperPosition', [1 1 19 27.7])
     orient(fig,'landscape')
     %suptitle([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
-    cm = colormap(jet(N));
+    cm = colormap(parula(N));
     TOD{1}=[num2str(0) ' h'];
     hold on
     subplot(2,2,[1,3]); 

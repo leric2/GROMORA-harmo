@@ -33,6 +33,8 @@ correctedSpectra.meanTime = ncread(filename,'/spectrometer1/time')';
 correctedSpectra.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
 correctedSpectra.timeCalendar= ncreadatt(filename,'/spectrometer1/time','calendar');
 
+correctedSpectra.meanDateTime = datetime(correctedSpectra.meanTime+datenum(1970,1,1),'ConvertFrom','datenum');
+
 correctedSpectra.channelID = ncread(filename,'/spectrometer1/channel_idx')';
 
 % some variable for better identifying the time period of the measurements
@@ -98,11 +100,13 @@ calibrationTool.logFile.calibration_flags_meaning = [
     string(ncreadatt(filename,'/flags/calibration_flags','errorCode_3')),...
     string(ncreadatt(filename,'/flags/calibration_flags','errorCode_4')),...
     string(ncreadatt(filename,'/flags/calibration_flags','errorCode_5')),...
-    string(ncreadatt(filename,'/flags/calibration_flags','errorCode_6'))];
+    string(ncreadatt(filename,'/flags/calibration_flags','errorCode_6')),...
+    string(ncreadatt(filename,'/flags/calibration_flags','errorCode_7'))];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading the meteo variables
-meteoData.dateTime = ncread(filename,'/meteo/time')';
+meteoData.dateNum = ncread(filename,'/meteo/time')';
+meteoData.dateTime = datetime(meteoData.dateNum + datenum(1970,1,1),'ConvertFrom','datenum');
 meteoData.air_pressure = ncread(filename,'/meteo/air_pressure')';
 meteoData.air_temperature = ncread(filename,'/meteo/air_temperature')';
 meteoData.rel_humidity = ncread(filename,'/meteo/relative_humidity')';
@@ -125,7 +129,7 @@ disp(['File read : ' filename])
 
 for i = 1:length(correctedSpectra.meanTime)
     calib(i).Tb = correctedSpectra.Tb(i,:);
-    calib(i).meanDatetime = correctedSpectra.meanTime(i);
+    calib(i).dateTime = correctedSpectra.meanDateTime(i);
     calib(i).freq = correctedSpectra.freq(:)';
     calib(i).if = correctedSpectra.if(:)';
     calib(i).year = correctedSpectra.year(i);

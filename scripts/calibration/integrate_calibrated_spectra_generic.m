@@ -21,12 +21,13 @@ function integratedSpectra = integrate_calibrated_spectra_generic(calibrationToo
 
 %==========================================================================
 % Threshold for the integration, calibTime has to be in [min]
-dt=calibrationTool.integrationTime/60;
-timeThresh=0:dt:23;
+dt=hours(calibrationTool.integrationTime/60);
+%timeThresh=0:dt:23;
+timeThresh = datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day):dt:datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1);
 
-for h = 1:length(timeThresh)
+for h = 1:length(timeThresh)-1
     % Finding the spectra during this time stamp:
-    indSpectra=find([calibratedSpectra.TOD]>=timeThresh(h) & [calibratedSpectra.TOD]<timeThresh(h)+dt);
+    indSpectra=find([calibratedSpectra.dateTime]>=timeThresh(h) & [calibratedSpectra.dateTime]<timeThresh(h)+dt);
     
     % Selecting only spectra with:
     
@@ -35,7 +36,7 @@ for h = 1:length(timeThresh)
     
     if ~isempty(goodSpectra)  
         % no critical error:
-        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==[1 1 1 1 1 1],2)==6);
+        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==[1 1 1 1 1 1 1],2)==7);
     end
     
     if isempty(goodSpectra)
@@ -49,7 +50,7 @@ for h = 1:length(timeThresh)
         
         meanAngleAT = -9999;
         tod = nanmean([calibratedSpectra(indSpectra).TOD]);
-        meanDatetime=nanmean([calibratedSpectra(indSpectra).meanDatetime]);
+        dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
     else
         % Averaging the good spectra together
         integratedTb=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
@@ -62,7 +63,7 @@ for h = 1:length(timeThresh)
         
         meanAngleAT = nanmean([calibratedSpectra(goodSpectra).meanAngleAntenna]);
         tod = nanmean([calibratedSpectra(goodSpectra).TOD]);
-        meanDatetime=nanmean([calibratedSpectra(goodSpectra).meanDatetime]);
+        dateTime=nanmean([calibratedSpectra(goodSpectra).dateTime]);
     end
     
     integratedSpectra(h).TSys=nanmean([calibratedSpectra(goodSpectra).TSys]);
@@ -103,7 +104,7 @@ for h = 1:length(timeThresh)
     integratedSpectra(h).Tb=integratedTb;
     integratedSpectra(h).meanAngleAntenna = meanAngleAT;
     integratedSpectra(h).TOD=tod;
-    integratedSpectra(h).meanDatetime=meanDatetime;
+    integratedSpectra(h).dateTime=dateTime;
     
     % Meteo Data are integrated on all calibrated spectra
     integratedSpectra(h).meanAirPressure=nanmean([calibratedSpectra(indSpectra).meanAirPressure]);
