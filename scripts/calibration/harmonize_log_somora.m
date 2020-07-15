@@ -1,4 +1,4 @@
-function log = harmonize_log_somora(log)
+function log = harmonize_log_somora(calibrationTool, log)
 %==========================================================================
 % NAME          | 
 % TYPE          |

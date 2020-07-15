@@ -1,4 +1,4 @@
-function log = harmonize_log_gromos(log)
+function log = harmonize_log_gromos(calibrationTool,log)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -40,6 +40,10 @@ function log = harmonize_log_gromos(log)
 % Add variable time
 log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
 log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+
+if ~(mean(log.Elevation_Angle(log.Position == 0)) == calibrationTool.elevationAngleCold)
+    error('angle for the cold load might be wrongly defined') 
+end
 
 % Hot temperature is in °C:
 log.T_Hot_Absorber=log.T_Hot + 273.15; % to replace with calibrationTool.zeroDegInKelvin ?

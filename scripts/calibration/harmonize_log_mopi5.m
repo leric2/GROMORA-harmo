@@ -1,4 +1,4 @@
-function log = harmonize_log_mopi5(log)
+function log = harmonize_log_mopi5(calibrationTool, log)
 %==========================================================================
 % NAME          | 
 % TYPE          |

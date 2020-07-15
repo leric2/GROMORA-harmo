@@ -1,6 +1,4 @@
-
-
-function logFile = harmonize_log_miawarac(logFile)
+function logFile = harmonize_log_miawarac(calibrationTool, logFile)
 %==========================================================================
 % NAME          | harmonize_log_miawarac(logFile)
 % TYPE          | function
