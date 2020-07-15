@@ -163,8 +163,12 @@ switch instrumentName
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
         calibrationTool.minNumberOfIndicePerCycle=5;
-        calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
-        calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
+        
+        calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
+        calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
@@ -373,6 +377,10 @@ switch instrumentName
         calibrationTool.minNumberOfIndicePerCycle=5;
         calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraAnt = 0.05*calibrationTool.numberOfChannels;
+        
+        calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
+        calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
@@ -563,8 +571,9 @@ switch instrumentName
         % to be valid
         calibrationTool.minNumberOfIndicePerCycle=5;
 
-        calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
-        calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;
+        calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra

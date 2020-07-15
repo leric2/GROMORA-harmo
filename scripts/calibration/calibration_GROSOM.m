@@ -37,7 +37,7 @@ instrumentName='SOMORA';
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_01','yyyy_mm_dd'):datenum('2019_05_31','yyyy_mm_dd');
+dates=datenum('2019_02_07','yyyy_mm_dd'):datenum('2019_02_12','yyyy_mm_dd');
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 
 % working directory
