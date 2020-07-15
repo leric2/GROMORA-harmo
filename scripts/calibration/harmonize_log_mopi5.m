@@ -59,6 +59,7 @@ log.T_Hot_Absorber=log.T(:,1);
 log.FE_T_Sys=-9999*ones(length(log.t),1);
 
 log.FFT_adc_range=ones(length(log.t),1);
+log.FFT_adc_overload=zeros(length(log.t),1);
 
 log.Position=log.Mode_Target';
 log.Elevation_Angle=log.Measurement_Elevation;

@@ -1,9 +1,9 @@
-function [x,data]=mopi5_read(retrievalTool)
+function [x,data]=mopi5_read(calibrationTool)
 %function x=mopi5_read(file, ffts_model)
 tic
 
-file=retrievalTool.file;
-ffts_model=retrievalTool.ffts_model;
+file=calibrationTool.file;
+ffts_model=calibrationTool.ffts_model;
 
 S  = {'USRP-A', 'USRP-B','U5303', 'AC240'}; % FFTS model 1 to 4
 FS = [200 20  3200 2000]; % sampling rates in MHz 

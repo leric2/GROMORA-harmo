@@ -174,70 +174,7 @@ for i =1:size(calibratedSpectra,2)
 %         FFT_adc_overload_OK=1;
 %     end
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Time variable for this cycle
-    % Correspond to the first sky measurements taken into account for the
-    % mean calibrated spectra.
-    if ~isempty(ia)
-    
-    calibratedSpectra(i).dateStart=datestr(logFile.dateTime(ia(1)),'yyyymmddTHHMMSSZ');
-    calibratedSpectra(i).dateStop=datestr(logFile.dateTime(ia(end)),'yyyymmddTHHMMSSZ');
-    
-    calibratedSpectra(i).firstSkyTime=datenum(calibratedSpectra(i).dateStart,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
-    calibratedSpectra(i).lastSkyTime=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
-    
-    % As we are always using daily raw files:
-    calibratedSpectra(i).year=calibratedSpectra(i).theoreticalStartTime.Year;
-    calibratedSpectra(i).month=calibratedSpectra(i).theoreticalStartTime.Month;
-    calibratedSpectra(i).day=calibratedSpectra(i).theoreticalStartTime.Day;
-    
-    if calibratedSpectra(i).theoreticalStartTime.Month < 10
-        m = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Month)];
-    else
-        m = num2str(calibratedSpectra(i).theoreticalStartTime.Month);
-    end
-    
-    if calibratedSpectra(i).theoreticalStartTime.Day < 10
-        d = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Day)];
-    else
-        d = num2str(calibratedSpectra(i).theoreticalStartTime.Day);
-    end
-    
-    calibratedSpectra(i).date=[num2str(logFile.Year(1)) '_' m '_' d];
-    
-    % as well as the "mean time" of the calibration cycle (mean of all
-    % antenna measurements)
-    meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(logFile.t(ia))/24,'HH:MM:SS')];
-    
-    %theoreticalminTime=[calibratedSpectra(i).date '_' datestr(calibratedSpectra(i).theoreticalStartTime/24,'HH:MM:SS')];
-    %theoreticalmaxTime=[calibratedSpectra(i).date '_' datestr((calibratedSpectra(i).theoreticalStartTime+calibratedSpectra(i).calibrationTime/60)/24,'HH:MM:SS')];
-    theoreticalminTime = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
-    
-    calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    
-    calibratedSpectra(i).meanDatetime=datenum(mean(logFile.dateTime(ia)))-datenum(1970,1,1);
-    %calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
-    %calibratedSpectra(i).calendar='standard';
-    calibratedSpectra(i).timeOfDay=mean(logFile.t(ia));
-    
-    %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
-    
-    else
-        emptyTimestamp=[emptyTimestamp i];
-    end
-      
-    %calibratedSpectra(i).effectiveCalibrationTimeHot=length(ih)*retrievalTool.calibTimeHot;
-    %calibratedSpectra(i).effectiveCalibrationTimeAntenna=length(ia)*retrievalTool.calibTimeAntenna;
-    %calibratedSpectra(i).effectiveCalibrationTimeCold=length(ic)*retrievalTool.calibTimeCold;
-    %calibratedSpectra(i).effectiveCalibrationTime=calibratedSpectra(i).effectiveCalibrationTimeHot+calibratedSpectra(i).effectiveCalibrationTimeAntenna+calibratedSpectra(i).effectiveCalibrationTimeCold;
-   
-    calibratedSpectra(i).numberOfIndices=[
-        length(ih),...
-        length(ic),...
-        length(ia)];
-    
-    
-        % Other variables (if existing)
+    % Other variables (if existing)
     if isfield(logFile,'T_Room')
         calibratedSpectra(i).TempRoom=nanmean(logFile.T_Room(ind));
         calibratedSpectra(i).stdTempRoom=nanstd(logFile.T_Room(ind));
@@ -259,7 +196,65 @@ for i =1:size(calibratedSpectra,2)
         calibratedSpectra(i).TempWindow=-9999;
         calibratedSpectra(i).stdTempWindow=-9999;
     end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Time variable for this cycle
+    % Correspond to the first sky measurements taken into account for the
+    % mean calibrated spectra.
+    
+    % As we are always using daily raw files:
+    calibratedSpectra(i).year=calibratedSpectra(i).theoreticalStartTime.Year;
+    calibratedSpectra(i).month=calibratedSpectra(i).theoreticalStartTime.Month;
+    calibratedSpectra(i).day=calibratedSpectra(i).theoreticalStartTime.Day;
+    
+    theoreticalminTime = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
+    calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    if ~isempty(ia)
+        
+        %only possible if ia is not empty !
+        calibratedSpectra(i).firstSkyTime=logFile.time(ia(1))-datenum(1970,1,1);
+        calibratedSpectra(i).lastSkyTime=logFile.time(ia(end))-datenum(1970,1,1);
+        
+        % "mean time" of the calibration cycle (mean of all antenna measurements)
+        calibratedSpectra(i).meanAntTime = nanmean(logFile.dateTime(ia));
+        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
+        
+        calibratedSpectra(i).timeOfDay = 24*(datenum(calibratedSpectra(i).meanAntTime) -datenum(calibratedSpectra(i).year,calibratedSpectra(i).month,calibratedSpectra(i).day));
+
+%     if calibratedSpectra(i).theoreticalStartTime.Month < 10
+%         m = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Month)];
+%     else
+%         m = num2str(calibratedSpectra(i).theoreticalStartTime.Month);
+%     end
+%     
+%     if calibratedSpectra(i).theoreticalStartTime.Day < 10
+%         d = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Day)];
+%     else
+%         d = num2str(calibratedSpectra(i).theoreticalStartTime.Day);
+%     end
+%     
+%     calibratedSpectra(i).date=[num2str(logFile.Year(1)) '_' m '_' d];
+    
+    %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
+    
+    else
+        calibratedSpectra(i).firstSkyTime = -9999;
+        calibratedSpectra(i).lastSkyTime = -9999;
+        calibratedSpectra(i).timeOfDay = -9999;
+        
+        calibratedSpectra(i).meanAntTime = calibratedSpectra(i).theoreticalStartTime + 0.5*minutes(calibratedSpectra(i).calibrationTime);
+        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
+    end
+      
+    %calibratedSpectra(i).effectiveCalibrationTimeHot=length(ih)*retrievalTool.calibTimeHot;
+    %calibratedSpectra(i).effectiveCalibrationTimeAntenna=length(ia)*retrievalTool.calibTimeAntenna;
+    %calibratedSpectra(i).effectiveCalibrationTimeCold=length(ic)*retrievalTool.calibTimeCold;
+    %calibratedSpectra(i).effectiveCalibrationTime=calibratedSpectra(i).effectiveCalibrationTimeHot+calibratedSpectra(i).effectiveCalibrationTimeAntenna+calibratedSpectra(i).effectiveCalibrationTimeCold;
    
+    calibratedSpectra(i).numberOfIndices=[
+        length(ih),...
+        length(ic),...
+        length(ia)];
     
     % Error vector for this calibration cycle
     calibratedSpectra(i).errorVector=[
@@ -277,20 +272,19 @@ for i =1:size(calibratedSpectra,2)
         "LN2LevelOK",...
         "hotLoadOK"];
         
-    if (sum(calibratedSpectra(i).errorVector)<5)
+    calibratedSpectra(i).outlierCalib = NaN;
+    warning('off','backtrace')
+    if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
+        calibratedSpectra(i).outlierCalib = 1;
         errorV=num2str(calibratedSpectra(i).errorVector);
-        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' num2str(calibratedSpectra(i).timeOfDay)])
+        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')])
         warning(['Problem with this calibration, error code : ' errorV]);
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
-    end 
-        %calibratedSpectra(i).startTimeInt8=int8(datestr(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ'));
-    %else
-        % if not measurement, we delete this timestamp
-        %emptyTimestamp=[emptyTimestamp i];
+    end
 end
 
 
-calibratedSpectra(emptyTimestamp)=[];
+%calibratedSpectra(emptyTimestamp)=[];
 
 % Ording by datenum
 %T=struct2table(calibratedSpectra);
