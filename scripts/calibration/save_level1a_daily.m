@@ -266,8 +266,8 @@ ncwriteatt(filename,'/','raw_file_comment',logFile.comment);
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
 
 % Geolocation attributes
-ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).dateStart);
-ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).dateStop);
+ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).timeMin);
+ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).timeMax);
 
 ncwriteatt(filename,'/','filename',filename);
 ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
@@ -278,9 +278,11 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 % Attributes for groups and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the attributes of flags group
+
 if isfield(calibratedSpectra,'errorVector')
     ncwriteatt(filename,'/flags','description','Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes');
-%     ncwriteatt(filename,'/flags/calibration_flags','errorCode_1',calibratedSpectra(1).errorVectorDescription(1));
+    ncwriteatt(filename,'/flags','number_of_flags',lenErrorVect);
+    %ncwriteatt(filename,'/flags/calibration_flags','errorCode_1',calibratedSpectra(1).errorVectorDescription(1));
 %     ncwriteatt(filename,'/flags/calibration_flags','errorCode_2',calibratedSpectra(1).errorVectorDescription(2));
 %     ncwriteatt(filename,'/flags/calibration_flags','errorCode_3',calibratedSpectra(1).errorVectorDescription(3));
 %     ncwriteatt(filename,'/flags/calibration_flags','errorCode_4',calibratedSpectra(1).errorVectorDescription(4));
