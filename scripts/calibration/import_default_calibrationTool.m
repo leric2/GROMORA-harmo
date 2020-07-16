@@ -27,9 +27,9 @@ calibrationTool = struct();
 % dateStr
 calibrationTool.dateStr=dateStr;
 
-calibrationTool.Year = str2num(dateStr(1:4));
-calibrationTool.Month = str2num(dateStr(6:7));
-calibrationTool.Day = str2num(dateStr(9:10));
+calibrationTool.Year = str2double(dateStr(1:4));
+calibrationTool.Month = str2double(dateStr(6:7));
+calibrationTool.Day = str2double(dateStr(9:10));
 
 % Name of the instrument
 calibrationTool.instrumentName=instrumentName;
@@ -122,7 +122,7 @@ switch instrumentName
         calibrationTool.THotUnit='degreeC';
         
         % Function for the harmonization of the log
-        calibrationTool.harmonize_log=@(log) harmonize_log_gromos(log);  
+        calibrationTool.harmonize_log=@(calibrationtTool, log) harmonize_log_gromos(calibrationtTool, log);  
         
         calibrationTool.indiceCold=0;
         calibrationTool.indiceAntenna=1;
@@ -143,7 +143,6 @@ switch instrumentName
         calibrationTool.numberOfTippingCurveExpected=48;
         calibrationTool.toleranceTippingCurves=2;
         
-        calibrationTool.elevationAngleTolerance=5;
         % Considering the expected number of tipping curve:
         calibrationTool.numberOfCyclesExpected=1500;
         calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
@@ -162,13 +161,18 @@ switch instrumentName
         % Calibration
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
-        calibrationTool.minNumberOfIndicePerCycle=5;
+        calibrationTool.elevationAngleTolerance=5;
+        calibrationTool.stdAntAngleThresh = 0.5;
+        
+        calibrationTool.minNumberOfIndicePerCycle=12;
         calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
         
         calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
         calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
+        
+        calibrationTool.frequencyBandAroundCenterTSys = 200e6;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
@@ -326,6 +330,7 @@ switch instrumentName
         % Folder, Raw and log file data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
+        
         %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
@@ -336,7 +341,7 @@ switch instrumentName
         
         % Log
         calibrationTool.delimiter_logfile = '\t';
-        calibrationTool.harmonize_log=@(log) harmonize_log_somora(log);
+        calibrationTool.harmonize_log=@(calibrationTool, log) harmonize_log_somora(calibrationTool, log);
         calibrationTool.THotUnit='K';
         
         calibrationTool.indiceCold=0;
@@ -356,8 +361,6 @@ switch instrumentName
         
         calibrationTool.tippingSize=5;
 
-        calibrationTool.elevationAngleTolerance=5;        
-        
         %Temperature
         calibrationTool.TSysCenterTh=2750;
         calibrationTool.TSysThresh=100;
@@ -374,13 +377,18 @@ switch instrumentName
         % Calibration
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
-        calibrationTool.minNumberOfIndicePerCycle=5;
+        calibrationTool.elevationAngleTolerance=5;
+        calibrationTool.stdAntAngleThresh = 0.5;
+        
+        calibrationTool.minNumberOfIndicePerCycle=40;
         calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraAnt = 0.05*calibrationTool.numberOfChannels;
         
-        calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
-        calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
+        calibrationTool.frequencyBandAroundCenterTSys = 200e6;
+        
+        calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.3;
+        calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
@@ -503,18 +511,16 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Spectrometer data:
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        % See the import spectrometer functions 
+        calibrationTool.import_spectrometer = @(calibrationTool, modelFFTS) import_spectrometer_mopi5(calibrationTool, modelFFTS);
         calibrationTool.numberOfSpectrometer=4;
-        calibrationTool.spectrometerTypes  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
         
         calibrationTool.numberOfChannels=16384;
 
-        calibrationTool.BW = [200e6 20e6 1.6e9 1e9];
-        
         % This one should correspond to the DC channel
-        calibrationTool.LOFreqTot=1.10e11;
+        calibrationTool.LOFreqTot=1.10836e11;
         calibrationTool.DCChannel=1; %=Nchannel/2 ??
-        
-        calibrationTool.samplingRateFFTS = [200 20  3200 2000]; % sampling rates in MHz 
    
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Folder, Raw and log file data
@@ -530,7 +536,7 @@ switch instrumentName
         
         % Log
         calibrationTool.delimiter_logfile = ';';
-        calibrationTool.harmonize_log=@(log) harmonize_log_mopi5(log);
+        calibrationTool.harmonize_log=@(calibrationTool, log) harmonize_log_mopi5(calibrationTool, log);
         calibrationTool.THotUnit='K';
         
         calibrationTool.indiceCold=2;
@@ -555,9 +561,9 @@ switch instrumentName
         calibrationTool.elevationAngleTolerance=5;        
         
         %Temperature
-        calibrationTool.TSysCenterTh=2750;
-        calibrationTool.TSysThresh=100;
-        calibrationTool.stdTSysThresh=8;
+        calibrationTool.TSysCenterTh = 700;
+        calibrationTool.TSysThresh = 250;
+        calibrationTool.stdTSysThresh=20;
         
         calibrationTool.THotTh=293.5;
         calibrationTool.THotAbsThresh=2;
@@ -569,11 +575,17 @@ switch instrumentName
         % Calibration
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
-        calibrationTool.minNumberOfIndicePerCycle=5;
+        calibrationTool.elevationAngleTolerance=10;
+        calibrationTool.stdAntAngleThresh = 0.5;
+        
+        calibrationTool.minNumberOfIndicePerCycle=50;
 
         calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
+        
+        calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.3;
+        calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
@@ -608,7 +620,10 @@ switch instrumentName
         calibrationTool.doTippingCurve = false;
         %calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
         %calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_gromos(rawSpectra,log, calibrationTool);
-
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Corrections
+        calibrationTool.tWindow=0.99;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Level0 -> Level1a functions
@@ -639,8 +654,9 @@ switch instrumentName
         %calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,TCold,calType) calibrate_mopi5(rawSpectra,log,calibrationTool,TCold,calType);
         
         % Plot some calibrated spectra:
-        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_mopi(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
-        
+        %calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_mopi(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
+        calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
+
         % Function for quality check of the calibrated spectra
         %calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
         calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_mopi5(log,calibrationTool,calibratedSpectra);
@@ -668,6 +684,9 @@ switch instrumentName
         
         % Window correction for the calibrated spectra
         calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
+        
+        % Check of the integrated spectra
+        calibrationTool.check_integrated = @(calibrationTool,integratedSpectra) check_integrated_generic(calibrationTool,integratedSpectra);
         
         % Function saving the calibrated spectra into netCDF file
         calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calibrationTool,level1b);
@@ -753,7 +772,7 @@ switch instrumentName
 %         calibrationTool.THotUnit='degreeC';
 
 %         % Function for the harmonization of the log
-        calibrationTool.harmonize_log=@(log) harmonize_log_miawarac(log);  
+        calibrationTool.harmonize_log=@(calibrationTool, log) harmonize_log_miawarac(calibrationTool, log);  
 %         
 %         calibrationTool.indiceCold=%0;
 %         calibrationTool.indiceAntenna=%1;
@@ -914,6 +933,15 @@ switch instrumentName
             calibrationTool.elevationAngleCold=-84;
         end
     case 'SOMORA'
+         if timeNumber>datenum(2016,01,01) && timeNumber<datenum(2018,01,01)
+             calibrationTool.THotTh = 297.4;
+         end
+        
+        if timeNumber<datenum(2019,01,01)
+            calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' dateStr(1:4) '/' dateStr(6:7) '/'];
+            calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
+            calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
+        end
         % window transmission 
         if timeNumber<datenum(2007,07,03) %attn anciennement  733957 cad 3 juillet 2009 mais FAUX
             calibrationTool.tWindow = 0.987; %value from 2002 to 3/7/2007 (att. window has been changed 8/2/2006 but new t not measured) nb: ema 9/11/2007
@@ -931,6 +959,11 @@ switch instrumentName
             calibrationTool.tWindow = 0.9922; %value from 30/05/2017 to 20/08/2018
         else
             calibrationTool.tWindow = 0.9980; %value since 21/08/2018
+        end
+        
+    case 'mopi5'
+        if timeNumber<datenum(2019,02,12)
+            calibrationTool.elevationAngleHot=90;
         end
     case 'MIAWARA-C'
         % Meteo
