@@ -28,6 +28,13 @@ spectrometerTypes  = {'USRP-A', 'USRP-B','U5303', 'AC240'};
 samplingRateFFTS = [200 20  3200 2000]; % sampling rates in MHz 
 BW = [200e6 20e6 1.6e9 1e9];
 
+calibrationTool.numberOfChannels=16384;
+
+frequencyBandAroundCenterTSys = 1e6*[20 10 200 200];
+calibrationTool.frequencyBandAroundCenterTSys = frequencyBandAroundCenterTSys(modelFFTS);
+
+calibrationTool.badChannels = [];
+
 calibrationTool.instrumentBandwidth = BW(modelFFTS);
 calibrationTool.spectrometer=spectrometerTypes{modelFFTS};
 calibrationTool.samplingRateFFTS=samplingRateFFTS(modelFFTS);

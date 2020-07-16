@@ -20,7 +20,7 @@ function calibratedSpectra = check_calibrated_mopi5(logFile,calibrationTool,cali
 
 %==========================================================================
 % 
-emptyTimestamp=[];
+%emptyTimestamp=[];
 for i =1:size(calibratedSpectra,2)
     ia=calibratedSpectra(i).antennaIndCleanAngle;
     ih=calibratedSpectra(i).hotInd;
@@ -36,7 +36,7 @@ for i =1:size(calibratedSpectra,2)
         sufficientNumberOfIndices=1;
     else
         sufficientNumberOfIndices=0;
-        warning('Low number of spectra for this cycle');
+        %warning('Low number of spectra for this cycle');
     end
 
 %     % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
@@ -61,7 +61,7 @@ for i =1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Frequency vector
-    calibratedSpectra(i).if = calibrationTool.samplingRateFFTS(calibrationTool.ffts_model)/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
+    calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
     
     calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
         
@@ -69,7 +69,7 @@ for i =1:size(calibratedSpectra,2)
     
     calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
     
-    calibratedSpectra(i).df=calibrationTool.samplingRateFFTS(calibrationTool.ffts_model)/(2*calibrationTool.numberOfChannels);
+    calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
     
     %bw=calibrationTool.instrumentBandwidth;
     %nChannel=calibrationTool.numberOfChannels;
@@ -84,11 +84,6 @@ for i =1:size(calibratedSpectra,2)
     %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Antenna angle
-    calibratedSpectra(i).meanAngleAntenna=mean(logFile.Elevation_Angle(ia));
-    calibratedSpectra(i).stdAngleAntenna=std(logFile.Elevation_Angle(ia));
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Hot load check flag
     if (calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
         calibratedSpectra(i).hotLoadOK=0;
@@ -98,8 +93,9 @@ for i =1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
-    % Computing TN around the line center (approximately +- 200 MHz)
-    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-200e6 & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+200e6);
+    % Computing TN around the line center (approximately +- x MHz)
+    
+    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTSys & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTSys);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
     
@@ -115,25 +111,23 @@ for i =1:size(calibratedSpectra,2)
     
     calibratedSpectra(i).TSys=nanmean(TSysCenter);
     
-    %%%%%%%%%%% Flag 2 %%%%%%%%%%%
-    calibrationTool.TSysCenterTh = 545;
-    calibrationTool.TSysThresh = 50;
-       
+    %%%%%%%%%%% Flag 2 %%%%%%%%%%%      
     if (abs(calibratedSpectra(i).TSys-calibrationTool.TSysCenterTh)>calibrationTool.TSysThresh | calibratedSpectra(i).stdTSys > calibrationTool.stdTSysThresh)
         systemTemperatureOK=0;
     else
         systemTemperatureOK=1;
     end
     
-    % Tsys from the log
-    calibratedSpectra(i).Tsys=nanmean(logFile.FE_T_Sys(ind));
-    calibratedSpectra(i).stdTSys=nanstd(logFile.FE_T_Sys(ind));
+    % Tsys from the log file
+    calibratedSpectra(i).TSysLog=nanmean(logFile.FE_T_Sys(ind));
+    calibratedSpectra(i).stdTSysLog=nanstd(logFile.FE_T_Sys(ind));
     
-    calibrationTool.systemTempMaxStd = 600;
-    if (calibratedSpectra(i).stdTSys>calibrationTool.systemTempMaxStd)
-        calibratedSpectra(i).systemTemperatureOK=0;
+    %%%%%%%%%%% Flag HL %%%%%%%%%%%
+    % Hot load check flag
+    if (abs(calibratedSpectra(i).THot - calibrationTool.THotTh)>calibrationTool.THotAbsThresh | calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
+        hotLoadOK=0;
     else
-        calibratedSpectra(i).systemTemperatureOK=1;
+        hotLoadOK=1;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,30 +135,34 @@ for i =1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
-    %%%%%%%%%%% Flag 6 %%%%%%%%%%%    
+    %%%%%%%%%%% Flag 3 %%%%%%%%%%%    
     % Liquid Nitrogen sensors
-    if ~all(logFile.LN2_Sensors_OK(ind)==1)
+    if sum(~logFile.LN2_Sensors_OK(ind)==1) > calibrationTool.maxProportionOfIndLN2SensorOutlier*length(ind)
         LN2SensorsOK=0;
     else
         LN2SensorsOK=1;
     end
     
-    %%%%%%%%%%% Flag 6 %%%%%%%%%%%
+    %%%%%%%%%%% Flag 4 %%%%%%%%%%%
     % Liquid Nitrogen level
-    if ~all(logFile.LN2_Level_OK(ind))
+    if sum(~logFile.LN2_Level_OK(ind)==1) > calibrationTool.maxProportionOfIndLN2LevelOutlier*length(ind)
         LN2LevelOK=0;
     else
         LN2LevelOK=1;
     end
+    
+    %%%%%%%%%%% Flag Pointing %%%%%%%%%%%
+    % Antenna angle
+    calibratedSpectra(i).meanAngleAntenna=mean(logFile.Elevation_Angle(ia));
+    calibratedSpectra(i).stdAngleAntenna=std(logFile.Elevation_Angle(ia));
+    
 
-    %%%%%%%%%%% Flag 8 %%%%%%%%%%%
-    % Hot load check flag
-    if (abs(calibratedSpectra(i).THot - calibrationTool.THotTh)>calibrationTool.THotAbsThresh | calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
-        hotLoadOK=0;
+    if calibratedSpectra(i).stdAngleAntenna > calibrationTool.stdAntAngleThresh
+        PointingAngleOK=0;
     else
-        hotLoadOK=1;
+        PointingAngleOK=1;
     end
-            
+    
 %     %%%%%%%%%%% Flag 9 %%%%%%%%%%%
 %     % FFTS aquisition variable
 %     calibratedSpectra(i).FFT_adc_range=logFile.FFT_adc_range(1);
@@ -207,8 +205,12 @@ for i =1:size(calibratedSpectra,2)
     calibratedSpectra(i).month=calibratedSpectra(i).theoreticalStartTime.Month;
     calibratedSpectra(i).day=calibratedSpectra(i).theoreticalStartTime.Day;
     
-    theoreticalminTime = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
-    calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    calibratedSpectra(i).timeMin = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
+    calibratedSpectra(i).timeMax = datestr(calibratedSpectra(i).theoreticalStartTime + minutes(calibratedSpectra(i).calibrationTime),'YYYY_mm_dd_HH:MM:SS');
+    
+    calibratedSpectra(i).timeMin=datenum(calibratedSpectra(i).timeMin,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    calibratedSpectra(i).timeMax=datenum(calibratedSpectra(i).timeMax,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    
     if ~isempty(ia)
         
         %only possible if ia is not empty !
@@ -262,7 +264,8 @@ for i =1:size(calibratedSpectra,2)
         systemTemperatureOK,...
         LN2SensorsOK,...
         LN2LevelOK,...
-        hotLoadOK];
+        hotLoadOK,...
+        PointingAngleOK];
     
     % Error vector description:
     calibratedSpectra(i).errorVectorDescription=[
@@ -270,7 +273,8 @@ for i =1:size(calibratedSpectra,2)
         "systemTemperatureOK",...
         "LN2SensorsOK",...
         "LN2LevelOK",...
-        "hotLoadOK"];
+        "hotLoadOK",...
+        "PointingAngleOK"];
         
     calibratedSpectra(i).outlierCalib = NaN;
     warning('off','backtrace')
