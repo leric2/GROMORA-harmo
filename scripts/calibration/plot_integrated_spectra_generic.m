@@ -3,7 +3,7 @@ function plot_integrated_spectra_generic(calibrationTool,integratedSpectra,lower
 try   
     % plotting a spectra every numberOfSpectraToGroup measurements
     %TOD={};
-    N=24;
+    N=length(integratedSpectra);
     fig=figure('visible','off');
     %fig=figure();
     clf
@@ -13,35 +13,49 @@ try
     cm = colormap(parula(N));
     %TOD{1}=[num2str(0) ' h'];
     
+    if ~(nanmedian([integratedSpectra.TSys])==-9999)
+        yLowTN = nanmedian([integratedSpectra.TSys])-100;
+        yUpTN = nanmedian([integratedSpectra.TSys])+100;
+    else
+        yLowTN = calibrationTool.TSysCenterTh - 1000;
+        yUpTN = calibrationTool.TSysCenterTh + 1000;
+    end
+    
     ax = subplot(3,2,1);
     grid on
     yyaxis(ax(1),'left')
     plot([integratedSpectra.dateTime],[integratedSpectra.TSys],'k');
     hold on
     plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.TSys])*[integratedSpectra.outlierCalib],'mx');
-    set(ax(1),'ylim',[nanmedian([integratedSpectra.TSys])-30,nanmedian([integratedSpectra.TSys])+20])
+    set(ax(1),'ylim',[yLowTN,yUpTN])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','k');
     ylabel(ax(1),({'TN [K]'}))
     
     yyaxis(ax(1),'right')
     plot([integratedSpectra.dateTime],[integratedSpectra.THot],'r');
-    set(ax(1),'ylim', [nanmedian([integratedSpectra.THot])-0.3,nanmedian([integratedSpectra.THot])+0.4])
+    set(ax(1),'ylim', [calibrationTool.THotTh-2,calibrationTool.THotTh+2])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','r');
     ylabel(ax(1),({'THot [K]'}))
     
+    if ~(nanmedian([integratedSpectra.meanTb])==-9999)
+        yLow = 0;
+        yUp = nanmedian([integratedSpectra.meanTb])+100;
+    else
+        yLow = 0;
+        yUp = 280;
+    end
     
     ax2 = subplot(3,2,2);
     yyaxis(ax2(1),'left')
     plot(ax2, [integratedSpectra.dateTime],[integratedSpectra.meanTb],'g');
     hold on
-    plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.meanTb])*[integratedSpectra.outlierCalib],'mx');
+    plot(ax2, [integratedSpectra.dateTime], 0.9*yUp*[integratedSpectra.outlierCalib],'mx');
    % set(ax(1),'ylim', [0,300])
-    set(ax2,'ylim', [0,nanmedian([integratedSpectra.meanTb])+100])
     set(ax2,'YColor','g');
     ylabel(ax2(1),({'Tb [K]'}))
-    
+    set(ax2,'ylim', [yLow,yUp])
     yyaxis(ax2(1),'right')
     plot([integratedSpectra.dateTime],[integratedSpectra.meanAirTemperature ],'r');
    % set(ax(1),'ylim', [0,300])
@@ -108,6 +122,8 @@ try
 %     end
 %    title('Corrected (windows), good channels')
     
+
+
     subplot(3,2,5); 
     for i=1:N
         plot(integratedSpectra(i).if,integratedSpectra(i).Tb,'Color',cm(i,:));
@@ -116,7 +132,6 @@ try
         ylabel('T_B [K]')
         
         ylim([lowerLim,upperLim])
-        ylim([nanmin([integratedSpectra.meanTb])-10,nanmax([integratedSpectra.meanTb])+20])
         %TOD{i}=num2str(integratedSpectra(i).TOD);
         hold on
     end

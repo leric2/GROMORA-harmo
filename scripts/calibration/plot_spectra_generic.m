@@ -4,7 +4,7 @@ function plot_spectra_generic(calibrationTool, drift, meteoData,calibratedSpectr
 try 
     l=floor(linspace(1,length(calibratedSpectra),N));
     
-    %TOD={};
+    TOD={};
     
     fig = figure('visible','off');
     %fig = figure();
@@ -41,7 +41,7 @@ try
         colors = {'r','g','b'};
         subplot(3,2,4);
         for i=1:3
-            plot(drift.dateTime, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),ylim([nanmedian(drift.a(3,:))-200,nanmedian(drift.a(1,:))+200])
+            plot(drift.dateTime, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),ylim([prctile(drift.a(3,:),2)-200,prctile(drift.a(1,:),98)+200])
         end
         %     if ~isempty(drift.outlierCold)
         %         for out = 1:length(drift.outlierCold)
@@ -104,30 +104,38 @@ try
     orient(fig2,'landscape')
     cm = colormap(parula(N));
     subplot(1,2,1);
+    count=1;
     for i=1:N
-        plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
-        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
+        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
+            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
         
-        %plot(calibratedSpectra(l(i)).Tb)
-        TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
+            %plot(calibratedSpectra(l(i)).Tb)
+            
         
         %plot(calibratedSpectra(i).meanFromTbDownAll)
         %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
         %xlabel('f [GHz]')
         %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
-        ylabel('T_B [K]')
+            ylabel('T_B [K]')
         
-        ylim([lowerLim,upperLim])
+            ylim([lowerLim,upperLim])
+            TOD{count}=num2str(calibratedSpectra(l(i)).timeOfDay);
+            count = count + 1;
         %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
+        end
+        
         hold on
     end
     
     subplot(1,2,2);
     for i=1:N
-        plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
+        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
         %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-        ylabel('TN [K]')
-        ylim([limTNPlot-1000,limTNPlot+1000])
+            ylabel('TN [K]')
+            ylim([limTNPlot-1000,limTNPlot+1000])
+        end
         hold on
     end
     
