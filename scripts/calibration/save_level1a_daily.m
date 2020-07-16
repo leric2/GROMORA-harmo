@@ -54,39 +54,39 @@ nccreate(filename,'/spectrometer1/channel_idx','Dimensions',{'channel_idx',calib
 nccreate(filename,'/spectrometer1/lat','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 nccreate(filename,'/spectrometer1/lon','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 nccreate(filename,'/spectrometer1/alt','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
-nccreate(filename,'/spectrometer1/azimuthAngle','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
+nccreate(filename,'/spectrometer1/azimuth_angle','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 
 % time variables
 nccreate(filename,'/spectrometer1/year','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/month','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/day','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
-nccreate(filename,'/spectrometer1/timeOfDay','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/firstSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/lastSkyTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
-nccreate(filename,'/spectrometer1/timeMin','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/time_of_day','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/first_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/last_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
 % Calibration variables   
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/intermediateFreq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/calibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/meanAngleAntenna','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_sky_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/spectrometer1/numberOfHotSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
-nccreate(filename,'/spectrometer1/numberOfColdSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
-nccreate(filename,'/spectrometer1/numberOfAntennaSpectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/number_of_hot_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
+nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
@@ -131,28 +131,28 @@ ncwrite(filename,'/spectrometer1/channel_idx',1:calibrationTool.numberOfChannels
 ncwrite(filename,'/spectrometer1/lat',ones(length(calibratedSpectra),1)*calibrationTool.lat);
 ncwrite(filename,'/spectrometer1/lon',ones(length(calibratedSpectra),1)*calibrationTool.lon);
 ncwrite(filename,'/spectrometer1/alt',ones(length(calibratedSpectra),1)*calibrationTool.altitude);
-ncwrite(filename,'/spectrometer1/azimuthAngle',ones(length(calibratedSpectra),1)*calibrationTool.azimuthAngle);
+ncwrite(filename,'/spectrometer1/azimuth_angle',ones(length(calibratedSpectra),1)*calibrationTool.azimuthAngle);
 
 % Time variables
 ncwrite(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
 ncwrite(filename,'/spectrometer1/month',int64([calibratedSpectra.month]));
 ncwrite(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
-ncwrite(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
+ncwrite(filename,'/spectrometer1/time_of_day',[calibratedSpectra.timeOfDay]);
 
-ncwrite(filename,'/spectrometer1/firstSkyTime',[calibratedSpectra.firstSkyTime]);  
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','units',calibrationTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
+ncwrite(filename,'/spectrometer1/first_sky_time',[calibratedSpectra.firstSkyTime]);  
+ncwriteatt(filename,'/spectrometer1/first_sky_time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/first_sky_time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/first_sky_time','description','start time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/spectrometer1/lastSkyTime',[calibratedSpectra.lastSkyTime]);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibrationTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
+ncwrite(filename,'/spectrometer1/last_sky_time',[calibratedSpectra.lastSkyTime]);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','description','stop time of the first sky measurements in this cycle');
 
-ncwrite(filename,'/spectrometer1/timeMin',[calibratedSpectra.timeMin]);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','units',calibrationTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/lastSkyTime','description','minimum theoretical start time for this calibration cycle');
+ncwrite(filename,'/spectrometer1/time_min',[calibratedSpectra.timeMin]);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theoretical start time for this calibration cycle');
 
 %%%%%%%%%%%%%%%%%
 % Calibration variables
@@ -161,13 +161,13 @@ ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
 ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
-ncwrite(filename,'/spectrometer1/calibrationTime',60*[calibratedSpectra.calibrationTime]);
-ncwrite(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
+ncwrite(filename,'/spectrometer1/mean_sky_angle',[calibratedSpectra.meanAngleAntenna]);
 
 if isfield(calibratedSpectra,'if')
-    ncwrite(filename,'/spectrometer1/intermediateFreq',calibratedSpectra(1).if);
+    ncwrite(filename,'/spectrometer1/intermediate_freq',calibratedSpectra(1).if);
 else
-    ncwrite(filename,'/spectrometer1/intermediateFreq',vertcat(-9999*ones(length(calibratedSpectra(1).freq),1))');
+    ncwrite(filename,'/spectrometer1/intermediate_freq',vertcat(-9999*ones(length(calibratedSpectra(1).freq),1))');
 end
 
 if isfield(calibratedSpectra,'stdTHot')
@@ -197,9 +197,9 @@ else
 end
 
 numInd=vertcat(calibratedSpectra.numberOfIndices);
-ncwrite(filename,'/spectrometer1/numberOfHotSpectra',numInd(:,1));
-ncwrite(filename,'/spectrometer1/numberOfColdSpectra',numInd(:,2));
-ncwrite(filename,'/spectrometer1/numberOfAntennaSpectra',numInd(:,3));
+ncwrite(filename,'/spectrometer1/number_of_hot_spectra',numInd(:,1));
+ncwrite(filename,'/spectrometer1/number_of_cold_spectra',numInd(:,2));
+ncwrite(filename,'/spectrometer1/number_of_sky_spectra',numInd(:,3));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables 
@@ -254,7 +254,7 @@ ncwriteatt(filename,'/','number_of_spectrometer',calibrationTool.numberOfSpectro
 ncwriteatt(filename,'/','history','');
 ncwriteatt(filename,'/','references','');
 ncwriteatt(filename,'/','comment','');
-ncwriteatt(filename,'/','rawData',logFile.file);
+ncwriteatt(filename,'/','raw_data',logFile.file);
 if isfield(logFile,'SW_version')
     ncwriteatt(filename,'/','raw_data_software_version',num2str(logFile.SW_version(1)));
 else
@@ -271,7 +271,7 @@ ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).timeMax);
 
 ncwriteatt(filename,'/','filename',filename);
 ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
-ncwriteatt(filename,'/','rawFilename','')
+ncwriteatt(filename,'/','raw_filename','')
 ncwriteatt(filename,'/','featureType','timeSeries');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -300,7 +300,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables attributes for the spectrometers and meteo group
 % The following are required for each variable (CF convention):
-ncwriteatt(filename,'/spectrometer1','spectrometerType',calibrationTool.spectrometer);
+ncwriteatt(filename,'/spectrometer1','spectrometer_type',calibrationTool.spectrometer);
 
 attrName={'long_name','standard_name','units','description'};
 
@@ -422,21 +422,21 @@ attrVal.precipitation = {'precipitation',...
 
 % Ugly and open to suggestion
 for i=1:length(attrName)
-    ncwriteatt(filename,'/spectrometer1/timeOfDay',attrName{i},attrVal.tod{i});
+    ncwriteatt(filename,'/spectrometer1/time_of_day',attrName{i},attrVal.tod{i});
     ncwriteatt(filename,'/spectrometer1/lat',attrName{i},attrVal.lat{i});
     ncwriteatt(filename,'/spectrometer1/lon',attrName{i},attrVal.lon{i});
     ncwriteatt(filename,'/spectrometer1/alt',attrName{i},attrVal.alt{i});
-    ncwriteatt(filename,'/spectrometer1/azimuthAngle',attrName{i},attrVal.azimuth{i});
+    ncwriteatt(filename,'/spectrometer1/azimuth_angle',attrName{i},attrVal.azimuth{i});
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
-    ncwriteatt(filename,'/spectrometer1/intermediateFreq',attrName{i},attrVal.if{i});
+    ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
     ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
     ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
     ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
-    ncwriteatt(filename,'/spectrometer1/calibrationTime',attrName{i},attrVal.calibrationTime{i});
-    ncwriteatt(filename,'/spectrometer1/meanAngleAntenna',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
+    ncwriteatt(filename,'/spectrometer1/mean_sky_angle',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});

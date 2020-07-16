@@ -43,18 +43,18 @@ correctedSpectra.month= ncread(filename,'/spectrometer1/month');
 correctedSpectra.day = ncread(filename,'/spectrometer1/day');
 % ncread(filename,'/spectrometer1/timeOfDay',[calibratedSpectra.timeOfDay]);
 
-correctedSpectra.firstSkyTime=ncread(filename,'/spectrometer1/firstSkyTime')';
+correctedSpectra.firstSkyTime=ncread(filename,'/spectrometer1/first_sky_time')';
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','calendar',calibratedSpectra(1).calendar);
 % ncreadatt(filename,'/spectrometer1/firstSkyTime','description','start time of the first sky measurements in this cycle');
 
-correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/lastSkyTime')';
+correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/last_sky_time')';
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','units',calibratedSpectra(1).meanDatetimeUnit);
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','calendar',calibratedSpectra(1).calendar);
 % ncreadatt(filename,'/spectrometer1/lastSkyTime','description','stop time of the first sky measurements in this cycle');
 
-correctedSpectra.timeMin=ncread(filename,'/spectrometer1/timeMin')';
-correctedSpectra.tod = ncread(filename,'/spectrometer1/timeOfDay')';
+correctedSpectra.timeMin=ncread(filename,'/spectrometer1/time_min')';
+correctedSpectra.tod = ncread(filename,'/spectrometer1/time_of_day')';
 
 % TO IMPLEMENT, NEEDED ? 
 % function vec = split_vec(v)
@@ -68,17 +68,17 @@ correctedSpectra.tod = ncread(filename,'/spectrometer1/timeOfDay')';
 % Calibration variable
 correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
 correctedSpectra.freq=ncread(filename,'/spectrometer1/frequencies')';
-correctedSpectra.if=ncread(filename,'/spectrometer1/intermediateFreq')';
+correctedSpectra.if=ncread(filename,'/spectrometer1/intermediate_freq')';
 correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
 correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
 correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
 correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
-correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/meanAngleAntenna')';
-correctedSpectra.numHotSpectra=ncread(filename,'/spectrometer1/numberOfHotSpectra')';
-correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/numberOfColdSpectra')';
-correctedSpectra.numAntSpectra=ncread(filename,'/spectrometer1/numberOfAntennaSpectra')';
+correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/mean_sky_angle')';
+correctedSpectra.numHotSpectra=ncread(filename,'/spectrometer1/number_of_hot_spectra')';
+correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/number_of_cold_spectra')';
+correctedSpectra.numAntSpectra=ncread(filename,'/spectrometer1/number_of_sky_spectra')';
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
-correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibrationTime')';
+correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibration_time')';
 %correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
 
 % ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
@@ -124,8 +124,8 @@ meteoData.precipitation = ncread(filename,'/meteo/precipitation')';
 calibrationTool.logFile.raw_file_warning=ncreadatt(filename,'/','raw_file_warning');
 calibrationTool.logFile.comment=ncreadatt(filename,'/','comment');
 calibrationTool.logFile.raw_file_comment=ncreadatt(filename,'/','raw_file_comment');
-calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','rawFilename');
-calibrationTool.logFile.rawData=ncreadatt(filename,'/','rawData');
+calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
+calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.calibration_version=ncreadatt(filename,'/','calibration_version');
 calibrationTool.logFile.creation_date_level1a=ncreadatt(filename,'/','creation_date');
