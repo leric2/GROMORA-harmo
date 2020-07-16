@@ -35,8 +35,9 @@ for h = 1:length(timeThresh)-1
     goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] > 0.2);
     
     if ~isempty(goodSpectra)  
+        noErrorVect = ones(1,calibrationTool.flagVectorLength);
         % no critical error:
-        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==[1 1 1 1 1 1 1],2)==7);
+        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==noErrorVect,2)==calibrationTool.flagVectorLength);
     end
     
     if isempty(goodSpectra)

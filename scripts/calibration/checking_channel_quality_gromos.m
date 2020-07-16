@@ -1,4 +1,4 @@
-function calibratedSpectra = checking_channel_quality_gromos(calibratedSpectra,retrievalTool,filterN)
+function calibratedSpectra = checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -21,24 +21,24 @@ function calibratedSpectra = checking_channel_quality_gromos(calibratedSpectra,r
 %==========================================================================
 switch filterN
     case 1
-        TbMax = retrievalTool.filter1.TbMax;
-        TbMin= retrievalTool.filter1.TbMin;
-        boxCarSize = retrievalTool.filter1.boxCarSize;
-        boxCarthresh = retrievalTool.filter1.boxCarThresh;
+        TbMax = calibrationTool.filter1.TbMax;
+        TbMin= calibrationTool.filter1.TbMin;
+        boxCarSize = calibrationTool.filter1.boxCarSize;
+        boxCarthresh = calibrationTool.filter1.boxCarThresh;
     case 2
-        TbMax = retrievalTool.filter2.TbMax;
-        TbMin= retrievalTool.filter2.TbMin;
-        boxCarSize = retrievalTool.filter2.boxCarSize;
-        boxCarthresh = retrievalTool.filter2.boxCarThresh;
+        TbMax = calibrationTool.filter2.TbMax;
+        TbMin= calibrationTool.filter2.TbMin;
+        boxCarSize = calibrationTool.filter2.boxCarSize;
+        boxCarthresh = calibrationTool.filter2.boxCarThresh;
 end
 
 % creating boxcar filter
 boxCarFilter=ones(boxCarSize,1)/boxCarSize;
 
-indicesGood=ones(retrievalTool.numberOfChannels,1);
+indicesGood=ones(calibrationTool.numberOfChannels,1);
 
 % Bad channels for all calibrated cycles (dependant on the instruments):
-indicesGood(retrievalTool.badChannels)=NaN;
+indicesGood(calibrationTool.badChannels)=NaN;
 
 for t = 1:length(calibratedSpectra)
     indCyclesGood=indicesGood;
