@@ -68,7 +68,7 @@ for i = 1:size(calibratedSpectra,2)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
     % Computing TN around the line center (approximately +- 200 MHz)
-    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-200e6 & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+200e6);
+    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTSys & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTSys);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
     
@@ -85,6 +85,7 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).TSys=nanmean(TSysCenter);
     
     %%%%%%%%%%% Flag 2 %%%%%%%%%%%
+    % stdTSys defined on drift !!!!???
     if (abs(calibratedSpectra(i).TSys-calibrationTool.TSysCenterTh)>calibrationTool.TSysThresh | calibratedSpectra(i).stdTSys > calibrationTool.stdTSysThresh)
         systemTemperatureOK=0;
     else
@@ -124,14 +125,14 @@ for i = 1:size(calibratedSpectra,2)
         hotLoadOK=1;
     end
     
-    %%%%%%%%%%% Flag 6 %%%%%%%%%%%
-    % FFTS aquisition variable
-%     calibratedSpectra(i).FFT_adc_range=logFile.FFT_adc_range(1);
-%     if sum(logFile.FFT_adc_overload(ind))>0
-%         FFT_adc_overload_OK=0;
-%     else
-%         FFT_adc_overload_OK=1;
-%     end
+    %%%%%%%%%% Flag 6 %%%%%%%%%%%
+    %FFTS aquisition variable (not used for now but might be useful
+    calibrationTool.maxProportionOfIndFFTadcOverload = 0.1;
+    if sum(~(logFile.FFT_adc_overload(ind) == 0)) > calibrationTool.maxProportionOfIndFFTadcOverload*length(ind)
+        FFT_adc_overload_OK=0;
+    else
+        FFT_adc_overload_OK=1;
+    end
     
     %%%%%%%%%%% Flag ... %%%%%%%%%%%    NOT USED 
     % FFTS number of aquisition
@@ -146,7 +147,6 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanAngleAntenna=mean(logFile.Elevation_Angle(ia));
     calibratedSpectra(i).stdAngleAntenna=std(logFile.Elevation_Angle(ia));
     
-    calibrationTool.stdAntAngleThresh = 0.5;
     if calibratedSpectra(i).stdAngleAntenna > calibrationTool.stdAntAngleThresh
         PointingAngleOK=0;
     else
@@ -281,8 +281,8 @@ for i = 1:size(calibratedSpectra,2)
         "PointingAngleOK"];
     
     calibratedSpectra(i).outlierCalib = NaN;
-    
-    if (sum(calibratedSpectra(i).errorVector)<6)
+    warning('off','backtrace')
+    if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
         calibratedSpectra(i).outlierCalib = 1;
         errorV=num2str(calibratedSpectra(i).errorVector);
         disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')])

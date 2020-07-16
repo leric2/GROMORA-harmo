@@ -47,7 +47,7 @@ nTipping=sum(logFile.Tipping_Curve_active==1)/calibrationTool.tippingSize;
 try
     assert(((nTipping<calibrationTool.numberOfTippingCurveExpected+calibrationTool.toleranceTippingCurves)&&(nTipping>calibrationTool.numberOfTippingCurveExpected-calibrationTool.toleranceTippingCurves)) ,'consistency:numberTippingCurve_','Number of Tipping unconsistent');
 catch ME
-    warningLevel0=append(warningLevel0,ME.identifier);
+    % warningLevel0=append(warningLevel0,ME.identifier);
 end
 
 % Approximate number of cycles completed for this day

@@ -33,6 +33,12 @@ for i = 1:size(integratedSpectra,2)
     
     calibrationTool.minNumberOfAvgSpectra = 2;
     
+    integratedSpectra(i).meanTb = nanmean(integratedSpectra(i).Tb);
+    
+    integratedSpectra(i).numberOfIndices=[
+        integratedSpectra(i).numHotSpectra,...
+        integratedSpectra(i).numColdSpectra,...
+        integratedSpectra(i).numAntSpectra];
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
     % The number of indices for the 3 positions:
@@ -40,8 +46,16 @@ for i = 1:size(integratedSpectra,2)
         sufficientNumberOfAvgSpectra=1;
     else
         sufficientNumberOfAvgSpectra=0;
-        warning('Low number of avg spectra for this integration');
     end
+    
+    %%%%%%%%%%% Flag 1 %%%%%%%%%%%
+    % The number of indices for the 3 positions:
+%     if (integratedSpectra(i).numberOfAveragedSpectra > calibrationTool.minNumberOfIndicePerIntegration)
+%         sufficientNumberOfIndices=1;
+%     else
+%         sufficientNumberOfIndices=0;
+%         warning('Low number of avg spectra for this integration');
+%     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Antenna angle
@@ -62,35 +76,26 @@ for i = 1:size(integratedSpectra,2)
     end
        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    integratedSpectra(i).numberOfIndices=[
-        integratedSpectra.numHotSpectra,...
-        integratedSpectra.numColdSpectra,...
-        integratedSpectra.numAntSpectra];
+
     
     % Error vector for this calibration cycle
     integratedSpectra(i).errorVector=[
         sufficientNumberOfAvgSpectra,...
-        %systemTemperatureOK,...
-        %LN2SensorsOK,...
-        %LN2LevelOK,...
-        %hotLoadOK,...
         rain_Accumulation_OK];
     
     % Error vector description:
     integratedSpectra(i).errorVectorDescription=[
         "sufficientNumberOfAvgSpectra",...
-        %"systemTemperatureOK",...
-        %"LN2SensorsOK",...
-        %"LN2LevelOK",...
-        %"hotLoadOK",...
         "rain_Accumulation_OK"];
     
-%     if (sum(integratedSpectra(i).errorVector)<6)
-%         errorV=num2str(integratedSpectra(i).errorVector);
-%         disp(['Calibration Cycle number ' num2str(i) ', TOD: ' num2str(integratedSpectra(i).timeOfDay)])
-%         warning(['Problem with this calibration, error code : ' errorV]);
-%         disp(integratedSpectra(i).errorVectorDescription(~integratedSpectra(i).errorVector))
-%     end
+    integratedSpectra(i).outlierCalib = NaN;
+    if (sum(integratedSpectra(i).errorVector)<length(integratedSpectra(i).errorVector))
+        integratedSpectra(i).outlierCalib = 1;
+        errorV=num2str(integratedSpectra(i).errorVector);
+        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(integratedSpectra(i).dateTime),'HH:MM:SS')])
+        warning(['Problem with this calibration, error code : ' errorV]);
+        disp(integratedSpectra(i).errorVectorDescription(~integratedSpectra(i).errorVector))
+    end
    
 end
 
