@@ -119,7 +119,8 @@ for i = 1:size(calibratedSpectra,2)
 
     %%%%%%%%%%% Flag 5 %%%%%%%%%%%
     % Hot load check flag
-    if (abs(calibratedSpectra(i).THot - calibrationTool.THotTh)>calibrationTool.THotAbsThresh | calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
+    % abs(calibratedSpectra(i).THot - calibrationTool.THotTh)>calibrationTool.THotAbsThresh |
+    if (calibratedSpectra(i).stdTHot>calibrationTool.hotTemperatureStdThreshold)
         hotLoadOK=0;
     else
         hotLoadOK=1;

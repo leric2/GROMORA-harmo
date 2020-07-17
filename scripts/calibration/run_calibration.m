@@ -52,13 +52,14 @@ disp(['Starting the calibration process for ' calibrationTool.instrumentName ': 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Reading level0 data...')
 
-% Reading raw data
+tic
 [logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool);
+toc
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
 % instrument and might need date information later ?).
-logFile = calibrationTool.harmonize_log(logFile);
+logFile = calibrationTool.harmonize_log(calibrationTool, logFile);
 
 %% TO CHECK IF RIGHT
 % Reformat the raw spectra from vector to matrix

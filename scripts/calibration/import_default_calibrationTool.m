@@ -49,6 +49,7 @@ calibrationTool.zeroDegInKelvin = 273.15;
 
 calibrationTool.backgroundMWTb = 2.7;
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Importing default parameters for each instruments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -150,7 +151,7 @@ switch instrumentName
         
         % Temperatures
         calibrationTool.TSysCenterTh=2750;
-        calibrationTool.TSysThresh=100;
+        calibrationTool.TSysThresh=300;
         calibrationTool.stdTSysThresh=8;
         
         calibrationTool.THotTh=313.9;
@@ -363,11 +364,11 @@ switch instrumentName
 
         %Temperature
         calibrationTool.TSysCenterTh=2750;
-        calibrationTool.TSysThresh=100;
+        calibrationTool.TSysThresh=300;
         calibrationTool.stdTSysThresh=8;
         
         calibrationTool.THotTh=311.1;
-        calibrationTool.THotAbsThresh=2;
+        calibrationTool.THotAbsThresh=5;
         calibrationTool.hotTemperatureStdThreshold=0.05;
         calibrationTool.checkLevel0=true;
         
@@ -921,19 +922,34 @@ timeNumber=datenum(str2num(dateStr(1:4)),str2num(dateStr(6:7)),str2num(dateStr(9
 
 switch instrumentName
     case 'GROMOS'
+        % window transmission 
+        if timeNumber < datenum(2018,11,12)
+            calibrationTool.tWindow = 0.99; % has been changed at that time but no idea of the values ??????
+        else
+            calibrationTool.tWindow = 0.99; 
+        end
+        
         % Elevation angle of the cold load
-        if timeNumber<datenum(2014,07,03)
-            calibrationTool.elevationAngleCold=NaN;
-            disp('elevation angle to determine for this period')
-        elseif (timeNumber>= datenum(2014,12,01) && timeNumber<datenum(2018,2,11)) 
+        if timeNumber< datenum(2013,01,29)
+            %calibrationTool.elevationAngleCold=NaN;
+            %disp('elevation angle to determine for this period')
+            calibrationTool.elevationAngleCold=-85;
+        elseif (timeNumber>= datenum(2013,01,29) && timeNumber<datenum(2014,09,19)) 
+             calibrationTool.elevationAngleCold=-84;
+        elseif (timeNumber>= datenum(2014,09,19) && timeNumber<datenum(2019,2,11)) 
                 calibrationTool.elevationAngleCold=-85;
-        elseif (timeNumber>= datenum(2018,12,02) && timeNumber<datenum(2019,3,11)) 
+        elseif (timeNumber>= datenum(2019,02,12) && timeNumber<datenum(2019,3,12)) 
                 calibrationTool.elevationAngleCold=-89;
-        elseif timeNumber >= datenum(2019,04,01)
+        elseif timeNumber >= datenum(2019,3,12)
             calibrationTool.elevationAngleCold=-84;
         end
+        
+         if (timeNumber>= datenum(2019,01,14) && timeNumber<datenum(2019,03,12)) 
+             calibrationTool.elevationAngleBias = 5;
+         end
+        
     case 'SOMORA'
-         if timeNumber>datenum(2016,01,01) && timeNumber<datenum(2018,01,01)
+         if timeNumber>datenum(2016,01,01) && timeNumber<datenum(2017,04,01)
              calibrationTool.THotTh = 297.4;
          end
         
@@ -950,7 +966,7 @@ switch instrumentName
         elseif (timeNumber>= datenum(2010,06,25) && timeNumber<datenum(2012,03,02)) %ie 734931 2/3/2012
             calibrationTool.tWindow = 0.985; %value from 26/6/2010 to 2/3/2012 %attn anciennement 0.976 ???
         elseif (timeNumber>= datenum(2012,03,02) && timeNumber<datenum(2014,06,16)) %ie 16/06/2014
-            calibrationTool.tWindowt = 0.999; %value from 3/3/2012 to 15/06/2014
+            calibrationTool.tWindow = 0.999; %value from 3/3/2012 to 15/06/2014
         elseif (timeNumber>= datenum(2014,06,16) && timeNumber<datenum(2015,09,08))
             calibrationTool.tWindow = 1.0105; %value from 16/6/2014 to 07/09/2015
         elseif (timeNumber>= datenum(2015,09,09) && timeNumber<datenum(2017,05,30))

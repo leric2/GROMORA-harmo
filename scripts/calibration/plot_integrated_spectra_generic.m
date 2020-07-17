@@ -40,8 +40,8 @@ try
     ylabel(ax(1),({'THot [K]'}))
     
     if ~(nanmedian([integratedSpectra.meanTb])==-9999)
-        yLow = 0;
-        yUp = nanmedian([integratedSpectra.meanTb])+100;
+        yLow = nanmedian([integratedSpectra.meanTb])-40;
+        yUp = nanmedian([integratedSpectra.meanTb])+60;
     else
         yLow = 0;
         yUp = 280;
@@ -121,8 +121,6 @@ try
 %         hold on
 %     end
 %    title('Corrected (windows), good channels')
-    
-
 
     subplot(3,2,5); 
     for i=1:N

@@ -37,13 +37,10 @@ filename = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1
 calibrationTool.filenameLevel1a = filename;
 
 % Check that the calibration file (level1a) exist for this day
-if isfield(calibrationTool,'filenameLevel1a')
-    if ~exist(calibrationTool.filenameLevel1a,'file')
-        error('No calibration data found for this day')
-    end
-else
+if ~exist(calibrationTool.filenameLevel1a,'file')
     error('No calibration data found for this day')
-end
+ end
+
 
 % Start integration
 disp(['Starting the integration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
@@ -103,7 +100,7 @@ level1b.integration = calibrationTool.check_integrated(calibrationTool, level1b.
 
 % Plotting and saving calibrated and corrected spectra
 if calibrationTool.integratedSpectraPlot
-    calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,50,260)
+    calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
 end
 
 %%
@@ -111,11 +108,16 @@ end
 disp('Saving Level 1b...')
 if calibrationTool.numberOfSpectrometer > 1
     %TODO save the 4 integrated spectra in 1 level1b
+    calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
 else
     calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
 end
 
 disp('Integration successful')
 calibrationTool.successfulIntegration = true;
+
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+disp('')
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 end

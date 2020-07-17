@@ -19,8 +19,8 @@ try
         
         limTNPlot = nanmedian(drift.Tn);
         
-        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot(ax,drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') ,ylim([nanmedian(drift.Tn)-80,nanmedian(drift.Tn)+80])
-        plot(ax, [calibratedSpectra.meanAntTime], nanmedian(drift.Tn)*[calibratedSpectra.outlierCalib],'mx');
+        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot(ax,drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') ,ylim([limTNPlot-200,limTNPlot+200])
+        plot(ax, [calibratedSpectra.meanAntTime], limTNPlot*[calibratedSpectra.outlierCalib]-100,'mx');
         
         ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'),ylim([0,nanmedian(drift.Ta)+120])
         plot(ax2, [calibratedSpectra.meanAntTime], nanmedian(drift.Ta)*[calibratedSpectra.outlierCalib],'mx');
@@ -60,7 +60,7 @@ try
         %     end
         subplot(3,2,3); plot(drift.dateTime, drift.T, 'r'),  ylabel('T Hot  [K]'), ylim([mean(drift.T)-0.5 mean(drift.T)+0.5])
     end
-    if ~isempty(meteoData)
+    if ~isempty(fieldnames(meteoData))
         ax = subplot(3,2,5);
         yyaxis(ax(1),'left')
         plot(ax(1),[meteoData.dateTime], [meteoData.air_temperature] ,'r')

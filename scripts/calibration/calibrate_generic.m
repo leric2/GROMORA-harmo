@@ -204,17 +204,27 @@ for i=1:nCalibrationCycles
     medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>3*drift.dailyStdHotSpectra;
     medStdDevThreshCold=abs((rawSpectra(ic,:)-drift.dailyMedianColdSpectra))>3*drift.dailyStdColdSpectra;
     
+    % short scale move:    
+    medStdDevThreshHotShort = abs((rawSpectra(ih,:)-nanmedian(rawSpectra(ih,:))))>3*nanstd(rawSpectra(ih,:));
+    medStdDevThreshColdShort = abs((rawSpectra(ic,:)-nanmedian(rawSpectra(ic,:))))>3*nanstd(rawSpectra(ic,:));
+    
     %medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>calibrationTool.hotSpectraNumberOfStdDev*drift.dailyStdHotSpectra;
     %medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>calibrationTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
     
     outlierDetectHot = reshape(sum(medStdDevThreshHot,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectCold = reshape(sum(medStdDevThreshCold,2)>calibrationTool.threshNumRawSpectraCold,[],1);
-       
+    
+    % Not used effectively
+    outlierDetectHotShort = reshape(sum(medStdDevThreshHotShort,2)>calibrationTool.threshNumRawSpectraHot,[],1);
+    outlierDetectColdShort = reshape(sum(medStdDevThreshColdShort,2)>calibrationTool.threshNumRawSpectraCold,[],1);
+    
     outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
     outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
     
     calibratedSpectra(i).outlierDetectHot = sum(outlierDetectHot);
     calibratedSpectra(i).outlierDetectCold = sum(outlierDetectCold);
+    calibratedSpectra(i).outlierDetectHotShort = sum(outlierDetectHotShort);
+    calibratedSpectra(i).outlierDetectColdShort = sum(outlierDetectColdShort);
     calibratedSpectra(i).hotAngleOutlier = sum(hotAngleOutlier);
     calibratedSpectra(i).coldAngleOutlier = sum(coldAngleOutlier);
     calibratedSpectra(i).FFT_adc_overload_hot = sum(FFT_adc_overload_hot);
@@ -235,10 +245,17 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic); 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % additionnal check with the drift structure
+    % additionnal check with the drift structure (computing stdTSys for
+    % flagging later). 
     if ~isempty(ih)
         % Use drift structure for additionnal quality check
-        k=find(drift.dateTime >= logFile.dateTime(ih(1)) & drift.dateTime <= logFile.dateTime(ih(end)));
+        %logFile.dateTime(ih)
+        k=zeros(1,length(ih));
+        for a = 1:length(ih)
+            k(a) = find(drift.dateTime == logFile.dateTime(ih(a)));
+        end
+
+        %k=find(drift.dateTime >= logFile.dateTime(ih(1)) & drift.dateTime <= logFile.dateTime(ih(end)));
     
         Tn_drift_i=drift.Tn(k);
         %Ta_drift_i=drift.Ta(k);
@@ -246,8 +263,8 @@ for i=1:nCalibrationCycles
         outlierDrift = abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i); %| abs(Ta_drift_i-median(Ta_drift_i))>6*std(Ta_drift_i))';
         
         if sum(outlierDrift)>0
-            k(outlierDrift) = [];
-%             drift.outlierTN = [drift.outlierTN drift.dateTime(k(outlierDrift))];
+            %k(outlierDrift) = [];
+            %drift.outlierTN = [drift.outlierTN drift.dateTime(k(outlierDrift))];
 %             indHot=ih(outlierDrift);
 %             indCold = ih(outlierDrift)-3;
 %             for out = 1:length(indHot)
@@ -362,7 +379,7 @@ switch calType
             calibratedSpectra(i).spuriousSkySpectra=sum(outlierSky);
             
             if sum(outlierSky)>0
-                drift.outlierSky = [drift.outlierSky; logFile.dateTime(ia(outlierSky))];
+                drift.outlierSky = [drift.outlierSky; reshape(logFile.dateTime(ia(outlierSky)),[],1)];
             end
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

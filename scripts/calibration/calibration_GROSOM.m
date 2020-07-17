@@ -31,14 +31,42 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard of debug
 calibrationType='standard';
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_07','yyyy_mm_dd'):datenum('2019_02_12','yyyy_mm_dd');
+dates=datenum('2013_09_05','yyyy_mm_dd'):datenum('2013_09_05','yyyy_mm_dd');
+%dates=[datenum('2014_01_01','yyyy_mm_dd'):datenum('2014_01_04','yyyy_mm_dd'),...
+       %datenum('2015_02_05','yyyy_mm_dd'):datenum('2012_02_06','yyyy_mm_dd'),...
+       %datenum('2017_09_05','yyyy_mm_dd'):datenum('2013_09_07','yyyy_mm_dd')];%,...
+%     datenum('2011_02_01','yyyy_mm_dd'):datenum('2011_02_03','yyyy_mm_dd'),...
+%     datenum('2011_06_01','yyyy_mm_dd'):datenum('2011_06_03','yyyy_mm_dd'),...
+%     datenum('2012_02_01','yyyy_mm_dd'):datenum('2012_02_03','yyyy_mm_dd'),...
+%     datenum('2012_06_01','yyyy_mm_dd'):datenum('2012_06_03','yyyy_mm_dd'),...
+%     datenum('2013_02_01','yyyy_mm_dd'):datenum('2013_02_03','yyyy_mm_dd'),...
+%     datenum('2013_06_01','yyyy_mm_dd'):datenum('2013_06_03','yyyy_mm_dd'),...
+%     datenum('2014_02_01','yyyy_mm_dd'):datenum('2014_02_03','yyyy_mm_dd'),...
+%     datenum('2014_06_01','yyyy_mm_dd'):datenum('2014_06_03','yyyy_mm_dd'),...
+%     datenum('2015_02_01','yyyy_mm_dd'):datenum('2015_02_03','yyyy_mm_dd'),...
+%     datenum('2015_06_01','yyyy_mm_dd'):datenum('2015_06_03','yyyy_mm_dd'),...
+%     datenum('2016_02_01','yyyy_mm_dd'):datenum('2016_02_03','yyyy_mm_dd'),...
+%     datenum('2016_06_01','yyyy_mm_dd'):datenum('2016_06_03','yyyy_mm_dd'),...
+%     datenum('2017_02_01','yyyy_mm_dd'):datenum('2017_02_03','yyyy_mm_dd'),...
+%     datenum('2017_06_01','yyyy_mm_dd'):datenum('2017_06_03','yyyy_mm_dd'),...
+%     datenum('2018_02_01','yyyy_mm_dd'):datenum('2018_02_03','yyyy_mm_dd'),...
+%     datenum('2018_06_01','yyyy_mm_dd'):datenum('2018_06_03','yyyy_mm_dd'),...
+%     datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_07_31','yyyy_mm_dd')];
+
+calibrate = true;
+
 %dates=datenum('2015_09_27','yyyy_mm_dd')
+if strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')
+    labviewLog = read_labview_log_generic(instrumentName);
+else
+    labviewLog = struc();
+end
 
 % working directory
 %root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
@@ -54,13 +82,13 @@ for d = 1:numel(dates)
     
     % Import default tools for running a retrieval for a given instrument
     calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
     
     % for gaining time.
-    calibrationTool.level1aExist=false;
+    %calibrationTool.level1aExist=false;
     
     calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
     calibrationTool.calendar='standard';
@@ -68,6 +96,8 @@ for d = 1:numel(dates)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     calibrationTool.hotSpectraNumberOfStdDev=3;
     calibrationTool.coldSpectraNumberOfStdDev=3;
+    
+    calibrationTool.labviewLog = labviewLog;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Debug mode and plot options
@@ -112,6 +142,11 @@ for d = 1:numel(dates)
         % Temperature of the cold load
         calibrationTool.TCold=80;
         
+        % the number of the spectrometer models we are interested in
+        % see order in calibrationTool.spectrometerTypes
+        %modelFFTS=[1 3 4];
+        modelFFTS=[4];
+        
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
         % Everything stored into "import_default_calibrationTool"
@@ -123,7 +158,7 @@ for d = 1:numel(dates)
 % For now, we keep it dirty for separating between GROSOM and MOPI
     if calibrationTool.numberOfSpectrometer==1
             % if commented, nothing happens --> developping purposes
-        if ~calibrationTool.level1aExist
+        if calibrate
             try
                 calibrationTool = run_calibration(calibrationTool);
             catch ME
@@ -138,30 +173,27 @@ for d = 1:numel(dates)
             disp(ME.message)
         end
     else
-        for m=1:3
-            model=[1 3 4];
-            fftsMopi=model(m);
-            calibrationTool.ffts_model=fftsMopi;
-            calibrationTool.instrumentBandwidth = calibrationTool.BW(calibrationTool.ffts_model);
-            calibrationTool.spectrometer=calibrationTool.spectrometerTypes{calibrationTool.ffts_model};
-            calibrationTool.FS=calibrationTool.samplingRateFFTS(calibrationTool.ffts_model);
-            calibrationTool.filenameLevel1a=['/scratch/MOPI5/Level1/mopi5_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
-            try  
-                % Running the retrieval with the defined toolchain
-                %run_calibration(calibrationTool)
-            catch ME
-                warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
-                disp(ME.message)
+        for m=1:length(modelFFTS)
+            calibrationTool = calibrationTool.import_spectrometer(calibrationTool, modelFFTS(m));
+            if calibrate
+                try  
+                    run_calibration(calibrationTool);
+                catch ME
+                    warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
+                    disp(ME.message)
+                end
             end
+            try
+                calibrationTool = run_integration(calibrationTool);
+            catch ME
+                warning('Problem with the integration:');
+                disp(ME.message)
+            end 
         end
         
-        % Integrate the successful calibration into 1 output file
-        try
-            %calibrationTool = run_integration(calibrationTool);
-        catch ME
-            warning('Problem with the integration:');
-            disp(ME.message)
-        end
+        % Integrate the successful calibration into 1 output file... maybe
+        % not yet
+
     end
 end
 
