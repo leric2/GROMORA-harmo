@@ -218,7 +218,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing Meteo Data
-if isfield(logFile,'meteo') && ~isempty(logFile.meteo)
+if isfield(logFile,'meteo') && ~isempty(fieldnames(logFile.meteo))
     ncwrite(filename,'/meteo/time',[logFile.meteo.dateNum]);
     ncwrite(filename,'/meteo/air_pressure',[logFile.meteo.air_pressure]);
     ncwrite(filename,'/meteo/air_temperature',[logFile.meteo.air_temperature]);
@@ -264,6 +264,16 @@ ncwriteatt(filename,'/','calibration_version',calibratedSpectra(1).calibrationVe
 ncwriteatt(filename,'/','raw_file_comment',logFile.comment);
 
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
+
+if ~isempty(fieldnames(calibrationTool.labviewLog))
+    if sum(isbetween([calibrationTool.labviewLog.dateTime], calibratedSpectra(1).theoreticalStartTime, calibratedSpectra(end).theoreticalStartTime + minutes(10))) > 0
+        ncwriteatt(filename,'/','labview_logfile_warning','check labview log !');
+    else
+        ncwriteatt(filename,'/','labview_logfile_warning','clean');
+    end
+else
+    ncwriteatt(filename,'/','labview_logfile_warning','no labview log found');
+end
 
 % Geolocation attributes
 ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).timeMin);

@@ -270,6 +270,18 @@ ncwriteatt(filename,'/','filename',filename);
 ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
 ncwriteatt(filename,'/','featureType','timeSeries');
 
+if ~isempty(fieldnames(calibrationTool.labviewLog))
+    if sum(isbetween([calibrationTool.labviewLog.dateTime],...
+            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day),...
+            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1))) > 0
+        ncwriteatt(filename,'/','labview_logfile_warning','check labview log !');
+    else
+        ncwriteatt(filename,'/','labview_logfile_warning','clean');
+    end
+else
+    ncwriteatt(filename,'/','labview_logfile_warning','no labview log found');
+end
+
 % Geolocation attributes
 %ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
 %ncwriteatt(filename,'/','data_stop_date',datestr(calibratedSpectra(end).dateStop,'yyyymmddTHHMMSSZ'));
