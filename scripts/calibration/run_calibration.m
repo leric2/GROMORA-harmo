@@ -45,7 +45,7 @@ assert(ischar(calibrationTool.dateStr),'Please enter the date in the right forma
 assert(exist([calibrationTool.file '.txt'],'file') && exist([calibrationTool.file '.bin'],'file'),'Files not found')
 
 % Start calibration
-disp(['Starting the calibration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
+disp(['Starting the calibration process for ' calibrationTool.instrumentName ' ' calibrationTool.spectrometer ': ' calibrationTool.dateStr])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day

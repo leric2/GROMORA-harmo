@@ -286,8 +286,8 @@ for i = 1:size(calibratedSpectra,2)
     if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
         calibratedSpectra(i).outlierCalib = 1;
         errorV=num2str(calibratedSpectra(i).errorVector);
-        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')])
-        warning(['Problem with this calibration, error code : ' errorV]);
+        %disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')])
+        warning(['Problem with calibration cycle number ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS') ', error code : ' errorV]);
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
     end
    

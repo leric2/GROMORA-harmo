@@ -31,6 +31,8 @@ calibrationTool.Year = str2double(dateStr(1:4));
 calibrationTool.Month = str2double(dateStr(6:7));
 calibrationTool.Day = str2double(dateStr(9:10));
 
+calibrationTool.dateTime = datetime(dateStr,'InputFormat','yyyy_MM_dd');
+
 % Name of the instrument
 calibrationTool.instrumentName=instrumentName;
 calibrationTool.dateStr=dateStr;

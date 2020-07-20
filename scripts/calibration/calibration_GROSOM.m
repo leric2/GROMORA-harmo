@@ -31,13 +31,16 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
-% Type of calibration to do: standard of debug
+% Type of calibration to do: standard or debug
 calibrationType='standard';
 
+calibrate = true;
+integrate = true;
+
 % Define the dates for the calibration:
-dates=datenum('2013_09_05','yyyy_mm_dd'):datenum('2013_09_05','yyyy_mm_dd');
+dates=datenum('2019_03_05','yyyy_mm_dd'):datenum('2019_03_05','yyyy_mm_dd');
 %dates=[datenum('2014_01_01','yyyy_mm_dd'):datenum('2014_01_04','yyyy_mm_dd'),...
        %datenum('2015_02_05','yyyy_mm_dd'):datenum('2012_02_06','yyyy_mm_dd'),...
        %datenum('2017_09_05','yyyy_mm_dd'):datenum('2013_09_07','yyyy_mm_dd')];%,...
@@ -59,13 +62,13 @@ dates=datenum('2013_09_05','yyyy_mm_dd'):datenum('2013_09_05','yyyy_mm_dd');
 %     datenum('2018_06_01','yyyy_mm_dd'):datenum('2018_06_03','yyyy_mm_dd'),...
 %     datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_07_31','yyyy_mm_dd')];
 
-calibrate = true;
+
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 if strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')
     labviewLog = read_labview_log_generic(instrumentName);
 else
-    labviewLog = struc();
+    labviewLog = struct();
 end
 
 % working directory
@@ -145,7 +148,7 @@ for d = 1:numel(dates)
         % the number of the spectrometer models we are interested in
         % see order in calibrationTool.spectrometerTypes
         %modelFFTS=[1 3 4];
-        modelFFTS=[4];
+        modelFFTS=[1 3 4];
         
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
@@ -166,11 +169,13 @@ for d = 1:numel(dates)
                 disp(ME.message)
             end
         end
-        try
-            calibrationTool = run_integration(calibrationTool);
-        catch ME
-            warning('Problem with the integration:');
-            disp(ME.message)
+        if integrate
+            try
+                calibrationTool = run_integration(calibrationTool);
+            catch ME
+                warning('Problem with the integration:');
+                disp(ME.message)
+            end
         end
     else
         for m=1:length(modelFFTS)

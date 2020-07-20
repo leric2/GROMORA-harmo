@@ -93,7 +93,7 @@ drift.dailyStdAntSpectra=nanstd(rawSpectra(initialIndices{2},:));
 drift.outlierCold = [];
 drift.outlierHot = [];
 drift.outlierSky = [];
-drift.outlierTN = [];
+drift.outlierDrift = [];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time interval for the calibration, splitting the indices for this day
@@ -258,15 +258,15 @@ for i=1:nCalibrationCycles
         %k=find(drift.dateTime >= logFile.dateTime(ih(1)) & drift.dateTime <= logFile.dateTime(ih(end)));
     
         Tn_drift_i=drift.Tn(k);
-        %Ta_drift_i=drift.Ta(k);
+        Ta_drift_i=drift.Ta(k);
     
-        outlierDrift = abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i); %| abs(Ta_drift_i-median(Ta_drift_i))>6*std(Ta_drift_i))';
+        outlierDrift = (abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>4*std(Ta_drift_i))';
         
         if sum(outlierDrift)>0
             %k(outlierDrift) = [];
-            %drift.outlierTN = [drift.outlierTN drift.dateTime(k(outlierDrift))];
-%             indHot=ih(outlierDrift);
-%             indCold = ih(outlierDrift)-3;
+            %drift.outlierDrift = [drift.outlierDrift; reshape(drift.dateTime(k(outlierDrift)),[],1)];
+            %indHot=ih(outlierDrift);
+            %indCold = ih(outlierDrift)-3;
 %             for out = 1:length(indHot)
 %                 ih(ih == indHot(out)) = [];
 %                 ic(ic == indCold(out)) = [];

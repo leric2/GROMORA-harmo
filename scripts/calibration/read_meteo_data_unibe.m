@@ -20,9 +20,7 @@ function meteoData = read_meteo_data_unibe(calibrationTool)
 %               |
 
 %==========================================================================
-
-
-if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateStr(6:7)),str2num(calibrationTool.dateStr(9:10))) > datetime(2017,08,10)
+if calibrationTool.dateTime >= datetime(2017,08,10)
     % First reading the Meteo dataset for this day
     dateStringMeteo=[calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)];
     meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
@@ -44,6 +42,9 @@ if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateSt
             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
         end
     end
+elseif  (calibrationTool.dateTime > datetime(2017,01,01) && calibrationTool.dateTime < datetime(2017,08,10))
+    disp('status of meteo data unkown between 01.01 and 09.08.2017') 
+    meteoData = struct();
 else
     dateStringMeteo=[calibrationTool.dateStr(3:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
     dateStringMeteoPrec=[calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
@@ -53,24 +54,28 @@ else
     meteoDataFilePrecipitation=[calibrationTool.meteoFolder calibrationTool.dateStr(1:4) '/' dateStringMeteoPrec '_rainsensor.txt'];
     
     % Transforming it into matlab structure
-    %T=readtable(meteoDataFilePrecipitation);
-    %precipitation=table2struct(T);
+    prec=readtable(meteoDataFilePrecipitation);
+    precipitation=table2struct(prec);
     
-    fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s %*[^\n]';
-    
-%     result.filename = meteoDataFileLog; % Dateiname
+    p=readtable(meteoDataFilePressure,'FileType','text');
+    p.Properties.VariableNames = {'time' 'inst' 'mean' 'max','min'};
+    pressure=table2struct(p);
+%     %fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s %*[^\n]';
+%     fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f %*[^\n]';
+%     %fmt = '%4d-%2d-%2d %2d:%2d %*s %f %f %f %f %f %f %f %f %f %f %f %f %f %s %s %s %s %s %s %s %s %s %s %s %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %f %f %f %f %s %f %f %f %f %f %f';
 %     
-% %     % Transforming it into matlab structure
+%     %f  %f  %f  %f  %f  %f  %f  %f %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f';
+% %     
+% % %     % Transforming it into matlab structure
 %      fileID = fopen(meteoDataFileLog,'r');
-%      f = textscan(fileID,fmt,'Delimiter',' \b\t', 'EndOfLine','\n', 'TreatAsEmpty',{'/////' '//////'});
-%     
-%     
-%     for i = 1:length(meteoData)
-%         dateN = datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ');
-%         meteoData(i).dateNum=dateN-datenum(1970,1,1);
-%         meteoData(i).dateTime=datetime(dateN,'ConvertFrom','datenum');
+%      meteoFile = textscan(fileID,fmt,'Delimiter',' \b\t', 'EndOfLine','\n', 'TreatAsEmpty',{'/////' '//////'});
+%      %'TreatAsEmpty',{'/////' '//////'}
+% %     
+%     for i = 1:144       
+%         meteoData(i).dateTime=pressure(i).time;
+%         meteoData(i).dateNum=meteoData(i).dateTime-datenum(1970,1,1);
 %         %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');
-%         meteoData(i).air_temperature=meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
+%         meteoData(i).air_temperature=meteoFile{1,9} + calibrationTool.zeroDegInKelvin;
 %         meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
 %         meteoData(i).precipitation = precipitation.Var2(i)
 % %         % TODO Check units
@@ -78,11 +83,12 @@ else
 % %             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
 % %         end
 %     end
-% try
+% % try
 % 
 %   if datenum(calibrationTool.Year, calibrationTool.Month, calibrationTool.Day) > 731616 & datenum(calibrationTool.Year, calibrationTool.Month, calibrationTool.Day) < 731673
 %     % In dieser Periode hat der Windgeschwindigkeitssensor nicht funktioniert
-%     [result.jahr ... % Datum und Zeit
+% result = struct();
+% [result.jahr ... % Datum und Zeit
 %      result.monat ...
 %      result.tag ...
 %      result.stunde ...
@@ -134,7 +140,8 @@ else
 %      rain1 ... % Regen (Sensor) instantan
 %      rain2 ... % Regen (Sensor) summiert
 %      snow ... % Schnee summiert
-%     ]=textread(result.filename, '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s',144);
+%     ]
+%=textread(result.filename, '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s',144);
 %     result.inst.windsp2 = 999999*ones(144, 1); % Windgeschwindigkeit
 %     result.ave.windsp2 = 999999*ones(144, 1);
 %     result.max.windsp2 = 999999*ones(144, 1);
