@@ -107,7 +107,7 @@ end
 % read complete binary data in one vector
 if nargout>1
     fid = fopen( [file '.bin'], 'r', calibrationTool.binaryType);
-    rawSpectra = fread(fid ,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
+    rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
 

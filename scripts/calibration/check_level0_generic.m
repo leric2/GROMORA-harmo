@@ -72,8 +72,8 @@ if sum(isExtra) > 0
     fwrite(fid,M(:));
     fclose(fid);
     
-    writecell(logFile.header',[f '.txt'],'Delimiter',';')
-    dlmwrite([f '.txt'],logFile.x(:,isExtra)','delimiter',';','-append');
+    writecell(logFile.header',[f '.txt'],'Delimiter',calibrationTool.delimiter_logfile)
+    dlmwrite([f '.txt'],logFile.x(:,isExtra)','delimiter',calibrationTool.delimiter_logfile,'-append');
     disp('Some extra timestamp have been saved, please make sure to use "read_level0_missing" function');
     warningLevel0=append(warningLevel0,'extra_timestamp');
 end
