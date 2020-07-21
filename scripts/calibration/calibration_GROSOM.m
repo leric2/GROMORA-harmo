@@ -31,7 +31,7 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='mopi5';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -40,7 +40,7 @@ calibrate = true;
 integrate = true;
 
 % Define the dates for the calibration:
-dates=datenum('2019_01_14','yyyy_mm_dd'):datenum('2019_01_14','yyyy_mm_dd');
+dates=datenum('2019_02_16','yyyy_mm_dd'):datenum('2019_02_16','yyyy_mm_dd');
 %dates=[datenum('2014_01_01','yyyy_mm_dd'):datenum('2014_01_04','yyyy_mm_dd'),...
        %datenum('2015_02_05','yyyy_mm_dd'):datenum('2012_02_06','yyyy_mm_dd'),...
        %datenum('2017_09_05','yyyy_mm_dd'):datenum('2013_09_07','yyyy_mm_dd')];%,...

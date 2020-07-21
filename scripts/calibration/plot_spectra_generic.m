@@ -20,9 +20,9 @@ try
         lowerLim = prctile(drift.Ta,2) - 20;
         upperLim = prctile(drift.Ta,98) + 20;
         
-        limTNPlot = nanmedian(drift.Tn);
+        limTNPlot = nanmedian([calibratedSpectra.TSys]);
         
-        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot(ax,drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
+        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TSys],'r'), plot(ax,drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
         plot(ax, [calibratedSpectra.meanAntTime], limTNPlot*[calibratedSpectra.outlierCalib]-100,'mx'), xlim([xstart,xstop]);
         
         ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'), xlim([xstart,xstop]), ylim([0,nanmedian(drift.Ta)+120])

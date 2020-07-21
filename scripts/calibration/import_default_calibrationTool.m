@@ -564,12 +564,10 @@ switch instrumentName
         calibrationTool.elevationAngleTolerance=5;        
         
         %Temperature
-        calibrationTool.TSysCenterTh = 700;
-        calibrationTool.TSysThresh = 250;
-        calibrationTool.stdTSysThresh=20;
+
         
-        calibrationTool.THotTh=293.5;
-        calibrationTool.THotAbsThresh=2;
+        calibrationTool.THotTh=292.2;
+        calibrationTool.THotAbsThresh=1;
         calibrationTool.hotTemperatureStdThreshold=0.05;
         
         calibrationTool.numberOfTippingCurveExpected=4;
@@ -581,7 +579,7 @@ switch instrumentName
         calibrationTool.elevationAngleTolerance=10;
         calibrationTool.stdAntAngleThresh = 0.5;
         
-        calibrationTool.minNumberOfIndicePerCycle=50;
+        calibrationTool.minNumberOfIndicePerCycle=15;
 
         calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
         calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;

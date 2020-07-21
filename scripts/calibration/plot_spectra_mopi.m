@@ -11,7 +11,7 @@ set(gcf, 'PaperPosition', [1 1 19 27.7])
 orient(fig,'landscape')
 
 if ~isempty(drift)
-    subplot(3,2,1); plot(drift.dateTime, drift.Tn, 'k'), hold on, plot(drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') ,ylim([nanmedian(drift.Tn)-200,nanmedian(drift.Tn)+200])
+    subplot(3,2,1); plot(drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TSys],'y'), ylabel('Tn [K]') ,ylim([nanmedian(drift.Tn)-200,nanmedian(drift.Tn)+200])
     subplot(3,2,2); plot(drift.dateTime, drift.Ta ,'g'), ylabel('Ta [K]')
     %set(gca, 'ColorOrder', [1 0.5 0.5; 0.2 0.2 0.2, 0 0 1],'NextPlot', 'replacechildren');
     colors = {'r','g','b'};
