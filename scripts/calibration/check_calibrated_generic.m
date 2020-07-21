@@ -47,16 +47,27 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Frequency vector
-    calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
-    
-    calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
+    if calibrationTool.IQProcessing
+        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [-1:2/calibrationTool.numberOfChannels:1-2/calibrationTool.numberOfChannels];
         
-    calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
+        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
+        
+        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
     
-    calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
     
-    calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
+        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
+    else
+        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
     
+        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
+        
+        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
+    
+        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+    
+        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
+    end
     %bw=retrievalTool.instrumentBandwidth;
     %nChannel=retrievalTool.numberOfChannels;
     %df=bw/(nChannel+1); % TOCHECK

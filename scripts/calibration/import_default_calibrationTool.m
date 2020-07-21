@@ -89,6 +89,8 @@ switch instrumentName
        
         calibrationTool.numberOfChannels=32768;
         
+        calibration.IQProcessing = false;
+        
         % Local oscillators information
         calibrationTool.fLO1=1.45875e11;
         calibrationTool.fLO2=3.6e9;
@@ -307,6 +309,8 @@ switch instrumentName
         calibrationTool.numberOfSpectrometer=1;
         calibrationTool.spectrometer='AC240';
         
+        calibration.IQProcessing = false;
+        
         calibrationTool.fLO1=1.49275e11;
         calibrationTool.fLO2=5.6e9;
         calibrationTool.fLO3=2e9;
@@ -522,7 +526,9 @@ switch instrumentName
         calibrationTool.numberOfChannels=16384;
 
         % This one should correspond to the DC channel
-        calibrationTool.LOFreqTot=1.10836e11;
+        %calibrationTool.LOFreqTot=1.10836e11;
+        calibrationTool.LOFreq1 = 1.06984e11;
+        calibrationTool.LOFreq2 = 3.3e9;
         calibrationTool.DCChannel=1; %=Nchannel/2 ??
    
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -564,11 +570,9 @@ switch instrumentName
         calibrationTool.elevationAngleTolerance=5;        
         
         %Temperature
-
-        
         calibrationTool.THotTh=292.2;
         calibrationTool.THotAbsThresh=1;
-        calibrationTool.hotTemperatureStdThreshold=0.05;
+        calibrationTool.hotTemperatureStdThreshold=0.1;
         
         calibrationTool.numberOfTippingCurveExpected=4;
         calibrationTool.toleranceTippingCurves=2;

@@ -30,8 +30,14 @@ BW = [200e6 20e6 1.6e9 1e9];
 
 calibrationTool.numberOfChannels=16384;
 
-
-
+if modelFFTS<3
+    calibrationTool.IQProcessing = true;
+    %calibrationTool.LOFreqTot = calibrationTool.LOFreq1; TODO
+    calibrationTool.LOFreqTot = calibrationTool.observationFreq-50.3e6;
+else
+    calibrationTool.IQProcessing = false;
+    calibrationTool.LOFreqTot = calibrationTool.LOFreq1 + calibrationTool.LOFreq2;
+end
 calibrationTool.badChannels = [];
 
 calibrationTool.instrumentBandwidth = BW(modelFFTS);

@@ -32,7 +32,11 @@ for h = 1:length(timeThresh)-1
     % Selecting only spectra with:
     
     % transmission > 0.2 in the integration:
-    goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] > 0.2);
+    if calibrationTool.filterByTransmittance
+        goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] > 0.2);
+    else
+        goodSpectra = indSpectra;
+    end
     
     if ~isempty(goodSpectra)  
         noErrorVect = ones(1,calibrationTool.flagVectorLength);
