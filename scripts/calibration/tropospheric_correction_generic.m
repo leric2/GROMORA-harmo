@@ -52,8 +52,8 @@ for t = 1:length(spectra)
         
         % Clean brightness temperature (without spurious channels)
         % Achtung, we use now the corrected WINDOW Tb
-        if isfield(spectra,'TbCorr')
-            Tb_temp=spectra(t).TbCorr;
+        if isfield(spectra,'TbWinCorr')
+            Tb_temp=spectra(t).TbWinCorr;
         else 
             Tb_temp=spectra(t).Tb;
         end

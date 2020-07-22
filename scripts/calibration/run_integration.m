@@ -71,6 +71,9 @@ end
 % (we do not remove any)
 level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,1);
 
+% Performing window correction
+level1b.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1b.calibratedSpectra );
+
 % Compute tropospheric transmittance and correction for every calibrated
 % spectra.
 level1b.calibratedSpectra = calibrationTool.tropospheric_correction(level1b.calibratedSpectra, calibrationTool,10.4);

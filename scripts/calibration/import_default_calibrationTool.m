@@ -89,7 +89,7 @@ switch instrumentName
        
         calibrationTool.numberOfChannels=32768;
         
-        calibration.IQProcessing = false;
+        calibrationTool.IQProcessing = false;
         
         % Local oscillators information
         calibrationTool.fLO1=1.45875e11;
@@ -309,7 +309,7 @@ switch instrumentName
         calibrationTool.numberOfSpectrometer=1;
         calibrationTool.spectrometer='AC240';
         
-        calibration.IQProcessing = false;
+        calibrationTool.IQProcessing = false;
         
         calibrationTool.fLO1=1.49275e11;
         calibrationTool.fLO2=5.6e9;
