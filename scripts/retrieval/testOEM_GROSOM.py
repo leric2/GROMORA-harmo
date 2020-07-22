@@ -39,8 +39,8 @@ name = 'testOEM_GROMOS_ECMWF_apriori'
 #basename = "/home/eric/Documents/PhD/GROSOM/Level1/"
 #level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
 
-basename="/home/esauvageat/Documents/GROSOM/Analysis/Level1/GROMOS/"
-level2_data_folder = "/home/esauvageat/Documents/GROSOM/Analysis/Level2/"
+basename="/scratch/GROSOM/Level1/GROMOS/"
+level2_data_folder = "/scratch/GROSOM/Level2/"
 
 line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
 # line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -100,7 +100,7 @@ retrieval_param['prefix_atm'] = ARTS_DATA_PATH + \
     "/planets/Earth/Fascod/{}/{}.".format(
     fascod_atmosphere, fascod_atmosphere)
 
-level1b_dataset, meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(
+level1b_dataset, flags, meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(
     filename)
 
 #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -120,11 +120,11 @@ ds_bw = max(ds_freq) - min(ds_freq)
 
 ds_df = ds_bw/(ds_num_of_channel-1)
 
-retrieval_param["zenith_angle"] = level1b_dataset.meanAngleAntenna.values[cycle]
+retrieval_param["zenith_angle"] = level1b_dataset.mean_sky_angle.values[cycle]
 
 retrieval_param["time"] = level1b_dataset.time[cycle].values
-retrieval_param['time_start'] = level1b_dataset.firstSkyTime[cycle].values
-retrieval_param['time_stop'] = level1b_dataset.lastSkyTime[cycle].values
+retrieval_param['time_start'] = level1b_dataset.first_sky_time[cycle].values
+retrieval_param['time_stop'] = level1b_dataset.last_sky_time[cycle].values
 retrieval_param["lat"] = level1b_dataset.lat[cycle].values
 retrieval_param["lon"] = level1b_dataset.lon[cycle].values
 
@@ -151,7 +151,7 @@ f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
 f_grid = f_grid + f0
 
 # Pressure grid != retrieval grid 
-z_bottom = 1e3
+z_bottom = 800
 z_top = 112e3
 z_res = 1e3
 z_grid = np.arange(z_bottom, z_top + 2 * z_res, z_res)
@@ -161,13 +161,18 @@ p_grid = z2p_simple(z_grid)
 ac.set_grids(f_grid, p_grid)
 
 # altitude for the retrieval
-retrieval_param["surface_altitude"] = 1500
+retrieval_param["surface_altitude"] = 1000
 ac.set_surface(retrieval_param["surface_altitude"])
 
 # Spectroscopy
 ac.set_spectroscopy_from_file(
     abs_lines_file=retrieval_param['line_file'],
-    abs_species=["O3", "H2O", "H2O-PWR98", "O2-PWR98", "N2-SelfContStandardType"],
+    abs_species=[
+        "O3",
+        "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+        "O2-TRE05",
+        "N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
+        ],
     format='Arts',
     line_shape=["VVH", 750e9],
 )
@@ -216,7 +221,7 @@ obs = arts.Observation(
     aa=32,
     lat=46,
     lon=7,
-    alt=12e3,
+    alt=1e3,
     time=12
 )
 
@@ -273,11 +278,20 @@ h2o_covmat = covmat.covmat_1d_sparse(
 )
 
 sx_O3 = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
-#sx_H2O = covmat.covmat_diagonal_sparse(1e-6 * np.ones_like(p_ret_grid))
+sx_H2O = covmat.covmat_diagonal_sparse(1e-12 * np.ones_like(p_ret_grid))
+
+# Load the a priori atmospheric state.
+#from typhon.arts import xml
+#atm_fields = xml.load("/home/esauvageat/Documents/ARTS/arts-lectures/exercises/06-inversion/input/x_apriori.xml")
+#z = atm_fields.get("z", keep_dims=False)
+#x_apriori = atm_fields.get("abs_species-H2O", keep_dims=False)
+
+# Load the covariance matrices.
+#sx_H2O_artsLectures = xml.load("/home/esauvageat/Documents/ARTS/arts-lectures/exercises/06-inversion/input/S_xa.xml")
 
 # The different things we want to retrieve
 ozone_ret = arts.AbsSpecies('O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='vmr')
-#h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_grid, lon_grid, h2o_covmat, unit='vmr')
+h2o_ret = arts.AbsSpecies("H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", p_ret_grid, lat_grid, lon_grid, sx_H2O, unit='vmr')
 
 # fshift_ret = arts.FreqShift(100e3, df=50e3)
 # polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
@@ -292,7 +306,7 @@ y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
 y_var[(level1b_dataset.good_channels[cycle].values == 0)] = factor*retrieval_param['unit_var_y']
 
 # y_var = utils.var_allan(ds_Tb) * np.ones_like(ds_Tb)
-ac.define_retrieval([ozone_ret], y_var)
+ac.define_retrieval([ozone_ret, h2o_ret], y_var)
 # ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
 
 #Let a priori be off by 0.5 ppm (testing purpose)

@@ -50,8 +50,15 @@ def read_level1b(filenameLevel1b):
         decode_times=True,
         decode_coords=True,
         )
+
+    flags=xr.open_dataset(
+        filenameLevel1b+".nc",
+        group="flags",
+        decode_times=True,
+        decode_coords=True,
+        )
         
-    return DS, METEO, globalAttributes
+    return DS, flags, METEO, globalAttributes
 
 def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
     '''
@@ -168,7 +175,7 @@ def plot_meteo_level1b(METEO):
     
     axs[2].plot(METEO.time.values,METEO.precipitation.values) 
     axs[2].set_ylabel('rain [mm]')
-    axs[2].set_ylim(0, 5)
+    #axs[2].set_ylim(0, 5)
     
     axs[2].set_xlabel('time [h]')
     
@@ -227,9 +234,8 @@ def plot_level2(level1b_dataset,ac,retrieval_param, title = 'Retrieval'):
     figures.append(fig)
     
     return figures
-  
-    
-def plot(ds, ac, retrieval_param, title=""):
+
+def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
     '''
     Plotting function directly taken from Jonas ;)
     OG can be found in retrieval.py in MOPI retrievals
@@ -253,6 +259,7 @@ def plot(ds, ac, retrieval_param, title=""):
 
     f_backend = ds.frequencies.values
     y = ds.Tb_corr[retrieval_param['integration_cycle']].values
+    #y = ac.y[0]
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
@@ -262,11 +269,11 @@ def plot(ds, ac, retrieval_param, title=""):
     fig, axs = plt.subplots(2, sharex=True)
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
-    axs[0].set_ylim(-15, 150)
+    axs[0].set_ylim(-5, 50)
     axs[0].legend()
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
-    axs[1].set_ylim(-15, 50)
+    axs[1].set_ylim(-10, 10)
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
 
@@ -288,10 +295,12 @@ def plot(ds, ac, retrieval_param, title=""):
 
     axs[0][1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
     axs[0][1].set_xlabel("Measurement response")
-
-    axs[1][0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3)
-    axs[1][0].set_xlabel("$e_o$ [ppm]")
+    
+    axs[1][0].plot(ozone_ret.es * 1e6, ozone_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ [ppm]")
     axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
 
     for avk in ozone_ret.avkm:
         if 0.8 <= np.sum(avk) <= 1.2:
@@ -327,3 +336,5 @@ def plot(ds, ac, retrieval_param, title=""):
     figures.append(fig)
     '''
     return figures
+
+    
