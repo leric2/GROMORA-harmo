@@ -180,6 +180,8 @@ switch instrumentName
         calibrationTool.frequencyBandAroundCenterTSys = 200e6;
         
         % Filters for flagging "bad channels"
+        calibrationTool.maxStdDevTb = nan; %TODO
+        
         % On 10 minutes spectra
         calibrationTool.filter1.TbMax=300;
         calibrationTool.filter1.TbMin=20;
@@ -336,13 +338,13 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Folder, Raw and log file data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
+        %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         
-        %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-        %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-        calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+        %calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
         calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
@@ -398,6 +400,9 @@ switch instrumentName
         calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
         
         % Filters for flagging "bad channels"
+        calibrationTool.maxStdDevTb = 10;
+        
+        
         % On 10 minutes spectra
         calibrationTool.filter1.TbMax=300;
         calibrationTool.filter1.TbMin=20;
@@ -415,7 +420,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Read meteo data
         calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' dateStr(1:4) '/'];
-        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
+        calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
     
         % Function specific to this instrument
         % meteo Data
@@ -594,6 +599,8 @@ switch instrumentName
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
+        calibrationTool.maxStdDevTb = nan; %TODO
+        
         calibrationTool.filter1.TbMax=300;
         calibrationTool.filter1.TbMin=20;
         calibrationTool.filter1.boxCarSize=51;

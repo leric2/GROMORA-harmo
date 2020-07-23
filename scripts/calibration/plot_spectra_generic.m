@@ -13,7 +13,7 @@ try
     orient(fig,'landscape')
     
     xstart = calibrationTool.dateTime;
-    xstop = calibrationTool.dateTime + day(1);
+    xstop = calibrationTool.dateTime + days(1);
     
     limTNPlot = 2500;
     if ~isempty(drift)
@@ -106,7 +106,7 @@ try
     set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
     orient(fig2,'landscape')
     cm = colormap(parula(N));
-    subplot(1,2,1);
+    %subplot(1,2,1);
     count=1;
     for i=1:N
         if ~(calibratedSpectra(l(i)).outlierCalib == 1)
@@ -127,7 +127,34 @@ try
             count = count + 1;
         %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
         end
-        
+        hold on
+    end
+
+    legend(TOD,'Location','southoutside','NumColumns',4);
+    grid on, xlabel('IF [MHz]');
+    
+    
+    %legend(TOD)
+    %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
+    print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
+    
+    fig3 = figure('visible','off');
+    %fig2 = figure();
+    clf
+    set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
+    
+    yInfstd = 0;
+    ySupStd = 20;
+    orient(fig3,'landscape')
+    cm = colormap(parula(N));
+    subplot(1,2,1);
+    for i=1:N
+        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
+        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+            ylabel('stdTb [K]')
+            ylim([yInfstd,ySupStd])
+        end
         hold on
     end
     
@@ -141,17 +168,9 @@ try
         end
         hold on
     end
-    
-    
-    legend(TOD,'Location','southoutside','NumColumns',4)
     for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
+    print(fig3,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
     
-    
-    %legend(TOD)
-    %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
-    print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
-    %saveas(gcf,[retrievalTool.level1Folder 'calibratedSpectra_' retrievalTool.dateStr '_' retrievalTool.spectrometer],'jpg')
-    close
 catch ME
     warning(ME.identifier,'%s',['Plotting calibration problem: ' ME.message])
 end

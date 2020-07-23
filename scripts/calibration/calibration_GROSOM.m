@@ -31,16 +31,16 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_04','yyyy_mm_dd'):datenum('2019_02_04','yyyy_mm_dd');
+dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
 % dates=[datenum('2011_03_01','yyyy_mm_dd'):datenum('2011_03_20','yyyy_mm_dd'),...
 %     datenum('2011_05_01','yyyy_mm_dd'):datenum('2011_05_20','yyyy_mm_dd'),...
 %     datenum('2012_03_01','yyyy_mm_dd'):datenum('2012_03_20','yyyy_mm_dd'),...
@@ -60,7 +60,7 @@ dates=datenum('2019_02_04','yyyy_mm_dd'):datenum('2019_02_04','yyyy_mm_dd');
 
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
-if strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')
+if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & 0
     labviewLog = read_labview_log_generic(instrumentName);
 else
     labviewLog = struct();

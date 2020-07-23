@@ -107,6 +107,11 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).TSysLog=nanmean(logFile.FE_T_Sys(ind));
     calibratedSpectra(i).stdTSysLog=nanstd(logFile.FE_T_Sys(ind));
     
+    % Mean standard deviation of calibrated sky measurement during the
+    % cycle
+    calibratedSpectra(i).potentialBadChannels = calibratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    calibratedSpectra(i).meanStdTb=nanmean(calibratedSpectra(i).stdTb(~calibratedSpectra(i).potentialBadChannels));
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Cold and Hot spectra variation among this cycle
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);

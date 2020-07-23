@@ -69,9 +69,11 @@ nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype'
 % Calibration variables   
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -157,7 +159,10 @@ ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theore
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
+ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.meanStdTb]);
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
+
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
 ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
@@ -349,10 +354,20 @@ attrVal.Tb = {'Tb',...
     'K',...
     'calibrated brightness temperature for this cycle'};
 
+attrVal.stdTb = {'stdTb',...
+    'spectra of stdTb',...
+    'K',...
+    'standard deviation of brightness temperature for this cycle per channel'};
+
 attrVal.freq = {'f',...
     'frequency vector',...
     'Hz',...
     'frequency vector for the spectrometer'};
+
+attrVal.meanStdTb = {'mean_std_Tb',...
+    'mean stdTb',...
+    'K',...
+    'mean standard deviation of brightness temperature for this cycle (without bad channel)'};
 
 attrVal.if = {'if',...
     'intermediate frequency vector',...
@@ -439,6 +454,8 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/azimuth_angle',attrName{i},attrVal.azimuth{i});
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
+    ncwriteatt(filename,'/spectrometer1/stdTb',attrName{i},attrVal.stdTb{i});
+    ncwriteatt(filename,'/spectrometer1/mean_std_Tb',attrName{i},attrVal.meanStdTb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
