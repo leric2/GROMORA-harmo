@@ -509,7 +509,7 @@ if __name__=="__main__":
     #f_sim, y_sim = instrument.forward_model(retrieval_param)
     #plt.plot(f_sim, y_sim[0], level1b_dataset.frequencies.values, level1b_dataset.Tb[1].values)
     
-    retrieval_param["integration_cycle"] = 13
+    retrieval_param["integration_cycle"] = 4
 
     if retrieval_param["retrieval_type"] == 1:
         retrieval_param["observation_altitude"] =  12e3
