@@ -3,7 +3,7 @@
 23.07.2020
 
 ## Calibration
-* Operationnal for SOMORA -> 2013 and for GROMOS -> 2018 (meteo data missing) (see demo folder)
+* Operationnal for SOMORA after 2013 and for GROMOS after 2018 (meteo data missing) (see demo folder)
 
 ### Quality control 
 Open to discussion, done as follow right now:
@@ -64,7 +64,7 @@ This point is opened to discussion...
     2. consistency:numberCycles
     3. extra_timestamp
 
-### Work to do next on retrieval side:
+### Work to do next on calibration side:
 1. Decide on quality control and adapt the routine until the beginning of FFTS
 2. Final work of code documentation when the routine is complete
 3. Identification of level 1 suspect data and link it with the labview log.
