@@ -38,7 +38,14 @@ for i = 1:size(integratedSpectra,2)
     integratedSpectra(i).numberOfIndices=[
         integratedSpectra(i).numHotSpectra,...
         integratedSpectra(i).numColdSpectra,...
-        integratedSpectra(i).numAntSpectra];
+        integratedSpectra(i).numSkySpectra];
+    
+    integratedSpectra(i).estimatedIntegrationTimeCold = calibrationTool.cycleDurationCold * integratedSpectra(i).numColdSpectra;
+    integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).numHotSpectra;
+    integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).numSkySpectra;
+    
+    integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    integratedSpectra(i).meanStdTb1=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
     % The number of indices for the 3 positions:

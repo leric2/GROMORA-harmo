@@ -46,12 +46,14 @@ for h = 1:length(timeThresh)-1
     
     if isempty(goodSpectra)
         integratedTb=-9999*ones(1,calibrationTool.numberOfChannels);
+        integratedStdTb = -9999*ones(1,calibrationTool.numberOfChannels);
+        integratedMeanStdTb2 = -9999;
         integratedSpectra(h).numberOfAveragedSpectra = 0;
         % goodSpectra=indSpectra;
         
         integratedSpectra(h).numHotSpectra = 0;
         integratedSpectra(h).numColdSpectra = 0;
-        integratedSpectra(h).numAntSpectra = 0;
+        integratedSpectra(h).numSkySpectra = 0;
         
         meanAngleAT = -9999;
         tod = nanmean([calibratedSpectra(indSpectra).TOD]);
@@ -59,12 +61,15 @@ for h = 1:length(timeThresh)-1
     else
         % Averaging the good spectra together
         integratedTb=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
+        integratedStdTb = mean(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
+        
+        integratedMeanStdTb2 = nanmean([calibratedSpectra(goodSpectra).meanStdTb])/sqrt(length(goodSpectra));
         
         % Summing the number of spectra for hot, cold and antenna:
         integratedSpectra(h).numHotSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numHotSpectra));
         integratedSpectra(h).numColdSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numColdSpectra));
-        integratedSpectra(h).numAntSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numAntSpectra));
+        integratedSpectra(h).numSkySpectra = sum(vertcat(calibratedSpectra(goodSpectra).numAntSpectra));
         
         meanAngleAT = nanmean([calibratedSpectra(goodSpectra).meanAngleAntenna]);
         tod = nanmean([calibratedSpectra(goodSpectra).TOD]);
@@ -107,6 +112,8 @@ for h = 1:length(timeThresh)-1
     
     % variable that we want to integrate with good spectra if exist
     integratedSpectra(h).Tb=integratedTb;
+    integratedSpectra(h).stdTb=integratedStdTb;
+    integratedSpectra(h).meanStdTb2=integratedMeanStdTb2;
     integratedSpectra(h).meanAngleAntenna = meanAngleAT;
     integratedSpectra(h).TOD=tod;
     integratedSpectra(h).dateTime=dateTime;

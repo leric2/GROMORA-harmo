@@ -69,7 +69,7 @@ end
 
 % checking the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
-level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,1);
+level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,3);
 
 % Performing window correction
 level1b.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1b.calibratedSpectra );

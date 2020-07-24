@@ -67,12 +67,14 @@ correctedSpectra.tod = ncread(filename,'/spectrometer1/time_of_day')';
 % % Scientific Dataset (spectrometer1,2,...)
 % Calibration variable
 correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
+correctedSpectra.stdTb=ncread(filename,'/spectrometer1/stdTb')';
 correctedSpectra.freq=ncread(filename,'/spectrometer1/frequencies')';
 correctedSpectra.if=ncread(filename,'/spectrometer1/intermediate_freq')';
 correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
 correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
 correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
 correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
+correctedSpectra.meanStdTb=ncread(filename,'/spectrometer1/mean_std_Tb')';
 correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/mean_sky_angle')';
 correctedSpectra.numHotSpectra=ncread(filename,'/spectrometer1/number_of_hot_spectra')';
 correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/number_of_cold_spectra')';
@@ -136,6 +138,7 @@ disp(['File read : ' filename])
 
 for i = 1:length(correctedSpectra.meanTime)
     calib(i).Tb = correctedSpectra.Tb(i,:);
+    calib(i).stdTb = correctedSpectra.stdTb(i,:);
     calib(i).dateTime = correctedSpectra.meanDateTime(i);
     calib(i).freq = correctedSpectra.freq(:)';
     calib(i).if = correctedSpectra.if(:)';
@@ -146,6 +149,7 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).stdTHot = correctedSpectra.stdTHot(i);
     calib(i).TSys = correctedSpectra.TSys(i);
     calib(i).TWindow = correctedSpectra.TWindow(i);
+    calib(i).meanStdTb = correctedSpectra.meanStdTb(i);
     calib(i).meanAngleAntenna  =  correctedSpectra.meanAngleAntenna(i);
     calib(i).numHotSpectra  =  correctedSpectra.numHotSpectra(i);
     calib(i).numColdSpectra  =  correctedSpectra.numColdSpectra(i);

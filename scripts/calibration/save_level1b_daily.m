@@ -209,7 +209,7 @@ end
 
 ncwrite(filename,'/spectrometer1/number_of_hot_spectra',[integratedSpectra.numHotSpectra]);
 ncwrite(filename,'/spectrometer1/number_of_cold_spectra',[integratedSpectra.numColdSpectra]);
-ncwrite(filename,'/spectrometer1/number_of_sky_spectra',[integratedSpectra.numAntSpectra]);
+ncwrite(filename,'/spectrometer1/number_of_sky_spectra',[integratedSpectra.numSkySpectra]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data

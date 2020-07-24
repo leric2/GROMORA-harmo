@@ -116,8 +116,10 @@ switch instrumentName
         % calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         % taken on the IAP lake, To Be mounted beforehand
         calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
         calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
+        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -136,7 +138,10 @@ switch instrumentName
         calibrationTool.elevationAngleAntenna=40;
         calibrationTool.elevationAngleCold=-84;
         calibrationTool.elevationAngleHot=160;
-
+        
+        calibrationTool.cycleDurationCold = 10;
+        calibrationTool.cycleDurationSky = 7;
+        calibrationTool.cycleDurationHot = 10;
         
         calibrationTool.flipped_spectra=true;
         calibrationTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);   
@@ -198,6 +203,7 @@ switch instrumentName
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
         
         % Read meteo data
         calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
@@ -361,6 +367,9 @@ switch instrumentName
         calibrationTool.elevationAngleCold=-90;
         calibrationTool.elevationAngleHot=180;
         
+        calibrationTool.cycleDurationCold = 4;
+        calibrationTool.cycleDurationSky = 2;
+        calibrationTool.cycleDurationHot = 4;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Flags parameters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
