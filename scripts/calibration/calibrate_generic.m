@@ -66,11 +66,15 @@ end
 % Variations of mean amplitude and Tsys with time
 % need equal number of cycles !
 
-for i=1:length(initialIndices); 	cn(i) = length(initialIndices{i}); end;
-for i=1:length(initialIndices); 	initialIndices{i}=initialIndices{i}(1:min(cn)); end;
+
+for i=1:length(initialIndices)
+    initialIndices{i}(initialIndices{i}>size(rawSpectra,1))=[];
+    cn(i) = length(initialIndices{i}); 
+end
+for i=1:length(initialIndices); 	initialIndices{i}=initialIndices{i}(1:min(cn)); end; 
 
 dailyMeanTHot=mean(logFile.T_Hot_Absorber);
-
+drift=struct();
 % Drift always defined with hot indices
 drift.t  = logFile.t(initialIndices{1});
 drift.dateTime  = logFile.dateTime(initialIndices{1});
