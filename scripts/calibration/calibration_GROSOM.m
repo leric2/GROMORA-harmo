@@ -38,6 +38,7 @@ calibrationType='standard';
 
 calibrate = false;
 integrate = true;
+readLabviewLog = false;
 
 % Define the dates for the calibration:
 dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
@@ -60,7 +61,7 @@ dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
 
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
-if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & 0
+if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
     labviewLog = read_labview_log_generic(instrumentName);
 else
     labviewLog = struct();

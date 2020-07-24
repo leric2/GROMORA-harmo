@@ -77,6 +77,8 @@ dailyMeanTHot=mean(logFile.T_Hot_Absorber);
 drift=struct();
 % Drift always defined with hot indices
 drift.t  = logFile.t(initialIndices{1});
+drift.allDateTime = logFile.dateTime;
+drift.cycleTime = diff(logFile.dateTime);
 drift.dateTime  = logFile.dateTime(initialIndices{1});
 drift.T  = logFile.T_Hot_Absorber(initialIndices{1});
 drift.a(1,:) = mean(rawSpectra(initialIndices{1},:),2,'omitnan');

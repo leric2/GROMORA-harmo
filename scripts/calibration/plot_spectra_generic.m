@@ -61,7 +61,20 @@ try
         %             line([drift.outlierHot(out) drift.outlierHot(out)],[nanmedian(drift.a(3,:))-200,nanmedian(drift.a(1,:))+200],'Color','r');
         %         end
         %     end
-        subplot(3,2,3); plot(drift.dateTime, drift.T, 'r'),  ylabel('T Hot  [K]'),xlim([xstart,xstop]), ylim([mean(drift.T)-0.5 mean(drift.T)+0.5])
+        ax = subplot(3,2,3);
+        yyaxis(ax(1),'left')
+        plot(ax(1),drift.dateTime, drift.T ,'r')
+        % set(ax(1),'ylim', [0,300])
+        set(ax(1),'xlim',[xstart,xstop])
+        set(ax(1),'ylim',[mean(drift.T)-0.5 mean(drift.T)+0.5])
+        set(ax(1),'YColor','r');
+        ylabel(ax(1),({'T Hot  [K]'}))
+        
+        yyaxis(ax(1),'right')
+        plot(ax(1),drift.allDateTime(1:end-1), drift.cycleTime ,'b.')
+        set(ax(1),'xlim',[xstart,xstop])
+        set(ax(1),'YColor','b');
+        ylabel(ax(1),({'cycle duration'}))    
     end
     if ~isempty(fieldnames(meteoData))
         ax = subplot(3,2,5);

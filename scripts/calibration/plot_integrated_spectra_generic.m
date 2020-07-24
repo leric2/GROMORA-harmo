@@ -80,19 +80,19 @@ try
 
     ax3 = subplot(3,2,3);
     yyaxis(ax3(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.numAntSpectra],'g');
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeSky]/60,'g-');
     hold on
-    plot([integratedSpectra.dateTime],[integratedSpectra.numColdSpectra],'b');
-    plot([integratedSpectra.dateTime],[integratedSpectra.numHotSpectra],'r');
-    %set(ax(1),'ylim', [0,300])
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeCold]/60,'b-');
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeHot]/60,'r-');
+    set(ax3(1),'ylim', [0,0.5*calibrationTool.integrationTime])
     %set(ax(1),'xlim', [0,24])
     set(ax3(1),'YColor','k');
-    ylabel(ax3(1),({'# of spectra [-]'}))
+    ylabel(ax3(1),({'integration time [min]'}))
     
     yyaxis(ax3(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'k');
+    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'mx');
     set(ax3(1),'ylim', [-0.1,6.1])
-    set(ax3(1),'YColor','k');
+    set(ax3(1),'YColor','m');
     ylabel(ax3(1),({'# cal cycle [-]'}))
     grid on
     
