@@ -18,11 +18,6 @@ function spectra = tropospheric_correction_generic(spectra,calibrationTool,delta
 %               |
 %               | 
 %==========================================================================
-calibrationTool.troposphericCorrection.type = 'Ingold_v1';
-calibrationTool.troposphericCorrection.useWings = 'both';
-calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
-calibrationTool.troposphericCorrection.skipFraction = 0.05;
-
 tropCorrType = calibrationTool.troposphericCorrection.type;
 
 Tbg = calibrationTool.backgroundMWTb; % Microwave background

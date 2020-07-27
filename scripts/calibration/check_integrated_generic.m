@@ -45,7 +45,21 @@ for i = 1:size(integratedSpectra,2)
     integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).numSkySpectra;
     
     integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
-    integratedSpectra(i).meanStdTb1=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
+    
+    cleanTb = integratedSpectra(i).Tb(~integratedSpectra(i).potentialBadChannels);
+    
+    integratedSpectra(i).meanStdTbFromGoodCh=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
+    
+    N = length(cleanTb);
+    skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
+        
+    lower = int16(skipChannels);
+    upper = int16(skipChannels) + calibrationTool.troposphericCorrection.numberOfChannelsTropCorr;
+    
+    leftWing = cleanTb(lower:upper);
+    rightWing = cleanTb(N-upper:N-lower);
+    
+    integratedSpectra(i).meanStdFromWings = prctile([leftWing,rightWing],95)-prctile([leftWing,rightWing],5);
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
     % The number of indices for the 3 positions:

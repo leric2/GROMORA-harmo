@@ -90,7 +90,7 @@ try
     ylabel(ax3(1),({'integration time [min]'}))
     
     yyaxis(ax3(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'mx');
+    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'mo');
     set(ax3(1),'ylim', [-0.1,6.1])
     set(ax3(1),'YColor','m');
     ylabel(ax3(1),({'# cal cycle [-]'}))

@@ -116,13 +116,15 @@ switch instrumentName
         % calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         % taken on the IAP lake, To Be mounted beforehand
         calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
-        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+        %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
         calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
-        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+        %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
+        
+        calibrationTool.checkLevel0=true;
         
         % Log file
         calibrationTool.delimiter_logfile = '\t';
@@ -203,7 +205,7 @@ switch instrumentName
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
-        calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
         
         % Read meteo data
         calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
@@ -224,7 +226,11 @@ switch instrumentName
         % Corrections
         calibrationTool.tWindow=0.99;
         
-        calibrationTool.checkLevel0=true;
+        % Corrections
+        calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+        calibrationTool.troposphericCorrection.useWings = 'both';
+        calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
+        calibrationTool.troposphericCorrection.skipFraction = 0.05;
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Level0 -> Level1a functions
@@ -344,13 +350,13 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Folder, Raw and log file data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
+        calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' dateStr(6:7) '/'];
         
-        calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+        %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-        calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-        %calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+        %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+        calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
         calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
@@ -429,7 +435,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Read meteo data
         calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' dateStr(1:4) '/'];
-        calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+        %calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
     
         % Function specific to this instrument
         % meteo Data
@@ -443,6 +449,13 @@ switch instrumentName
         calibrationTool.doTippingCurve = false;
         %calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
         %calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_gromos(rawSpectra,log, calibrationTool);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Corrections
+        calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+        calibrationTool.troposphericCorrection.useWings = 'both';
+        calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
+        calibrationTool.troposphericCorrection.skipFraction = 0.05;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Level0 -> Level1a functions
@@ -645,6 +658,12 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Corrections
         calibrationTool.tWindow=0.99;
+        
+        calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+        calibrationTool.troposphericCorrection.useWings = 'both';
+        calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
+        calibrationTool.troposphericCorrection.skipFraction = 0.05;
+
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Level0 -> Level1a functions

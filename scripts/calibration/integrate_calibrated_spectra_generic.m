@@ -47,7 +47,7 @@ for h = 1:length(timeThresh)-1
     if isempty(goodSpectra)
         integratedTb=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedStdTb = -9999*ones(1,calibrationTool.numberOfChannels);
-        integratedMeanStdTb2 = -9999;
+        integratedMeanStdTbFromCalMean = -9999;
         integratedSpectra(h).numberOfAveragedSpectra = 0;
         % goodSpectra=indSpectra;
         
@@ -64,7 +64,7 @@ for h = 1:length(timeThresh)-1
         integratedStdTb = mean(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         
-        integratedMeanStdTb2 = nanmean([calibratedSpectra(goodSpectra).meanStdTb])/sqrt(length(goodSpectra));
+        integratedMeanStdTbFromCalMean = nanmean([calibratedSpectra(goodSpectra).meanStdTb])/sqrt(length(goodSpectra));
         
         % Summing the number of spectra for hot, cold and antenna:
         integratedSpectra(h).numHotSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numHotSpectra));
@@ -113,7 +113,7 @@ for h = 1:length(timeThresh)-1
     % variable that we want to integrate with good spectra if exist
     integratedSpectra(h).Tb=integratedTb;
     integratedSpectra(h).stdTb=integratedStdTb;
-    integratedSpectra(h).meanStdTb2=integratedMeanStdTb2;
+    integratedSpectra(h).meanStdTbFromCal=integratedMeanStdTbFromCalMean;
     integratedSpectra(h).meanAngleAntenna = meanAngleAT;
     integratedSpectra(h).TOD=tod;
     integratedSpectra(h).dateTime=dateTime;

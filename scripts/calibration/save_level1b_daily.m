@@ -72,6 +72,7 @@ nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype'
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
@@ -83,6 +84,7 @@ nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/integration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -167,6 +169,7 @@ ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theore
 % Main set of variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/Tb_corr',vertcat(integratedSpectra.TbTroposphericWindowCorr)');
+ncwrite(filename,'/spectrometer1/stdTb',vertcat(integratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediate_freq',integratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
@@ -176,6 +179,7 @@ ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/calibration_time',[integratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/integration_time',[integratedSpectra.integrationTime]);
 ncwrite(filename,'/spectrometer1/mean_sky_angle',[integratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/spectrometer1/mean_std_Tb',[integratedSpectra.meanStdTbFromCal]);
 
 ncwrite(filename,'/spectrometer1/number_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);
 
@@ -347,6 +351,11 @@ attrVal.Tb_corr = {'Tb_corr',...
     'K',...
     'integrated brightness temperature for this cycle, corrected for window and troposphere'};
 
+attrVal.stdTb = {'stdTb',...
+    'spectra of stdTb',...
+    'K',...
+    'standard deviation of brightness temperature for this cycle per channel'};
+
 attrVal.freq = {'f',...
     'frequency vector',...
     'Hz',...
@@ -376,6 +385,11 @@ attrVal.stdTSys = {'stdTSys',...
     'standard deviation of the system temperature',...
     'K',...
     ''};
+
+attrVal.meanStdTb = {'mean_std_Tb',...
+    'mean stdTb',...
+    'K',...
+    'mean standard deviation of brightness temperature for this integration cycle (without bad channel)'};
 
 attrVal.calibrationTime = {'calibrationTime',...
     '',...
@@ -454,12 +468,13 @@ for i=1:length(attrName)
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/Tb_corr',attrName{i},attrVal.Tb_corr{i});
+    ncwriteatt(filename,'/spectrometer1/Tb_corr',attrName{i},attrVal.stdTb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
     %ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
     ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
-    %ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
+    ncwriteatt(filename,'/spectrometer1/mean_std_Tb',attrName{i},attrVal.meanStdTb{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/integration_time',attrName{i},attrVal.integrationTime{i});
     ncwriteatt(filename,'/spectrometer1/mean_sky_angle',attrName{i},attrVal.meanAngleAntenna{i});
