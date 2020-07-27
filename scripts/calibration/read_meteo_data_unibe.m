@@ -81,7 +81,7 @@ try
         for i = 1:height(meteoFile)
             meteoRow = meteoFile(i,:);
             meteoData(i).dateTime=meteoRow.Var1;
-            meteoData(i).dateNum=meteoData(i).dateTime-datenum(1970,1,1);
+            meteoData(i).dateNum=datenum(meteoData(i).dateTime)-datenum(1970,1,1);
             meteoData(i).air_temperature=meteoRow.Var4 + calibrationTool.zeroDegInKelvin;
             meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
             
