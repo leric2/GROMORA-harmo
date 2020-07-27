@@ -523,5 +523,3 @@ if __name__=="__main__":
         ac, retrieval_param = instrument.retrieve_cycle(retrieval_param)
         figure_list = instrument.plot_level2(ac, retrieval_param, title = 'retrieval_h2o')
         save_single_pdf(instrument.filename_level2+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
-    
-    

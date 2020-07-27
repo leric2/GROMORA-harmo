@@ -34,10 +34,10 @@ def make_f_grid(retrieval_param):
     create simulation frequency grid
     '''
     n_f = retrieval_param["number_of_freq_points"]# Number of points
-    bw = 1.5e9  # Bandwidth
-    x = np.linspace(-0.5, 0.5, n_f)
-    f_grid = x ** 3 + x / 10
-    f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
+    bw = 1e9  # Bandwidth
+    x = np.linspace(-0.4, 0.6, n_f)
+    f_grid = x ** 3 + x / 2000
+    f_grid = f_grid * bw * 1.1 / (max(f_grid) - min(f_grid))
     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
     return f_grid
 
