@@ -83,7 +83,7 @@ nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','do
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/integration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/mean_sky_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -178,7 +178,7 @@ ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
 %ncwrite(filename,'/spectrometer1/stdTSys',[integratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibration_time',[integratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/integration_time',[integratedSpectra.integrationTime]);
-ncwrite(filename,'/spectrometer1/mean_sky_angle',[integratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[integratedSpectra.meanAngleAntenna]);
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[integratedSpectra.meanStdTbFromCal]);
 
 ncwrite(filename,'/spectrometer1/number_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);
@@ -477,7 +477,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/mean_std_Tb',attrName{i},attrVal.meanStdTb{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/integration_time',attrName{i},attrVal.integrationTime{i});
-    ncwriteatt(filename,'/spectrometer1/mean_sky_angle',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});

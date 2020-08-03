@@ -79,7 +79,7 @@ nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype',
 nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/mean_sky_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -167,7 +167,7 @@ ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
 ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
-ncwrite(filename,'/spectrometer1/mean_sky_angle',[calibratedSpectra.meanAngleAntenna]);
+ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[calibratedSpectra.meanAngleAntenna]);
 
 if isfield(calibratedSpectra,'if')
     ncwrite(filename,'/spectrometer1/intermediate_freq',calibratedSpectra(1).if);
@@ -463,7 +463,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
     ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
-    ncwriteatt(filename,'/spectrometer1/mean_sky_angle',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
