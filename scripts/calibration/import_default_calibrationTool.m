@@ -582,6 +582,10 @@ switch instrumentName
         calibrationTool.elevationAngleAntenna=140;
         calibrationTool.elevationAngleCold=265;
         calibrationTool.elevationAngleHot=85;
+                   
+        calibrationTool.cycleDurationCold = 2;
+        calibrationTool.cycleDurationSky = 2;
+        calibrationTool.cycleDurationHot = 2;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Flags parameters
@@ -598,7 +602,7 @@ switch instrumentName
         
         %Temperature
         calibrationTool.THotTh=292.2;
-        calibrationTool.THotAbsThresh=1;
+        calibrationTool.THotAbsThresh=5;
         calibrationTool.hotTemperatureStdThreshold=0.1;
         
         calibrationTool.numberOfTippingCurveExpected=4;

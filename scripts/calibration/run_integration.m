@@ -102,7 +102,7 @@ level1b.integration = calibrationTool.check_integrated(calibrationTool, level1b.
 % TODO
 
 % Plotting and saving calibrated and corrected spectra
-if calibrationTool.integratedSpectraPlot
+if calibrationTool.integratedSpectraPlot && nansum([level1b.integration.outlierCalib])<length(level1b.integration)
     calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
 end
 

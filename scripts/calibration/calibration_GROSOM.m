@@ -31,17 +31,17 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='mopi5';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
-integrate = true;
-readLabviewLog = true;
+calibrate = false;
+integrate = false;
+readLabviewLog = false;
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_04','yyyy_mm_dd'):datenum('2019_02_04','yyyy_mm_dd');
+dates=datenum('2019_01_10','yyyy_mm_dd'):datenum('2019_01_10','yyyy_mm_dd');
 % dates=[datenum('2011_03_01','yyyy_mm_dd'):datenum('2011_03_06','yyyy_mm_dd'),...
 %     datenum('2011_05_01','yyyy_mm_dd'):datenum('2011_05_06','yyyy_mm_dd'),...
 %     datenum('2012_03_01','yyyy_mm_dd'):datenum('2012_03_06','yyyy_mm_dd'),...
@@ -97,7 +97,7 @@ for d = 1:numel(dates)
     calibrationTool.rawSpectraPlot=false;
     calibrationTool.calibratedSpectraPlot=true;
     calibrationTool.integratedSpectraPlot=true;
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,6 +123,7 @@ for d = 1:numel(dates)
     
         calibrationTool.filterByTransmittance = true;
         
+        
         % Temperature of the cold load
         calibrationTool.TCold=80;        
 
@@ -135,14 +136,14 @@ for d = 1:numel(dates)
         calibrationTool.integrationTime=60;
         
         calibrationTool.filterByTransmittance = true;
-    
+        
         % Temperature of the cold load
         calibrationTool.TCold=80;
         
         % the number of the spectrometer models we are interested in
         % see order in calibrationTool.spectrometerTypes
         %modelFFTS=[1 3 4];
-        modelFFTS=[1 3 4 ];
+        modelFFTS=[3];
         
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
@@ -182,11 +183,13 @@ for d = 1:numel(dates)
                     disp(ME.message)
                 end
             end
-            try
-                calibrationTool = run_integration(calibrationTool);
-            catch ME
-                warning('Problem with the integration:');
-                disp(ME.message)
+            if integrate
+                try
+                    calibrationTool = run_integration(calibrationTool);
+                catch ME
+                    warning('Problem with the integration:');
+                    disp(ME.message)
+                end
             end 
         end
         
