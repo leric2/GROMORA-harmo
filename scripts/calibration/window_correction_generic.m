@@ -26,8 +26,14 @@ for t = 1:length(spectra)
     if sum(spectra(t).Tb==-9999) == calibrationTool.numberOfChannels
         spectra(t).TbWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
     else
-        TWindow=spectra(t).TWindow;
-    
+        if ~isnan(spectra(t).TWindow) 
+            TWindow=spectra(t).TWindow;
+        elseif ~isnan(spectra(t).meanAirTemperature)
+            TWindow = spectra(t).meanAirTemperature;
+        else
+            error('no temperature found')
+        end
+            
         % Planck:
         TbWindowP= (2*calibrationTool.h*freq.^2)/(calibrationTool.lightSpeed^2)*(1)./(exp((t* freq)./(calibrationTool.kb*TWindow))-1);
     
