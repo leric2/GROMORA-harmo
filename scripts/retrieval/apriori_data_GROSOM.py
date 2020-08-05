@@ -206,13 +206,12 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
     
-    #filename_GROMOS_CLIM = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    filename_GROMOS_CLIM = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(filename_GROMOS_CLIM)
+
+    o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
 
     #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    filename_SOMORA_AP = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(filename_SOMORA_AP, month)
+    
+    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)

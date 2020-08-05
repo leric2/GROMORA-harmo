@@ -39,7 +39,7 @@ name = 'testOEM_GROMOS_ECMWF_apriori'
 #basename = "/home/eric/Documents/PhD/GROSOM/Level1/"
 #level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
 
-basename="/scratch/GROSOM/Level1/GROMOS/"
+basename="/scratch/GROSOM/Level1/SOMORA/"
 level2_data_folder = "/scratch/GROSOM/Level2/"
 
 line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
@@ -72,11 +72,11 @@ def inversion_iterate_agenda(ws):
     # right for iterative solutions. No need to call this WSM for linear inversions.
     ws.jacobianAdjustAndTransform()
 
-instrument_name = "GROMOS"
-filename = basename+"GROMOS_level1b_AC240_2019_04_16"
+instrument_name = "SOMORA"
+filename = basename+"SOMORA_level1b_AC240_2019_04_16"
 
 retrieval_param = dict()
-retrieval_param["integration_cycle"] = 6
+retrieval_param["integration_cycle"] = 12
 retrieval_param["plot_meteo_ds"] = True
 retrieval_param["number_of_freq_points"] = 601
 
@@ -143,12 +143,22 @@ lon_grid = np.array([retrieval_param["lon"]])
 
 # frequency grid
 n_f = retrieval_param["number_of_freq_points"]  # Number of points
-bw = 1.5e9  # Bandwidth
-x = np.linspace(-0.5, 0.5, n_f)
+
+bw = 1.2e9  # Bandwidth
+x = np.linspace(-1, 1, n_f)
+z = 290 * 180 / 139 
 f_grid = x ** 3 + x / 10
 f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
-
 f_grid = f_grid + f0
+# Trying with another frequency grid
+centerIF = [475e6, 525e6]
+centerGrid = np.arange(retrieval_param["f_min"] + centerIF[0], retrieval_param["f_min"] + centerIF[1],ds_df+1e3)
+
+leftGrid = np.arange(retrieval_param["f_min"], retrieval_param["f_min"] + centerIF[0], 1e6)
+rightGrid = np.arange(retrieval_param["f_min"]+centerIF[1], retrieval_param["f_max"]+1e6, 1e6)
+
+#f_grid = np.hstack((leftGrid, centerGrid,rightGrid))
+
 
 # Pressure grid != retrieval grid 
 z_bottom = 800
@@ -161,18 +171,13 @@ p_grid = z2p_simple(z_grid)
 ac.set_grids(f_grid, p_grid)
 
 # altitude for the retrieval
-retrieval_param["surface_altitude"] = 1000
+retrieval_param["surface_altitude"] = 10e3
 ac.set_surface(retrieval_param["surface_altitude"])
 
 # Spectroscopy
 ac.set_spectroscopy_from_file(
     abs_lines_file=retrieval_param['line_file'],
-    abs_species=[
-        "O3",
-        "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
-        "O2-TRE05",
-        "N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-        ],
+    abs_species=["O3", "H2O-PWR98", "O2-PWR93", "N2-SelfContStandardType"],
     format='Arts',
     line_shape=["VVH", 750e9],
 )
@@ -205,7 +210,7 @@ atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
     extra_time_ecmwf
 )
 
-# ecmwf_atm = apriori_data_GROSOM.get_apriori_atmosphere(retrieval_param)
+#ecmwf_atm = apriori_data_GROSOM.get_apriori_atmosphere(retrieval_param)
 
 # Does not work now:
 # The grid vector *retrieval pressure grid* is not covered by the
@@ -213,15 +218,15 @@ atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
 ac.set_atmosphere(atm, vmr_zeropadding=True)
 
 # Apply HSE, only allowed after setup of the atmosphere, when z is already on simulation grid
-ac.apply_hse(100e2, 0.1)  # value taken from GROMOS retrieval
+ac.apply_hse(100e2, 0.5)  # value taken from MOPI retrieval
 
 # Sensor pos/los/time
 obs = arts.Observation(
-    za=40,
+    za=50,
     aa=32,
     lat=46,
     lon=7,
-    alt=1e3,
+    alt=15e3,
     time=12
 )
 
@@ -251,10 +256,10 @@ o3_std_limit = p_interpolate(
 )
 
 o3_std = np.minimum(o3_std_limit, o3_std_const)
-std_correction_o3 = 1
+#std_correction_o3 = 1
 ozone_covmat = covmat.covmat_1d_sparse(
     np.log10(p_ret_grid),
-    std_correction_o3 * o3_std,
+    1e-6 * np.ones_like(p_ret_grid),
     0.3 * np.ones_like(p_ret_grid),
     fname="lin",
     cutoff=0.001,
@@ -290,8 +295,8 @@ sx_H2O = covmat.covmat_diagonal_sparse(1e-12 * np.ones_like(p_ret_grid))
 #sx_H2O_artsLectures = xml.load("/home/esauvageat/Documents/ARTS/arts-lectures/exercises/06-inversion/input/S_xa.xml")
 
 # The different things we want to retrieve
-ozone_ret = arts.AbsSpecies('O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='vmr')
-h2o_ret = arts.AbsSpecies("H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", p_ret_grid, lat_grid, lon_grid, sx_H2O, unit='vmr')
+ozone_ret = arts.AbsSpecies('O3', p_ret_grid, lat_grid, lon_grid, ozone_covmat, unit='vmr')
+#h2o_ret = arts.AbsSpecies("H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", p_ret_grid, lat_grid, lon_grid, sx_H2O, unit='vmr')
 
 # fshift_ret = arts.FreqShift(100e3, df=50e3)
 # polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
@@ -299,19 +304,21 @@ h2o_ret = arts.AbsSpecies("H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", 
 # increase variance for spurious spectra by factor
 retrieval_param['increased_var_factor'] = 100
 factor = retrieval_param['increased_var_factor']
-retrieval_param['unit_var_y'] = 2e-2
+retrieval_param['unit_var_y'] = 4
 
 y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
+
+#var = np.mean(np.square(np.diff(ds_Tb_corr))) / 2
 
 y_var[(level1b_dataset.good_channels[cycle].values == 0)] = factor*retrieval_param['unit_var_y']
 
 # y_var = utils.var_allan(ds_Tb) * np.ones_like(ds_Tb)
-ac.define_retrieval([ozone_ret, h2o_ret], y_var)
+ac.define_retrieval([ozone_ret], y_var)
 # ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
 
 #Let a priori be off by 0.5 ppm (testing purpose)
-vmr_offset = +0.5e-6
-ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
+#vmr_offset = +0.5e-6
+#ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
 
 # Run retrieval (parameter taken from MOPI)
 # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
@@ -335,9 +342,10 @@ yf = ac.yf[0]
 fig, axs = plt.subplots(2, sharex=True)
 axs[0].plot((ds_freq - f0) / 1e6, ds_Tb_corr, label='observed')
 axs[0].plot((ds_freq - f0) / 1e6, yf, label='fitted')
-# axs[0].plot((ds_freq - f0) / 1e6, bl, label='baseline')
+axs[0].plot((f_grid - f0) / 1e6, 40*np.ones(len(f_grid)), '.', label='grid points')
 axs[0].set_ylabel('$T_B$ [K]')
 axs[0].set_ylim((-10,50))
+#axs[0].set_xlim((-25,25))
 axs[0].legend()
 axs[1].plot((ds_freq - f0) / 1e6, ds_Tb_corr -
             yf, label='observed - computed')

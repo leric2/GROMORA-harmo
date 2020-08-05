@@ -426,7 +426,7 @@ def save_single_pdf(filename, figures):
 
 if __name__=="__main__":
     
-    instrument_name="GROMOS"
+    instrument_name="SOMORA"
     date = datetime.date(2019,2,4)
 
     #basename="/home/eric/Documents/PhD/GROSOM/Level1/"
@@ -454,20 +454,21 @@ if __name__=="__main__":
     retrieval_param["obs_freq"] = instrument.observation_frequency
     
     retrieval_param["plot_meteo_ds"] = True
-    retrieval_param["number_of_freq_points"] = 901
+    retrieval_param["number_of_freq_points"] = 601
 
     retrieval_param["z_top_sim_grid"] = 114e3
     retrieval_param["z_bottom_sim_grid"] = 800
-    retrieval_param["z_resolution_sim_grid"] = 1e3
+    retrieval_param["z_resolution_sim_grid"] = 0.5e3
 
     retrieval_param["z_top_ret_grid"] = 95e3
     retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 3e3
 
     retrieval_param['increased_var_factor'] = 500
-    retrieval_param['unit_var_y']  = 1e-1
+    retrieval_param['unit_var_y']  = 3
 
-    
+    retrieval_param["surface_altitude"] = 10e3
+
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     retrieval_param["apriori_O3_cov"] = 2e-6

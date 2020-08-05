@@ -29,15 +29,16 @@ from retrievals.data import p_interpolate
 from typhon.arts.workspace import arts_agenda
 from typhon.arts.xml import load
 
-def make_f_grid(retrieval_param):
+def make_f_grid(retrieval_param): #TODO
     '''
     create simulation frequency grid
+
     '''
     n_f = retrieval_param["number_of_freq_points"]# Number of points
     bw = 1e9  # Bandwidth
-    x = np.linspace(-0.4, 0.6, n_f)
-    f_grid = x ** 3 + x / 2000
-    f_grid = f_grid * bw * 1.1 / (max(f_grid) - min(f_grid))
+    x = np.linspace(-1, 1, n_f)
+    f_grid = x ** 3 + x / 100
+    f_grid = f_grid * bw * 1.2 / (max(f_grid) - min(f_grid))
     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
     return f_grid
 
@@ -86,7 +87,7 @@ def retrieve_cycle(instrument, retrieval_param):
     
     ds_df = ds_bw/(ds_num_of_channel-1)
     
-    retrieval_param["zenith_angle"]=level1b_ds.mean_sky_angle.values[cycle]
+    retrieval_param["zenith_angle"]= 90 - level1b_ds.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = level1b_ds.azimuth_angle.values[cycle]
 
     retrieval_param["time"] = level1b_ds.time[cycle].values
@@ -118,12 +119,12 @@ def retrieve_cycle(instrument, retrieval_param):
     
     # altitude for the retrieval
     #ac.set_surface(level1b_ds.alt.values[cycle])
-    ac.set_surface(1000)
+    ac.set_surface(retrieval_param["surface"])
     
     #spectroscopy
     ac.set_spectroscopy_from_file(
         abs_lines_file = retrieval_param['line_file'],
-        abs_species = ["O3","H2O","H2O-PWR98", "O2-PWR98","N2-SelfContStandardType"],
+        abs_species = ["O3","H2O-PWR98", "O2-PWR93","N2-SelfContStandardType"],
         format = 'Arts',
         line_shape = ["VVH", 750e9],
         )
@@ -311,6 +312,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     None.
 
     '''
+    print("Tropospheric corrected spectra retrieval")
     level1b_ds = instrument.level1b_ds
     #meteo_ds = instrument.meteo_ds
 
@@ -324,7 +326,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     
     ds_df = ds_bw/(ds_num_of_channel-1)
     
-    retrieval_param["zenith_angle"]=level1b_ds.mean_sky_angle.values[cycle]
+    retrieval_param["zenith_angle"]=90-level1b_ds.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = level1b_ds.azimuth_angle.values[cycle]
 
     retrieval_param["time"] = level1b_ds.time[cycle].values
@@ -357,7 +359,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     
     # altitude for the retrieval
     #ac.set_surface(level1b_ds.alt.values[cycle])
-    ac.set_surface(1500)
+    ac.set_surface(retrieval_param["surface_altitude"])
     
     # spectroscopy
     ac.set_spectroscopy_from_file(
@@ -420,7 +422,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     # FM
     y = ac.y_calc()
     
-    plot_FM_comparison(ds_freq,f_grid,y,ds_Tb_corr)
+    #plot_FM_comparison(ds_freq,f_grid,y,ds_Tb_corr)
 
     # Setup the retrieval
     z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
@@ -432,8 +434,16 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     lat_ret_grid = np.array([retrieval_param["lat"]])
     lon_ret_grid = np.array([retrieval_param["lon"]])
     
-    sx = covmat.covmat_diagonal_sparse(retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval))
+    #sx = covmat.covmat_diagonal_sparse(retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval))
     
+    sx = covmat.covmat_1d_sparse(
+        np.log10(p_grid_retrieval),
+        retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval),
+        0.3 * np.ones_like(p_grid_retrieval),
+        fname="lin",
+        cutoff=0.001,
+    )
+
     # The different things we want to retrieve
     ozone_ret = arts.AbsSpecies('O3', p_grid_retrieval, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
     #h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
@@ -449,6 +459,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = utils.var_allan(ds_Tb) * np.ones_like(ds_Tb)
+    y_var = level1b_ds.stdTb[cycle].values
 
     ac.define_retrieval([ozone_ret], y_var)
     #ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
@@ -461,7 +472,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
     ac.oem(
         method='gn',
-        max_iter=5,
+        max_iter=10,
         stop_dx=0.1,
         inversion_iterate_agenda=inversion_iterate_agenda,
       )
