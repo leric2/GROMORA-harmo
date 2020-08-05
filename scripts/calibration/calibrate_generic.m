@@ -403,7 +403,12 @@ switch calType
             % calibration cycle) against the mean of hot and cold spectra
             % for this calibration cycle.
             TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            calibratedSpectra(i).stdTb=std(TbAll);
+            if size(std(TbAll),2) == calibrationTool.numberOfChannels
+                calibratedSpectra(i).stdTb=std(TbAll);
+            else
+                calibratedSpectra(i).stdTb = -9999*ones(1,calibrationTool.numberOfChannels);
+            end
+                
             
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
         end

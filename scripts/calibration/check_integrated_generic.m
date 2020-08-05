@@ -81,10 +81,6 @@ for i = 1:size(integratedSpectra,2)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Antenna angle
     %integratedSpectra(i).stdAngleAntenna=std(standardLog.Elevation_Angle(ia));
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % System Temperature
-    % Computing TN around the line center (approximately +- 200 MHz)
     
     
     %%%%%%%%%%% Flag  %%%%%%%%%%
