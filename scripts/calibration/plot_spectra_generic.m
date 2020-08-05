@@ -17,16 +17,26 @@ try
     
     limTNPlot = 2500;
     if ~isempty(drift)
-        lowerLim = prctile(drift.Ta,2) - 20;
-        upperLim = prctile(drift.Ta,98) + 20;
-        
-        limTNPlot = nanmedian([calibratedSpectra.TSys]);
+        if ~isnan(nanmedian(drift.Ta))
+            lowerLim = prctile(drift.Ta,2) - 20;
+            upperLim = prctile(drift.Ta,98) + 20;
+            medianTa = nanmedian(drift.Ta);
+        else
+            lowerLim = 0;
+            upperLim = 280;
+            medianTa = 120;
+        end
+        if ~isnan(nanmedian([calibratedSpectra.TSys]))
+            limTNPlot = nanmedian([calibratedSpectra.TSys]);
+        else
+            limTNPlot = calibrationTool.TSysCenterTh;
+        end
         
         ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TSys],'r'), plot(ax,drift.dateTime,drift.TSysLog,'y'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
         plot(ax, [calibratedSpectra.meanAntTime], limTNPlot*[calibratedSpectra.outlierCalib]-100,'mx'), xlim([xstart,xstop]);
         
-        ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'), xlim([xstart,xstop]), ylim([0,nanmedian(drift.Ta)+120])
-        plot(ax2, [calibratedSpectra.meanAntTime], nanmedian(drift.Ta)*[calibratedSpectra.outlierCalib],'mx'), xlim([xstart,xstop]);
+        ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'), xlim([xstart,xstop]), ylim([0,medianTa+120])
+        plot(ax2, [calibratedSpectra.meanAntTime], medianTa*[calibratedSpectra.outlierCalib],'mx'), xlim([xstart,xstop]);
         if ~isempty(drift.outlierCold) && length(drift.outlierCold) < 100
             plot(ax, drift.outlierCold,nanmedian(drift.Tn)-40,'bx'), xlim([xstart,xstop])
             plot(ax2, drift.outlierCold,10,'bx'), xlim([xstart,xstop])
