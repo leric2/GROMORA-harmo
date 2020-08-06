@@ -33,15 +33,16 @@ for t = 1:length(spectra)
         %spectra(t).TbtropWinCorr = -9999;  
     else
         % Mean tropospheric temperature definition
-        if strcmp(tropCorrType,'Ingold_v1')
+        if strcmp(tropCorrType,'Ingold_v1') | strcmp(tropCorrType,'Ingold_v1_fit')
             Tmean = spectra(t).meanAirTemperature - deltaT;
-        elseif strcmp(tropCorrType,'Ingold_v1')  
+        elseif strcmp(tropCorrType,'Ingold_v2')  
             %Ingold, v2: CHECK UNITS FOR T
             Tmean  = (-18.772 + 0.7721 * (spectra(t).meanAirTemperature-calibrationTool.zeroDegInKelvin) + 0.1452 * calibratedSpectra(t).meanRelHumidity)+calibrationTool.zeroDegInKelvin;
         else
             error('Please specify a type of tropospheric correction to apply')
         end
-            
+        
+        
         % Linear fit of spectrum's wings
         %f_trop_corr  = [spectra(t).freq(100:2000) spectra(t).freq(end-2000:end-100)];
         
@@ -53,6 +54,7 @@ for t = 1:length(spectra)
             Tb_temp=spectra(t).Tb;
         end
         
+        f_temp = spectra(t).freq;
         Tb_temp(find(spectra(t).channelsQuality==0))=NaN;
         N = length(Tb_temp);
         skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
@@ -60,15 +62,17 @@ for t = 1:length(spectra)
         lower = int16(skipChannels);
         upper = int16(skipChannels) + calibrationTool.troposphericCorrection.numberOfChannelsTropCorr;
         
-        leftWingMean = nanmean(Tb_temp(lower:upper));
-        rightWingMean = nanmean(Tb_temp(N-upper:N-lower));
+        leftWingMeanFreq = nanmean(f_temp(lower:upper));
+        leftWingMeanTb = nanmean(Tb_temp(lower:upper));
+        rightWingMeanFreq = nanmean(f_temp(N-upper:N-lower));
+        rightWingMeanTb = nanmean(Tb_temp(N-upper:N-lower));
         
         if strcmp(calibrationTool.troposphericCorrection.useWings,'both')
-            Twing = (leftWingMean+rightWingMean)/2;
+            Twing = (leftWingMeanTb+rightWingMeanTb)/2;
         elseif strcmp(calibrationTool.troposphericCorrection.useWings,'left')
-            Twing = leftWingMean;
+            Twing = leftWingMeanTb;
         elseif strcmp(calibrationTool.troposphericCorrection.useWings,'right')
-            Twing = rightWingMean;
+            Twing = rightWingMeanTb;
         else
             error('please specifiy the wings to use for tropospheric correction')
         end
@@ -100,29 +104,41 @@ for t = 1:length(spectra)
         % Keeping the easy method for now
         %Twing=nanmean(Tb_trop_corr_smoothed);
         
-        % Transmitance calculated (Ingold)
-        transmittance = (Tmean - Twing)./(Tmean - Tbg);
         
-        % Method used in GROMOS and SOMORA
-        %r = read_datafile(sprintf('/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/standard.spectrum.above.troposphere.aa', path) , 'matrix');
-        %T_strat = ( mean(r(1:2)) + mean(r((end-1):end)) ) /2;
-        %meanTWings=mean(Twing);
-        
-        %spectra(t).oldMeanTroposphericTransmittance=(meanTWings - Tmean)/(T_strat - Tmean);
-        % Troposph. corr.
-        
-        if transmittance > 0
-            spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
-        
-            spectra(t).troposphericTransmittance = transmittance;
-            spectra(t).troposphericOpacity=-log(transmittance);
-            %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
+        if strcmp(tropCorrType,'Ingold_v1_fit')
+            % frequency dependant opacity
+            a = (rightWingMeanTb-leftWingMeanTb)/(rightWingMeanFreq - leftWingMeanFreq);
+            b = rightWingMeanTb - a*rightWingMeanFreq;
+            
+            TbApprox = a * spectra(t).freq + b;
+            transmittanceVector = (Tmean - TbApprox)./(Tmean - Tbg);
+            
+            if nanmean(transmittanceVector) > 0
+                spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittanceVector) ) ./ transmittanceVector;
+                spectra(t).troposphericTransmittance = nanmean(transmittanceVector);
+                spectra(t).troposphericOpacity=-log(nanmean(transmittanceVector));
+            else
+                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+                spectra(t).troposphericTransmittance = -9999;
+                spectra(t).troposphericOpacity=-9999;
+            end
         else
-            spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
-            spectra(t).troposphericTransmittance = -9999;
-            spectra(t).troposphericOpacity=-9999;
-            %spectra(t).meanTroposphericTransmittance  = -9999;
-            %spectra(t).TbtropWinCorr = -9999;  
+            % Transmitance calculated (Ingold)
+            transmittance = (Tmean - Twing)./(Tmean - Tbg);
+        
+            if transmittance > 0
+                spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
+                
+                spectra(t).troposphericTransmittance = transmittance;
+                spectra(t).troposphericOpacity=-log(transmittance);
+                %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
+            else
+                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+                spectra(t).troposphericTransmittance = -9999;
+                spectra(t).troposphericOpacity=-9999;
+                %spectra(t).meanTroposphericTransmittance  = -9999;
+                %spectra(t).TbtropWinCorr = -9999;
+            end
         end
     end
 end
