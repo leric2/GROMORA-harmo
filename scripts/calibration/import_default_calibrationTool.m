@@ -554,7 +554,7 @@ switch instrumentName
 
         % This one should correspond to the DC channel
         %calibrationTool.LOFreqTot=1.10836e11;
-        calibrationTool.LOFreq1 = 1.06984e11;
+        calibrationTool.LOFreq1 = 1.06986e11; %TODO
         calibrationTool.LOFreq2 = 3.3e9;
         calibrationTool.DCChannel=1; %=Nchannel/2 ??
    
@@ -663,9 +663,9 @@ switch instrumentName
         % Corrections
         calibrationTool.tWindow=0.99;
         
-        calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+        calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
         calibrationTool.troposphericCorrection.useWings = 'both';
-        calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
+        calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 100;
         calibrationTool.troposphericCorrection.skipFraction = 0.05;
 
         
