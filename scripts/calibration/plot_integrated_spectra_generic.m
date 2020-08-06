@@ -24,16 +24,16 @@ try
     ax = subplot(3,2,1);
     grid on
     yyaxis(ax(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.TSys],'k');
+    plot([integratedSpectra.dateTime],[integratedSpectra.TSys],'k-x');
     hold on
-    plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.TSys])*[integratedSpectra.outlierCalib],'mx');
+    plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.TSys])*[integratedSpectra.outlierCalib],'mp','MarkerSize',10);
     set(ax(1),'ylim',[yLowTN,yUpTN])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','k');
     ylabel(ax(1),({'TN [K]'}))
     
     yyaxis(ax(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.THot],'r');
+    plot([integratedSpectra.dateTime],[integratedSpectra.THot],'r-x');
     set(ax(1),'ylim', [calibrationTool.THotTh-2,calibrationTool.THotTh+2])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','r');
@@ -49,15 +49,15 @@ try
     
     ax2 = subplot(3,2,2);
     yyaxis(ax2(1),'left')
-    plot(ax2, [integratedSpectra.dateTime],[integratedSpectra.meanTb],'g');
+    plot(ax2, [integratedSpectra.dateTime],[integratedSpectra.meanTb],'g-x');
     hold on
-    plot(ax2, [integratedSpectra.dateTime], 0.9*yUp*[integratedSpectra.outlierCalib],'mx');
+    plot(ax2, [integratedSpectra.dateTime], 0.9*yUp*[integratedSpectra.outlierCalib],'mp','MarkerSize',10);
    % set(ax(1),'ylim', [0,300])
     set(ax2,'YColor','g');
     ylabel(ax2(1),({'Tb [K]'}))
     set(ax2,'ylim', [yLow,yUp])
     yyaxis(ax2(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.meanAirTemperature ],'r');
+    plot([integratedSpectra.dateTime],[integratedSpectra.meanAirTemperature ],'r-x');
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax2(1),'YColor','r');
@@ -80,32 +80,33 @@ try
 
     ax3 = subplot(3,2,3);
     yyaxis(ax3(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeSky]/60,'g-');
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeSky]/60,'g-x');
     hold on
-    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeCold]/60,'b-');
-    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeHot]/60,'r-');
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeCold]/60,'b-x');
+    plot([integratedSpectra.dateTime],[integratedSpectra.estimatedIntegrationTimeHot]/60,'r-x');
     set(ax3(1),'ylim', [0,0.5*calibrationTool.integrationTime])
     %set(ax(1),'xlim', [0,24])
     set(ax3(1),'YColor','k');
     ylabel(ax3(1),({'integration time [min]'}))
     
     yyaxis(ax3(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'mo');
-    set(ax3(1),'ylim', [-0.1,6.1])
-    set(ax3(1),'YColor','m');
+    plot([integratedSpectra.dateTime],[integratedSpectra.numberOfAveragedSpectra],'cs');
+    cmax = calibrationTool.integrationTime / calibrationTool.calibrationTime;
+    set(ax3(1),'ylim', [-0.1,cmax+0.1])
+    set(ax3(1),'YColor','c');
     ylabel(ax3(1),({'# cal cycle [-]'}))
     grid on
     
     ax4 = subplot(3,2,4);
     yyaxis(ax4(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.rainAccumulation ],'k');
+    plot([integratedSpectra.dateTime],[integratedSpectra.rainAccumulation ],'k-x');
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax4(1),'YColor','k');
     ylabel(ax4(1),({'precipitation [...]'}))
     
     yyaxis(ax4(1),'right')
-    plot([integratedSpectra.dateTime],100*[integratedSpectra.meanRelativeHumidity],'b');
+    plot([integratedSpectra.dateTime],100*[integratedSpectra.meanRelativeHumidity],'b-x');
     set(ax4(1),'ylim', [0,100])
     set(ax4(1),'YColor','b');
     ylabel(ax4(1),({'RH [%]'}))
@@ -153,7 +154,11 @@ try
     title('Corrected, good channels')
     
     % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
-    print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
+    if calibrationTool.integrationTime==60
+        print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
+    else
+        print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' num2str(calibrationTool.integrationTime/60) 'h_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
+    end
     %print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-fillpage')
     close
 
