@@ -34,7 +34,11 @@ function calibrationTool = save_level1b_daily(calibrationTool,level1b)
 locationLevel1b=calibrationTool.level1Folder;
 integratedSpectra=level1b.integration;
 
-filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+if calibrationTool.integrationTime == 60
+    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+else
+    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' num2str(calibrationTool.integrationTime/60) 'h_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+end
 calibrationTool.filenameLevel1b=filename;
 
 if isfile(filename)

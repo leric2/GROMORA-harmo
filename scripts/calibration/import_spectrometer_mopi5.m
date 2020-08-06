@@ -33,7 +33,8 @@ calibrationTool.numberOfChannels=16384;
 if modelFFTS<3
     calibrationTool.IQProcessing = true;
     %calibrationTool.LOFreqTot = calibrationTool.LOFreq1; TODO
-    calibrationTool.LOFreqTot = calibrationTool.observationFreq-50.3e6;
+    calibrationTool.LOFreqTot = calibrationTool.observationFreq-50.33e6;
+    calibrationTool.LOFreqTot = 110.8634e9;
 else
     calibrationTool.IQProcessing = false;
     calibrationTool.LOFreqTot = calibrationTool.LOFreq1 + calibrationTool.LOFreq2;
