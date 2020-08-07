@@ -39,7 +39,7 @@ log.file = file;
 log.comment = [];
 
 % ========= read logfile ===================
-fid = fopen( [file '.txt'], 'r');
+fid = fopen( [file calibrationTool.logFileDataExtension], 'r');
 
 while 1
     s = fgetl(fid);
@@ -57,11 +57,20 @@ if isfield(calibrationTool,'delimiter_logfile')
     header = header{1}; % cell array with all header parameters
     N = length(header); % number of header parameters
 
-    [y, result] = readtext([file '.txt'], calibrationTool.delimiter_logfile, '', '"');
-    if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
-
-    x = cell2mat(y(2:end,:))';
+    [y, result] = readtext([file calibrationTool.logFileDataExtension], calibrationTool.delimiter_logfile, '', '"');
     
+    if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
+    
+    if calibrationTool.positionIndAsName
+        indexPos = find(strcmp(header,'Position'));
+        newPositionColumn = nan*ones(length(y(2:end,27)),1);
+        newPositionColumn(strcmp(y(2:end,27),calibrationTool.nameColdIndice)) = calibrationTool.indiceCold;
+        newPositionColumn(strcmp(y(2:end,27),calibrationTool.nameHotIndice)) = calibrationTool.indiceHot;
+        newPositionColumn(strcmp(y(2:end,27),calibrationTool.nameAntennaIndice)) = calibrationTool.indiceAntenna;
+        newPositionColumn(strcmp(y(2:end,27),calibrationTool.otherName)) = -1;
+        y(2:end,27) = num2cell(newPositionColumn);
+    end
+    x = cell2mat(y(2:end,:))';
 else
     header = textscan(s, '%s'); 
     
@@ -96,7 +105,7 @@ if isfield(log, {'Hour' 'Min' 'Sec'})
     log.t = log.Hour + log.Min/60 + log.Sec/3600;
 end
 
-D = dir([file '.bin']);
+D = dir([file calibrationTool.binaryDataExtension]);
 
 if isempty(D)
     rawSpectra=NaN;
@@ -106,13 +115,15 @@ end
 
 % read complete binary data in one vector
 if nargout>1
-    fid = fopen( [file '.bin'], 'r', calibrationTool.binaryType);
+    fid = fopen( [file calibrationTool.binaryDataExtension], 'r', calibrationTool.binaryType);
     rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
 
 % we want a line vector for the following
-rawSpectra=rawSpectra';
+if (size(rawSpectra,2)==1)
+    rawSpectra=rawSpectra';
+end
 
 log.x = x; 
 log.header = header; 
