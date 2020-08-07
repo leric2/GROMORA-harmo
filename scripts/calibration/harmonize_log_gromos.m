@@ -41,25 +41,36 @@ function log = harmonize_log_gromos(calibrationTool,log)
 log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
 log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
 
-if ~(mean(log.Elevation_Angle(log.Position == 0)) == calibrationTool.elevationAngleCold)
+if (~(mean(log.Elevation_Angle(log.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26))
     error('angle for the cold load might be wrongly defined') 
 end
 
 % Hot temperature is in °C:
 log.T_Hot_Absorber=log.T_Hot + 273.15; % to replace with calibrationTool.zeroDegInKelvin ?
 
-log.T_Ceiling=log.TExt0;
-log.T_Floor=log.TExt1;
-log.T_Aircon_Out=log.TExt2;
-log.T_Window=log.TExt3;
-log.T_Amp1=log.TExt4;
-log.T_Amp2=log.TExt5;
-log.T_Mirror_View=log.TExt6;
-log.T_Reserved=log.TExt7;
-
+if isfield(log,'TExt0')
+    log.T_Ceiling=log.TExt0;
+    log.T_Floor=log.TExt1;
+    log.T_Aircon_Out=log.TExt2;
+    log.T_Window=log.TExt3;
+    log.T_Amp1=log.TExt4;
+    log.T_Amp2=log.TExt5;
+    log.T_Mirror_View=log.TExt6;
+    log.T_Reserved=log.TExt7;
+else
+    %TODO
+    log.T_Ceiling=log.AI_0;
+    log.T_Floor=log.AI_0;
+    log.T_Aircon_Out=log.AI_0;
+    log.T_Window=log.AI_0;
+    log.T_Amp1=log.AI_0;
+    log.T_Amp2=log.AI_0;
+    log.T_Mirror_View=log.AI_0;
+    log.T_Reserved=log.AI_0;
+end
 log.LN2_Sensors_OK = ~log.LN2_Relay;
 
-log.LN2_Level_OK = log.LN2_above_High & ~(log.LN2_above_Low);
+log.LN2_Level_OK = (log.LN2_above_High == calibrationTool.goodFlagLN2Above) & (log.LN2_above_Low == calibrationTool.goodFlagLN2Below);
     
 % log.T_Room;
 
