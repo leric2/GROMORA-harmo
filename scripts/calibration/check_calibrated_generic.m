@@ -42,7 +42,7 @@ for i = 1:size(calibratedSpectra,2)
         sufficientNumberOfIndices=1;
     else
         sufficientNumberOfIndices=0;
-        warning('Low number of spectra for this cycle');
+        %warning('Low number of spectra for this cycle');
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
