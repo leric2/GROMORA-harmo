@@ -38,9 +38,13 @@ calibrationTool.instrumentName=instrumentName;
 calibrationTool.dateStr=dateStr;
 
 % Valid properties for all instruments
+calibrationTool.binaryDataExtension = '.bin';
+calibrationTool.logFileDataExtension = '.txt';
 
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
+
+calibrationTool.positionIndAsName = false;
 
 % Physical constant
 calibrationTool.lightSpeed=299792458; % [m/s] 
@@ -141,6 +145,10 @@ switch instrumentName
         calibrationTool.elevationAngleCold=-84;
         calibrationTool.elevationAngleHot=160;
         
+        calibrationTool.elevationAngleTolerance=2;
+        calibrationTool.elevationAngleHotTol = 0;
+        calibrationTool.elevationAngleColdTol = 0;
+        
         calibrationTool.cycleDurationCold = 10;
         calibrationTool.cycleDurationSky = 7;
         calibrationTool.cycleDurationHot = 10;
@@ -154,6 +162,9 @@ switch instrumentName
         % Raw File and Log
         calibrationTool.numberOfTippingCurveExpected=48;
         calibrationTool.toleranceTippingCurves=2;
+        
+        calibrationTool.goodFlagLN2Above = 1;
+        calibrationTool.goodFlagLN2Below = 0;
         
         % Considering the expected number of tipping curve:
         calibrationTool.numberOfCyclesExpected=1500;
@@ -173,7 +184,6 @@ switch instrumentName
         % Calibration
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
-        calibrationTool.elevationAngleTolerance=5;
         calibrationTool.stdAntAngleThresh = 0.5;
         
         calibrationTool.minNumberOfIndicePerCycle=12;
@@ -373,6 +383,10 @@ switch instrumentName
         calibrationTool.elevationAngleCold=-90;
         calibrationTool.elevationAngleHot=180;
         
+        calibrationTool.elevationAngleTolerance=2;
+        calibrationTool.elevationAngleHotTol = 0;
+        calibrationTool.elevationAngleColdTol = 0;
+        
         calibrationTool.cycleDurationCold = 4;
         calibrationTool.cycleDurationSky = 2;
         calibrationTool.cycleDurationHot = 4;
@@ -401,7 +415,7 @@ switch instrumentName
         % Calibration
         % minimum number of indices (h-a-c) we want in a calibration cycle for it
         % to be valid
-        calibrationTool.elevationAngleTolerance=5;
+        
         calibrationTool.stdAntAngleThresh = 0.5;
         
         calibrationTool.minNumberOfIndicePerCycle=40;
@@ -598,7 +612,9 @@ switch instrumentName
         calibrationTool.tippingSize=27;
         calibrationTool.flipped_spectra=false;
         
-        calibrationTool.elevationAngleTolerance=5;        
+        calibrationTool.elevationAngleTolerance=2;        
+        calibrationTool.elevationAngleHotTol = 0;
+        calibrationTool.elevationAngleColdTol = 0;
         
         %Temperature
         calibrationTool.THotTh=292.2;
@@ -965,6 +981,24 @@ timeNumber=datenum(str2num(dateStr(1:4)),str2num(dateStr(6:7)),str2num(dateStr(9
 
 switch instrumentName
     case 'GROMOS'
+        % binary name extension 
+        if timeNumber < datenum(2010,05,06)
+            calibrationTool.binaryDataExtension = '.dat';
+        end
+        if timeNumber < datenum(2010,03,10)
+            calibrationTool.positionIndAsName = true;
+            calibrationTool.nameColdIndice = 'Cold';
+            calibrationTool.nameHotIndice = 'Hot';
+            calibrationTool.nameAntennaIndice = 'Antenna';
+            calibrationTool.otherName = 'Reference';
+        end
+        
+        if timeNumber < datenum(2012,01,01) %TOCHECK
+            calibrationTool.goodFlagLN2Above = 1;
+            calibrationTool.goodFlagLN2Below = 1;
+            
+            calibrationTool.stdTSysThresh = 15;
+        end
         % window transmission 
         if timeNumber < datenum(2018,11,12)
             calibrationTool.tWindow = 0.99; % has been changed at that time but no idea of the values ??????
@@ -973,9 +1007,15 @@ switch instrumentName
         end
         
         % Elevation angle of the cold load
-        if timeNumber< datenum(2013,01,29)
-            %calibrationTool.elevationAngleCold=NaN;
-            %disp('elevation angle to determine for this period')
+        if  timeNumber < datenum(2012,04,26) 
+            % Before April 2012, same angle measured for the 3 position
+            calibrationTool.elevationAngleAntenna=39.85;
+            calibrationTool.elevationAngleCold=39.85;
+            calibrationTool.elevationAngleHot=39.85;
+            calibrationTool.elevationAngleTolerance= 2;
+            calibrationTool.elevationAngleHotTol = 1;
+            calibrationTool.elevationAngleColdTol = 1;
+        elseif (timeNumber>= datenum(2012,04,26) && timeNumber< datenum(2013,01,29))
             calibrationTool.elevationAngleCold=-85;
         elseif (timeNumber>= datenum(2013,01,29) && timeNumber<datenum(2014,09,19)) 
              calibrationTool.elevationAngleCold=-84;

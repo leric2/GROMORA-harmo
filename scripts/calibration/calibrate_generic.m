@@ -171,8 +171,11 @@ for i=1:nCalibrationCycles
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Checking and removing any spurious angle for hot and cold
-    hotAngleOutlier=reshape(~(logFile.Elevation_Angle(ih)==calibrationTool.elevationAngleHot),[],1);
-    coldAngleOutlier=reshape(~(logFile.Elevation_Angle(ic)==calibrationTool.elevationAngleCold),[],1);
+    %hotAngleOutlier=reshape(~(logFile.Elevation_Angle(ih)==calibrationTool.elevationAngleHot),[],1);
+    %coldAngleOutlier=reshape(~(logFile.Elevation_Angle(ic)==calibrationTool.elevationAngleCold),[],1);
+    
+    hotAngleOutlier=reshape((abs(logFile.Elevation_Angle(ih)-calibrationTool.elevationAngleHot) > calibrationTool.elevationAngleHotTol),[],1);
+    coldAngleOutlier=reshape((abs(logFile.Elevation_Angle(ic)-calibrationTool.elevationAngleCold) > calibrationTool.elevationAngleColdTol),[],1);
    
     initSizeHot=length(ih);
     initSizeCold=length(ic);

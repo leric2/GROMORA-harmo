@@ -42,7 +42,7 @@ assert(ischar(calibrationTool.dateStr),'Please enter the date in the right forma
 % calibrationTool_complete(calibrationTool)
 
 % Check if both raw file exist (does not check their content yet)
-assert(exist([calibrationTool.file '.txt'],'file') && exist([calibrationTool.file '.bin'],'file'),'Files not found')
+assert(exist([calibrationTool.file calibrationTool.logFileDataExtension],'file') && exist([calibrationTool.file calibrationTool.binaryDataExtension],'file'),'Files not found')
 
 % Start calibration
 disp(['Starting the calibration process for ' calibrationTool.instrumentName ' ' calibrationTool.spectrometer ': ' calibrationTool.dateStr])
