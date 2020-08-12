@@ -28,6 +28,8 @@ from typhon.arts.xml import load
 
 ARTS_DATA_PATH = os.environ.get("ARTS_DATA_PATH", None)
 
+summer_months = [4, 5, 6, 7, 8, 9]
+
 class APrioriDataGROSOM(arts.Atmosphere):
     '''
     TO DO ?
@@ -107,7 +109,18 @@ def get_apriori_fascod(retrieval_param):
     '''
     All in one.
     '''
-    fascod_atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
+    month = pd.to_datetime(retrieval_param['time']).month
+
+    if month in summer_months:
+        fascod_clim = 'midlatitude-summer'
+    else:
+        fascod_clim = 'midlatitude-winter'
+    
+    
+    fascod_atm = arts.Atmosphere.from_arts_xml(
+        ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
+    )
+    print('Fascod climatology : ',fascod_clim)
     return fascod_atm
 
 def get_apriori_atmosphere(retrieval_param):

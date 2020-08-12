@@ -35,11 +35,19 @@ def make_f_grid(retrieval_param): #TODO
 
     '''
     n_f = retrieval_param["number_of_freq_points"]# Number of points
-    bw = 1e9  # Bandwidth
+    bw = 1.3*retrieval_param["bandwidth"] # Bandwidth
     x = np.linspace(-1, 1, n_f)
-    f_grid = x ** 3 + x / 100
-    f_grid = f_grid * bw * 1.2 / (max(f_grid) - min(f_grid))
+    f_grid = x ** 3 + x / 50
+    f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + retrieval_param['obs_freq']
     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+
+    if retrieval_param["show_f_grid"]:
+        fig = plt.figure()
+        plt.semilogy(f_grid[1:]/1e9,np.diff(f_grid)/1e3,'.')
+        plt.xlim((retrieval_param['obs_freq']-200e6)/1e9,(retrieval_param['obs_freq']+200e6)/1e9)
+        #plt.ylim(0,300)
+        plt.suptitle('Simulation f_grid spacing')
+        plt.show()
     return f_grid
 
 def plot_FM_comparison(ds_freq,f_grid,y_FM,y_obs):
@@ -281,7 +289,7 @@ def inversion_iterate_agenda(ws):
     # Map x to ARTS' variables
     ws.x2artsAtmAndSurf()
     ws.x2artsSensor()
-    
+
     # To be safe, rerun some checks
     ws.atmfields_checkedCalc(negative_vmr_ok=1)
     ws.atmgeom_checkedCalc()
@@ -313,42 +321,41 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
 
     '''
     print("Tropospheric corrected spectra retrieval")
-    level1b_ds = instrument.level1b_ds
-    #meteo_ds = instrument.meteo_ds
 
-    cycle = retrieval_param["integration_cycle"] 
-    ds_freq = level1b_ds.frequencies.values
+    cycle = retrieval_param["integration_cycle"]
+
+    ds_freq = instrument.level1b_ds.frequencies.values
+    ds_y = instrument.level1b_ds.Tb_corr[cycle].values
+
+    retrieval_param["zenith_angle"] = 90 - instrument.level1b_ds.mean_sky_elevation_angle.values[cycle]
+    retrieval_param["azimuth_angle"] = instrument.level1b_ds.azimuth_angle.values[cycle]
+    retrieval_param["time"] = instrument.level1b_ds.time[cycle].values
+    retrieval_param["lat"] = instrument.level1b_ds.lat[cycle].values
+    retrieval_param["lon"] = instrument.level1b_ds.lon[cycle].values
+    retrieval_param['time_start'] = instrument.level1b_ds.first_sky_time[cycle].values
+    retrieval_param['time_stop'] = instrument.level1b_ds.last_sky_time[cycle].values
+    retrieval_param["f_max"] = max(ds_freq)
+    retrieval_param["f_min"] = min(ds_freq)
+    retrieval_param["bandwidth"] = 1e9
+
     ds_num_of_channel = len(ds_freq)
     #ds_Tb = level1b_ds.Tb[cycle].values
-    ds_Tb_corr = level1b_ds.Tb_corr[cycle].values
     
     ds_bw = max(ds_freq) - min(ds_freq)
     
     ds_df = ds_bw/(ds_num_of_channel-1)
-    
-    retrieval_param["zenith_angle"]=90-level1b_ds.mean_sky_elevation_angle.values[cycle]
-    retrieval_param["azimuth_angle"] = level1b_ds.azimuth_angle.values[cycle]
-
-    retrieval_param["time"] = level1b_ds.time[cycle].values
-    retrieval_param["lat"] = level1b_ds.lat[cycle].values
-    retrieval_param["lon"] = level1b_ds.lon[cycle].values
-
-    retrieval_param['time_start'] = level1b_ds.first_sky_time[cycle].values
-    retrieval_param['time_stop'] = level1b_ds.last_sky_time[cycle].values
-    
-    retrieval_param["f_max"] = max(ds_freq)
-    retrieval_param["f_min"] = min(ds_freq)
-    retrieval_param["bandwidth"] = max(ds_freq) - min(ds_freq)
         
     # Iniializing ArtsController object
     ac = arts.ArtsController()
-    
-    # atmosphere + basic param
     ac.setup(atmosphere_dim=1, iy_unit='RJBT', ppath_lmax=-1, stokes_dim=1)
+
     
     # defining simulation grids
-    f_grid = make_f_grid(retrieval_param) + instrument.observation_frequency
-    
+    if retrieval_param["binned_ch"]:
+        f_grid = ds_freq
+    else:
+        f_grid = make_f_grid(retrieval_param)
+
     z_bottom = retrieval_param["z_bottom_sim_grid"]
     z_top = retrieval_param["z_top_sim_grid"]
     z_res = retrieval_param["z_resolution_sim_grid"]
@@ -361,42 +368,42 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     #ac.set_surface(level1b_ds.alt.values[cycle])
     ac.set_surface(retrieval_param["surface_altitude"])
     
-    # spectroscopy
+    # Spectroscopy
     ac.set_spectroscopy_from_file(
-        abs_lines_file = retrieval_param['line_file'],
-        abs_species = ["O3","H2O-PWR98", "O2-PWR93","N2-SelfContStandardType"],
-        format = 'Arts',
-        line_shape = ("VVH", 750e9),
-        )
-    
-    #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
-
-    #fascod_atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
-
-    t1 = pd.to_datetime(retrieval_param['time_start'])
-    t2 = pd.to_datetime(retrieval_param['time_stop'])
-    
-    extra_time_ecmwf = 4
-
-    #ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
-    ecmwf_store = retrieval_param['ecmwf_store_location'] 
-    cira86_path = retrieval_param['cira86_path']
-
-    atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
-        retrieval_param,
-        ecmwf_store,
-        cira86_path,
-        t1,
-        t2,
-        extra_time_ecmwf
+        abs_lines_file=retrieval_param['line_file'],
+        abs_species=["O3", "H2O-PWR98", "O2-PWR93", "N2-SelfContStandardType"],
+        format='Arts',
+        line_shape=["VVH", 750e9],
     )
 
-    #ac.set_atmosphere_fascod('midlatitude-winter')
-    #fascod_atm = arts.Atmosphere.from_arts_xml(retrieval_param['prefix_atm'])
-    ac.set_atmosphere(atm, vmr_zeropadding=True)
+    #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
+    print('State of the atmosphere defined with:')
+    if retrieval_param['atm'] == 'fascod':
+        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        
+    elif retrieval_param['atm'] =='ecmwf_cira86':
+        t1 = pd.to_datetime(retrieval_param['time_start'])
+        t2 = pd.to_datetime(retrieval_param['time_stop'])
+    
+        #ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+        ecmwf_store = retrieval_param['ecmwf_store_location'] 
+        cira86_path = retrieval_param['cira86_path']
 
+        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+            retrieval_param,
+            ecmwf_store,
+            cira86_path,
+            t1,
+            t2,
+            retrieval_param['extra_time_ecmwf']
+        )
+    else:
+        ValueError('atmosphere type not recognized')
+    
+    ac.set_atmosphere(atm, vmr_zeropadding=True)
+    
     # Apply HSE, only allowed after setup of the atmosphere, when z is already on simulation grid
-    ac.apply_hse(100e2, 0.1)  # value taken from GROMOS retrieval
+    ac.apply_hse(100e2, 0.5)  # value taken from GROMOS retrieval
 
     # create an observation: 
     # only one for now, but then the whole day ?
@@ -408,9 +415,9 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
         alt = retrieval_param["observation_altitude"],
         time = retrieval_param["time"]
         )
-    
+
     ac.set_observations([obs])
-    ac.set_y([ds_Tb_corr])
+    ac.set_y([ds_y])
     
     # Defining our sensors
     sensor = arts.SensorFFT(ds_freq, ds_df)
@@ -420,9 +427,9 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     ac.checked_calc()
     
     # FM
-    y = ac.y_calc()
+    #y = ac.y_calc()
     
-    #plot_FM_comparison(ds_freq,f_grid,y,ds_Tb_corr)
+    #plot_FM_comparison(ds_freq,f_grid,y,ds_y)
 
     # Setup the retrieval
     z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
@@ -444,24 +451,33 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
         cutoff=0.001,
     )
 
+    sx = covmat.covmat_diagonal_sparse(retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval))
     # The different things we want to retrieve
+    fshift_ret = arts.FreqShift(100e3, df=50e3)
+
     ozone_ret = arts.AbsSpecies('O3', p_grid_retrieval, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
     #h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
     
-    #fshift_ret = arts.FreqShift(100e3, df=50e3)
+
     #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
     
     # increase variance for spurious spectra by factor
-    factor = retrieval_param['increased_var_factor']
+    #factor = retrieval_param['increased_var_factor']
     
-    y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
+    #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
     
-    y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
+    #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
-    #y_var = utils.var_allan(ds_Tb) * np.ones_like(ds_Tb)
-    y_var = level1b_ds.stdTb[cycle].values
+    #y_var = factor*utils.var_allan(ds_y) * np.ones_like(ds_y)
+    #y_var = level1b_ds.stdTb[cycle].values
 
-    ac.define_retrieval([ozone_ret], y_var)
+    y_var = instrument.level1b_ds.stdTb[cycle].data
+
+    #polyfit_ret = arts.Polyfit(
+    #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    #)
+
+    ac.define_retrieval([ozone_ret, fshift_ret], y_var)
     #ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
     
     # Let a priori be off by 0.5 ppm (testing purpose)

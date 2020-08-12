@@ -152,6 +152,73 @@ def smooth_and_apply_correction(level1b_dataset, meteo_ds):
     level1b_dataset = level1b_dataset.assign(Tb_trop_corr_smoothed = tbco_smoothed)
     return level1b_dataset
 
+def bin_spectrum(f ,tb ,bin_vect):
+    newFreq=np.ones(len(bin_vect)) * np.nan
+    newTb = np.ones(len(bin_vect)) * np.nan
+
+    ch_down = 0
+    for i in range(len(bin_vect)):
+        upCh = int(bin_vect[i])
+        if ch_down == upCh:
+            newFreq[i] = f[ch_down]
+            newTb[i] = tb[ch_down]
+        else:     
+            newFreq[i] = np.nanmean(f[ch_down:upCh])
+            newTb[i] = np.nanmean(tb[ch_down:upCh])
+        ch_down = upCh+1
+    
+    return newFreq, newTb
+
+def create_bin_vector(F0, f, tb, n_f, bw_extra):    
+    n_ch = len(f)
+
+    df = (max(f)-min(f))/n_ch
+
+    x = np.linspace(-1, 1, n_f)
+
+    f_grid = (x ** 3 + x/250)
+    f_grid = f_grid*bw_extra / (max(f_grid) - min(f_grid)) + F0
+    #f_grid = f_grid[np.where(np.logical_and(f_grid>min(f), f_grid<max(f)))]
+
+    diff_f_grid = np.diff(f_grid)
+
+    newFreq = np.ones(len(f_grid)) * np.nan
+    newTb = np.ones(len(f_grid)) * np.nan
+    binned_ch = np.ones(len(f_grid)) * np.nan
+    bin_vect = np.ones(len(f_grid)) * np.nan
+
+    for i in range(len(f_grid)):
+        newF = f_grid[i]
+        if i ==0:
+            channels_2_bin = np.where(f<newF+0.5*diff_f_grid[i])
+        elif i==len(f_grid)-1:
+            channels_2_bin = np.where(f>=newF-0.5*diff_f_grid[i-1])
+        else:
+            channels_2_bin = np.where(np.logical_and(f>=newF-0.5*diff_f_grid[i-1], f<newF+0.5*diff_f_grid[i]))
+        if len(channels_2_bin[0]) > 0:
+            newTb[i] = np.mean(tb[channels_2_bin])
+            binned_ch[i] = len(channels_2_bin[0])
+            newFreq[i] = np.mean(f[channels_2_bin])
+            bin_vect[i] = channels_2_bin[0][-1]
+    
+    newFreq=newFreq[~np.isnan(binned_ch)]
+    newTb=newTb[~np.isnan(binned_ch)]
+    bin_vect=bin_vect[~np.isnan(binned_ch)]
+    binned_ch=binned_ch[~np.isnan(binned_ch)]
+    
+    fig, axs = plt.subplots(3)
+    axs[0].plot(f/1e9,tb)
+    axs[0].plot(newFreq/1e9,newTb)
+    axs[0].set_ylim(60,105)
+    axs[1].plot(newFreq/1e9,binned_ch)
+    axs[1].set_ylim(-1,200)
+    axs[2].plot(newFreq/1e9,binned_ch)
+    axs[2].set_xlim((F0-50e6)/1e9,(F0+50e6)/1e9)
+    axs[2].set_ylim(0,35)
+    
+    return bin_vect
+    
+    
 def plot_meteo_level1b(METEO):
     """Example function with types documented in the docstring.
     Description HERE
@@ -255,7 +322,7 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
         DESCRIPTION.
 
     '''
-    ozone_ret, = ac.retrieval_quantities
+    ozone_ret, freq_shift = ac.retrieval_quantities
 
     f_backend = ds.frequencies.values
     y = ds.Tb_corr[retrieval_param['integration_cycle']].values
@@ -273,7 +340,7 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
     axs[0].legend()
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
-    axs[1].set_ylim(-10, 10)
+    axs[1].set_ylim(-2, 2)
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
 
@@ -306,6 +373,13 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
         if 0.8 <= np.sum(avk) <= 1.2:
             axs[1][1].plot(avk, ozone_ret.z_grid / 1e3)
     axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
+
     fig.suptitle(title + " Ozone")
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
