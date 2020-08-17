@@ -35,26 +35,35 @@ function logFile = harmonize_log_mopi5(calibrationTool, logFile)
 %   FFT_adc_range	FFT_adc_overload	FFT_T_FPGA	FFT_Mode	FFT_Nr_of_acq	
 %   Spectr_left_wing_start	Spectr_left_wing_width	Spectr_line_center	Spectr_line_width	Spectr_T_Line_Amp	Spectr_T_Peak	Spectr_T_Wing	
 %   Data_file_size	SW_version	IWV
-%   
+%   y.T = [y.HousingParameters_Temp_0, y.HousingParameters_Temp_7]; 
+
+if logFile.Month > 3
+    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second) + hours(2);
+else
+    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second) + hours(1);
+end 
+
 % For MOPI5
-if length(logFile.Year)==1
-    logFile.Year=ones(length(logFile.t),1)*logFile.Year;
-end
-if length(logFile.Month)==1
-    logFile.Month=ones(length(logFile.t),1)*logFile.Month;
-end
-if length(logFile.Day)==1
-    logFile.Day=ones(length(logFile.t),1)*logFile.Day;
-end
 
-logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
-logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
+%logFile.Year=ones(length(logFile.t),1)*logFile.Year;
+logFile.Year=year(logFile.dateTime);
 
+%logFile.Month=ones(length(logFile.t),1)*logFile.Month;
+logFile.Month=month(logFile.dateTime);
+
+%logFile.Day=ones(length(logFile.t),1)*logFile.Day;
+logFile.Day=day(logFile.dateTime);
+
+logFile.Hour=hour(logFile.dateTime);
+logFile.Minute=minute(logFile.dateTime);
+logFile.Second=second(logFile.dateTime);
+
+logFile.time = datenum(logFile.dateTime);
 
 logFile.Tipping_Curve_active=zeros(length(logFile.t),1);
 
 % Hot temperature is in °C:
-logFile.T_Hot_Absorber=logFile.T(:,1);
+logFile.T_Hot_Absorber=logFile.HousingParameters_Temp_0;
 
 logFile.FE_T_Sys=-9999*ones(length(logFile.t),1);
 
@@ -81,6 +90,6 @@ logFile.LN2_Sensors_OK = ones(length(logFile.t),1);
 
 logFile.LN2_Level_OK = ones(length(logFile.t),1);
     
-logFile.T_Room=logFile.T(:,2);
+logFile.T_Room=logFile.HousingParameters_Temp_7;
 
 end
