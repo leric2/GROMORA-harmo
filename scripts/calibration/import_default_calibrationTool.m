@@ -570,6 +570,7 @@ switch instrumentName
         %calibrationTool.LOFreqTot=1.10836e11;
         calibrationTool.LOFreq1 = 1.06986e11; %TODO
         calibrationTool.LOFreq2 = 3.3e9;
+        calibrationTool.LOFreq3 = 3.8e9;
         calibrationTool.DCChannel=1; %=Nchannel/2 ??
    
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -619,7 +620,7 @@ switch instrumentName
         %Temperature
         calibrationTool.THotTh=292.2;
         calibrationTool.THotAbsThresh=5;
-        calibrationTool.hotTemperatureStdThreshold=0.1;
+        calibrationTool.hotTemperatureStdThreshold=0.2;
         
         calibrationTool.numberOfTippingCurveExpected=4;
         calibrationTool.toleranceTippingCurves=2;
