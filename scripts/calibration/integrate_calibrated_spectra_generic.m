@@ -37,13 +37,13 @@ for h = 1:length(timeThresh)-1
     else
         goodSpectra = indSpectra;
     end
-    
-    if ~isempty(goodSpectra)  
-        noErrorVect = ones(1,calibrationTool.flagVectorLength);
-        % no critical error:
-        goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==noErrorVect,2)==calibrationTool.flagVectorLength);
+    if calibrationTool.filterByFlags
+        if ~isempty(goodSpectra)  
+            noErrorVect = ones(1,calibrationTool.flagVectorLength);
+            % no critical error:
+            goodSpectra=goodSpectra(sum(vertcat(calibratedSpectra(goodSpectra).flags)==noErrorVect,2)==calibrationTool.flagVectorLength);
+        end
     end
-    
     if isempty(goodSpectra)
         integratedTb=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedStdTb = -9999*ones(1,calibrationTool.numberOfChannels);
@@ -60,8 +60,8 @@ for h = 1:length(timeThresh)-1
         dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
     else
         % Averaging the good spectra together
-        integratedTb=mean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
-        integratedStdTb = mean(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
+        integratedTb=nanmean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
+        integratedStdTb = nanmean(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         
         integratedMeanStdTbFromCalMean = nanmean([calibratedSpectra(goodSpectra).meanStdTb])/sqrt(length(goodSpectra));

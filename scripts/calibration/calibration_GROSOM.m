@@ -28,23 +28,23 @@
 %           |
 %==========================================================================
 
-clear; close all; clc;
+%clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='mopi5';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = false;
+calibrate = true;
 integrate = true;
-readLabviewLog = false;
+readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_09_15','yyyy_mm_dd'):datenum('2019_09_15','yyyy_mm_dd');
+dates=datenum('2019_01_04','yyyy_mm_dd'):datenum('2019_01_04','yyyy_mm_dd');
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -128,6 +128,7 @@ for d = 1:numel(dates)
         calibrationTool.integrationTime=60;
         
         calibrationTool.filterByTransmittance = true;
+        calibrationTool.filterByFlags = true;
     
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -139,7 +140,7 @@ for d = 1:numel(dates)
         calibrationTool.integrationTime=60;
     
         calibrationTool.filterByTransmittance = true;
-        
+        calibrationTool.filterByFlags = true;
         
         % Temperature of the cold load
         calibrationTool.TCold=80;        
@@ -153,6 +154,7 @@ for d = 1:numel(dates)
         calibrationTool.integrationTime=24*60;
         
         calibrationTool.filterByTransmittance = true;
+        calibrationTool.filterByFlags = true;
         
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -189,7 +191,7 @@ for d = 1:numel(dates)
         end
         if integrate
             try
-                calibrationTool = run_integration(calibrationTool);
+                [calibrationTool, level1b] = run_integration(calibrationTool);
             catch ME
                 warning('Problem with the integration:');
                 disp(ME.message)
@@ -208,7 +210,7 @@ for d = 1:numel(dates)
             end
             if integrate
                 try
-                    calibrationTool = run_integration(calibrationTool);
+                    [calibrationTool, level1b] = run_integration(calibrationTool);
                 catch ME
                     warning('Problem with the integration:');
                     disp(ME.message)

@@ -46,20 +46,27 @@ for i = 1:size(integratedSpectra,2)
     
     integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
     
-    cleanTb = integratedSpectra(i).Tb(~integratedSpectra(i).potentialBadChannels);
+    cleanTb = integratedSpectra(i).Tb;
+    cleanTb(integratedSpectra(i).potentialBadChannels)=NaN;
     
-    integratedSpectra(i).meanStdTbFromGoodCh=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
+    if isempty(cleanTb)
+        integratedSpectra(i).meanStdTbFromGoodCh = -9999;
+        integratedSpectra(i).meanStdFromWings = -9999;
+    else
+        integratedSpectra(i).meanStdTbFromGoodCh=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
     
-    N = length(cleanTb);
-    skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
+        N = length(cleanTb);
         
-    lower = int16(skipChannels);
-    upper = int16(skipChannels) + calibrationTool.troposphericCorrection.numberOfChannelsTropCorr;
+        skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
+        
+        lower = int16(skipChannels);
+        upper = int16(skipChannels) + calibrationTool.troposphericCorrection.numberOfChannelsTropCorr;
     
-    leftWing = cleanTb(lower:upper);
-    rightWing = cleanTb(N-upper:N-lower);
+        leftWing = cleanTb(lower:upper);
+        rightWing = cleanTb(N-upper:N-lower);
     
-    integratedSpectra(i).meanStdFromWings = prctile([leftWing,rightWing],95)-prctile([leftWing,rightWing],5);
+        integratedSpectra(i).meanStdFromWings = prctile([leftWing,rightWing],95)-prctile([leftWing,rightWing],5);
+    end
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
     % The number of indices for the 3 positions:
@@ -106,6 +113,7 @@ for i = 1:size(integratedSpectra,2)
         "rain_Accumulation_OK"];
     
     integratedSpectra(i).outlierCalib = NaN;
+
     if (sum(integratedSpectra(i).errorVector)<length(integratedSpectra(i).errorVector))
         integratedSpectra(i).outlierCalib = 1;
         errorV=num2str(integratedSpectra(i).errorVector);

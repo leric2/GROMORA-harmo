@@ -1,4 +1,4 @@
-function calibrationTool = run_integration(calibrationTool)
+function [calibrationTool, level1b] = run_integration(calibrationTool)
 %==========================================================================
 % NAME      | run_integration.m
 % TYPE      | function
@@ -103,6 +103,8 @@ level1b.integration = calibrationTool.check_integrated(calibrationTool, level1b.
 
 % Plotting and saving calibrated and corrected spectra
 if calibrationTool.integratedSpectraPlot && nansum([level1b.integration.outlierCalib])<length(level1b.integration)
+    calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
+elseif calibrationTool.integratedSpectraPlot && length(level1b.integration)==1
     calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
 end
 
