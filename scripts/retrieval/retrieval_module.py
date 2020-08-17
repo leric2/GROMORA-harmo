@@ -37,7 +37,7 @@ def make_f_grid(retrieval_param): #TODO
     n_f = retrieval_param["number_of_freq_points"]# Number of points
     bw = 1.3*retrieval_param["bandwidth"] # Bandwidth
     x = np.linspace(-1, 1, n_f)
-    f_grid = x ** 3 + x / 50
+    f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
     f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + retrieval_param['obs_freq']
     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
 
@@ -304,7 +304,7 @@ def inversion_iterate_agenda(ws):
     # right for iterative solutions. No need to call this WSM for linear inversions.
     ws.jacobianAdjustAndTransform()
 
-def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
+def retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param):
     '''
     Retrieval of a single integration cycle defined in retrieval_param
 
@@ -323,23 +323,23 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     print("Tropospheric corrected spectra retrieval")
 
     cycle = retrieval_param["integration_cycle"]
+    good_channels = spectro_dataset.good_channels.values
+    ds_freq = spectro_dataset.frequencies.values
+    ds_y = spectro_dataset.Tb_corr[cycle].values
 
-    ds_freq = instrument.level1b_ds.frequencies.values
-    ds_y = instrument.level1b_ds.Tb_corr[cycle].values
-
-    retrieval_param["zenith_angle"] = 90 - instrument.level1b_ds.mean_sky_elevation_angle.values[cycle]
-    retrieval_param["azimuth_angle"] = instrument.level1b_ds.azimuth_angle.values[cycle]
-    retrieval_param["time"] = instrument.level1b_ds.time[cycle].values
-    retrieval_param["lat"] = instrument.level1b_ds.lat[cycle].values
-    retrieval_param["lon"] = instrument.level1b_ds.lon[cycle].values
-    retrieval_param['time_start'] = instrument.level1b_ds.first_sky_time[cycle].values
-    retrieval_param['time_stop'] = instrument.level1b_ds.last_sky_time[cycle].values
+    retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
+    retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
+    retrieval_param["time"] = spectro_dataset.time[cycle].values
+    retrieval_param["lat"] = spectro_dataset.lat[cycle].values
+    retrieval_param["lon"] = spectro_dataset.lon[cycle].values
+    retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
+    retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
     retrieval_param["f_max"] = max(ds_freq)
     retrieval_param["f_min"] = min(ds_freq)
     retrieval_param["bandwidth"] = 1e9
 
     ds_num_of_channel = len(ds_freq)
-    #ds_Tb = level1b_ds.Tb[cycle].values
+    #ds_Tb = Tb[cycle].values
     
     ds_bw = max(ds_freq) - min(ds_freq)
     
@@ -365,7 +365,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     ac.set_grids(f_grid, p_grid)
     
     # altitude for the retrieval
-    #ac.set_surface(level1b_ds.alt.values[cycle])
+    #ac.set_surface(alt.values[cycle])
     ac.set_surface(retrieval_param["surface_altitude"])
     
     # Spectroscopy
@@ -469,9 +469,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, retrieval_param):
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = factor*utils.var_allan(ds_y) * np.ones_like(ds_y)
-    #y_var = level1b_ds.stdTb[cycle].values
-
-    y_var = instrument.level1b_ds.stdTb[cycle].data
+    y_var = spectro_dataset.stdTb[cycle].data
 
     #polyfit_ret = arts.Polyfit(
     #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]

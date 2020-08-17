@@ -145,7 +145,7 @@ n_f = retrieval_param["number_of_freq_points"]  # Number of points
 
 bw = 1.3e9  # Bandwidth
 x = np.linspace(-1, 1, n_f)
-f_grid = x ** 3 + x / 10
+f_grid = x ** 3 + x / 50
 f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
 f_grid = f_grid + f0
 # Trying with another frequency grid
