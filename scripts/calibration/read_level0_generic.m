@@ -1,4 +1,4 @@
-function [log,rawSpectra] = read_level0_generic(calibrationTool)
+function [log,rawSpectra] = read_level0_generic(calibrationTool, rawFileReading)
 %==========================================================================
 % NAME          | read_level0_generic.m
 % TYPE          | function
@@ -39,6 +39,8 @@ log.file = file;
 log.comment = [];
 
 % ========= read logfile ===================
+if nargin<2 rawFileReading=0; end
+
 fid = fopen( [file calibrationTool.logFileDataExtension], 'r');
 
 while 1
@@ -53,13 +55,15 @@ end
 if s(1)=='%';  s(1)=[]; end
 
 if isfield(calibrationTool,'delimiter_logfile')
-    header = textscan(s, '%s','delimiter', calibrationTool.delimiter_logfile);
-    header = header{1}; % cell array with all header parameters
-    N = length(header); % number of header parameters
-
-    [y, result] = readtext([file calibrationTool.logFileDataExtension], calibrationTool.delimiter_logfile, '', '"');
+    %header = textscan(s, '%s','delimiter', calibrationTool.delimiter_logfile);
+    %header = header{1}; % cell array with all header parameters
+    %N = length(header); % number of header parameters
     
-    if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
+    %[y, result] = readtext([file calibrationTool.logFileDataExtension], calibrationTool.delimiter_logfile, '', '"');
+    y = importdata([file calibrationTool.logFileDataExtension], calibrationTool.delimiter_logfile, 1);
+    header = y.colheaders;
+    N = length(header);
+    %if ischar(cell2mat(y(end,1))), y=y(1:end-1,:); end
     
     if calibrationTool.positionIndAsName
         indexPos = find(strcmp(header,'Position'));
@@ -70,18 +74,14 @@ if isfield(calibrationTool,'delimiter_logfile')
         newPositionColumn(strcmp(y(2:end,27),calibrationTool.otherName)) = -1;
         y(2:end,27) = num2cell(newPositionColumn);
     end
-    x = cell2mat(y(2:end,:))';
+    %x = cell2mat(y(2:end,:))';
+    x = y.data;
 else
-    header = textscan(s, '%s'); 
-    
-    header = header{1}; % cell array with all header parameters
-    N = length(header); % number of header parameters
-    % x = fscanf(fid, '%f;', [N, inf]);  % data array
-
-    x = fscanf(fid, '%f ', [N, inf]);  % data array
-    
+    error('Please provide the delimiter symbol for the log file')
 end
 
+log.x = x; 
+log.header = header; 
 
 M = size(x,2);     % number of data entries
 fclose(fid);
@@ -92,7 +92,7 @@ for n = 1:N
     name(name==' ')='_'; 
     if length(name)<2 continue; end; 
     %disp(name)
-    log = setfield(log, name, x(n,:));
+    log = setfield(log, name, x(:,n));
 end
 
 % calculate time in [h]
@@ -105,27 +105,30 @@ if isfield(log, {'Hour' 'Min' 'Sec'})
     log.t = log.Hour + log.Min/60 + log.Sec/3600;
 end
 
-D = dir([file calibrationTool.binaryDataExtension]);
+if rawFileReading
+    D = dir([file calibrationTool.binaryDataExtension]);
+    
+    if isempty(D)
+        rawSpectra=NaN;
+        return
+    else
+        theoreticalNumberDataEntries=D.bytes/calibrationTool.numberOfChannels/4;    % 4 bytes for each floating point value
+    end
 
-if isempty(D)
-    rawSpectra=NaN;
+    % read complete binary data in one vector
+    if nargout>1
+        fid = fopen( [file calibrationTool.binaryDataExtension], 'r', calibrationTool.binaryType);
+        rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
+        fclose(fid);
+    end
+    
+    % we want a line vector for the following
+    if (size(rawSpectra,2)==1)
+        rawSpectra=rawSpectra';
+    end
 else
-    theoreticalNumberDataEntries=D.bytes/calibrationTool.numberOfChannels/4;    % 4 bytes for each floating point value
+    rawSpectra = NaN;
 end
 
-% read complete binary data in one vector
-if nargout>1
-    fid = fopen( [file calibrationTool.binaryDataExtension], 'r', calibrationTool.binaryType);
-    rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
-    fclose(fid);
-end
-
-% we want a line vector for the following
-if (size(rawSpectra,2)==1)
-    rawSpectra=rawSpectra';
-end
-
-log.x = x; 
-log.header = header; 
 end
 

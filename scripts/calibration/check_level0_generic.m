@@ -68,12 +68,12 @@ if sum(isExtra) > 0
     f = [calibrationTool.extraFileFolder calibrationTool.filename '_extra'];
     
     M = rawSpectra(isExtra,:)';
-    fid = fopen([f '.bin'], 'w');
+    fid = fopen([f calibrationTool.binaryDataExtension], 'w');
     fwrite(fid,M(:));
     fclose(fid);
     
-    writecell(logFile.header',[f '.txt'],'Delimiter',calibrationTool.delimiter_logfile)
-    dlmwrite([f '.txt'],logFile.x(:,isExtra)','delimiter',calibrationTool.delimiter_logfile,'-append');
+    writecell(logFile.header',[f calibrationTool.logFileDataExtension],'Delimiter',calibrationTool.delimiter_logfile)
+    writematrix(logFile.x(isExtra,:),[f calibrationTool.logFileDataExtension],'Delimiter',calibrationTool.delimiter_logfile,'WriteMode','append');
     disp('Some extra timestamp have been saved, please make sure to use "read_level0_missing" function');
     warningLevel0=append(warningLevel0,'extra_timestamp');
 end

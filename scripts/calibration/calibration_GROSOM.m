@@ -31,7 +31,7 @@
 %clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='mopi5';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -151,9 +151,9 @@ for d = 1:numel(dates)
         calibrationTool.calibrationTime=10;
     
         % Total integration time
-        calibrationTool.integrationTime=24*60;
+        calibrationTool.integrationTime=12*60;
         
-        calibrationTool.filterByTransmittance = true;
+        calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
         calibrationTool.filterByFlags = true;
         
         % Temperature of the cold load
