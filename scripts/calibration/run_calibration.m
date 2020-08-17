@@ -53,7 +53,7 @@ disp(['Starting the calibration process for ' calibrationTool.instrumentName ' '
 disp('Reading level0 data...')
 
 tic
-[logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool);
+[logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool, 1);
 toc
 
 % The raw log file from each instrument is different and we should try to

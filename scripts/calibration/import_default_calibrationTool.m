@@ -249,7 +249,7 @@ switch instrumentName
         % calibration
         
         % Reading routine to use for the raw data
-        calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
+        calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_generic(calibrationTool, readRawFile);
     
         % Quality check for the raw data
         calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
@@ -479,7 +479,7 @@ switch instrumentName
         
         % Selecting the functions that will be used for processing this retrieval
         % Reading routine to use for the raw data
-        calibrationTool.read_level0=@(calibrationTool) read_level0_generic(calibrationTool);
+        calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_generic(calibrationTool, readRawFile);
     
         % Quality check for the raw data
         calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
@@ -578,7 +578,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.rawFileFolder=['/mnt/instrumentdata/mopi5/' dateStr(1:4) '/'];
         calibrationTool.level1Folder='/scratch/MOPI5/Level1/';
-        calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
+        calibrationTool.extraFileFolder='/scratch/MOPI5/ExtraRawFiles/'; % no write permission on the IAP lake
         
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
         
@@ -609,7 +609,7 @@ switch instrumentName
         
         %calibrationTool.numberOfCyclesExpected=3940;
         %calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
-        calibrationTool.checkLevel0=false;
+        calibrationTool.checkLevel0=true;
         calibrationTool.tippingSize=27;
         calibrationTool.flipped_spectra=false;
         
@@ -694,10 +694,10 @@ switch instrumentName
         
         % Selecting the functions that will be used for processing this retrieval
         % Reading routine to use for the raw data
-        calibrationTool.read_level0=@(calibrationTool) mopi5_read(calibrationTool); 
+        calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_mopi5(calibrationTool, readRawFile); 
     
         % Quality check for the raw data
-        calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
+        calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_mopi5(log,rawSpectra,calibrationTool);
         
         % Reformatting of the raw spectra into a matrix (numberOfSpectra x
         % numberOfChannels)
@@ -870,7 +870,7 @@ switch instrumentName
         calibrationTool.elcorr_file   = 'miawarac_elcorr.mat';
         calibrationTool.antenna_file  = 'miawarac_antenna.txt';
         
-        calibrationTool.read_level0=@(calibrationTool) read_level0_missing(calibrationTool); 
+        calibrationTool.read_level0=@(calibrationTool, rawFileReading) read_level0_missing(calibrationTool, rawFileReading); 
         
         calibrationTool.filenameLevel1a=['/home/franziska/Documents/MW/play_MIA-C_calibration/MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
         
