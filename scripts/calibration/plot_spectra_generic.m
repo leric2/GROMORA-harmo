@@ -192,6 +192,7 @@ try
         hold on
     end
     for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
+    
     print(fig3,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
     
 catch ME

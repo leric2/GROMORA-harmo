@@ -4,8 +4,8 @@ try
     % plotting a spectra every numberOfSpectraToGroup measurements
     %TOD={};
     N=length(integratedSpectra);
-    fig=figure('visible','off');
-    %fig=figure();
+    %fig=figure('visible','off');
+    fig=figure();
     clf
     set(gcf, 'PaperPosition', [1 1 19 27.7])
     orient(fig,'landscape')
