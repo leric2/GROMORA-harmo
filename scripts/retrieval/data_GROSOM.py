@@ -91,6 +91,28 @@ def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size
     
     return level1b_dataset
 
+def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20):
+    '''
+    daily processing
+    '''
+    good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
+        
+    # identify additional spurious channels on this day    
+    for i in range(len(level1b_dataset.time)):
+        good_channels_i = 1*(level1b_dataset.stdTb[i].values < stdTb_threshold)
+        
+        good_channels[i,:] = good_channels_i
+        
+    # Some known spurious channels (all spectra)
+    if bad_channels.size != 0:
+        good_channels[:,bad_channels] = 0
+    
+    
+    level1b_dataset = level1b_dataset.assign(
+        good_channels = xr.DataArray(good_channels, dims = ['time', 'channel_idx']))
+    
+    return level1b_dataset
+
 def smooth_corr_spectra(level1b_dataset, retrieval_param):
     '''
     
