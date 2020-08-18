@@ -49,13 +49,18 @@ for t = 1:length(spectra)
         % Clean brightness temperature (without spurious channels)
         % Achtung, we use now the corrected WINDOW Tb
         if isfield(spectra,'TbWinCorr')
-            Tb_temp=spectra(t).TbWinCorr;
+            Tb=spectra(t).TbWinCorr;
         else 
-            Tb_temp=spectra(t).Tb;
+            Tb=spectra(t).Tb;
         end
         
         f_temp = spectra(t).freq;
-        Tb_temp(find(spectra(t).channelsQuality==0))=NaN;
+        %Tb(isnan(spectra(t).channelsQuality))=NaN;
+        
+        Tb_temp = Tb;
+        Tb_temp(isnan(spectra(t).channelsQuality)) = [];
+        f_temp(isnan(spectra(t).channelsQuality)) = [];
+        
         N = length(Tb_temp);
         skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
         
@@ -114,7 +119,7 @@ for t = 1:length(spectra)
             transmittanceVector = (Tmean - TbApprox)./(Tmean - Tbg);
             
             if nanmean(transmittanceVector) > 0
-                spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittanceVector) ) ./ transmittanceVector;
+                spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittanceVector) ) ./ transmittanceVector;
                 spectra(t).troposphericTransmittance = nanmean(transmittanceVector);
                 spectra(t).troposphericOpacity=-log(nanmean(transmittanceVector));
             else
@@ -127,7 +132,7 @@ for t = 1:length(spectra)
             transmittance = (Tmean - Twing)./(Tmean - Tbg);
         
             if transmittance > 0
-                spectra(t).TbTroposphericWindowCorr = (Tb_temp - Tmean*(1-transmittance) ) ./ transmittance;
+                spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittance) ) ./ transmittance;
                 
                 spectra(t).troposphericTransmittance = transmittance;
                 spectra(t).troposphericOpacity=-log(transmittance);
