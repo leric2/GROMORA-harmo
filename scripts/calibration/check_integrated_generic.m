@@ -31,8 +31,6 @@ for i = 1:size(integratedSpectra,2)
     
     integratedSpectra(i).meanDatetime=datenum(integratedSpectra(i).dateTime)-datenum(1970,1,1);
     
-    calibrationTool.minNumberOfAvgSpectra = 2;
-    
     integratedSpectra(i).meanTb = nanmean(integratedSpectra(i).Tb);
     
     integratedSpectra(i).numberOfIndices=[
@@ -44,7 +42,8 @@ for i = 1:size(integratedSpectra,2)
     integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).numHotSpectra;
     integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).numSkySpectra;
     
-    integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    %integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    integratedSpectra(i).potentialBadChannels = isnan(integratedSpectra(i).channelsQuality);
     
     cleanTb = integratedSpectra(i).Tb;
     cleanTb(integratedSpectra(i).potentialBadChannels)=NaN;
@@ -70,7 +69,7 @@ for i = 1:size(integratedSpectra,2)
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
     % The number of indices for the 3 positions:
-    if (integratedSpectra(i).numberOfAveragedSpectra > calibrationTool.minNumberOfAvgSpectra)
+    if (integratedSpectra(i).numberOfAveragedSpectra >= calibrationTool.minNumberOfAvgSpectra)
         sufficientNumberOfAvgSpectra=1;
     else
         sufficientNumberOfAvgSpectra=0;
@@ -89,8 +88,14 @@ for i = 1:size(integratedSpectra,2)
     % Antenna angle
     %integratedSpectra(i).stdAngleAntenna=std(standardLog.Elevation_Angle(ia));
     
+    %%%%%%%%%%% flag  %%%%%%%%%%
+    % Transmittance
+    if (integratedSpectra(i).troposphericTransmittance >= 0.2)
+        tropospheric_transmittance_OK=1;
+    else
+        tropospheric_transmittance_OK=0;
+    end
     
-    %%%%%%%%%%% Flag  %%%%%%%%%%
     % Rain
     calibrationTool.rainAccumulationThreshold = 0.1*calibrationTool.integrationTime/60;
     if (integratedSpectra(i).rainAccumulation <= calibrationTool.rainAccumulationThreshold)
@@ -98,6 +103,8 @@ for i = 1:size(integratedSpectra,2)
     else
         rain_Accumulation_OK=0;
     end
+    
+    
        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -105,12 +112,12 @@ for i = 1:size(integratedSpectra,2)
     % Error vector for this calibration cycle
     integratedSpectra(i).errorVector=[
         sufficientNumberOfAvgSpectra,...
-        rain_Accumulation_OK];
+        tropospheric_transmittance_OK];
     
     % Error vector description:
     integratedSpectra(i).errorVectorDescription=[
         "sufficientNumberOfAvgSpectra",...
-        "rain_Accumulation_OK"];
+        "tropospheric_transmittance_OK"];
     
     integratedSpectra(i).outlierCalib = NaN;
 
