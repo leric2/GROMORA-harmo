@@ -199,6 +199,9 @@ switch instrumentName
         % Filters for flagging "bad channels"
         calibrationTool.maxStdDevTb = nan; %TODO
         
+        calibrationTool.filterTypeChannelQualityCal = 3;
+        calibrationTool.filterTypeChannelQualityInt = 2;
+        
         % On 10 minutes spectra
         calibrationTool.filter1.TbMax=300;
         calibrationTool.filter1.TbMin=20;
@@ -431,6 +434,8 @@ switch instrumentName
         % Filters for flagging "bad channels"
         calibrationTool.maxStdDevTb = 10;
         
+        calibrationTool.filterTypeChannelQualityCal = 3;
+        calibrationTool.filterTypeChannelQualityInt = 2;
         
         % On 10 minutes spectra
         calibrationTool.filter1.TbMax=300;
@@ -643,6 +648,10 @@ switch instrumentName
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
         calibrationTool.maxStdDevTb = nan; %TODO
+        calibrationTool.maxStdDevTbInt = 4;
+        
+        calibrationTool.filterTypeChannelQualityCal = 3;
+        calibrationTool.filterTypeChannelQualityInt = 4;
         
         calibrationTool.filter1.TbMax=300;
         calibrationTool.filter1.TbMin=20;

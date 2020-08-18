@@ -69,7 +69,7 @@ end
 
 % checking the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
-level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,3);
+level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,calibrationTool.filterTypeChannelQualityCal);
 
 % Performing window correction
 level1b.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1b.calibratedSpectra );
@@ -86,7 +86,7 @@ level1b.integration = calibrationTool.integrate_calibrated_spectra(calibrationTo
 %% Correction and checks
 % Now on the integrated spectra; checking the quality of the channels and 
 % flagging the potential bad ones (we do not remove any).
-level1b.integration = calibrationTool.checking_channel_quality(level1b.integration,calibrationTool,2);
+level1b.integration = calibrationTool.checking_channel_quality(level1b.integration,calibrationTool,calibrationTool.filterTypeChannelQualityInt);
 
 % Performing window correction
 level1b.integration = calibrationTool.window_correction(calibrationTool,level1b.integration);

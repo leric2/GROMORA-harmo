@@ -146,7 +146,7 @@ try
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
 
-        %ylim([lowerLim,upperLim])
+        ylim([0,30])
         
         hold on
     end

@@ -32,15 +32,18 @@ calibrationTool.numberOfChannels=16384;
 
 if modelFFTS<3
     calibrationTool.IQProcessing = true;
-    %calibrationTool.LOFreqTot = calibrationTool.LOFreq1; TODO
-    %calibrationTool.LOFreqTot = calibrationTool.observationFreq-50.33e6;
     calibrationTool.LOFreqTot = calibrationTool.LOFreq1 + calibrationTool.LOFreq3;
-    %calibrationTool.LOFreqTot = 110.8634e9;
-else
+    calibrationTool.badChannels = horzcat([1:1024],[8193],[calibrationTool.numberOfChannels-1024:calibrationTool.numberOfChannels]);
+elseif modelFFTS == 3
     calibrationTool.IQProcessing = false;
     calibrationTool.LOFreqTot = calibrationTool.LOFreq1 + calibrationTool.LOFreq2;
+    calibrationTool.badChannels = horzcat([1:64],[11000:calibrationTool.numberOfChannels]);
+elseif modelFFTS == 4
+    calibrationTool.IQProcessing = false;
+    calibrationTool.LOFreqTot = calibrationTool.LOFreq1 + calibrationTool.LOFreq2;
+    calibrationTool.badChannels = horzcat([1:64],[calibrationTool.numberOfChannels-64:calibrationTool.numberOfChannels]);
 end
-calibrationTool.badChannels = [];
+
 
 calibrationTool.instrumentBandwidth = BW(modelFFTS);
 calibrationTool.spectrometer=spectrometerTypes{modelFFTS};
@@ -58,6 +61,7 @@ calibrationTool.frequencyBandAroundCenterTSys = frequencyBandAroundCenterTSys(mo
 calibrationTool.TSysCenterTh = TSysCenter(modelFFTS);
 calibrationTool.TSysThresh = TSysThresh(modelFFTS);
 calibrationTool.stdTSysThresh=stdTSysThresh(modelFFTS);
+
 
 
 end

@@ -92,7 +92,7 @@ for i = 1:size(integratedSpectra,2)
     
     %%%%%%%%%%% Flag  %%%%%%%%%%
     % Rain
-    calibrationTool.rainAccumulationThreshold = 0.1;
+    calibrationTool.rainAccumulationThreshold = 0.1*calibrationTool.integrationTime/60;
     if (integratedSpectra(i).rainAccumulation <= calibrationTool.rainAccumulationThreshold)
         rain_Accumulation_OK=1;
     else
