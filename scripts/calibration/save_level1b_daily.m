@@ -77,6 +77,7 @@ nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype'
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/good_channels','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
@@ -174,6 +175,7 @@ ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theore
 ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/Tb_corr',vertcat(integratedSpectra.TbTroposphericWindowCorr)');
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(integratedSpectra.stdTb)');
+ncwrite(filename,'/spectrometer1/good_channels',~vertcat(integratedSpectra.potentialBadChannels)');
 ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
 ncwrite(filename,'/spectrometer1/intermediate_freq',integratedSpectra(1).if);
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
@@ -360,6 +362,11 @@ attrVal.stdTb = {'stdTb',...
     'K',...
     'standard deviation of brightness temperature for this cycle per channel'};
 
+attrVal.good_channels = {'good_channels',...
+    'good_channels',...
+    '1',...
+    'Flags for the quality of the channels performed during the integration'};
+
 attrVal.freq = {'f',...
     'frequency vector',...
     'Hz',...
@@ -472,7 +479,8 @@ for i=1:length(attrName)
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/Tb_corr',attrName{i},attrVal.Tb_corr{i});
-    ncwriteatt(filename,'/spectrometer1/Tb_corr',attrName{i},attrVal.stdTb{i});
+    ncwriteatt(filename,'/spectrometer1/stdTb',attrName{i},attrVal.stdTb{i});
+    ncwriteatt(filename,'/spectrometer1/good_channels',attrName{i},attrVal.good_channels{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
