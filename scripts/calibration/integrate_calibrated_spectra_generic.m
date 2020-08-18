@@ -33,7 +33,7 @@ for h = 1:length(timeThresh)-1
     
     % transmission > 0.2 in the integration:
     if calibrationTool.filterByTransmittance
-        goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] > 0.2);
+        goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] >= 0.2);
     else
         goodSpectra = indSpectra;
     end

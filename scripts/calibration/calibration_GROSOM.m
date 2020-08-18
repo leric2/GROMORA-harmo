@@ -28,7 +28,7 @@
 %           |
 %==========================================================================
 
-%clear; close all; clc;
+clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
 instrumentName='mopi5';
@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
+dates=datenum('2019_02_01','yyyy_mm_dd'):datenum('2019_02_01','yyyy_mm_dd');
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -126,6 +126,7 @@ for d = 1:numel(dates)
     
         % Total integration time
         calibrationTool.integrationTime=60;
+        calibrationTool.minNumberOfAvgSpectra = 3;
         
         calibrationTool.filterByTransmittance = true;
         calibrationTool.filterByFlags = true;
@@ -138,6 +139,7 @@ for d = 1:numel(dates)
     
         % Total integration time
         calibrationTool.integrationTime=60;
+        calibrationTool.minNumberOfAvgSpectra = 3;
     
         calibrationTool.filterByTransmittance = true;
         calibrationTool.filterByFlags = true;
@@ -151,7 +153,8 @@ for d = 1:numel(dates)
         calibrationTool.calibrationTime=10;
     
         % Total integration time
-        calibrationTool.integrationTime=12*60;
+        calibrationTool.integrationTime=60;
+        calibrationTool.minNumberOfAvgSpectra = 12;
         
         calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
         calibrationTool.filterByFlags = true;
@@ -162,7 +165,7 @@ for d = 1:numel(dates)
         % the number of the spectrometer models we are interested in
         % see order in calibrationTool.spectrometerTypes
         %modelFFTS=[1 3 4];
-        modelFFTS=[1 3 4];
+        modelFFTS=[3];
         
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
