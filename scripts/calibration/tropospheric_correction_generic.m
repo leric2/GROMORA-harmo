@@ -61,6 +61,12 @@ for t = 1:length(spectra)
         Tb_temp(isnan(spectra(t).channelsQuality)) = [];
         f_temp(isnan(spectra(t).channelsQuality)) = [];
         
+        if length(Tb_temp) < 10*calibrationTool.troposphericCorrection.numberOfChannelsTropCorr
+            spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+            spectra(t).troposphericTransmittance = -9999;
+            spectra(t).troposphericOpacity=-9999;
+            continue
+        end 
         N = length(Tb_temp);
         skipChannels = calibrationTool.troposphericCorrection.skipFraction * N;
         

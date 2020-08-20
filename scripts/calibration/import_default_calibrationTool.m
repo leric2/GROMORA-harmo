@@ -198,6 +198,7 @@ switch instrumentName
         
         % Filters for flagging "bad channels"
         calibrationTool.maxStdDevTb = nan; %TODO
+        calibrationTool.maxStdDevTbInt = 10;
         
         calibrationTool.filterTypeChannelQualityCal = 3;
         calibrationTool.filterTypeChannelQualityInt = 2;
@@ -432,7 +433,8 @@ switch instrumentName
         calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
         
         % Filters for flagging "bad channels"
-        calibrationTool.maxStdDevTb = 10;
+        calibrationTool.maxStdDevTb = 25;
+        calibrationTool.maxStdDevTbInt = 10;
         
         calibrationTool.filterTypeChannelQualityCal = 3;
         calibrationTool.filterTypeChannelQualityInt = 2;
