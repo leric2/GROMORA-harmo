@@ -270,7 +270,7 @@ def plot_meteo_level1b(METEO):
     
     fig.suptitle("Meteo Data")
 
-def plot_level2(level1b_dataset,ac,retrieval_param, title = 'Retrieval'):
+def plot_level2(ds, ac, retrieval_param, title=""):
     '''
     Plotting function directly taken from Jonas ;)
     OG can be found in retrieval.py in MOPI retrievals
@@ -291,35 +291,98 @@ def plot_level2(level1b_dataset,ac,retrieval_param, title = 'Retrieval'):
 
     '''
     
-    cycle = retrieval_param['integration_cycle']
-    freq = level1b_dataset.frequencies.values
-    y_obs = level1b_dataset.Tb[cycle].values
-    
-    y_obs[(level1b_dataset.good_channels[cycle].values==0)] = np.nan
-    
-    O3_retrieval, H2O_retrieval = ac.retrieval_quantities
-    
-    # residuals
-    r = y_obs - ac.yf[0]
+    ozone_ret, h2o_ret = ac.retrieval_quantities
+    good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
+    f_backend = ds.frequencies.values[good_channels]
+    y = ds.Tb[retrieval_param['integration_cycle']].values[good_channels]
+    #y = ac.y[0]
+    yf = ac.yf[0]
+    r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
     
     figures = list()
-    
-    # plotting first the original spectra, the retrieved one and the residual
+
     fig, axs = plt.subplots(2, sharex=True)
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
+    #axs[0].set_ylim(-5, 50)
+    axs[0].legend()
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    #axs[1].set_ylim(-2, 2)
+    axs[1].legend()
+    axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
+
+    for ax in axs:
+        ax.set_ylabel("$T_B$ [K]")
+        ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
+    fig.suptitle(title)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
+
+    fig, axs = plt.subplots(2, 2, sharey=True)
+    axs[0][0].plot(
+        ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
+    )
+    axs[0][0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlim(-0.5,15)
+    axs[0][0].set_xlabel("Ozone VMR [ppm]")
+    axs[0][0].set_ylabel("Altitude [km]")
+    axs[0][0].legend()
+
+    axs[0][1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
+    axs[0][1].set_xlabel("Measurement response")
     
-    axs[0].plot(freq, y_obs, label = 'observed, cleaned')
-    axs[0].plot(freq, ac.yf[0], label = 'fitted')
-    axs[0].set_ylabel('Tb')
-    axs[0].grid()
+    axs[1][0].plot(ozone_ret.es * 1e6, ozone_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ [ppm]")
+    axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
+
+    for avk in ozone_ret.avkm:
+        #if 0.8 <= np.sum(avk) <= 1.2:
+        axs[1][1].plot(avk, ozone_ret.z_grid / 1e3)
+    axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
+    fig.suptitle(title + " Ozone")
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
     
-    axs[1].plot(freq, r, 'k-')
-    axs[1].plot(freq, r_smooth, 'r-')
-    axs[1].set_ylabel('residual [K]')
-    axs[1].set_xlabel('frequencies')
-    
-    fig.legend()
-    
+    fig, axs = plt.subplots(2, 2, sharey=True)
+    axs[0][0].semilogx(
+        h2o_ret.x, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+    )
+    axs[0][0].semilogx(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlabel("Water VMR []")
+    axs[0][0].set_ylabel("Altitude [km]")
+    axs[0][0].legend()
+
+    axs[0][1].plot(h2o_ret.mr, h2o_ret.z_grid / 1e3)
+    axs[0][1].set_xlabel("Measurement response")
+
+    axs[1][0].semilogx(h2o_ret.es, h2o_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].semilogx(h2o_ret.eo, h2o_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ []")
+    axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
+
+    for avk in h2o_ret.avkm:
+        #if 0.8 <= np.sum(avk) <= 1.2:
+        axs[1][1].plot(avk, h2o_ret.z_grid / 1e3)
+    axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
+    fig.suptitle(title + " Water (v{})".format(1))
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
     
     return figures
@@ -344,10 +407,10 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
         DESCRIPTION.
 
     '''
-    ozone_ret, freq_shift = ac.retrieval_quantities
-
-    f_backend = ds.frequencies.values
-    y = ds.Tb_corr[retrieval_param['integration_cycle']].values
+    ozone_ret = ac.retrieval_quantities[0]
+    good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
+    f_backend = ds.frequencies.values[good_channels]
+    y = ds.Tb_corr[retrieval_param['integration_cycle']].values[good_channels]
     #y = ac.y[0]
     yf = ac.yf[0]
     r = y - yf
@@ -368,7 +431,92 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
 
     for ax in axs:
         ax.set_ylabel("$T_B$ [K]")
-        ax.set_xlim([-500, 700])
+        ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
+    fig.suptitle(title)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
+
+    fig, axs = plt.subplots(2, 2, sharey=True)
+    axs[0][0].plot(
+        ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
+    )
+    axs[0][0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlim(-0.5,15)
+    axs[0][0].set_xlabel("Ozone VMR [ppm]")
+    axs[0][0].set_ylabel("Altitude [km]")
+    axs[0][0].legend()
+
+    axs[0][1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
+    axs[0][1].set_xlabel("Measurement response")
+    
+    axs[1][0].plot(ozone_ret.es * 1e6, ozone_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ [ppm]")
+    axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
+
+    for avk in ozone_ret.avkm:
+        if 0.8 <= np.sum(avk) <= 1.2:
+            axs[1][1].plot(avk, ozone_ret.z_grid / 1e3)
+    axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
+
+    fig.suptitle(title + " Ozone")
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
+    
+    return figures
+
+def plot_level2_test_retrieval(ac, retrieval_param, title=""):
+    '''
+    Plotting function directly taken from Jonas ;)
+    OG can be found in retrieval.py in MOPI retrievals
+    
+    Parameters
+    ----------
+    ds : TYPE
+        DESCRIPTION.
+    ac : TYPE
+        DESCRIPTION.
+    title : TYPE, optional
+        DESCRIPTION. The default is "".
+
+    Returns
+    -------
+    figures : TYPE
+        DESCRIPTION.
+
+    '''
+    ozone_ret, h2o_ret = ac.retrieval_quantities
+    #good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
+    f_backend = ac.ws.y_f.value
+    y = ac.y[0]
+    #y = ac.y[0]
+    yf = ac.yf[0]
+    r = y - yf
+    r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
+
+    figures = list()
+
+    fig, axs = plt.subplots(2, sharex=True)
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
+    axs[0].set_xlim(-0.5,15)
+    axs[0].legend()
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    #axs[1].set_ylim(-2, 2)
+    axs[1].legend()
+    axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
+
+    for ax in axs:
+        ax.set_ylabel("$T_B$ [K]")
+        ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
     fig.suptitle(title)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
@@ -405,32 +553,39 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
     fig.suptitle(title + " Ozone")
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
-    
-    '''
+
+
     fig, axs = plt.subplots(2, 2, sharey=True)
-    axs[0][0].plot(
-        h2o_ret.x * 1e6, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+    axs[0][0].semilogx(
+        h2o_ret.x, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
     )
-    axs[0][0].plot(h2o_ret.xa * 1e6, h2o_ret.z_grid / 1e3, label="apriori")
-    axs[0][0].set_xlabel("Water VMR [ppm]")
+    axs[0][0].semilogx(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlabel("Water VMR []")
     axs[0][0].set_ylabel("Altitude [km]")
     axs[0][0].legend()
 
     axs[0][1].plot(h2o_ret.mr, h2o_ret.z_grid / 1e3)
     axs[0][1].set_xlabel("Measurement response")
 
-    axs[1][0].plot(h2o_ret.eo * 1e6, h2o_ret.z_grid / 1e3)
-    axs[1][0].set_xlabel("$e_o$ [ppm]")
+    axs[1][0].plot(h2o_ret.es, h2o_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].plot(h2o_ret.eo, h2o_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ []")
     axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
 
     for avk in h2o_ret.avkm:
-        if 0.8 <= np.sum(avk) <= 1.2:
-            axs[1][1].plot(avk, h2o_ret.z_grid / 1e3)
+        #if 0.8 <= np.sum(avk) <= 1.2:
+        axs[1][1].plot(avk, h2o_ret.z_grid / 1e3)
     axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
     fig.suptitle(title + " Water (v{})".format(1))
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
-    '''
+    
     return figures
-
     

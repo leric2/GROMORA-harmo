@@ -45,6 +45,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import data_GROSOM
 import retrieval_module
+import mopi5_retrievals
 
 #%%
 
@@ -69,6 +70,7 @@ class DataRetrievalGROSOM(ABC):
         
         self.instrument_name = instrument_name
         self.date = date
+        self.datestr = self.date.strftime('%Y_%m_%d')
         self.observation_frequency = observation_frequency
         self.int_time = integration_time
         self.level1_folder = level1_folder
@@ -98,41 +100,43 @@ class DataRetrievalGROSOM(ABC):
         '''
         self.data = dict()
         self.flags = dict()
-
+        self.filename_level1a = dict()
+        self.filename_level1b = dict()
+        self.filename_level2 = dict()
         for i, s in enumerate(self.spectrometer):
-            self.filename_level1a = os.path.join(
+            self.filename_level1a[s] = os.path.join(
             self.level1_folder,
             self.instrument_name + "_level1a_" +
             s + "_" + date.strftime('%Y_%m_%d')
             )
             if self.int_time == 1:
-                self.filename_level1b = os.path.join(
+                self.filename_level1b[s] = os.path.join(
                 self.level1_folder,
                 self.instrument_name + "_level1b_" +
                 s + "_" + date.strftime('%Y_%m_%d')
                 )
 
-                self.filename_level2 = os.path.join(
+                self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" +
                 s + "_" + date.strftime('%Y_%m_%d')
                 )
             else:
-                self.filename_level1b = os.path.join(
+                self.filename_level1b[s] = os.path.join(
                 self.level1_folder,
                 self.instrument_name + "_level1b_"+ str(int_time) +"h_" +
                 s + "_" + date.strftime('%Y_%m_%d')
                 )
 
-                self.filename_level2 = os.path.join(
+                self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" + str(int_time) +"h_" +
                 s + "_" + date.strftime('%Y_%m_%d')
                 )
         
-            print('reading : ', self.filename_level1b)
+            print('reading : ', self.filename_level1b[s])
             #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = data_GROSOM.read_level1b(self._filename_lvl1b)
-            self.data[s], self.flags[s], meteo_data, global_attrs_level1b = data_GROSOM.read_level1b(self.filename_level1b)
+            self.data[s], self.flags[s], meteo_data, global_attrs_level1b = data_GROSOM.read_level1b(self.filename_level1b[s])
         
         self.meteo = meteo_data
 
@@ -179,11 +183,18 @@ class DataRetrievalGROSOM(ABC):
         '''
         return retrieval_module.forward_model(retrieval_param)
     
-    def retrieve_cycle(self, retrieval_param):
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
         ''' 
         Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
         '''
-        return retrieval_module.retrieve_cycle(self, retrieval_param)
+        if f_bin is not None:
+            retrieval_param["binned_ch"] = True
+        else:
+            retrieval_param["binned_ch"] = False
+
+        retrieval_param['ref_elevation_angle'] = 90
+
+        return retrieval_module.retrieve_cycle(spectro_dataset, retrieval_param)
     
     def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
         ''' 
@@ -194,13 +205,21 @@ class DataRetrievalGROSOM(ABC):
             retrieval_param["binned_ch"] = True
         else:
             retrieval_param["binned_ch"] = False
-
-        if self.instrument_name == 'mopi5':
-            retrieval_param['ref_elevation_angle'] = 180
-        else:
-            retrieval_param['ref_elevation_angle'] = 90
+ 
+        retrieval_param['ref_elevation_angle'] = 90
 
         return retrieval_module.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param)
+
+    def test_retrieval(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
+        ''' 
+        Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
+        '''
+
+        retrieval_param["binned_ch"] = False
+ 
+        retrieval_param['ref_elevation_angle'] = 90
+
+        return retrieval_module.test_retrieval(spectro_dataset, retrieval_param)
 
     def smooth_and_apply_correction(self, level1b_dataset, meteo_ds):   
         '''
@@ -334,7 +353,7 @@ class DataRetrievalGROSOM(ABC):
         '''
         return data_GROSOM.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title)
     
-    def plot_level2(self, ac, retrieval_param, title):
+    def plot_level2(self, ac, spectro_dataset, retrieval_param, title):
         '''
         
 
@@ -354,7 +373,29 @@ class DataRetrievalGROSOM(ABC):
         None.
 
         '''
-        return data_GROSOM.plot_level2(self.level1b_ds, ac, retrieval_param, title)
+        return data_GROSOM.plot_level2(spectro_dataset, ac, retrieval_param, title)
+
+    def plot_level2_test_retrieval(self, ac, retrieval_param, title):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        ac : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+        title : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        return data_GROSOM.plot_level2_test_retrieval(ac, retrieval_param, title)
 
 class GROMOS_LvL2(DataRetrievalGROSOM):
     '''
@@ -469,7 +510,7 @@ class SOMORA_LvL2(DataRetrievalGROSOM):
     #     #self.level1b_ds = super().find_bad_channels(bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
     #     #
     #     return data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
-    
+  
 class MOPI5_LvL2(DataRetrievalGROSOM):
     '''
     Implementing the Dataretrieval class for the MOPI5 case.
@@ -511,8 +552,73 @@ class MOPI5_LvL2(DataRetrievalGROSOM):
             ValueError('Spectrometer unknown !')
 
         return bad_channels
-        
+
+    def plot_comparison_mopi5_spectrometers(self, calibration_cycle=[0]):
+        figures = list()
+        for i in calibration_cycle:
+            figures.append(mopi5_retrievals.compare_spectra_mopi5(self, i))
+
+        save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(calibration_cycle)+'.pdf', figures)
+        pass 
+
+    def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
+        '''
+        From Jonas
+        Generate a correction function, given frequencies, brightness temperatures
+        and a weighted mean torpospheric temperature.
+        Returns a function f: (f, y) -> y_corr
+        '''
+        l = len(self.data[spectro_as_basis].time)
+        y_corr = dict()
+        for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
+            y_corr[s] = np.ones((l,len(self.data[s].channel_idx.data)))*np.nan
+
+        for c in range(l):
+            good_channels = self.data[spectro_as_basis].good_channels[c].data == 1
+            f_basis = self.data[spectro_as_basis].frequencies.data[good_channels]
+            y_basis = self.data[spectro_as_basis].Tb[c].data[good_channels]
+
+            # Skip 100 channels at beginning
+            # use 500 channels for reference
+            wings = (slice(100, 600), slice(-600, -100))
+
+            yw = np.stack([y_basis[s].mean() for s in wings])
+            fw = np.stack([f_basis[s].mean() for s in wings])
+
+            # Fit a line with slope to the spectrum
+            # y = a*y0 + b
+            a = (yw[1] - yw[0]) / (fw[1] - fw[0])
+            b = yw[1] - a * fw[1]
+
+            for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
+
+                f = self.data[s].frequencies.data
+                y = self.data[s].Tb[c].data
+
+                # Correct by frequency dependant opacity for the three spectrometers
+                y_eff = a * f + b
+
+                exp_neg_tau = (t_trop - y_eff) / (t_trop - 2.7)
+                # tau = -np.log(exp_neg_tau)
+                y_corr[s][c,:]  = (y - t_trop * (1 - exp_neg_tau)) / exp_neg_tau
+
+        for i, spectro in enumerate(["U5303", "AC240", "USRP-A"]):
+            new_tb_corr = xr.DataArray(y_corr[spectro], dims = ['time', 'channel_idx'])
+            self.data[spectro] = self.data[spectro].assign(Tb_corr_old = self.data[spectro].Tb_corr.rename('old_tb_corr'))
+            self.data[spectro] = self.data[spectro].assign(Tb_corr = new_tb_corr)
+
+        return self
+
+    def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
+        ''' 
+        Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
+        '''
+        retrieval_param["binned_ch"] = False
+        retrieval_param['ref_elevation_angle'] = 180
+        return retrieval_module.retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param)
+
 def run_retrieval(instrument,retrieval_param):
+    a=2
     '''
     In this function we call the retrieval process step-by-step
     
@@ -520,24 +626,8 @@ def run_retrieval(instrument,retrieval_param):
     DataRetrieval class --> will be initiated here in the future
     
     In the end, we will store this function elsewhere along with the classes definition.
-    
-    
-    
-    level1b_dataset,meteo_ds,global_attrs_level1b = instrument.read_level1b()
-    
-    instrument.plot_level1b_TB(level1b_dataset,retrieval_param['calibrationCycle'])
-    
-    level2 = instrument.retrieve(level1b_dataset,retrieval_param)
-    
-    # OR
-    #LVL2 = DataRetrievalGROSOM.retrieve(instrument, level1b_dataset)
-    
-    if retrieval_param["plot_meteo_ds"]:
-        instrument.plot_meteo_ds_level1b_dataset(meteo_ds)
-    
-    
-    return level1b_dataset,meteo_ds,global_attrs_level1b
     '''
+    return a
 
 def save_single_pdf(filename, figures):
     """
@@ -547,11 +637,10 @@ def save_single_pdf(filename, figures):
         for fig in figures:
             pdf.savefig(fig)
 
-
 if __name__=="__main__":
     
-    instrument_name = "mopi5"
-    date = datetime.date(2019,2,21)
+    instrument_name = "SOMORA"
+    date = datetime.date(2019,2,4)
     int_time = 24
 
     #basename="/home/eric/Documents/PhD/GROSOM/Level1/"
@@ -571,6 +660,7 @@ if __name__=="__main__":
         basename_lvl1 = "/scratch/MOPI5/Level1/"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
         instrument = MOPI5_LvL2(date, basename_lvl1, basename_lvl2, int_time)
+       
     
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
@@ -578,7 +668,8 @@ if __name__=="__main__":
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
-    retrieval_param["retrieval_type"] = 5
+    # 3. test retrieving the FM
+    retrieval_param["retrieval_type"] = 2
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
     
@@ -598,7 +689,6 @@ if __name__=="__main__":
     retrieval_param['increased_var_factor'] = 10
     retrieval_param['unit_var_y']  = 3
 
-    retrieval_param["surface_altitude"] = 10e3
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
@@ -622,6 +712,10 @@ if __name__=="__main__":
     data, flags, meteo = instrument.read_level1b()
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
+    if instrument_name == 'mopi5':
+        instrument = instrument.correction_function_mopi5('U5303', 290)
+        instrument.plot_comparison_mopi5_spectrometers(calibration_cycle=[0,1,2,3])
+         
     #for i,s in enumerate(instrument.spectrometer):
     spectro = 'AC240'
     spectro_dataset = instrument.data[spectro]
@@ -631,7 +725,7 @@ if __name__=="__main__":
     
     #level1b_dataset = instrument.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     #instrument.return_bad_channels(date,'U5303')
-    spectro_dataset = instrument.find_bad_channels_stdTb(spectro, 20)
+    #spectro_dataset = instrument.find_bad_channels_stdTb(spectro, 20)
 
     # instrument.data = instrument.data.find_bad_channels(
     #     spectrometer=spectro,
@@ -659,16 +753,25 @@ if __name__=="__main__":
 
     
     if retrieval_param["retrieval_type"] == 1:
+        retrieval_param["surface_altitude"] = 10e3
         retrieval_param["observation_altitude"] =  15e3
         ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
         figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(ac, spectro_dataset, retrieval_param, title = 'retrieval_trop_corr')
         level2 = ac.get_level2_xarray()
-        level2.to_netcdf(path = instrument.filename_level2+'_'+str(retrieval_param["integration_cycle"])+'.nc')
-        save_single_pdf(instrument.filename_level2+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
     elif retrieval_param["retrieval_type"] == 2:
-        retrieval_param["observation_altitude"] =  1e3
-        ac, retrieval_param = instrument.retrieve_cycle(retrieval_param)
-        figure_list = instrument.plot_level2(ac, retrieval_param, title = 'retrieval_h2o')
-        save_single_pdf(instrument.filename_level2+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
+        retrieval_param["surface_altitude"] = 1500
+        retrieval_param["observation_altitude"] =  1500
+        ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+        figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3_h20')
+        save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
+    elif retrieval_param["retrieval_type"] == 3:
+        retrieval_param["surface_altitude"] = 1500
+        retrieval_param["observation_altitude"] =  1500
+        ac, retrieval_param = instrument.test_retrieval(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+        figure_list = instrument.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_o3_h2o')
+        save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
     else:
         pass
+
