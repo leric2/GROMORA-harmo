@@ -14,8 +14,8 @@ from retrievals import arts
 from retrievals import utils
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from retrievals.data import p_interpolate
-#from pyarts.workspace import arts_agenda
 from typhon.arts.workspace import arts_agenda
+#from pyarts.workspace import arts_agenda
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -106,15 +106,17 @@ cycle = retrieval_param["integration_cycle"]
 #    level1b_dataset, np.arange(0, 104), 0, 260, 128, 7)
 
 #goodFreq = np.where(np.logical_and(level1b_dataset.intermediate_freq.data <=1000,level1b_dataset.stdTb[cycle].data < 20))[0]
-goodFreq = np.where(level1b_dataset.intermediate_freq.data <=1000)
+#goodFreq = np.where(level1b_dataset.intermediate_freq.data <=1000)
+goodFreq = level1b_dataset.good_channels[cycle].data == 1
+
 # Extracting some parameters
 f0 = retrieval_param['obs_freq']
 
 ds_freq = level1b_dataset.frequencies.values[goodFreq]
 ds_num_of_channel = len(ds_freq)
-ds_Tb = level1b_dataset.Tb[cycle].values
-ds_Tb_corr = level1b_dataset.Tb_corr[cycle].values
-ds_Tb_corr_clean = ds_Tb_corr[goodFreq]
+ds_Tb = level1b_dataset.Tb[cycle].values[goodFreq]
+ds_Tb_corr_clean = level1b_dataset.Tb_corr[cycle].values[goodFreq]
+#ds_Tb_corr_clean = ds_Tb_corr[goodFreq]
 
 ds_bw = max(ds_freq) - min(ds_freq)
 
@@ -233,7 +235,7 @@ obs = arts.Observation(
     )
 
 ac.set_observations([obs])
-ac.set_y([ds_Tb_corr_clean])
+ac.set_y([ds_Tb])
 
 # Defining our sensors
 sensor = arts.SensorFFT(ds_freq, ds_df)
@@ -359,11 +361,11 @@ r = ds_Tb_corr_clean - yf
 r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
 
 fig, axs = plt.subplots(2, sharex=True)
-axs[0].plot((ds_freq - f0) / 1e6, ds_Tb_corr_clean, label='observed')
+axs[0].plot((ds_freq - f0) / 1e6, ac.y[0], label='observed')
 axs[0].plot((ds_freq - f0) / 1e6, yf, label='fitted')
 #axs[0].plot((f_grid - f0) / 1e6, 40*np.ones(len(f_grid)), '.', label='grid points')
 axs[0].set_ylabel('$T_B$ [K]')
-axs[0].set_ylim((-10,50))
+axs[0].set_ylim((-10,250))
 #axs[0].set_xlim((-25,25))
 axs[0].legend()
 axs[1].plot((ds_freq - f0) / 1e6, r, label='observed - computed')
@@ -371,7 +373,7 @@ axs[1].plot((ds_freq - f0) / 1e6, r_smooth, label="residuals smooth")
 axs[1].legend()
 axs[1].set_xlabel('f - {:.3f} GHz [MHz]'.format(f0/1e9))
 axs[1].set_ylabel('$T_B$ [K]')
-axs[1].set_ylim((-2,2))
+axs[1].set_ylim((-20,20))
 fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 figures.append(fig)
 if show_plots:
