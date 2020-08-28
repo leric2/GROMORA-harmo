@@ -31,7 +31,9 @@ meteo.file = file;
 files = dir([calibrationTool.meteoFile '.txt']);
 
 meteo.time = [];
+meteo.dateTime = [];
 meteo.temperature=[];
+meteo.air_temperature = [];
 meteo.rel_humidity= [];
 meteo.pressure=[];
 meteo.wind_speed= [];
@@ -62,9 +64,12 @@ if ~isempty(files)
         
 	meteo.time_str      = log1.time;
     meteo.time            = datenum(meteo.time_str);
+    meteo.dateTime      = meteo.time;
 	meteo.temperature   = log1.Meteo.TAmb_C+273.15;
+    meteo.air_temperature = meteo.temperature;
 	meteo.rel_humidity  = log1.Meteo.RH;
 	meteo.pressure      = log1.Meteo.Pressure_hPA;
+    meteo.air_pressure  = meteo.pressure;
 	meteo.wind_speed    = log1.Wind.Current;
 	meteo.wind_dirn     = log1.Wind.DirN;
 	meteo.visibility    = 0*ones(1,length(meteo.time));

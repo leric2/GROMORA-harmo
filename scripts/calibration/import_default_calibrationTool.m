@@ -857,7 +857,8 @@ switch instrumentName
 % paths
         %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-        calibrationTool.rawFileFolder=['/scratch/'];
+        calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
+        %calibrationTool.rawFileFolder=['/scratch/'];
         calibrationTool.level1Folder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
@@ -889,6 +890,7 @@ switch instrumentName
         calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_miawara_c(log,calibrationTool,calibratedSpectra);
         
         % tipping curve
+        calibrationTool.doTippingCurve = true;
         calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
         calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_miawarac(rawSpectra,log, calibrationTool);
         
@@ -973,8 +975,8 @@ switch instrumentName
 %    calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
     
     % Plot some calibrated spectra:
-    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
-    
+    %calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N) plot_generic(calibrationTool,drift,rawSpectra,lowerLim,upperLim,N);
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
     % Function for quality check of the calibrated spectra
 %    calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
     
@@ -1084,14 +1086,14 @@ switch instrumentName
         
         dat  = datenum(dateStr);
         if dat > datenum('2015-09-01') && dat < datenum(2016,11,25)
-            calibrationTool.get_meteo_data = @(calibrationTool) get_meteo_data_grc(calibrationTool);
+            calibrationTool.read_meteo_data = @(calibrationTool) get_meteo_data_grc(calibrationTool);
             %calibrationTool.meteoFile = ['/data/miradara3/instrumentdata/gromosc/' YYYY '/GROMOS-C*' YYYY '_' MM '_' DD];
             calibrationTool.meteoFile = [calibrationTool.rawFileFolder 'GROMOS-C*' YYYY '_' MM '_' DD];
         elseif dat > datenum('2017-04-06 23:00')
-            calibrationTool.get_meteo_data = @(calibrationTool) get_meteo_data_miac_ownfile(calibrationTool);
+            calibrationTool.read_meteo_data = @(calibrationTool) get_meteo_data_miac_ownfile(calibrationTool);
             calibrationTool.meteoFile = [ calibrationTool.rawFileFolder 'MIAWARA-C_meteo_' YYYY MM DD];
 
         else
-            calibrationTool.get_meteo_data = @(log) get_meteo_data_miac(log);
+            calibrationTool.read_meteo_data = @(log) get_meteo_data_miac(log);
         end
 end

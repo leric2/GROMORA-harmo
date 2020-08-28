@@ -12,8 +12,8 @@ try
     set(gcf, 'PaperPosition', [1 1 19 27.7])
     orient(fig,'landscape')
     
-    xstart = calibrationTool.dateTime;
-    xstop = calibrationTool.dateTime + days(1);
+    xstart = datenum(calibrationTool.dateTime);
+    xstop = datenum(calibrationTool.dateTime + days(1));
     
     limTNPlot = 2500;
     if ~isempty(drift)
@@ -122,7 +122,7 @@ try
     for i=1:6; subplot(3,2,i); grid on; end
     print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-fillpage')
     close
-    
+    %%
     fig2 = figure('visible','off');
     %fig2 = figure();
     clf
@@ -132,9 +132,9 @@ try
     %subplot(1,2,1);
     count=1;
     for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
-            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
+        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            % plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
+            plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
         
             %plot(calibratedSpectra(l(i)).Tb)
             
@@ -149,7 +149,7 @@ try
             TOD{count}=num2str(calibratedSpectra(l(i)).timeOfDay);
             count = count + 1;
         %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
-        end
+        %end
         hold on
     end
 
@@ -160,8 +160,8 @@ try
     %legend(TOD)
     %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
     print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
-    
-    fig3 = figure('visible','off');
+    %%
+    fig3 = figure; %('visible','off');
     %fig2 = figure();
     clf
     set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
@@ -172,23 +172,23 @@ try
     cm = colormap(parula(N));
     subplot(1,2,1);
     for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
-        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            %plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
+            plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).TSys);
             ylabel('stdTb [K]')
             ylim([yInfstd,ySupStd])
-        end
+        %end
         hold on
     end
     
     subplot(1,2,2);
     for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
-        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            %plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
+            plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).TSys);
             ylabel('TN [K]')
             ylim([limTNPlot-1000,limTNPlot+1000])
-        end
+        %end
         hold on
     end
     for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
