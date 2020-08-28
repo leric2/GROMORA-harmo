@@ -54,11 +54,11 @@ def plot_FM_comparison(ds_freq,y_FM,y_obs):
     
     fig.suptitle('Comparison between FM and Observation')
     ax = fig.add_subplot(111)
-    ax.plot(ds_freq,y_obs,'r')
-    ax.plot(ds_freq,y_FM,'b-',linewidth=2)
+    ax.plot(ds_freq/1e9,y_obs,'r')
+    ax.plot(ds_freq/1e9,y_FM,'b-',linewidth=2)
     #ax.set_ylim((-5,25))
     
-    ax.set_xlabel('freq [Hz]')
+    ax.set_xlabel('freq [GHz]')
     ax.set_ylabel('Tb [K]')
     
     ax.legend(('Observed','FM'))
@@ -130,15 +130,17 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
     ac.set_surface(retrieval_param["surface_altitude"])
     
     #spectroscopy
+    # abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"]
+    water_vapor_model = retrieval_param['water_vapor_model'] 
+
     ac.set_spectroscopy_from_file(
         abs_lines_file = retrieval_param['line_file'],
-        abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"],
+        abs_species = ["O3",water_vapor_model, "O2-PWR93","N2-SelfContStandardType"],
         format = 'Arts',
         line_shape = ["VVH", 750e9],
         )
     
     #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
-    print('State of the atmosphere defined with:')
     if retrieval_param['atm'] == 'fascod':
         atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
         ac.set_atmosphere(atm, vmr_zeropadding=True)
@@ -201,11 +203,17 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
     z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
     p_grid_retrieval = z2p_simple(z_grid_retrieval)
 
+    z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
+    z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
+    z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
+    z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
+    p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval)
+
     lat_ret_grid = np.array([retrieval_param["lat"]])
     lon_ret_grid = np.array([retrieval_param["lon"]])
 
     sx = covmat.covmat_diagonal_sparse(retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval))
-    sx_water = covmat.covmat_diagonal_sparse(1e-5 * np.ones_like(p_grid_retrieval))
+    sx_water = covmat.covmat_diagonal_sparse(1e-3 * np.ones_like(p_grid_retrieval_h2o))
     
     ozone_ret = arts.AbsSpecies(
         species = 'O3',
@@ -216,8 +224,8 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
         unit = 'vmr'
     )
     h2o_ret = arts.AbsSpecies(
-        species = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
-        p_grid = p_grid_retrieval,
+        species = water_vapor_model,
+        p_grid = p_grid_retrieval_h2o,
         lat_grid = lat_ret_grid,
         lon_grid = lon_ret_grid,
         covmat = sx_water,
@@ -233,7 +241,7 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
     
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
-    y_var = 15*spectro_dataset.stdTb[cycle].data[good_channels]
+    y_var = retrieval_param['increased_var_factor']*spectro_dataset.stdTb[cycle].data[good_channels]
     #polyfit_ret = arts.Polyfit(
     #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
     #)
@@ -358,7 +366,6 @@ def retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param):
     )
 
     #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
-    print('State of the atmosphere defined with:')
     if retrieval_param['atm'] == 'fascod':
         atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
     elif retrieval_param['atm'] == 'fascod_2':
@@ -448,20 +455,11 @@ def retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param):
         covmat = sx,
         unit = 'vmr'
     )
-    #h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
-    
-
-    #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
-    
-    # increase variance for spurious spectra by factor
-    #factor = retrieval_param['increased_var_factor']
-    
-    #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
     
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = factor*utils.var_allan(ds_y) * np.ones_like(ds_y)
-    y_var = 8*spectro_dataset.stdTb[cycle].data[good_channels]
+    y_var = retrieval_param['increased_var_factor']*spectro_dataset.stdTb[cycle].data[good_channels]
 
     #polyfit_ret = arts.Polyfit(
     #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]

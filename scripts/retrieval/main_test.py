@@ -640,8 +640,8 @@ def save_single_pdf(filename, figures):
 if __name__=="__main__":
     
     instrument_name = "SOMORA"
-    date = datetime.date(2019,2,4)
-    int_time = 24
+    date = datetime.date(2019,2,23)
+    int_time = 1
 
     #basename="/home/eric/Documents/PhD/GROSOM/Level1/"
     #level2_data_folder = "/home/eric/Documents/PhD/GROSOM/Level2/"
@@ -686,19 +686,24 @@ if __name__=="__main__":
     retrieval_param["z_bottom_ret_grid"] = 800
     retrieval_param["z_resolution_ret_grid"] = 3e3
 
-    retrieval_param['increased_var_factor'] = 10
+    retrieval_param["z_top_ret_grid_h2o"] = 50e3
+    retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
+
+    retrieval_param['increased_var_factor'] = 12
     retrieval_param['unit_var_y']  = 3
 
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param["apriori_O3_cov"] = 1.5e-6
+    retrieval_param["apriori_O3_cov"] = 2e-6
 
+    retrieval_param['water_vapor_model'] = "H2O-PWR98"
+    #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
     #retrieval_param["azimuth_angle"]=32
     
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['line_file'] = line_file
-    retrieval_param['atm'] ='fascod'
+    retrieval_param['atm'] ='ecmwf_cira86'
     retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 6
 
@@ -758,14 +763,14 @@ if __name__=="__main__":
         ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
         figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(ac, spectro_dataset, retrieval_param, title = 'retrieval_trop_corr')
         level2 = ac.get_level2_xarray()
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
         save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
     elif retrieval_param["retrieval_type"] == 2:
-        retrieval_param["surface_altitude"] = 1500
-        retrieval_param["observation_altitude"] =  1500
+        retrieval_param["surface_altitude"] = 1200
+        retrieval_param["observation_altitude"] =  1200
         ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
         figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3_h20')
-        save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
+        save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
     elif retrieval_param["retrieval_type"] == 3:
         retrieval_param["surface_altitude"] = 1500
         retrieval_param["observation_altitude"] =  1500

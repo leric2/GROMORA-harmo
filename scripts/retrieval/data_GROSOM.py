@@ -349,25 +349,25 @@ def plot_level2(ds, ac, retrieval_param, title=""):
     axs[1][1].grid(True)
     axs[1][0].grid(True)
 
-    fig.suptitle(title + " Ozone")
+    fig.suptitle(" Ozone retrieval")
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
     
     fig, axs = plt.subplots(2, 2, sharey=True)
     axs[0][0].semilogx(
-        h2o_ret.x, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+        h2o_ret.x*1e6, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
     )
-    axs[0][0].semilogx(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori")
-    axs[0][0].set_xlabel("Water VMR []")
+    axs[0][0].semilogx(h2o_ret.xa*1e6, h2o_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlabel("Water VMR [ppm]")
     axs[0][0].set_ylabel("Altitude [km]")
     axs[0][0].legend()
 
     axs[0][1].plot(h2o_ret.mr, h2o_ret.z_grid / 1e3)
     axs[0][1].set_xlabel("Measurement response")
 
-    axs[1][0].semilogx(h2o_ret.es, h2o_ret.z_grid / 1e3, label="smoothing error")
-    axs[1][0].semilogx(h2o_ret.eo, h2o_ret.z_grid / 1e3, label="obs error")
-    axs[1][0].set_xlabel("$e$ []")
+    axs[1][0].semilogx(h2o_ret.es*1e6, h2o_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].semilogx(h2o_ret.eo*1e6, h2o_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ [ppm]")
     axs[1][0].set_ylabel("Altitude [km]")
     axs[1][0].legend()
 
@@ -376,14 +376,44 @@ def plot_level2(ds, ac, retrieval_param, title=""):
         axs[1][1].plot(avk, h2o_ret.z_grid / 1e3)
     axs[1][1].set_xlabel("AVKM")
 
+
     axs[0][0].grid(True)
     axs[0][1].grid(True)
     axs[1][1].grid(True)
     axs[1][0].grid(True)
 
-    fig.suptitle(title + " Water (v{})".format(1))
+    axs[0][0].set_ylim(-0.5, 30)
+    axs[0][1].set_ylim(-0.5, 30)
+    axs[1][1].set_ylim(-0.5, 30)
+    axs[1][0].set_ylim(-0.5, 30)
+        
+    #axs[0][0].grid(True)
+    #axs[0][1].grid(True)
+    #axs[1][1].grid(True)
+    #axs[1][0].grid(True)
+
+    fig.suptitle(" Water vapor retrieval (v{})".format(1))
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
+
+    temp = ac.ws.t_field_raw.value.to_xarray()
+    alt = ac.ws.z_field_raw.value.to_xarray()
+    fig, axs = plt.subplots(1, 2)
+    axs[0].plot(temp.sel(Latitude=0, Longitude=0).data, temp.Pressure)
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+    axs[0].set_xlabel('T [K]')
+    axs[0].set_ylabel('$P$ [Pa]')
+
+    axs[1].plot(temp.sel(Latitude=0, Longitude=0).data, alt.sel(Latitude=0, Longitude=0).data/1e3)
+    #axs[1].invert_yaxis()
+    #axs[1].set_yscale('log')
+    axs[1].set_xlabel('T [K]')
+    axs[1].set_ylabel('$Z$ [km]')
+    fig.suptitle('Raw PTZ profile')
+   
+    figures.append(fig)   
+
     
     return figures
 
@@ -466,10 +496,29 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
     axs[1][0].grid(True)
 
 
-    fig.suptitle(title + " Ozone")
+    fig.suptitle(" Ozone")
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
-    
+
+
+    temp = ac.ws.t_field_raw.value.to_xarray()
+    alt = ac.ws.z_field_raw.value.to_xarray()
+    fig, axs = plt.subplots(1, 2)
+    axs[0].plot(temp.sel(Latitude=0, Longitude=0).data, temp.Pressure)
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+    axs[0].set_xlabel('T [K]')
+    axs[0].set_ylabel('$P$ [Pa]')
+
+    axs[1].plot(temp.sel(Latitude=0, Longitude=0).data, alt.sel(Latitude=0, Longitude=0).data/1e3)
+    #axs[1].invert_yaxis()
+    #axs[1].set_yscale('log')
+    axs[1].set_xlabel('T [K]')
+    axs[1].set_ylabel('$Z$ [km]')
+    fig.suptitle('Raw PTZ profile')
+   
+    figures.append(fig)   
+
     return figures
 
 def plot_level2_test_retrieval(ac, retrieval_param, title=""):
@@ -586,6 +635,25 @@ def plot_level2_test_retrieval(ac, retrieval_param, title=""):
     fig.suptitle(title + " Water (v{})".format(1))
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
+
+    temp = ac.ws.t_field_raw.value.to_xarray()
+    alt = ac.ws.z_field_raw.value.to_xarray()
+    fig, axs = plt.subplots(1, 2)
+    axs[0].plot(temp.sel(Latitude=0, Longitude=0).data, temp.Pressure)
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+    axs[0].set_xlabel('T [K]')
+    axs[0].set_ylabel('$P$ [Pa]')
+
+    axs[1].plot(temp.sel(Latitude=0, Longitude=0).data, alt.sel(Latitude=0, Longitude=0).data/1e3)
+    #axs[1].invert_yaxis()
+    #axs[1].set_yscale('log')
+    axs[1].set_xlabel('T [K]')
+    axs[1].set_ylabel('$Z$ [km]')
+    fig.suptitle('Raw apriori ptz profile')
+   
+    figures.append(fig)   
+
     
     return figures
     
