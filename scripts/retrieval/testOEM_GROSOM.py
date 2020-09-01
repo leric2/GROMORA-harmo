@@ -25,7 +25,7 @@ import warnings
 from matplotlib.backends.backend_pdf import PdfPages
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
 
-load_dotenv('/home/esauvageat/Documents/ARTS/arts-examples/.env')
+#load_dotenv('/home/esauvageat/Documents/ARTS/arts-examples/.env')
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
@@ -43,6 +43,9 @@ name = 'testOEM_SOMORA_daily_Fascod'
 
 basename="/scratch/GROSOM/Level1/SOMORA/"
 level2_data_folder = "/scratch/GROSOM/Level2/"
+
+basename="/home/esauvageat/Desktop/"
+level2_data_folder = "/home/esauvageat/Desktop/"
 
 line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
 # line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -235,7 +238,7 @@ obs = arts.Observation(
     )
 
 ac.set_observations([obs])
-ac.set_y([ds_Tb])
+ac.set_y([ds_Tb_corr_clean])
 
 # Defining our sensors
 sensor = arts.SensorFFT(ds_freq, ds_df)
@@ -323,7 +326,7 @@ ozone_ret = arts.AbsSpecies('O3', p_ret_grid, lat_grid, lon_grid, sx_O3, unit='v
 
 #y_var = 100*var * np.ones_like(ds_Tb_corr_clean)
 
-y_var = 10*level1b_dataset.stdTb[cycle].data[goodFreq]
+y_var = 2*np.square(level1b_dataset.stdTb[cycle].data[goodFreq])
 #y_var[(level1b_dataset.good_channels[cycle].values == 0)] = factor*retrieval_param['unit_var_y']
 #polyfit_ret = arts.Polyfit(
 #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
@@ -365,7 +368,7 @@ axs[0].plot((ds_freq - f0) / 1e6, ac.y[0], label='observed')
 axs[0].plot((ds_freq - f0) / 1e6, yf, label='fitted')
 #axs[0].plot((f_grid - f0) / 1e6, 40*np.ones(len(f_grid)), '.', label='grid points')
 axs[0].set_ylabel('$T_B$ [K]')
-axs[0].set_ylim((-10,250))
+axs[0].set_ylim((-10,50))
 #axs[0].set_xlim((-25,25))
 axs[0].legend()
 axs[1].plot((ds_freq - f0) / 1e6, r, label='observed - computed')
@@ -373,7 +376,7 @@ axs[1].plot((ds_freq - f0) / 1e6, r_smooth, label="residuals smooth")
 axs[1].legend()
 axs[1].set_xlabel('f - {:.3f} GHz [MHz]'.format(f0/1e9))
 axs[1].set_ylabel('$T_B$ [K]')
-axs[1].set_ylim((-20,20))
+axs[1].set_ylim((-2,2))
 fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 figures.append(fig)
 if show_plots:
@@ -420,3 +423,4 @@ if show_plots:
 if save_netcdf:
     ac.get_level2_xarray().to_netcdf(level2_data_folder+name+'.nc')
     print('\nSaved results to :', level2_data_folder)
+    

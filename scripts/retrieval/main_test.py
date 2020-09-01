@@ -689,13 +689,13 @@ if __name__=="__main__":
     retrieval_param["z_top_ret_grid_h2o"] = 50e3
     retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
 
-    retrieval_param['increased_var_factor'] = 12
+    retrieval_param['increased_var_factor'] = 1
     retrieval_param['unit_var_y']  = 3
 
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param["apriori_O3_cov"] = 2e-6
+    retrieval_param["apriori_O3_cov"] = 1.5e-6
 
     retrieval_param['water_vapor_model'] = "H2O-PWR98"
     #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"

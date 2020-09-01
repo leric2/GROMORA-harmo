@@ -241,7 +241,7 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
     
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
-    y_var = retrieval_param['increased_var_factor']*spectro_dataset.stdTb[cycle].data[good_channels]
+    y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     #polyfit_ret = arts.Polyfit(
     #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
     #)
@@ -459,7 +459,7 @@ def retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param):
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = factor*utils.var_allan(ds_y) * np.ones_like(ds_y)
-    y_var = retrieval_param['increased_var_factor']*spectro_dataset.stdTb[cycle].data[good_channels]
+    y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
 
     #polyfit_ret = arts.Polyfit(
     #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
