@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 #from retrievals import arts
 
-def read_level1b(filenameLevel1b):
+def read_level1(filenameLevel1):
     """Example function with types documented in the docstring.
     Description HERE
 
@@ -34,7 +34,7 @@ def read_level1b(filenameLevel1b):
     """
     
     DS = xr.open_dataset(
-        filenameLevel1b + ".nc",
+        filenameLevel1 + ".nc",
         group="spectrometer1",
         mask_and_scale=True,
         decode_times=True,
@@ -42,17 +42,17 @@ def read_level1b(filenameLevel1b):
         #use_cftime=True,
         )
 
-    globalAttributes=xr.open_dataset(filenameLevel1b + ".nc").attrs
+    globalAttributes=xr.open_dataset(filenameLevel1 + ".nc").attrs
     
     METEO=xr.open_dataset(
-        filenameLevel1b+".nc",
+        filenameLevel1+".nc",
         group="meteo",
         decode_times=True,
         decode_coords=True,
         )
 
     flags=xr.open_dataset(
-        filenameLevel1b+".nc",
+        filenameLevel1+".nc",
         group="flags",
         decode_times=True,
         decode_coords=True,
