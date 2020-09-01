@@ -119,7 +119,7 @@ switch instrumentName
         % Path definition (for local computer only)
         % calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         % taken on the IAP lake, To Be mounted beforehand
-        calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
         %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
         calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
@@ -218,7 +218,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        calibrationTool.meteoFolder='/mnt/datalake/instrumentdata/meteo/exwi/meteo/';
         %calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
         
         % Read meteo data
@@ -583,7 +583,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Folder, Raw and log file data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        calibrationTool.rawFileFolder=['/mnt/instrumentdata/mopi5/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/mopi5/' dateStr(1:4) '/'];
         calibrationTool.level1Folder='/scratch/MOPI5/Level1/';
         calibrationTool.extraFileFolder='/scratch/MOPI5/ExtraRawFiles/'; % no write permission on the IAP lake
         
@@ -670,7 +670,7 @@ switch instrumentName
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Read meteo data
-        calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
+        calibrationTool.meteoFolder='/mnt/datalake/instrumentdata/meteo/exwi/meteo/';
         %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
     
         % Function specific to this instrument

@@ -31,7 +31,7 @@
 clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='mopi5';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_09_15','yyyy_mm_dd'):datenum('2019_10_15','yyyy_mm_dd');
+dates=datenum('2019_02_01','yyyy_mm_dd'):datenum('2019_02_01','yyyy_mm_dd');
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -153,7 +153,7 @@ for d = 1:numel(dates)
         calibrationTool.calibrationTime=10;
     
         % Total integration time
-        calibrationTool.integrationTime=60;
+        calibrationTool.integrationTime=6*60;
         calibrationTool.minNumberOfAvgSpectra = 12;
         
         calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
