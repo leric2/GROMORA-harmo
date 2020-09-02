@@ -181,20 +181,23 @@ for j = 1:length(logFile.TC) % loop over polarisations
             
         end
         
-        % write measurements of day after to file
+        %% Does not work with matlab2016          
+%         % write measurements of day after to file
+% 
+%         isInTimeInterval = logFile.time >= t0+1;
+%         
+%         f = [calibrationTool.extraFileFolder calibrationTool.filename '_missing'];
+%         
+%         M = rawSpectra(isInTimeInterval,:)';
+%         fid = fopen([f '.bin'], 'w');
+%         fwrite(fid,M(:));
+%         fclose(fid);
+%         
+%         addpath(calibrationTool.root_dir)
+%         writecell(logFile.header',[f '.txt'],'Delimiter',';')
+%         dlmwrite([f '.txt'],logFile.x(:,isInTimeInterval)','delimiter',';','-append');
+        
 
-        isInTimeInterval = logFile.time >= t0+1;
-        
-        f = [calibrationTool.file '_missing'];
-        
-        M = rawSpectra(isInTimeInterval,:)';
-        fid = fopen([f '.bin'], 'w');
-        fwrite(fid,M(:));
-        fclose(fid);
-        
-        writecell(logFile.header',[f '.txt'],'Delimiter',';')
-        dlmwrite([f '.txt'],logFile.x(:,isInTimeInterval)','delimiter',';','-append');
-        
         % save averaged spectra
         
         m_loop = m + (j-1)/dt_int;

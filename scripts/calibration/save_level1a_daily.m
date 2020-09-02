@@ -27,7 +27,7 @@ function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibrated
 %==========================================================================
 
 % Filename and location for DAILY netCDF file
-if calibrationTool.calType=="debug"
+if strcmp(calibrationTool.calType,'debug')
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
 else
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
@@ -35,7 +35,7 @@ end
 calibrationTool.filenameLevel1a=filename;
 
 % Rewrite if already existing
-if isfile(filename)
+if  exist(filename,'file')
     delete(filename)
 end
 
@@ -163,14 +163,14 @@ ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.ca
 ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theoretical start time for this calibration cycle');
 
 if isfield(calibratedSpectra,'dir')
-    ncwrite(filename,'/spectrometer1/dir',calibratedSpectra(1).dir);
+    ncwrite(filename,'/spectrometer1/dir',[calibratedSpectra.dir]);
 else
-    ncwrite(filename,'/spectrometer1/dir',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/dir',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 if isfield(calibratedSpectra,'pol')
-    ncwrite(filename,'/spectrometer1/pol',calibratedSpectra(1).pol);
+    ncwrite(filename,'/spectrometer1/pol',[calibratedSpectra.pol]);
 else
-    ncwrite(filename,'/spectrometer1/pol',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/pol',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 
 %%%%%%%%%%%%%%%%%
@@ -196,24 +196,24 @@ ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[calibratedSpectra.meanAngleAntenna]);
 if isfield(calibratedSpectra,'tau')
-    ncwrite(filename,'/spectrometer1/mean_opacity',calibratedSpectra(1).tau);
+    ncwrite(filename,'/spectrometer1/mean_opacity',[calibratedSpectra.tau]);
 else
-    ncwrite(filename,'/spectrometer1/mean_opacity',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/mean_opacity',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 if isfield(calibratedSpectra,'sigma')
-    ncwrite(filename,'/spectrometer1/sigma',calibratedSpectra(1).sigma);
+    ncwrite(filename,'/spectrometer1/sigma',[calibratedSpectra.sigma]);
 else
-    ncwrite(filename,'/spectrometer1/sigma',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/sigma',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 if isfield(calibratedSpectra,'A')
-    ncwrite(filename,'/spectrometer1/A',calibratedSpectra(1).A);
+    ncwrite(filename,'/spectrometer1/A',[calibratedSpectra.A]);
 else
-    ncwrite(filename,'/spectrometer1/A',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/A',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 if isfield(calibratedSpectra,'a')
-    ncwrite(filename,'/spectrometer1/a',calibratedSpectra(1).a);
+    ncwrite(filename,'/spectrometer1/a',[calibratedSpectra.a]);
 else
-    ncwrite(filename,'/spectrometer1/a',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+    ncwrite(filename,'/spectrometer1/a',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
 end
 if isfield(calibratedSpectra,'if')
     ncwrite(filename,'/spectrometer1/intermediate_freq',calibratedSpectra(1).if);
@@ -564,7 +564,7 @@ end
 % Adding debug group (optionnal)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % There are 2 types of debug information for which we create new groups.
-if calibrationTool.calType=="debug"
+if strcmp(calibrationTool.calType,'debug')
     nccreate(filename,'/UpDown/timeUpDown','Dimensions',{'timeUpDown',Inf},'Datatype','double','Format','netcdf4');
     nccreate(filename,'/UpDown/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
     

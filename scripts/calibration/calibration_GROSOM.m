@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_01_02','yyyy_mm_dd');
+dates=datenum('2019_01_02','yyyy_mm_dd'):datenum('2019_02_01','yyyy_mm_dd');
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -85,7 +85,7 @@ addpath(genpath(root_dir))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for d = 1 %:numel(dates)
+for d = 1 :numel(dates)
     dateStr=datestr(dates(d),'yyyy_mm_dd');
     
     % Import default tools for running a retrieval for a given instrument
@@ -178,7 +178,9 @@ for d = 1 %:numel(dates)
     % instance.
     % calibrationTool = create_filenames(calibrationTool);
     
+    
     calibrationTool = run_calibration(calibrationTool);
+    
     
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % Launching the calibration process
