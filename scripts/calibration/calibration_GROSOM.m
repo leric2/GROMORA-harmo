@@ -85,7 +85,7 @@ addpath(genpath(root_dir))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for d = 1:numel(dates)
+for d = 1 %:numel(dates)
     dateStr=datestr(dates(d),'yyyy_mm_dd');
     
     % Import default tools for running a retrieval for a given instrument
@@ -178,53 +178,55 @@ for d = 1:numel(dates)
     % instance.
     % calibrationTool = create_filenames(calibrationTool);
     
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Launching the calibration process
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For now, we keep it dirty for separating between GROSOM and MOPI
-    if calibrationTool.numberOfSpectrometer==1
-            % if commented, nothing happens --> developping purposes
-        if calibrate
-            try
-                calibrationTool = run_calibration(calibrationTool);
-            catch ME
-                warning('Problem with the calibration:');
-                disp(ME.message)
-            end
-        end
-        if integrate
-            try
-                [calibrationTool, level1b] = run_integration(calibrationTool);
-            catch ME
-                warning('Problem with the integration:');
-                disp(ME.message)
-            end
-        end
-    else
-        for m=1:length(modelFFTS)
-            calibrationTool = calibrationTool.import_spectrometer(calibrationTool, modelFFTS(m));
-            if calibrate
-                try  
-                    run_calibration(calibrationTool);
-                catch ME
-                    warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
-                    disp(ME.message)
-                end
-            end
-            if integrate
-                try
-                    [calibrationTool, level1b] = run_integration(calibrationTool);
-                catch ME
-                    warning('Problem with the integration:');
-                    disp(ME.message)
-                end
-            end 
-        end
-        
-        % Integrate the successful calibration into 1 output file... maybe
-        % not yet
-
-    end
-    clearvars level1b
+    calibrationTool = run_calibration(calibrationTool);
+    
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Launching the calibration process
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % For now, we keep it dirty for separating between GROSOM and MOPI
+%     if calibrationTool.numberOfSpectrometer==1
+%             % if commented, nothing happens --> developping purposes
+%         if calibrate
+%             try
+%                 calibrationTool = run_calibration(calibrationTool);
+%             catch ME
+%                 warning('Problem with the calibration:');
+%                 disp(ME.message)
+%             end
+%         end
+%         if integrate
+%             try
+%                 [calibrationTool, level1b] = run_integration(calibrationTool);
+%             catch ME
+%                 warning('Problem with the integration:');
+%                 disp(ME.message)
+%             end
+%         end
+%     else
+%         for m=1:length(modelFFTS)
+%             calibrationTool = calibrationTool.import_spectrometer(calibrationTool, modelFFTS(m));
+%             if calibrate
+%                 try  
+%                     run_calibration(calibrationTool);
+%                 catch ME
+%                     warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
+%                     disp(ME.message)
+%                 end
+%             end
+%             if integrate
+%                 try
+%                     [calibrationTool, level1b] = run_integration(calibrationTool);
+%                 catch ME
+%                     warning('Problem with the integration:');
+%                     disp(ME.message)
+%                 end
+%             end 
+%         end
+%         
+%         % Integrate the successful calibration into 1 output file... maybe
+%         % not yet
+% 
+%     end
+%     clearvars level1b
 end
 

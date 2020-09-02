@@ -64,6 +64,8 @@ nccreate(filename,'/spectrometer1/time_of_day','Dimensions',{'time',Inf},'Dataty
 nccreate(filename,'/spectrometer1/first_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/last_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/dir','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/pol','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
 % Calibration variables   
@@ -80,6 +82,10 @@ nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','do
 nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/sigma','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/A','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/a','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -156,11 +162,32 @@ ncwriteatt(filename,'/spectrometer1/last_sky_time','units',calibrationTool.meanD
 ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theoretical start time for this calibration cycle');
 
+if isfield(calibratedSpectra,'dir')
+    ncwrite(filename,'/spectrometer1/dir',calibratedSpectra(1).dir);
+else
+    ncwrite(filename,'/spectrometer1/dir',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'pol')
+    ncwrite(filename,'/spectrometer1/pol',calibratedSpectra(1).pol);
+else
+    ncwrite(filename,'/spectrometer1/pol',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
+
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
-ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
-ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+%ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+if isfield(calibratedSpectra,'stdTb')
+    ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+else
+    ncwrite(filename,'/spectrometer1/stdTb',-9999*ones(length(calibratedSpectra),1));
+end
+%ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+if isfield(calibratedSpectra,'meanStdTb')
+    ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+else
+    ncwrite(filename,'/spectrometer1/mean_std_Tb',-9999*ones(length(calibratedSpectra),1));
+end
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
@@ -168,7 +195,26 @@ ncwrite(filename,'/spectrometer1/TSys',[calibratedSpectra.TSys]);
 ncwrite(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
 ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[calibratedSpectra.meanAngleAntenna]);
-
+if isfield(calibratedSpectra,'tau')
+    ncwrite(filename,'/spectrometer1/mean_opacity',calibratedSpectra(1).tau);
+else
+    ncwrite(filename,'/spectrometer1/mean_opacity',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'sigma')
+    ncwrite(filename,'/spectrometer1/sigma',calibratedSpectra(1).sigma);
+else
+    ncwrite(filename,'/spectrometer1/sigma',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'A')
+    ncwrite(filename,'/spectrometer1/A',calibratedSpectra(1).A);
+else
+    ncwrite(filename,'/spectrometer1/A',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'a')
+    ncwrite(filename,'/spectrometer1/a',calibratedSpectra(1).a);
+else
+    ncwrite(filename,'/spectrometer1/a',vertcat(-9999*ones(length(calibratedSpectra(1).firstSkyTime),1))');
+end
 if isfield(calibratedSpectra,'if')
     ncwrite(filename,'/spectrometer1/intermediate_freq',calibratedSpectra(1).if);
 else
@@ -344,6 +390,17 @@ attrVal.azimuth = {'azimuth angle',...
     'degree',...
     'angle measured clockwise positive, 0 deg is northwise'};
 
+attrVal.dir = {'measurement direction',...
+    '',...
+    '',...
+    '1 is left, 2 is right'};
+attrVal.pol = {'polarisation',...
+    '',...
+    '',...
+    'polarisation of the measured spectrum'};
+
+
+
 %attrVal.effCalTime = {'effective calibration time',...
 %    'calibration_time',...
 %    'second',...
@@ -404,6 +461,26 @@ attrVal.meanAngleAntenna = {'meanAngleAntenna',...
     'degree',...
     'mean elevation angle of the antenna during this cycle'};
 
+attrVal.meanOpacity = {'meanOpaciy',...
+    '',...
+    '',...
+    'mean zenith opacity of the atmosphere during this cycle'};
+
+attrVal.sigma = {'sigma',...
+    '',...
+    'K',...
+    'noise temperature of the integrated spectrum'};
+
+attrVal.A = {'A',...
+    '',...
+    '',...
+    'the equivalent transmission of the reference absorber'};
+
+attrVal.a = {'a',...
+    '',...
+    '',...
+    'the correction coefficient for the troposphere and ref absorber'};
+
 attrVal.TRoom = {'TRoom',...
     '',...
     'K',...
@@ -452,6 +529,9 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/lon',attrName{i},attrVal.lon{i});
     ncwriteatt(filename,'/spectrometer1/alt',attrName{i},attrVal.alt{i});
     ncwriteatt(filename,'/spectrometer1/azimuth_angle',attrName{i},attrVal.azimuth{i});
+    ncwriteatt(filename,'/spectrometer1/dir',attrName{i},attrVal.dir{i});
+    ncwriteatt(filename,'/spectrometer1/pol',attrName{i},attrVal.pol{i});
+
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/stdTb',attrName{i},attrVal.stdTb{i});
@@ -464,6 +544,10 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/stdTSys',attrName{i},attrVal.stdTSys{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/spectrometer1/mean_opacity',attrName{i},attrVal.meanOpacity{i});
+    ncwriteatt(filename,'/spectrometer1/sigma',attrName{i},attrVal.sigma{i});
+    ncwriteatt(filename,'/spectrometer1/A',attrName{i},attrVal.A{i});
+    ncwriteatt(filename,'/spectrometer1/a',attrName{i},attrVal.a{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});

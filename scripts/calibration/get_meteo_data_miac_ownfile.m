@@ -75,5 +75,5 @@ if ~isempty(files)
 	meteo.visibility    = 0*ones(1,length(meteo.time));
 	meteo.global_rad    = 0*ones(1,length(meteo.time));
 	meteo.precipitation = log1.Meteo.Precipitation_mm;
-	     
+	meteo.dateNum       = meteo.time;     
 end

@@ -211,17 +211,22 @@ for j = 1:length(logFile.TC) % loop over polarisations
         
         
         calibratedSpectra(m_loop).Tb = nanmean(out.Tb);
+        calibratedSpectra(m_loop).stdTb = std(out.Tb); 
+        calibratedSpectra(m_loop).meanStdTb = nanmean(std(out.Tb));
         calibratedSpectra(m_loop).TSys = nanmean(nanmean(out.T_rec));
-        
         calibratedSpectra(m_loop).stdTSys = nanmean(std(out.T_rec));
+        calibratedSpectra(m_loop).tau = nanmean(TAU);
+        calibratedSpectra(m_loop).A   = nanmean(out.A);     % A:      the equivalent transmission of the reference absorber
+        calibratedSpectra(m_loop).a   = nanmean(out.a);     % a:      the correction coefficient for the troposphere and ref absorber
         
 %         calibratedSpectra(m).Yspectral=nanmean(S_hot(idx_hot))./nanmean(S_cold(idx_cold));
 %         calibratedSpectra(m).TN=(calibratedSpectra(m).THot - calibratedSpectra(m).Yspectral*calibrationTool.TCold)./ (calibratedSpectra(m).Yspectral -1);
         calibratedSpectra(m_loop).pol = j;
         calibratedSpectra(m_loop).dir = logFile.dir(find(isDir ==1,1,'first'));
         calibratedSpectra(m_loop).theoreticalStartTime = (m-1)*dt_int *24; % in hours
-        calibratedSpectra(m_loop).calibrationTime=calibrationTool.calibrationTime;
-        calibratedSpectra(m_loop).calibrationVersion = calibVersion;
+        calibratedSpectra(m_loop).calibrationTime      = calibrationTool.calibrationTime;
+        calibratedSpectra(m_loop).calibrationVersion   = calibVersion;
+
         clear out
     end
     
