@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 import retrieval_module
 import apriori_data_GROSOM
-import data_GROSOM
+#import GROSOM_library
 
 from retrievals import arts
 from retrievals import covmat
@@ -145,7 +145,7 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
         line_shape=["VVH", 750e9],
     )
 
-    #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
+    #.plot_apriori_cira86(retrieval_param)
     print('State of the atmosphere defined with:')
     if retrieval_param['atm'] == 'fascod':
         atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
@@ -267,53 +267,6 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
             print("OEM error: " + e)
             continue
     return ac, retrieval_param
-
-def compare_spectra_mopi5(instrument, calibration_cycle=0):
-    fig, axs = plt.subplots(2,2,sharex=True)
-    for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
-        mask = instrument.data[s].good_channels[calibration_cycle].data
-        mask[mask==0]=np.nan
-        axs[0][0].plot(instrument.data[s].frequencies.data/1e9,
-                 instrument.data[s].Tb[calibration_cycle].data, lw=0.5, label=s)
-        axs[0][0].set_xlim(110.25, 111.4)
-        axs[0][0].set_ylim(np.median(instrument.data[s].Tb[calibration_cycle].data)-10,np.median(instrument.data[s].Tb[calibration_cycle].data)+15)
-        axs[0][0].set_xlabel("f [GHz]")
-        axs[0][0].set_ylabel(r"$T_B$ [K]")
-        axs[0][0].set_title("Tb")
-        axs[0][0].grid()
-        axs[0][0].legend(fontsize='xx-small')
-        axs[1][0].plot(instrument.data[s].frequencies.data/1e9,
-                 instrument.data[s].Tb_corr_old[calibration_cycle].data*mask,
-                 lw=0.5, label=s)
-        #axs[1][0].set_xlim(110.3, 111.4)
-        axs[1][0].set_ylim(0,30)
-        axs[1][0].set_xlabel("f [GHz]")
-        axs[1][0].set_ylabel(r"$T_B$ [K]")
-        axs[1][0].set_title("Tb_corr_old")
-        axs[1][0].grid()
-        axs[0][1].plot(instrument.data[s].frequencies.data/1e9,
-                 instrument.data[s].Tb_corr[calibration_cycle].data*mask,
-                 lw=0.5, label=s)
-        #axs[0][1].set_xlim(110.3, 111.4)
-        axs[0][1].set_ylim(0,30)
-        axs[0][1].set_xlabel("f [GHz]")
-        axs[0][1].set_ylabel(r"$T_B$ [K]")
-        axs[0][1].set_title("Tb_corr")
-        axs[0][1].grid()
-        axs[1][1].plot(instrument.data[s].frequencies.data/1e9,
-                 instrument.data[s].stdTb[calibration_cycle].data, lw=0.5, label=s)
-        #axs[1][1].set_xlim(110.3, 111.4)
-        axs[1][1].set_ylim(0,np.median(instrument.data[s].stdTb[calibration_cycle].data)+0.5)
-        axs[1][1].set_xlabel("f [GHz]")
-        axs[1][1].set_ylabel(r"$stdTb$ [K]")
-        axs[1][1].set_title("stdTb")
-        axs[1][1].grid()
-        #ax3.legend()
-    #fig.suptitle(title)
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
-    
-    return fig
 
 if __name__=="__main__":
     pass

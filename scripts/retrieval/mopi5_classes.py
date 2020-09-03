@@ -36,7 +36,9 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from main_test import Integration, DataRetrieval
+from base_classes import Integration, DataRetrieval
+import mopi5_retrievals
+import mopi5_library
 
 class IntegrationMOPI5(Integration):
     '''
@@ -58,6 +60,7 @@ class IntegrationMOPI5(Integration):
         instrument_name = "mopi5"
 
         self.bandwidth = [1.6e9, 1e9, 200e6]
+        #self.number_of_channel = [16384, 16384, 16384]
         spectrometers = ["U5303","AC240","USRP-A"]
         
         level1_folder = basename_lvl1
@@ -65,7 +68,27 @@ class IntegrationMOPI5(Integration):
         #integration_strategy = 'simple'
 
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder)
-    
+
+
+    def return_bad_channels(self, date, spectro):
+        '''
+        to get the bad channels as a function of the date for MOPI5
+        
+        Parameters
+        ----------
+        date : datetime object
+            DESCRIPTION.
+        
+        '''
+        number_of_channel = len(self.calibrated_data[spectro].channel_idx)
+        #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
+        return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
+
+    def compare_mopi5_spectrometers_Tb_chunks(self, dim='time', idx=[0], save = False):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
 
 class MOPI5_LvL2(DataRetrieval):
     '''
@@ -81,6 +104,7 @@ class MOPI5_LvL2(DataRetrieval):
         instrument_name = "mopi5"
 
         self.bandwidth = [1.6e9, 1e9, 200e6]
+        #self.number_of_channel = [16384, 16384, 16384]
         spectrometers = ["U5303","AC240","USRP-A"]
         
         level1_folder = basename_lvl1
@@ -98,23 +122,15 @@ class MOPI5_LvL2(DataRetrieval):
             DESCRIPTION.
         
         '''
-        if spectro == 'USRP-A':
-            bad_channels = np.append(np.arange(0,1500), np.arange(14884,len(self.data[spectro].channel_idx)))
-        elif spectro == 'U5303':
-            bad_channels = np.where(self.data[spectro].intermediate_freq.data > 1000)
-        elif spectro == 'AC240':
-            bad_channels = np.array([])
-        else:
-            ValueError('Spectrometer unknown !')
-
-        return bad_channels
+        number_of_channel = len(self.data[spectro].channel_idx)
+        return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
     def plot_comparison_mopi5_spectrometers(self, calibration_cycle=[0]):
         figures = list()
         for i in calibration_cycle:
-            figures.append(mopi5_retrievals.compare_spectra_mopi5(self, i))
+            figures.append(mopi5_library.compare_spectra_mopi5(self, i))
 
-        save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(calibration_cycle)+'.pdf', figures)
+        # save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(calibration_cycle)+'.pdf', figures)
         pass 
 
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):

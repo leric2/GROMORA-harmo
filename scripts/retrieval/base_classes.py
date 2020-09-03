@@ -43,31 +43,31 @@ ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
-import data_GROSOM
+import GROSOM_library
 import retrieval_module
 import mopi5_retrievals
 
 #%%
 
-class MicrowaveRadiometerIAP(ABC):
-    '''
-    The base abstract class for every IAP MW radiometer. 
+# class MicrowaveRadiometerIAP(ABC):
+#     '''
+#     The base abstract class for every IAP MW radiometer. 
 
-    It has multiple children classes, for integration, retrieval, etc...
+#     It has multiple children classes, for integration, retrieval, etc...
 
-    '''
-    def __init__(
-        self,
-        instrument_name=None,
-        observation_frequency=None,
-        spectrometers=None,
-        ):
+#     '''
+#     def __init__(
+#         self,
+#         instrument_name=None,
+#         observation_frequency=None,
+#         spectrometers=None,
+#         ):
         
-        self.instrument_name = instrument_name
-        self.observation_frequency = observation_frequency
-        self.spectrometers = spectrometers
+#         self.instrument_name = instrument_name
+#         self.observation_frequency = observation_frequency
+#         self.spectrometers = spectrometers
 
-class Integration(MicrowaveRadiometerIAP):
+class Integration(ABC):
     '''
     create another class for integration of level1a data
     
@@ -90,7 +90,7 @@ class Integration(MicrowaveRadiometerIAP):
         self.int_time = integration_time
         self.level1_folder = level1_folder
 
-        super().__init__(instrument_name, observation_frequency, spectrometers)
+        #super().__init__(instrument_name, observation_frequency, spectrometers)
 
         self.dates = dates
 
@@ -100,6 +100,7 @@ class Integration(MicrowaveRadiometerIAP):
             self.multiday = False
 
         self.calibrated_data = dict()
+        self.meteo_data = dict()
         self.calibration_flags = dict()
         self.filename_level1a = dict()
         self.filename_level1b = dict()
@@ -141,17 +142,12 @@ class Integration(MicrowaveRadiometerIAP):
         Reading level1a in netCDF format
         
         '''
-        if self.multiday:
-            raise NotImplementedError('TODO: Implement mutli days level1a reading')
-            # Append xarray dataset together ?
-        else:
-            for s in self.spectrometers:
-                print('reading : ', self.filename_level1a[s][0])
-                #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = data_GROSOM.read_level1(self._filename_lvl1b)
-                self.calibrated_data[s], self.calibration_flags[s], meteo_data, global_attrs_level1a = data_GROSOM.read_level1(self.filename_level1a[s][0])
+            
+        for s in self.spectrometers:
+            print('reading : ', self.filename_level1a[s][0])
+            #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
+            self.calibrated_data[s], self.calibration_flags[s], self.meteo_data[s], global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][0])
         
-            self.meteo_complete = meteo_data
-
         # Meta data
         self.institution = global_attrs_level1a['institution']
         self.instrument_name_from_level1a = global_attrs_level1a['instrument']
@@ -163,30 +159,344 @@ class Integration(MicrowaveRadiometerIAP):
         self.raw_data_filename = global_attrs_level1a['raw_data']
         self.raw_data_software_version = global_attrs_level1a['raw_data_software_version']
         
-        self.filename_level1a = global_attrs_level1a['filename']
+        #self.filename_level1a = global_attrs_level1a['filename']
         self.raw_file_warning = global_attrs_level1a['raw_file_warning']
         self.labview_logfile_warning = global_attrs_level1a['labview_logfile_warning']
 
-        return self.calibrated_data, self.calibration_flags, self.meteo_complete
+        if self.multiday:
+            for i in range(1,len(self.dates)):
+                for s in self.spectrometers:
+                    print('reading : ', self.filename_level1a[s][i])
+                    calibrated_data, calibration_flags, meteo_data, global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][i])
+                    self.calibrated_data[s] = xr.concat([self.calibrated_data[s],calibrated_data], dim='time')
+                    self.calibration_flags[s] = xr.concat([self.calibration_flags[s],calibration_flags], dim='time')
+                    self.meteo_data[s] = xr.concat([self.meteo_data[s], meteo_data], dim='time')
+                    print('No meta data updates for multi-days reading (only first day is saved) !')
 
-    def integrate(self, spectrometers):
+        return self.calibrated_data, self.calibration_flags, self.meteo_data
+
+    def clean_level1a_byFlags(self):
+        '''
+        cleaning the flagged level1a timestamps
+        '''
+        for s in self.spectrometers:
+            sum_flags_da = self.calibration_flags[s].sum(dim='flags')
+            good_time = sum_flags_da.where(sum_flags_da.calibration_flags == 6, drop=True).time
+            self.calibrated_data[s] = self.calibrated_data[s].where(self.calibrated_data[s].time == good_time, drop=True)
+            
+            #self.meteo_data[s] = self.meteo_data[s].where(self.meteo_data[s].time == meteo_good_times, drop=True)
+
+        return self.calibrated_data#, self.meteo_data
+    
+    def check_channel_quality(self, spectrometers):
+        '''
+        Based on std Tb
+        see equivalent matlab function
+        '''
+        raise NotImplementedError()
+        for s in spectrometers:
+            always_bad = self.return_bad_channels(self.dates, s)
+
+            bad_channel = self.calibrated_data[s].stdTb
+    
+    def find_bad_channels_stdTb(self, spectrometers, stdTb_threshold, apply_on='cal', dimension=['time','channel_idx']):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        if apply_on=='cal':
+            for spectro in spectrometers:
+                bad_channels = self.return_bad_channels(self.dates, spectro)
+                self.calibrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.calibrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.calibrated_data
+        elif apply_on=='int':
+            for spectro in spectrometers:
+                bad_channels = self.return_bad_channels(self.dates, spectro)
+                self.integrated_dataset[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_dataset[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.integrated_dataset
+        else:
+            raise ValueError()
+
+    def add_mean_Tb(self, spectrometers):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        for s in spectrometers:
+            if 'good_channels' in self.calibrated_data[s].data_vars:
+                clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
+                da_mean_Tb = clean_Tb.mean(dim='channel_idx')
+                da_median_Tb = clean_Tb.median(dim='channel_idx')
+            else:
+                print('no channel filter found, be careful ! ')
+                da_mean_Tb = self.calibrated_data[s].Tb.mean(dim='channel_idx')
+                da_median_Tb = self.calibrated_data[s].Tb.median(dim='channel_idx')
+    
+            self.calibrated_data[s] = self.calibrated_data[s].assign(mean_Tb = da_mean_Tb)
+            self.calibrated_data[s] = self.calibrated_data[s].assign(median_Tb = da_median_Tb)
+    
+        return self.calibrated_data
+
+    def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
+        '''
+        integration based on the mean brightness temperature in a given dataset
+
+        output an integrated dataset with dimension (time, chunks)
+        '''
+        print(f"Integration with Tb chunks: {Tb_chunks}")
+        self.integrated_dataset = dict()
+        self.integrated_meteo = dict()
+        for s in spectrometers:
+            chunks_num_el = []
+            for i in range(len(Tb_chunks)+1):
+                if i==0:
+                    chunks_lim = Tb_chunks[i]
+                    ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
+                    chunks_num_el.append(ds.dims['time'])
+                    
+                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
+                    
+                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                elif i==len(Tb_chunks):
+                    chunks_lim = Tb_chunks[i-1]
+                    ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
+                    chunks_num_el.append(ds.dims['time'])
+                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
+                else:
+                    ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
+                    ds = ds.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
+                    chunks_num_el.append(ds.dims['time'])
+                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
+                    meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
+            
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            
+            # New variable with the size of the chunks
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                chunk_size = xr.DataArray(chunks_num_el, dims = ['chunks'])
+                )
+
+            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+
+            for i in range(len(chunks_num_el)):
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
+            
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                stdTb = xr.DataArray(new_stdTb, dims = ['chunks','channel_idx'])
+                )
+
+            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
+            #    )
+
+            # Drop meaningless variables:
+            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                )
+
+        return self.integrated_dataset, self.integrated_meteo
+
+    def integrate_classic(self, spectrometers, freq = 1):
+        '''
+        integration based on the mean brightness temperature in a given dataset
+
+        output an integrated dataset with dimension (time, chunks)
+        '''        
+        tod = np.arange(0, 24, freq) + freq/2
+        interval = np.ones_like(tod) * freq/2
+
+        print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
+        print(f"This is equivalent to an integration time of {freq} hours.")
+        self.integrated_dataset = dict()
+        self.integrated_meteo = dict()
+        for s in spectrometers:
+            chunks_num_el = []
+            for index, (t, it) in enumerate(zip(tod, interval)):
+                ds = self.calibrated_data[s].where(self.calibrated_data[s].time_of_day > t-it, drop=True)
+                ds = ds.where(self.calibrated_data[s].time_of_day < t+it, drop=True)
+                
+                chunks_num_el.append(ds.dims['time'])
+
+                meteo_hour = pd.DatetimeIndex(self.meteo_data[s].time.data).hour 
+                good_meteo_times = self.meteo_data[s].time[(meteo_hour >= t-it) & (meteo_hour < t+it)]
+
+                meteo = self.meteo_data[s].where(self.meteo_data[s].time == good_meteo_times, drop=True)
+                
+                if index == 0:
+                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                else:
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
+
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
+            
+            # New variable with the size of the chunks
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
+                )
+
+            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+
+            for i in range(len(chunks_num_el)):
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
+            
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
+                )
+
+            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
+            #    )
+
+            # Drop meaningless variables:
+            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                )
+
+        return self.integrated_dataset, self.integrated_meteo
+
+    def integrate_by_tod(self, spectrometers, tod = [9, 16], interval= [2, 1]):
+        '''
+        integration based on the mean brightness temperature in a given dataset
+
+        output an integrated dataset with dimension (time, chunks)
+        '''
+        print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
+        self.integrated_dataset = dict()
+        self.integrated_meteo = dict()
+        for s in spectrometers:
+            chunks_num_el = []
+            for index, (t, it) in enumerate(zip(tod, interval)):
+                ds = self.calibrated_data[s].where(self.calibrated_data[s].time_of_day > t-it, drop=True)
+                ds = ds.where(self.calibrated_data[s].time_of_day < t+it, drop=True)
+                
+                chunks_num_el.append(ds.dims['time'])
+                meteo_hour = pd.DatetimeIndex(self.meteo_data[s].time.data).hour 
+                good_meteo_times = self.meteo_data[s].time[(meteo_hour >= t-it) & (meteo_hour < t+it)]
+
+                meteo = self.meteo_data[s].where(self.meteo_data[s].time == good_meteo_times, drop=True)
+                
+                if index == 0:
+                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                else:
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
+
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
+            
+            # New variable with the size of the chunks
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
+                )
+
+            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+
+            for i in range(len(chunks_num_el)):
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
+            
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
+                )
+
+            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
+            #    )
+
+            # Drop meaningless variables:
+            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                )
+
+        return self.integrated_dataset, self.integrated_meteo
+
+    def integrate(self, spectrometers, strategy=None, **kwargs):
         '''
         Generic function for the integration of Integration class
         '''
-        if self.integration_strategy == 'simple':
+        if strategy is None:
+            strategy = self.integration_strategy
+
+        if strategy == 'classic':
             print('Performing simple integration')
-            raise NotImplementedError()
-        elif self.integration_strategy == 'TOD':
+            if self.multiday:
+                raise NotImplementedError('for multiple days, this reduces to the TOD integration')
+            return self.integrate_classic(self.spectrometers, freq=kwargs['freq'])
+        elif strategy == 'TOD':
             print('Performing integration based on the time of day')
-            raise NotImplementedError()
-        elif self.integration_strategy == 'MeanTb':
-            print('Performing integration based on mean Tb')
-            raise NotImplementedError()        
-        elif self.integration_strategy == '...':
+            if len(kwargs['tod']) == len(kwargs['interval']):
+                return self.integrate_by_tod(self.spectrometers, tod=kwargs['tod'], interval=kwargs['interval'])
+            else:
+                raise ValueError('Number of interval must equal the number of TOD chosen')
+            
+        elif strategy == 'MeanTb':
+            #print(kwargs['Tb_chunks'])
+            return self.integrate_by_mean_Tb(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'])  
+        elif strategy == '...':
             print('Performing integration based on ...')
             raise NotImplementedError()
+        else:
+            raise NotImplementedError('unkown integration strategy')
 
-class DataRetrieval(MicrowaveRadiometerIAP):
+    def return_bad_channels(self, date, spectro):
+        '''
+        it is overwritten by each instrument classes
+        '''
+        return []
+
+    def save_dataset_level1b(self, spectrometers, datasets, groups=['spectrometer1'], extra=''):
+        '''
+        save as netCDF level1b file
+        '''
+        if len(groups) > 1:
+            mode='a'
+        else:
+            mode ='w'
+
+        for s in spectrometers:
+            filename = self.filename_level1b[s] + extra + '.nc'
+
+            for i, group_name in enumerate(groups):
+                ds = datasets[i][s]
+                ds.to_netcdf(
+                    path=filename,
+                    mode=mode,
+                    group=group_name,
+                    format = 'NETCDF4'
+                    )
+
+class DataRetrieval(ABC):
     def __init__(
         self,
         instrument_name=None,
@@ -207,7 +517,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         self.level1_folder = level1_folder
         self.level2_folder = level2_folder
 
-        super().__init__(instrument_name, observation_frequency, spectrometers)
+        #super().__init__(instrument_name, observation_frequency, spectrometers)
         # some attributes for the class (_sss) should be used internally
         #self._data = dict()
         #self._data["Temperature.0"] = 10
@@ -267,8 +577,8 @@ class DataRetrieval(MicrowaveRadiometerIAP):
                 )
         
             print('reading : ', self.filename_level1b[s])
-            #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = data_GROSOM.read_level1(self._filename_lvl1b)
-            self.data[s], self.flags[s], meteo_data, global_attrs_level1b = data_GROSOM.read_level1(self.filename_level1b[s])
+            #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
+            self.data[s], self.flags[s], meteo_data, global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
         
         self.meteo = meteo_data
 
@@ -304,7 +614,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         pass
     
     def plot_meteo_ds_level1b_dataset(self):
-        data_GROSOM.plot_meteo_level1b(self.meteo_ds)
+        GROSOM_library.plot_meteo_level1b(self.meteo_ds)
         pass 
     
     def forward_model(self, retrieval_param):
@@ -370,7 +680,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
             DESCRIPTION.
 
         '''
-        return data_GROSOM.smooth_and_apply_correction(level1b_dataset, meteo_ds)
+        return GROSOM_library.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     
     def create_binning(self, freq, tb, retrieval_param):   
         '''
@@ -392,7 +702,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         n_f = retrieval_param["number_of_freq_points"]
         bw_extra = 1.2*self.bandwidth
 
-        return data_GROSOM.create_bin_vector(self.observation_frequency, freq, tb, n_f, bw_extra)
+        return GROSOM_library.create_bin_vector(self.observation_frequency, freq, tb, n_f, bw_extra)
 
     def bin_spectrum(self, freq, tb, bin_vect):   
         '''
@@ -412,7 +722,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
 
         '''
 
-        return data_GROSOM.bin_spectrum(freq, tb, bin_vect)
+        return GROSOM_library.bin_spectrum(freq, tb, bin_vect)
 
     def smooth_corr_spectra(self, level1b_dataset, retrieval_param):
         '''
@@ -430,7 +740,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
             DESCRIPTION.
 
         '''
-        return data_GROSOM.smooth_corr_spectra(level1b_dataset, retrieval_param)
+        return GROSOM_library.smooth_corr_spectra(level1b_dataset, retrieval_param)
     
     def find_bad_channels(self, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
         '''
@@ -444,7 +754,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         None.
 
         '''
-        return data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+        return GROSOM_library.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
 
     def find_bad_channels_stdTb(self, spectro, stdTb_threshold):
         '''
@@ -459,7 +769,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
 
         '''
         bad_channels = self.return_bad_channels(date, spectro)
-        self.data[spectro] = data_GROSOM.find_bad_channels_stdTb(self.data[spectro], bad_channels, stdTb_threshold)
+        self.data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.data[spectro], bad_channels, stdTb_threshold)
 
         return self.data[spectro]
     
@@ -483,7 +793,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         None.
 
         '''
-        return data_GROSOM.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title)
+        return GROSOM_library.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title)
     
     def plot_level2(self, ac, spectro_dataset, retrieval_param, title):
         '''
@@ -505,7 +815,7 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         None.
 
         '''
-        return data_GROSOM.plot_level2(spectro_dataset, ac, retrieval_param, title)
+        return GROSOM_library.plot_level2(spectro_dataset, ac, retrieval_param, title)
 
     def plot_level2_test_retrieval(self, ac, retrieval_param, title):
         '''
@@ -527,7 +837,13 @@ class DataRetrieval(MicrowaveRadiometerIAP):
         None.
 
         '''
-        return data_GROSOM.plot_level2_test_retrieval(ac, retrieval_param, title)
+        return GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title)
+    
+    def return_bad_channels(self, date, spectro):
+        '''
+        it is overwritten by each instrument classes
+        '''
+        return []
 
 def run_retrieval(instrument,retrieval_param):
     a=2

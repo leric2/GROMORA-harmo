@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 import retrieval_module
 import apriori_data_GROSOM
-import data_GROSOM
+import GROSOM_library
 
 from retrievals import arts
 from retrievals import covmat

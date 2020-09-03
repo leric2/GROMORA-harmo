@@ -35,7 +35,22 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from main_test import Integration, DataRetrieval
+from base_classes import Integration, DataRetrieval
+import GROSOM_library
+
+def return_bad_channels_gromos(date):
+    '''
+    to get the bad channels as a function of the date for GROMOS
+    
+    Parameters
+    ----------
+    date : datetime object
+        DESCRIPTION.
+    
+    '''
+    #if year == 2019,....
+    bad_channels = np.arange(16383,16384)
+    return bad_channels
 
 class IntegrationGROMOS(Integration):
     '''
@@ -65,6 +80,16 @@ class IntegrationGROMOS(Integration):
 
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder)
     
+    def return_bad_channels(self, date, spectro):
+
+        return return_bad_channels_gromos(date)
+
+    def compare_Tb_chunks(self, dim='time', idx=[0], save = False):
+        figures = list()
+
+        for i in idx:
+            figures.append(GROSOM_library.plot_Tb_chunks(self, self.integrated_dataset, i)) 
+
 class GROMOS_LvL2(DataRetrieval):
     '''
     Implementing the Dataretrieval class for the GROMOS case.
@@ -87,19 +112,11 @@ class GROMOS_LvL2(DataRetrieval):
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_time, date, level1_folder, level2_folder)
     
     def return_bad_channels(self, date, spectro):
-        '''
-        to get the bad channels as a function of the date for GROMOS
-        
-        Parameters
-        ----------
-        date : datetime object
-            DESCRIPTION.
-        
-        '''
-        #if year == 2019,....
-        bad_channels = np.arange(16350,16420)
 
-        return bad_channels
+        return return_bad_channels_gromos(date)
+
+
+
 
     def get_hot_load_temperature(self, time):
         """ On GROMOS, hot load temperature is on channel 0.

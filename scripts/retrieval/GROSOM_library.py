@@ -91,14 +91,15 @@ def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size
     
     return level1b_dataset
 
-def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20):
+def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20, dimension=['time','channel_idx']):
     '''
     daily processing
     '''
-    good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
+    #good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
+    good_channels = np.zeros((level1b_dataset.dims[dimension[0]], level1b_dataset.dims[dimension[1]]))
         
     # identify additional spurious channels on this day    
-    for i in range(len(level1b_dataset.time)):
+    for i in range(level1b_dataset.dims[dimension[0]]):
         good_channels_i = 1*(level1b_dataset.stdTb[i].values < stdTb_threshold)
         
         good_channels[i,:] = good_channels_i
@@ -109,7 +110,7 @@ def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20)
     
     
     level1b_dataset = level1b_dataset.assign(
-        good_channels = xr.DataArray(good_channels, dims = ['time', 'channel_idx']))
+        good_channels = xr.DataArray(good_channels, dims = dimension))
     
     return level1b_dataset
 
@@ -239,7 +240,26 @@ def create_bin_vector(F0, f, tb, n_f, bw_extra):
     axs[2].set_ylim(0,35)
     
     return bin_vect
-    
+
+def plot_Tb_chunks(self, ds_dict, calibration_cycle):
+    fig, axs = plt.subplots(1,1,sharex=True)
+    for s in self.spectrometers:
+        mask = ds_dict[s].good_channels[calibration_cycle].data
+        mask[mask==0]=np.nan
+        axs.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle]*mask, lw=0.5, label=s)
+        #axs.set_xlim(110.25, 111.4)
+        #axs.set_ylim(0,250)
+        #ax].set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[calibration_cycle].data)+15)
+        axs.set_xlabel("f [GHz]")
+        axs.set_ylabel(r"$T_B$ [K]")
+        axs.set_title("Tb")
+        axs.grid()
+        axs.legend(fontsize='xx-small')
+        #ax3.legend()
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+    return fig  
     
 def plot_meteo_level1b(METEO):
     """Example function with types documented in the docstring.

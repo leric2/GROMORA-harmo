@@ -37,11 +37,11 @@ import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
 if __name__ == "__main__":
-    instrument_name = "mopi5"
+    instrument_name = "SOMORA"
     #date = datetime.date(2019,2,1)
     date = pd.date_range(start='2019-02-01', end='2019-02-01')
 
-    integration_strategy = 'simple'
+    integration_strategy = 'classic'
     int_time = 1
 
     basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
@@ -64,7 +64,42 @@ if __name__ == "__main__":
         basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
-    calibrated_data, cal_flags, cal_meteo = calibration.read_level1a()
+    calibrated_data, cal_flags, meteo_data = calibration.read_level1a()
     assert calibration.instrument_name == instrument_name, 'Wrong instrument definition'
 
-    calibration.integrate(calibration.spectrometers)
+    calibrated_data = calibration.clean_level1a_byFlags()
+
+    calibrated_data = calibration.find_bad_channels_stdTb(spectrometers = calibration.spectrometers, stdTb_threshold = 10, apply_on='cal')
+
+    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
+    
+    # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
+    #integrated_data = calibration.integrate(spectrometers = calibration.spectrometers, strategy=integration_strategy, Tb_chunks=[150])
+    integrated_data, integrated_meteo = calibration.integrate(
+        spectrometers = calibration.spectrometers, 
+        strategy=integration_strategy, 
+        tod=[12, 16], 
+        interval=[1,1],
+        Tb_chunks=[50, 100],
+        freq=6,
+        )
+
+    if integration_strategy == 'T':
+        dimension=['chunks','channel_idx']
+    else:
+        dimension=['time','channel_idx']
+
+    integrated_data = calibration.find_bad_channels_stdTb(
+        spectrometers = calibration.spectrometers, 
+        stdTb_threshold = 8,
+        apply_on='int',
+        dimension=dimension
+        )
+
+    calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1])
+
+    calibration.save_dataset_level1b(
+        spectrometers = calibration.spectrometers, 
+        datasets=[integrated_data], 
+        groups=['spectrometer1'], 
+        extra='')
