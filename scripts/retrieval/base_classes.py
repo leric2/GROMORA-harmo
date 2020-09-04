@@ -77,7 +77,7 @@ class Integration(ABC):
         instrument_name=None,
         observation_frequency=None,
         spectrometers=None,
-        integration_strategy='simple',
+        integration_strategy='classic',
         integration_time=1,
         dates=None,
         level1_folder=None,
@@ -117,7 +117,7 @@ class Integration(ABC):
                 s + "_" + self.datestr
                 ))
 
-            if self.integration_strategy == 'simple':
+            if self.integration_strategy == 'classic':
                 if self.int_time == 1:
                     self.filename_level1b[s] = os.path.join(
                     self.level1_folder,
@@ -133,7 +133,7 @@ class Integration(ABC):
             else:
                 self.filename_level1b[s] = os.path.join(
                     self.level1_folder,
-                    self.instrument_name + "_level1b_"+ self.integration_strategy + '_' + str(self.int_time) +"h_" +
+                    self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
                     s + "_" + self.datestr
                     )
 
@@ -247,10 +247,13 @@ class Integration(ABC):
                 print('no channel filter found, be careful ! ')
                 da_mean_Tb = self.calibrated_data[s].Tb.mean(dim='channel_idx')
                 da_median_Tb = self.calibrated_data[s].Tb.median(dim='channel_idx')
-    
+
+            if any(np.abs(da_mean_Tb.data - da_median_Tb.data) > 5):
+                print('Be careful, large difference between mean and median of Tb --> big spike somewhere')
+
             self.calibrated_data[s] = self.calibrated_data[s].assign(mean_Tb = da_mean_Tb)
             self.calibrated_data[s] = self.calibrated_data[s].assign(median_Tb = da_median_Tb)
-    
+
         return self.calibrated_data
 
     def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
@@ -261,7 +264,11 @@ class Integration(ABC):
         '''
         print(f"Integration with Tb chunks: {Tb_chunks}")
         self.integrated_dataset = dict()
-        self.integrated_meteo = dict()
+
+        # At this point this makes no sense to integrate any meteo data...
+        # this is not straightforward because the time of both datasets are different.
+        self.integrated_meteo = self.meteo_data
+        
         for s in spectrometers:
             chunks_num_el = []
             for i in range(len(Tb_chunks)+1):
@@ -270,28 +277,28 @@ class Integration(ABC):
                     ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
                     chunks_num_el.append(ds.dims['time'])
                     
-                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
                     
                     self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
-                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                    #self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 elif i==len(Tb_chunks):
                     chunks_lim = Tb_chunks[i-1]
                     ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
                     chunks_num_el.append(ds.dims['time'])
-                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
                     self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
-                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
+                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
                 else:
                     ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
                     ds = ds.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
                     chunks_num_el.append(ds.dims['time'])
-                    meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
-                    meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
+                    #meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
                     self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
-                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
+                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
             
             self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
-            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            #self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             
             # New variable with the size of the chunks
             self.integrated_dataset[s] = self.integrated_dataset[s].assign(
@@ -460,7 +467,7 @@ class Integration(ABC):
             else:
                 raise ValueError('Number of interval must equal the number of TOD chosen')
             
-        elif strategy == 'MeanTb':
+        elif strategy == 'meanTb':
             #print(kwargs['Tb_chunks'])
             return self.integrate_by_mean_Tb(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'])  
         elif strategy == '...':
@@ -479,29 +486,51 @@ class Integration(ABC):
         '''
         save as netCDF level1b file
         '''
-        if len(groups) > 1:
-            mode='a'
-        else:
-            mode ='w'
-
         for s in spectrometers:
             filename = self.filename_level1b[s] + extra + '.nc'
 
             for i, group_name in enumerate(groups):
                 ds = datasets[i][s]
-                ds.to_netcdf(
-                    path=filename,
-                    mode=mode,
-                    group=group_name,
-                    format = 'NETCDF4'
-                    )
+                if i==0:
+                    ds.to_netcdf(
+                        path=filename,
+                        mode='w',
+                        group=group_name,
+                        format = 'NETCDF4'
+                        )
+                else:
+                    ds.to_netcdf(
+                        path=filename,
+                        mode='a',
+                        group=group_name,
+                        format = 'NETCDF4'
+                        )
 
+            print('Successfully saved in ', filename)
+
+    def correct_troposphere(self):
+        raise NotImplementedError('Use specific correction function for the instrument')
+    
+    def compare_Tb_chunks(self, dim='time', idx=[0], save = False, Tb_corr = False):
+        figures = list()
+
+        for i in idx:
+            figures.append(GROSOM_library.plot_Tb_chunks(self, self.integrated_dataset, i)) 
+
+        if Tb_corr:
+            for i in idx:
+                figures.append(GROSOM_library.plot_Tb_corr_chunks(self, self.integrated_dataset, i)) 
+        
+        if save:
+            raise NotImplementedError()
+        
 class DataRetrieval(ABC):
     def __init__(
         self,
         instrument_name=None,
         observation_frequency=None,
         spectrometers=None,
+        integration_strategy='classic',
         integration_time=None,
         date=None,
         level1_folder=None,
@@ -510,25 +539,45 @@ class DataRetrieval(ABC):
         
         self.instrument_name = instrument_name
         self.date = date
-        self.datestr = self.date.strftime('%Y_%m_%d')
+        self.datestr = date.strftime('%Y_%m_%d')
         self.observation_frequency = observation_frequency
         self.spectrometers = spectrometers
+        self.integration_strategy = integration_strategy
         self.int_time = integration_time
         self.level1_folder = level1_folder
         self.level2_folder = level2_folder
 
-        #super().__init__(instrument_name, observation_frequency, spectrometers)
-        # some attributes for the class (_sss) should be used internally
-        #self._data = dict()
-        #self._data["Temperature.0"] = 10
-        #self._data["Temperature.1"] = 20
-        #self._data["Temperature.2"] = 30
+        # must be false for Integration
+        self.multiday = False
 
-    # methods for this class
-    #def get_temerature_reading(self, time, channel):
-    #    ''' Get the temperature form a specific temperature channel.
-    #   '''
-    #    return self._data[f"Temperature.{channel}"]
+        self.calibrated_data = dict()
+        self.meteo_data = dict()
+        self.calibration_flags = dict()
+        self.filename_level1a = dict()
+        self.filename_level1b = dict()
+
+        for s in self.spectrometers:
+            self.filename_level1a[s] = list()
+
+            if self.integration_strategy == 'classic':
+                if self.int_time == 1:
+                    self.filename_level1b[s] = os.path.join(
+                    self.level1_folder,
+                    self.instrument_name + "_level1b_" +
+                    s + "_" + self.datestr
+                    )
+                else:
+                    self.filename_level1b[s] = os.path.join(
+                    self.level1_folder,
+                    self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                    s + "_" + self.datestr
+                    )
+            else:
+                self.filename_level1b[s] = os.path.join(
+                    self.level1_folder,
+                    self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
+                    s + "_" + self.datestr
+                    )
 
     def get_hot_load_temperature(self, time):
         ''' Get hot load temperature for a specific time.
@@ -542,8 +591,9 @@ class DataRetrieval(ABC):
         '''
         self.data = dict()
         self.flags = dict()
-        self.filename_level1a = dict()
-        self.filename_level1b = dict()
+        self.meteo = dict()
+        #self.filename_level1a = dict()
+        #self.filename_level1b = dict()
         self.filename_level2 = dict()
         for i, s in enumerate(self.spectrometers):
             self.filename_level1a[s] = os.path.join(
@@ -552,11 +602,11 @@ class DataRetrieval(ABC):
             s + "_" + self.datestr
             )
             if self.int_time == 1:
-                self.filename_level1b[s] = os.path.join(
-                self.level1_folder,
-                self.instrument_name + "_level1b_" +
-                s + "_" + self.datestr
-                )
+                # self.filename_level1b[s] = os.path.join(
+                # self.level1_folder,
+                # self.instrument_name + "_level1b_" +
+                # s + "_" + self.datestr
+                # )
 
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
@@ -564,11 +614,11 @@ class DataRetrieval(ABC):
                 s + "_" + self.datestr
                 )
             else:
-                self.filename_level1b[s] = os.path.join(
-                self.level1_folder,
-                self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                s + "_" + self.datestr
-                )
+                # self.filename_level1b[s] = os.path.join(
+                # self.level1_folder,
+                # self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                # s + "_" + self.datestr
+                # )
 
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
@@ -578,10 +628,8 @@ class DataRetrieval(ABC):
         
             print('reading : ', self.filename_level1b[s])
             #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
-            self.data[s], self.flags[s], meteo_data, global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
+            self.data[s], self.flags[s], self.meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
         
-        self.meteo = meteo_data
-
         # Meta data
         self.institution = global_attrs_level1b['institution']
         self.instrument_name_from_level1b = global_attrs_level1b['instrument']

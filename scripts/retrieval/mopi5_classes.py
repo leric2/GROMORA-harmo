@@ -84,11 +84,34 @@ class IntegrationMOPI5(Integration):
         #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
         return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
-    def compare_mopi5_spectrometers_Tb_chunks(self, dim='time', idx=[0], save = False):
+    def compare_spectra_mopi5(self, dim='time', idx=[0], save = False):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
-            figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
+            figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_dataset,i))
+
+        if save:
+            save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+    
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
+        '''
+        Correction function for the troposphere. 
+        
+        Invidual correction for each spectrometers specified !
+        '''
+        import GROSOM_library
+        print('Using the correction function from GROSOM, TODO')
+        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1', basis_spectro='AC240'):
+        '''
+        Correction function for the troposphere. 
+        
+        For MOPI, we call it a first time 
+        '''
+        #basis_spectro = 'AC240'
+        return mopi5_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1', use_basis=basis_spectro)
 
 class MOPI5_LvL2(DataRetrieval):
     '''

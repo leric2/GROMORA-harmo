@@ -83,12 +83,14 @@ class IntegrationSOMORA(Integration):
     def return_bad_channels(self, date, spectro):
 
         return return_bad_channels_somora(date)
-    
-    def compare_Tb_chunks(self, dim='time', idx=[0], save = False):
-        figures = list()
 
-        for i in idx:
-            figures.append(GROSOM_library.plot_Tb_chunks(self, self.integrated_dataset, i)) 
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
+        '''
+        Correction function for the troposphere. 
+        
+        Invidual correction for each spectrometers specified !
+        '''
+        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class SOMORA_LvL2(DataRetrieval):
     '''
@@ -96,7 +98,7 @@ class SOMORA_LvL2(DataRetrieval):
     Hereafter we define some parameters and methods specific to this 
     instrument.
     '''
-    def __init__(self, date, basename_lvl1, basename_lvl2, integration_time):
+    def __init__(self, date, basename_lvl1, basename_lvl2, integration_strategy, integration_time):
         '''
         Some specific parameters to implement for the SOMORA instances (only constant stuff...)
         '''
@@ -109,13 +111,20 @@ class SOMORA_LvL2(DataRetrieval):
         level1_folder = os.path.join(basename_lvl1, instrument_name)
         level2_folder =  os.path.join(basename_lvl2, instrument_name)
 
-        super().__init__(instrument_name, observation_frequency, spectrometers, integration_time, date, level1_folder, level2_folder)
+        super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
 
     def return_bad_channels(self, date, spectro):
 
         return return_bad_channels_somora(date)  
     
-    
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
+        '''
+        Correction function for the troposphere. 
+        
+        Invidual correction for each spectrometers specified !
+        '''
+        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+
     # def find_bad_channels(self, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
     #     '''
     #     Parameters

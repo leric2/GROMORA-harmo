@@ -47,6 +47,7 @@ if __name__ == "__main__":
     instrument_name = "SOMORA"
     date = datetime.date(2019,2,1)
     int_time = 1
+    integration_strategy = 'classic'
 
     basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
@@ -59,10 +60,21 @@ if __name__ == "__main__":
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        instrument = gc.GROMOS_LvL2(date, basename_lvl1, basename_lvl2, int_time)
+        instrument = gc.GROMOS_LvL2(
+            date, 
+            basename_lvl1, 
+            basename_lvl2, 
+            integration_strategy, 
+            int_time)
     elif instrument_name=="SOMORA":
         import somora_classes as sm
-        instrument = sm.SOMORA_LvL2(date, basename_lvl1, basename_lvl2, int_time)
+        instrument = sm.SOMORA_LvL2(
+            date=date,
+            basename_lvl1=basename_lvl1,
+            basename_lvl2=basename_lvl2,
+            integration_strategy=integration_strategy,
+            integration_time=int_time
+        )
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         #basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -78,7 +90,7 @@ if __name__ == "__main__":
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 1
+    retrieval_param["retrieval_type"] = 5
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
     
@@ -121,7 +133,11 @@ if __name__ == "__main__":
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
     
-    data, flags, meteo = instrument.read_level1b()
+    if integration_strategy == 'classic':
+        data, flags, meteo = instrument.read_level1b()
+    else:
+        raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
+
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
     if instrument_name == 'mopi5':

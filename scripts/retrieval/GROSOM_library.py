@@ -60,6 +60,104 @@ def read_level1(filenameLevel1):
         
     return DS, flags, METEO, globalAttributes
 
+def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1'):
+    '''
+    generic tropospheric correction for GROSOM
+    '''
+    # little trick to work with other dimensions than time
+    
+    for s in spectrometers:
+        if dim != 'time':
+            calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({dim:'time'})
+        
+        tb_corr_da = xr.DataArray(None,
+            coords = [calibration.integrated_dataset[s].coords['time'], calibration.integrated_dataset[s].coords['channel_idx']])
+        mean_opacity = xr.DataArray(None,
+            coords = [calibration.integrated_dataset[s].coords['time']])
+        mean_transmittance = xr.DataArray(None,
+            coords = [calibration.integrated_dataset[s].coords['time']])
+        for i, t in enumerate(calibration.integrated_dataset[s].coords['time']):
+            try:
+                temperature = calibration.integrated_meteo[s].air_temperature.sel(time=t).data.item()
+            except:
+                print('No ground temperature found, taking default')
+                temperature = 293
+            if method == 'Ingold_v1':
+                delta_T = 10.4
+                tropospheric_temperature = temperature - delta_T
+            elif method == 'Ingold_v2':
+                raise NotImplementedError
+            
+            bad_channels = calibration.integrated_dataset[s].good_channels.sel(time=t).data
+            bad_channels[bad_channels==0]=np.nan
+            clean_tb = calibration.integrated_dataset[s].Tb.sel(time=t).data * bad_channels
+            
+            corr_func = tropospheric_correction(
+                f = calibration.integrated_dataset[s].frequencies.sel(time=t).data,
+                y = clean_tb,
+                t_trop=tropospheric_temperature,
+                use_wings='both',
+                skip=[100,100],
+                num_el=500)
+            
+            tb_corr, opac, transm = corr_func(
+                f = calibration.integrated_dataset[s].frequencies.sel(time=t).data,
+                y = calibration.integrated_dataset[s].Tb.sel(time=t).data
+                )
+            tb_corr_da.loc[dict(time=t)] = tb_corr
+            mean_transmittance.loc[dict(time=t)] = transm
+            mean_opacity.loc[dict(time=t)] = opac
+        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(Tb_corr = tb_corr_da)
+            
+        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(tropospheric_transmittance = mean_transmittance)
+            
+        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(tropospheric_opacity = mean_opacity)
+        
+        if dim != 'time':
+            calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({'time':dim})
+    return calibration.integrated_dataset
+
+
+def tropospheric_correction(f, y, t_trop, use_wings='both', skip=[100,100], num_el=500):
+    """
+    Generate a correction function, given frequencies, brightness temperatures
+    and a weighted mean torpospheric temperature.
+    Returns a function f: (f, y) -> y_corr
+
+    modified from the OG one from Jonas
+    """
+    #f = spectro_dataset.frequencies[cycle].data
+    #y = spectro_dataset.Tb[cycle].data
+
+    # Skip skip[0] channels at beginning and skip[1] in end
+    # use 500 channels for reference
+    wings = (slice(skip[0], skip[0]+num_el), slice(-(skip[1]+num_el), -skip[1]))
+
+    #yw = np.stack([y[s].mean() for s in wings])
+    #fw = np.stack([f[s].mean() for s in wings])
+    yw = np.stack([np.nanmean(y[s]) for s in wings])
+    fw = np.stack([np.nanmean(f[s]) for s in wings])
+
+    # Fit a line with slope to the spectrum
+    # y = a*y0 + b
+    a = (yw[1] - yw[0]) / (fw[1] - fw[0])
+    b = yw[1] - a * fw[1]
+
+    #print(a)
+    #print(b)
+
+    # Correct by frequency dependant opacity
+    def correct(f, y):
+        y_eff = a * f + b
+
+        transmittance = (t_trop - y_eff) / (t_trop - 2.7)
+        opacity = -np.log(transmittance)
+        y_corr = (y - t_trop * (1 - transmittance)) / transmittance
+        return y_corr, np.nanmean(opacity), np.nanmean(transmittance)
+
+    #return y_corr, np.nanmean(opacity), np.nanmean(transmittance)
+    return correct
+
 def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
     '''
     daily processing
@@ -249,6 +347,26 @@ def plot_Tb_chunks(self, ds_dict, calibration_cycle):
         axs.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle]*mask, lw=0.5, label=s)
         #axs.set_xlim(110.25, 111.4)
         #axs.set_ylim(0,250)
+        #ax].set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[calibration_cycle].data)+15)
+        axs.set_xlabel("f [GHz]")
+        axs.set_ylabel(r"$T_B$ [K]")
+        axs.set_title("Tb")
+        axs.grid()
+        axs.legend(fontsize='xx-small')
+        #ax3.legend()
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+    return fig  
+
+def plot_Tb_corr_chunks(self, ds_dict, calibration_cycle):
+    fig, axs = plt.subplots(1,1,sharex=True)
+    for s in self.spectrometers:
+        mask = ds_dict[s].good_channels[calibration_cycle].data
+        mask[mask==0]=np.nan
+        axs.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb_corr[calibration_cycle]*mask, lw=0.5, label=s)
+        #axs.set_xlim(110.25, 111.4)
+        axs.set_ylim(-5,40)
         #ax].set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[calibration_cycle].data)+15)
         axs.set_xlabel("f [GHz]")
         axs.set_ylabel(r"$T_B$ [K]")

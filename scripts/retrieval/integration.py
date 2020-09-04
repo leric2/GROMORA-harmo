@@ -39,10 +39,11 @@ from utils_GROSOM import save_single_pdf
 if __name__ == "__main__":
     instrument_name = "SOMORA"
     #date = datetime.date(2019,2,1)
-    date = pd.date_range(start='2019-02-01', end='2019-02-01')
+    date = pd.date_range(start='2019-02-01', end='2019-02-04')
 
-    integration_strategy = 'classic'
-    int_time = 1
+    # options are: 'TOD', 'classic' or 'meanTb'
+    integration_strategy = 'TOD'
+    int_time = 6
 
     basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
@@ -78,13 +79,13 @@ if __name__ == "__main__":
     integrated_data, integrated_meteo = calibration.integrate(
         spectrometers = calibration.spectrometers, 
         strategy=integration_strategy, 
-        tod=[12, 16], 
-        interval=[1,1],
-        Tb_chunks=[50, 100],
-        freq=6,
+        tod=[10, 12, 14, 16], 
+        interval=[1,1, 1, 1],
+        Tb_chunks=[150, 175, 200],
+        freq=int_time,
         )
 
-    if integration_strategy == 'T':
+    if integration_strategy == 'meanTb':
         dimension=['chunks','channel_idx']
     else:
         dimension=['time','channel_idx']
@@ -96,10 +97,19 @@ if __name__ == "__main__":
         dimension=dimension
         )
 
-    calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1])
+    integrated_data = calibration.correct_troposphere(calibration.spectrometers, dimension[0])
+
+    
+
+    if instrument_name == 'mopi5':
+        calibration.compare_spectra_mopi5(dim=dimension[0], idx=[0,1,2,3])
+    else:
+        calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 
     calibration.save_dataset_level1b(
         spectrometers = calibration.spectrometers, 
-        datasets=[integrated_data], 
-        groups=['spectrometer1'], 
+        datasets=[integrated_data, integrated_meteo], 
+        groups=['spectrometer1','meteo'], 
         extra='')
+
+    
