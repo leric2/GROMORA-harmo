@@ -856,15 +856,16 @@ switch instrumentName
         calibrationTool.delimiter_logfile = ';';
 % paths
         %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
-        calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-        calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
+        calibrationTool.extraFileFolder='/export/data/miawarac/ExtraRawFiles/'; % no write permission on the IAP lake
+        %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
         %calibrationTool.rawFileFolder=['/scratch/'];
-        calibrationTool.level1Folder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
+        calibrationTool.level1Folder='/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
-        calibrationTool.meteoFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';
+        calibrationTool.meteoFolder=['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';
         calibrationTool.observationFreq=22.235;
         
         calibrationTool.calibrationTime=60;
@@ -884,7 +885,7 @@ switch instrumentName
         
         calibrationTool.read_level0=@(calibrationTool, rawFileReading) read_level0_missing(calibrationTool, rawFileReading); 
         
-        calibrationTool.filenameLevel1a=['/home/franziska/Documents/MW/play_MIA-C_calibration/MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+        calibrationTool.filenameLevel1a=[calibrationTool.level1Folder 'MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
         
         calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) run_balancing_calibration(rawSpectra,log,calibrationTool,calType);
         calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_miawara_c(log,calibrationTool,calibratedSpectra);
@@ -900,7 +901,8 @@ switch instrumentName
     calibrationType='standard';
 
     % working directory
-    root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
+    root_dir = '/home/miawarac/GROSOM-harmo/';
+    calibrationTool.root_dir = root_dir;
     %cd work_path
     addpath(genpath(root_dir))
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,4 +1,4 @@
-function [logFile_out, rawSpectra_out] = read_level0_missing(calibrationTool,logFile1,rawSpectra1,file)
+function [logFile_out, rawSpectra_out] = read_level0_missing(calibrationTool,rawFileReading)
 %==========================================================================
 % NAME          | read_level0_generic.m
 % TYPE          | function
@@ -123,7 +123,7 @@ log.header = header;
 %% read missing measurements which were saved in the previous file
 
 
-file2 = [calibrationTool.instrumentName '_' datestr(datenum(calibrationTool.dateStr)-1,'YYYY_mm_dd') '_missing'];
+file2 = [calibrationTool.extraFileFolder calibrationTool.instrumentName '_' datestr(datenum(calibrationTool.dateStr)-1,'YYYY_mm_dd') '_missing'];
     
 if exist(file2,'file')
     
