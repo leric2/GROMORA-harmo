@@ -92,6 +92,7 @@ logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
 
 if calibrationTool.doTippingCurve
     % Tipping Curve
+    disp('run tipping curve calibration')
     logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
 end
 

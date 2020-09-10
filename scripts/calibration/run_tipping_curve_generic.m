@@ -10,7 +10,7 @@ TC_data = calibrationTool.get_tipping_curve_data(rawSpectra,logFile, calibration
 %% find opacity (tau)
 
 for k = 1:length(TC_data)
-    
+    k
     % check if tipping calibration needs to be done for 2 polarisations
     if isfield(TC_data{1}  ,'s_tipping_pol1')
         [TC(1).tau(k), TC(1).Teff(k), TC(1).Trec_median(k), TC(1).quality(k), TC(1).offset(k), TC(1).niter(k), TC(1).time(k)] = find_tau_iteratively(TC_data{k},calibrationTool, TC_data{k}.s_tipping_pol1, TC_data{k}.s_hot_pol1, TC_data{k}.s_cold_pol1 );

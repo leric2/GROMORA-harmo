@@ -1,6 +1,7 @@
 function [calibratedSpectra] = balancing_calibration_generic(rawSpectra,logFile,calibrationTool,calType)
 
 
+
 % Calibration version
 calibVersion='1.0.0';
 
@@ -32,6 +33,7 @@ mirror_cold = logFile.Mirror_elevation(logFile.isColdSky);
 
 for j = 1:length(logFile.TC) % loop over polarisations
     
+    disp(['Calibrate polarisation ' num2str(j)])
     
     % load remaining data from day before
     
@@ -83,7 +85,7 @@ for j = 1:length(logFile.TC) % loop over polarisations
         post.time = logFile.time(1)+1;
         post.tau  = logFile.TC(j).tau(end);
         post.Teff = logFile.TC(j).Teff(end);
-        check Tdiff ?? min?
+        %check Tdiff ?? min?
     end
     
     
@@ -109,6 +111,8 @@ for j = 1:length(logFile.TC) % loop over polarisations
         
         t1 = t0+(m-1)*dt_int;
         t2 = t0+m*dt_int;
+        
+        disp(['run calibration for ' datestr(t1,'yyyy-mm-dd HH:MM') ' - ' datestr(t2,'yyyy-mm-dd HH:MM')])
         
         % Read line spectra within time interval
 

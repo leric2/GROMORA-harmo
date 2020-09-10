@@ -10,6 +10,7 @@ calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp(['Write tau and Teff to file for ' dateStr])
 disp('Reading level0 data...')
 
 % Reading raw data
@@ -58,5 +59,5 @@ logFile.meteo = calibrationTool.get_meteo_data(calibrationTool);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tipping Curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+disp(['run tipping curve to get tau and Teff for ' dateStr])
 logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
