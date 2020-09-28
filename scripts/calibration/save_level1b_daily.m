@@ -79,8 +79,8 @@ nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrati
 nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/good_channels','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 
-nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -90,6 +90,7 @@ nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'D
 nccreate(filename,'/spectrometer1/integration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/noise_level','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -176,8 +177,8 @@ ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
 ncwrite(filename,'/spectrometer1/Tb_corr',vertcat(integratedSpectra.TbTroposphericWindowCorr)');
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(integratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/good_channels',~vertcat(integratedSpectra.potentialBadChannels)');
-ncwrite(filename,'/spectrometer1/frequencies',integratedSpectra(1).freq);
-ncwrite(filename,'/spectrometer1/intermediate_freq',integratedSpectra(1).if);
+ncwrite(filename,'/spectrometer1/frequencies',vertcat(integratedSpectra.freq)');
+ncwrite(filename,'/spectrometer1/intermediate_freq',vertcat(integratedSpectra.if)');
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
 %ncwrite(filename,'/spectrometer1/stdTHot',[integratedSpectra.stdTHot]);
 ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
@@ -195,6 +196,13 @@ ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integra
 
 ncwrite(filename,'/spectrometer1/tropospheric_opacity',[integratedSpectra.troposphericOpacity]);
 ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).troposphericCorrType);
+
+
+if isfield(integratedSpectra,'noiseLevel')
+    ncwrite(filename,'/spectrometer1/noise_level',[integratedSpectra.noiseLevel]);
+else
+    ncwrite(filename,'/spectrometer1/noise_level',-9999*ones(length(integratedSpectra),1));
+end
 
 % Data that are not present for every instrument
 if isfield(integratedSpectra,'TempRoom')
@@ -412,6 +420,11 @@ attrVal.integrationTime = {'integrationTime',...
     'second',...
     'Time used for integrating the spectra'};
 
+attrVal.noiseLevel = {'noise_level',...
+    'std(diff(Tb))',...
+    'Tb',...
+    'describes how noisy is the spectra'};
+
 attrVal.meanAngleAntenna = {'meanAngleAntenna',...
     'elevation_angle',...
     'degree',...
@@ -494,7 +507,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
-    
+    ncwriteatt(filename,'/spectrometer1/noise_level',attrName{i},attrVal.noiseLevel{i});
     % Meteo
     ncwriteatt(filename,'/meteo/air_temperature',attrName{i},attrVal.air_temperature{i});
     ncwriteatt(filename,'/meteo/air_pressure',attrName{i},attrVal.air_pressure{i});

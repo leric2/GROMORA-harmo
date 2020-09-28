@@ -81,6 +81,12 @@ correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/number_of_cold_s
 correctedSpectra.numAntSpectra=ncread(filename,'/spectrometer1/number_of_sky_spectra')';
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
 correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibration_time')';
+try
+    correctedSpectra.noiseLevel=ncread(filename,'/spectrometer1/noise_level')';
+catch ME
+     warning(ME.identifier,': no noise level defined for calibration');
+     correctedSpectra.noiseLevel = -9999*ones(1,length(correctedSpectra.meanTime));
+end
 %correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
 
 % ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
@@ -160,7 +166,7 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).lastSkyTime = correctedSpectra.lastSkyTime(i);
     calib(i).timeMin = correctedSpectra.timeMin(i);
     calib(i).TOD = correctedSpectra.tod(i);
-    
+    calib(i).noiseLevel = correctedSpectra.noiseLevel(i);
     calib(i).flags = correctedSpectra.flagVector(i,:);
 end
 

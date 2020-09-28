@@ -85,6 +85,7 @@ nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','d
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/noise_level','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/number_of_hot_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
@@ -199,6 +200,12 @@ if isfield(calibratedSpectra,'TempWindow')
     ncwrite(filename,'/spectrometer1/TWindow',[calibratedSpectra.TempWindow]);
 else
     ncwrite(filename,'/spectrometer1/TWindow',-9999*ones(length(calibratedSpectra),1));
+end
+
+if isfield(calibratedSpectra,'noiseLevel')
+    ncwrite(filename,'/spectrometer1/noise_level',[calibratedSpectra.noiseLevel]);
+else
+    ncwrite(filename,'/spectrometer1/noise_level',-9999*ones(length(calibratedSpectra),1));
 end
 
 numInd=vertcat(calibratedSpectra.numberOfIndices);
@@ -399,6 +406,11 @@ attrVal.calibrationTime = {'calibrationTime',...
     'second',...
     'Time used for calibrating the spectra'};
 
+attrVal.noiseLevel = {'noise_level',...
+    'std(diff(Tb))',...
+    'Tb',...
+    'describes how noisy is the spectra'};
+
 attrVal.meanAngleAntenna = {'meanAngleAntenna',...
     'elevation_angle',...
     'degree',...
@@ -468,6 +480,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
+    ncwriteatt(filename,'/spectrometer1/noise_level',attrName{i},attrVal.noiseLevel{i});
     
     % Meteo attr
     ncwriteatt(filename,'/meteo/air_pressure',attrName{i},attrVal.airP{i});
