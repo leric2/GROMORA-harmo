@@ -117,25 +117,25 @@ class Integration(ABC):
                 s + "_" + self.datestr
                 ))
 
-            if self.integration_strategy == 'classic':
-                if self.int_time == 1:
-                    self.filename_level1b[s] = os.path.join(
-                    self.level1_folder,
-                    self.instrument_name + "_level1b_" +
-                    s + "_" + self.datestr
-                    )
+                if self.integration_strategy == 'classic':
+                    if self.int_time == 1:
+                        self.filename_level1b[s] = os.path.join(
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_" +
+                        s + "_" + self.datestr
+                        )
+                    else:
+                        self.filename_level1b[s] = os.path.join(
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                        s + "_" + self.datestr
+                        )
                 else:
                     self.filename_level1b[s] = os.path.join(
-                    self.level1_folder,
-                    self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                    s + "_" + self.datestr
-                    )
-            else:
-                self.filename_level1b[s] = os.path.join(
-                    self.level1_folder,
-                    self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                    s + "_" + self.datestr
-                    )
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
+                        s + "_" + self.datestr
+                        )
 
     def read_level1a(self):
         ''' 
@@ -144,10 +144,13 @@ class Integration(ABC):
         '''
             
         for s in self.spectrometers:
-            print('reading : ', self.filename_level1a[s][0])
-            #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
-            self.calibrated_data[s], self.calibration_flags[s], self.meteo_data[s], global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][0])
-        
+            try:
+                #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
+                self.calibrated_data[s], self.calibration_flags[s], self.meteo_data[s], global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][0])
+                print('Read : ', self.filename_level1a[s][0])
+            except FileNotFoundError:
+                print('No file for this day, skipping ', self.filename_level1a[s][0])
+                
         # Meta data
         self.institution = global_attrs_level1a['institution']
         self.instrument_name_from_level1a = global_attrs_level1a['instrument']
@@ -164,15 +167,20 @@ class Integration(ABC):
         self.labview_logfile_warning = global_attrs_level1a['labview_logfile_warning']
 
         if self.multiday:
+            print('No meta data updates for multi-days reading (only first day is saved) !')
             for i in range(1,len(self.dates)):
                 for s in self.spectrometers:
-                    print('reading : ', self.filename_level1a[s][i])
-                    calibrated_data, calibration_flags, meteo_data, global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][i])
-                    self.calibrated_data[s] = xr.concat([self.calibrated_data[s],calibrated_data], dim='time')
-                    self.calibration_flags[s] = xr.concat([self.calibration_flags[s],calibration_flags], dim='time')
-                    self.meteo_data[s] = xr.concat([self.meteo_data[s], meteo_data], dim='time')
-                    print('No meta data updates for multi-days reading (only first day is saved) !')
-
+                    try:
+                        calibrated_data, calibration_flags, meteo_data, global_attrs_level1a = GROSOM_library.read_level1(self.filename_level1a[s][i])
+                    except FileNotFoundError:
+                        print('No file for this day, skipping ', self.filename_level1a[s][i])
+                    else:
+                        print('Read : ', self.filename_level1a[s][i])
+                        self.calibrated_data[s] = xr.concat([self.calibrated_data[s],calibrated_data], dim='time')
+                        self.calibration_flags[s] = xr.concat([self.calibration_flags[s],calibration_flags], dim='time')
+                        self.meteo_data[s] = xr.concat([self.meteo_data[s], meteo_data], dim='time')
+                        
+                    
         return self.calibrated_data, self.calibration_flags, self.meteo_data
 
     def clean_level1a_byFlags(self):
@@ -224,7 +232,7 @@ class Integration(ABC):
         else:
             raise ValueError()
 
-    def add_mean_Tb(self, spectrometers):
+    def add_mean_Tb(self, spectrometers, around_center = True, around_center_value = 50e6):
         '''
         Parameters
         ----------
@@ -238,23 +246,73 @@ class Integration(ABC):
         None.
 
         '''
+        fig, ax = plt.subplots(1,1,sharex=True)
         for s in spectrometers:
-            if 'good_channels' in self.calibrated_data[s].data_vars:
-                clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
-                da_mean_Tb = clean_Tb.mean(dim='channel_idx')
-                da_median_Tb = clean_Tb.median(dim='channel_idx')
+            if around_center:
+                if 'good_channels' in self.calibrated_data[s].data_vars:
+                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
+                    clean_Tb = clean_Tb.where(abs(self.calibrated_data[s].frequencies-self.observation_frequency)<around_center_value)
+                    da_mean_Tb = clean_Tb.mean(dim='channel_idx')
+                    da_median_Tb = clean_Tb.median(dim='channel_idx')
+                else:
+                    print('no channel filter found, be careful ! ')
+                    center_Tb = self.calibrated_data[s].where(abs(self.calibrated_data[s].frequencies-self.observation_frequency)<around_center_value)
+                    da_mean_Tb = center_Tb.mean(dim='channel_idx')
+                    da_median_Tb = center_Tb.median(dim='channel_idx')
             else:
-                print('no channel filter found, be careful ! ')
-                da_mean_Tb = self.calibrated_data[s].Tb.mean(dim='channel_idx')
-                da_median_Tb = self.calibrated_data[s].Tb.median(dim='channel_idx')
+                if 'good_channels' in self.calibrated_data[s].data_vars:
+                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
+                    da_mean_Tb = clean_Tb.mean(dim='channel_idx')
+                    da_median_Tb = clean_Tb.median(dim='channel_idx')
+                else:
+                    print('no channel filter found, be careful ! ')
+                    da_mean_Tb = self.calibrated_data[s].Tb.mean(dim='channel_idx')
+                    da_median_Tb = self.calibrated_data[s].Tb.median(dim='channel_idx')
 
-            if any(np.abs(da_mean_Tb.data - da_median_Tb.data) > 5):
-                print('Be careful, large difference between mean and median of Tb --> big spike somewhere')
+                if any(np.abs(da_mean_Tb.data - da_median_Tb.data) > 5):
+                    print('Be careful, large difference between mean and median of Tb --> big spike somewhere')
 
             self.calibrated_data[s] = self.calibrated_data[s].assign(mean_Tb = da_mean_Tb)
             self.calibrated_data[s] = self.calibrated_data[s].assign(median_Tb = da_median_Tb)
 
+            ax.plot(self.calibrated_data[s].time, self.calibrated_data[s].mean_Tb,'.',label=s)
+            ax.legend()        
+        plt.title('Mean Tb')
+
         return self.calibrated_data
+
+    def add_noise_level(self, spectrometers, max_diff_level = 10):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        fig, ax = plt.subplots(1,1,sharex=True)
+        for s in spectrometers:
+            if 'good_channels' in self.integrated_dataset[s].data_vars:
+                Tb_diff = self.integrated_dataset[s].Tb.diff(dim='channel_idx')
+                #.where(self.integrated_dataset[s].good_channels[i])
+                da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1)
+            else:
+                raise NotImplementedError('Identification of bad channels needed first')
+                
+
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(noise_level = da_std_diff_Tb)
+            ax.plot(self.integrated_dataset[s].time, self.integrated_dataset[s].noise_level,'.', label = s)
+        
+            ax.legend()
+        
+        plt.title('Noise level')
+
+        return self.integrated_dataset
 
     def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
         '''
@@ -306,16 +364,18 @@ class Integration(ABC):
                 )
 
             new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+            # #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            # #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                #noise[i] = np.std(np.diff(self.integrated_dataset[s].Tb[i].data[self.integrated_dataset[s].good_channels[i]]))
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
-                stdTb = xr.DataArray(new_stdTb, dims = ['chunks','channel_idx'])
-                )
-
+            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #     stdTb = xr.DataArray(new_stdTb, dims = ['chunks','channel_idx'])
+            #     )
+            
             #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
             #    )
@@ -369,16 +429,18 @@ class Integration(ABC):
                 )
 
             new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+            # noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            # #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                #noise[i] = np.std(np.diff(self.integrated_dataset[s].Tb[i].data[self.integrated_dataset[s].good_channels[i]]))
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
-                stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
-                )
-
+            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #     stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
+            #     )
+            
             #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
             #    )
@@ -427,15 +489,17 @@ class Integration(ABC):
                 )
 
             new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
             #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / chunks_num_el[i]
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
-                stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
-                )
+            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #     stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
+            #     )
 
             #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
@@ -459,16 +523,19 @@ class Integration(ABC):
             print('Performing simple integration')
             if self.multiday:
                 raise NotImplementedError('for multiple days, this reduces to the TOD integration')
+            
             return self.integrate_classic(self.spectrometers, freq=kwargs['freq'])
         elif strategy == 'TOD':
             print('Performing integration based on the time of day')
             if len(kwargs['tod']) == len(kwargs['interval']):
+                
                 return self.integrate_by_tod(self.spectrometers, tod=kwargs['tod'], interval=kwargs['interval'])
             else:
                 raise ValueError('Number of interval must equal the number of TOD chosen')
             
         elif strategy == 'meanTb':
             #print(kwargs['Tb_chunks'])
+            
             return self.integrate_by_mean_Tb(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'])  
         elif strategy == '...':
             print('Performing integration based on ...')

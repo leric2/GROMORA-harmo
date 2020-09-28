@@ -32,7 +32,7 @@ def read_level1(filenameLevel1):
         bool: The return value. True for success, False otherwise.
 
     """
-    
+
     DS = xr.open_dataset(
         filenameLevel1 + ".nc",
         group="spectrometer1",
@@ -41,23 +41,29 @@ def read_level1(filenameLevel1):
         decode_coords=True,
         #use_cftime=True,
         )
-
     globalAttributes=xr.open_dataset(filenameLevel1 + ".nc").attrs
-    
     METEO=xr.open_dataset(
         filenameLevel1+".nc",
         group="meteo",
         decode_times=True,
         decode_coords=True,
         )
-
     flags=xr.open_dataset(
         filenameLevel1+".nc",
         group="flags",
         decode_times=True,
         decode_coords=True,
         )
-        
+    #except FileNotFoundError:
+    #    print('The following file could not be found : ' +filenameLevel1)
+        # print('Set to empty dataset')
+        # DS = xr.Dataset(dims=['time','channel_idx'])
+        # METEO = xr.Dataset(dims=['time','flags'])
+        # flags = xr.Dataset()
+        # globalAttributes = dict()
+    #else:
+    #    print('Problem reading this file : ' + filenameLevel1)   
+             
     return DS, flags, METEO, globalAttributes
 
 def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1'):

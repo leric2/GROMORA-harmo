@@ -120,7 +120,7 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
     
     return calibration.integrated_dataset
 
-def compare_spectra_mopi5_new(calibration, ds_dict, id=0):
+def compare_spectra_mopi5_new(calibration, ds_dict, id=0, title=''):
     #fig, axs = plt.subplots(2,2,sharex=True)
     fig = plt.figure()
     ax1 = fig.add_subplot(2,2, (1,2))
@@ -135,7 +135,7 @@ def compare_spectra_mopi5_new(calibration, ds_dict, id=0):
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("f [GHz]")
         ax1.set_ylabel(r"$T_B$ [K]")
-        ax1.set_title("Tb")
+        ax1.set_title(title)
         ax1.grid()
         ax1.legend(fontsize='xx-small')
         # axs[1][0].plot(ds_dict[s].frequencies.data/1e9,

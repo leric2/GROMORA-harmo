@@ -44,16 +44,16 @@ ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
-    instrument_name = "SOMORA"
+    instrument_name = "mopi5"
     date = datetime.date(2019,2,1)
-    int_time = 1
+    int_time = 6
     integration_strategy = 'classic'
 
-    basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-    basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
-    #basename_lvl1 = "/scratch/GROSOM/Level1/"
-    #basename_lvl2 = "/scratch/GROSOM/Level2/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -77,20 +77,28 @@ if __name__ == "__main__":
         )
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
-        #basename_lvl1 = "/scratch/MOPI5/Level1/"
-        #basename_lvl2 = "/scratch/MOPI5/Level2/"
-        basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-        basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
-        instrument = mc.MOPI5_LvL2(date, basename_lvl1, basename_lvl2, int_time)
+        basename_lvl1 = "/scratch/MOPI5/Level1/"
+        basename_lvl2 = "/scratch/MOPI5/Level2/"
+        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        instrument = mc.MOPI5_LvL2(
+            date=date,
+            basename_lvl1=basename_lvl1,
+            basename_lvl2=basename_lvl2,
+            integration_strategy=integration_strategy,
+            integration_time=int_time
+        )
     
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
+
+    raise NotImplementedError('make frequencies an individual vector for each spectrum !')
 
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 5
+    retrieval_param["retrieval_type"] = 2
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
     

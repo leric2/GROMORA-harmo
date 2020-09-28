@@ -37,19 +37,23 @@ import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
 if __name__ == "__main__":
-    instrument_name = "SOMORA"
+    instrument_name = "GROMOS"
     #date = datetime.date(2019,2,1)
-    date = pd.date_range(start='2019-02-01', end='2019-02-04')
-
+    date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    #date = pd.date_range(start='2019-05-01', end='2019-05-04')
+    #date = pd.date_range(start='2019-04-25', end='2019-04-27')
+    #date = pd.date_range(start='2019-06-11', end='2019-06-18')
+    date = pd.date_range(start='2019-02-10', end='2019-02-10')
     # options are: 'TOD', 'classic' or 'meanTb'
-    integration_strategy = 'TOD'
-    int_time = 6
+    integration_strategy = 'classic'
+    int_time = 1
+    save_nc = False
 
-    basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-    basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
-    #basename_lvl1 = "/scratch/GROSOM/Level1/"
-    #basename_lvl2 = "/scratch/GROSOM/Level2/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/"
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
@@ -59,10 +63,11 @@ if __name__ == "__main__":
         calibration = sm.IntegrationSOMORA(date, basename_lvl1, integration_strategy, int_time)
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
-        #basename_lvl1 = "/scratch/MOPI5/Level1/"
-        #basename_lvl2 = "/scratch/MOPI5/Level2/"
-        basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-        basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        basename_lvl1 = "/scratch/MOPI5/Level1/"
+        basename_lvl2 = "/scratch/MOPI5/Level2/"
+        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
     calibrated_data, cal_flags, meteo_data = calibration.read_level1a()
@@ -72,16 +77,23 @@ if __name__ == "__main__":
 
     calibrated_data = calibration.find_bad_channels_stdTb(spectrometers = calibration.spectrometers, stdTb_threshold = 10, apply_on='cal')
 
-    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
+    #calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
+    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=50e6)
     
     # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
     #integrated_data = calibration.integrate(spectrometers = calibration.spectrometers, strategy=integration_strategy, Tb_chunks=[150])
+    
+    # Define the parameters for integration
+    TOD = [4, 22]
+    interval = [0.5, 0.5]
+    meanTb_chunks = [100, 125, 150, 175]
+
     integrated_data, integrated_meteo = calibration.integrate(
         spectrometers = calibration.spectrometers, 
         strategy=integration_strategy, 
-        tod=[10, 12, 14, 16], 
-        interval=[1,1, 1, 1],
-        Tb_chunks=[150, 175, 200],
+        tod=TOD, 
+        interval=interval,
+        Tb_chunks=meanTb_chunks,
         freq=int_time,
         )
 
@@ -90,6 +102,7 @@ if __name__ == "__main__":
     else:
         dimension=['time','channel_idx']
 
+    # Note that the stdTb used here is just: mean(stdTb)/sqrt(N)
     integrated_data = calibration.find_bad_channels_stdTb(
         spectrometers = calibration.spectrometers, 
         stdTb_threshold = 8,
@@ -99,17 +112,18 @@ if __name__ == "__main__":
 
     integrated_data = calibration.correct_troposphere(calibration.spectrometers, dimension[0])
 
-    
+    integrated_data = calibration.add_noise_level(calibration.spectrometers, max_diff_level=10)
 
     if instrument_name == 'mopi5':
-        calibration.compare_spectra_mopi5(dim=dimension[0], idx=[0,1,2,3])
+        calibration.compare_spectra_mopi5(dim=dimension[0], idx=[0,1,2,3], save_plot = True, identifier=meanTb_chunks)
     else:
         calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 
-    calibration.save_dataset_level1b(
-        spectrometers = calibration.spectrometers, 
-        datasets=[integrated_data, integrated_meteo], 
-        groups=['spectrometer1','meteo'], 
-        extra='')
+    if save_nc:
+        calibration.save_dataset_level1b(
+            spectrometers = calibration.spectrometers, 
+            datasets=[integrated_data, integrated_meteo], 
+            groups=['spectrometer1','meteo'], 
+            extra='')
 
     

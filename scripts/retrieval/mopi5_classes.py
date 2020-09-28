@@ -39,6 +39,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from base_classes import Integration, DataRetrieval
 import mopi5_retrievals
 import mopi5_library
+from utils_GROSOM import save_single_pdf
 
 class IntegrationMOPI5(Integration):
     '''
@@ -50,7 +51,8 @@ class IntegrationMOPI5(Integration):
         date, 
         basename_lvl1, 
         integration_strategy = None,
-        integration_time = 1
+        integration_time = 1,
+        spectrometers = []
         ):
 
         '''
@@ -61,7 +63,8 @@ class IntegrationMOPI5(Integration):
 
         self.bandwidth = [1.6e9, 1e9, 200e6]
         #self.number_of_channel = [16384, 16384, 16384]
-        spectrometers = ["U5303","AC240","USRP-A"]
+        if not spectrometers:
+            spectrometers = ["U5303","AC240","USRP-A"]
         
         level1_folder = basename_lvl1
 
@@ -84,15 +87,16 @@ class IntegrationMOPI5(Integration):
         #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
         return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
-    def compare_spectra_mopi5(self, dim='time', idx=[0], save = False):
+    def compare_spectra_mopi5(self, dim='time', idx=[0], save_plot = False, identifier=[]):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])
             #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
-            figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_dataset,i))
+            figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_dataset, i, title=title))
 
-        if save:
-            save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+        if save_plot:
+            save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
     def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
         '''
@@ -119,7 +123,7 @@ class MOPI5_LvL2(DataRetrieval):
     Hereafter we define some parameters and methods specific to this 
     instrument.
     '''
-    def __init__(self, date, basename_lvl1, basename_lvl2, integration_time):
+    def __init__(self, date, basename_lvl1, basename_lvl2, integration_strategy, integration_time):
         '''
         Some specific parameters to implement for the SOMORA instances (only constant stuff...)
         '''
@@ -133,7 +137,7 @@ class MOPI5_LvL2(DataRetrieval):
         level1_folder = basename_lvl1
         level2_folder = basename_lvl2
 
-        super().__init__(instrument_name, observation_frequency, spectrometers, integration_time, date, level1_folder, level2_folder)
+        super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
 
     def return_bad_channels(self, date, spectro):
         '''
@@ -151,7 +155,8 @@ class MOPI5_LvL2(DataRetrieval):
     def plot_comparison_mopi5_spectrometers(self, calibration_cycle=[0]):
         figures = list()
         for i in calibration_cycle:
-            figures.append(mopi5_library.compare_spectra_mopi5(self, i))
+            #figures.append(mopi5_library.compare_spectra_mopi5(self, i))
+            figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.data, i, title=''))
 
         # save_single_pdf(self.level2_folder+'spectra_comparison_'+self.datestr+'_'+str(calibration_cycle)+'.pdf', figures)
         pass 
