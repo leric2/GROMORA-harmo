@@ -109,8 +109,11 @@ for i = 1:size(calibratedSpectra,2)
     
     % Mean standard deviation of calibrated sky measurement during the
     % cycle
-    calibratedSpectra(i).potentialBadChannels = calibratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    calibratedSpectra(i).potentialBadChannels = calibratedSpectra(i).stdTb > calibrationTool.maxStdDevTbCal;
     calibratedSpectra(i).meanStdTb=nanmean(calibratedSpectra(i).stdTb(~calibratedSpectra(i).potentialBadChannels));
+    
+    diff_Tb = diff(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
+    calibratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Cold and Hot spectra variation among this cycle

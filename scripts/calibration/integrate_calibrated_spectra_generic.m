@@ -59,12 +59,19 @@ for h = 1:length(timeThresh)-1
         tod = nanmean([calibratedSpectra(indSpectra).TOD]);
         dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
     else
+        integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         % Averaging the good spectra together
         integratedTb=nanmean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
-        integratedStdTb = nanmean(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
-        integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         
-        integratedMeanStdTbFromCalMean = nanmean([calibratedSpectra(goodSpectra).meanStdTb])/sqrt(length(goodSpectra));
+        % Computing the std deviation on the integrated spectra
+        sum_of_variance = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb).^2,1);
+        %integratedStdTb = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
+        integratedStdTb = sqrt(sum_of_variance/length(goodSpectra));
+        %integratedMeanStdTbFromCalMean = sqrt(nansum([calibratedSpectra(goodSpectra).meanStdTb].^2)/length(goodSpectra))
+        
+        % For the mean, we take only good quality channels
+        good_quality_all = any(vertcat(calibratedSpectra(goodSpectra).channelsQuality),1);
+        integratedMeanStdTbFromCalMean = mean(integratedStdTb(good_quality_all));
         
         % Summing the number of spectra for hot, cold and antenna:
         integratedSpectra(h).numHotSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numHotSpectra));

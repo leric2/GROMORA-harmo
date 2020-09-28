@@ -36,7 +36,7 @@ instrumentName='mopi5';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
 readLabviewLog = true;
 
@@ -44,7 +44,15 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_01','yyyy_mm_dd'):datenum('2019_02_01','yyyy_mm_dd');
+dates=datenum('2019_01_01','yyyy_mm_dd'):datenum('2019_03_31','yyyy_mm_dd');
+
+% good_date mopi5
+dates=[datenum('2019_01_30','yyyy_mm_dd'):datenum('2019_02_22','yyyy_mm_dd'),...
+    datenum('2019_03_01','yyyy_mm_dd'):datenum('2019_03_01','yyyy_mm_dd'),...
+    datenum('2019_03_12','yyyy_mm_dd'):datenum('2019_03_12','yyyy_mm_dd'),...
+    datenum('2019_04_25','yyyy_mm_dd'):datenum('2019_05_04','yyyy_mm_dd'),...
+    datenum('2019_06_11','yyyy_mm_dd'):datenum('2019_06_18','yyyy_mm_dd')];
+
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -111,9 +119,9 @@ for d = 1:numel(dates)
     % Debug mode and plot options
     calibrationTool.calType=calibrationType;
     
-    calibrationTool.rawSpectraPlot=false;
-    calibrationTool.calibratedSpectraPlot=true;
-    calibrationTool.integratedSpectraPlot=true;
+    calibrationTool.rawSpectraPlot = false;
+    calibrationTool.calibratedSpectraPlot = true;
+    calibrationTool.integratedSpectraPlot = true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
@@ -225,6 +233,6 @@ for d = 1:numel(dates)
         % not yet
 
     end
-    clearvars level1b
+    %clearvars level1b
 end
 

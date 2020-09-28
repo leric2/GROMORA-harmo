@@ -197,7 +197,7 @@ switch instrumentName
         calibrationTool.frequencyBandAroundCenterTSys = 200e6;
         
         % Filters for flagging "bad channels"
-        calibrationTool.maxStdDevTb = nan; %TODO
+        calibrationTool.maxStdDevTbCal = 25; %TODO
         calibrationTool.maxStdDevTbInt = 10;
         
         calibrationTool.filterTypeChannelQualityCal = 3;
@@ -433,7 +433,7 @@ switch instrumentName
         calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
         
         % Filters for flagging "bad channels"
-        calibrationTool.maxStdDevTb = 25;
+        calibrationTool.maxStdDevTbCal = 25;
         calibrationTool.maxStdDevTbInt = 10;
         
         calibrationTool.filterTypeChannelQualityCal = 3;
@@ -649,7 +649,7 @@ switch instrumentName
         
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
-        calibrationTool.maxStdDevTb = nan; %TODO
+        calibrationTool.maxStdDevTbCal = nan; %TODO
         calibrationTool.maxStdDevTbInt = 4;
         
         calibrationTool.filterTypeChannelQualityCal = 3;

@@ -51,6 +51,7 @@ for i = 1:size(integratedSpectra,2)
     if isempty(cleanTb)
         integratedSpectra(i).meanStdTbFromGoodCh = -9999;
         integratedSpectra(i).meanStdFromWings = -9999;
+        integratedSpectra(i).meanStdTb = -9999;
     else
         integratedSpectra(i).meanStdTbFromGoodCh=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
     
@@ -65,6 +66,9 @@ for i = 1:size(integratedSpectra,2)
         rightWing = cleanTb(N-upper:N-lower);
     
         integratedSpectra(i).meanStdFromWings = prctile([leftWing,rightWing],95)-prctile([leftWing,rightWing],5);
+        
+        diff_Tb = diff(cleanTb);
+        integratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)));
     end
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%

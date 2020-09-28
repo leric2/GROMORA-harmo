@@ -40,7 +40,7 @@ switch filterN
         for t = 1:length(calibratedSpectra)
             indCyclesGood=indicesGood;
             
-            indCyclesGood(calibratedSpectra(t).stdTb > calibrationTool.maxStdDevTb) = NaN;
+            indCyclesGood(calibratedSpectra(t).stdTb > calibrationTool.maxStdDevTbCal) = NaN;
             
             calibratedSpectra(t).channelsQuality=indCyclesGood';
         end
