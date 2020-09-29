@@ -275,11 +275,13 @@ class Integration(ABC):
             self.calibrated_data[s] = self.calibrated_data[s].assign(mean_Tb = da_mean_Tb)
             self.calibrated_data[s] = self.calibrated_data[s].assign(median_Tb = da_median_Tb)
 
-            ax.plot(self.calibrated_data[s].time, self.calibrated_data[s].mean_Tb,'.',label=s)
+            ax.plot(self.calibrated_data[s].time, self.calibrated_data[s].mean_Tb,'.',markersize=4,label=s)
             ax.legend()        
         plt.title('Mean Tb')
 
         return self.calibrated_data
+
+    #def plot_variables(self, spectrometers, var)
 
     def add_noise_level(self, spectrometers, max_diff_level = 10):
         '''
@@ -656,9 +658,9 @@ class DataRetrieval(ABC):
         Reading level1b dataset and completing the information on the instrument
         
         '''
-        self.data = dict()
+        self.integrated_dataset = dict()
         self.flags = dict()
-        self.meteo = dict()
+        self.integrated_meteo = dict()
         #self.filename_level1a = dict()
         #self.filename_level1b = dict()
         self.filename_level2 = dict()
@@ -695,7 +697,7 @@ class DataRetrieval(ABC):
         
             print('reading : ', self.filename_level1b[s])
             #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
-            self.data[s], self.flags[s], self.meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
+            self.integrated_dataset[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
         
         # Meta data
         self.institution = global_attrs_level1b['institution']
@@ -720,7 +722,7 @@ class DataRetrieval(ABC):
 
         #self.time = self.level1b_ds.time.values
         #self.number_of_time_records = len(self.time)
-        return self.data, self.flags, self.meteo
+        return self.integrated_dataset, self.flags, self.integrated_meteo
         #return self.level1b_ds, self.flags, self.meteo_ds
     
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
@@ -870,8 +872,33 @@ class DataRetrieval(ABC):
 
         '''
         return GROSOM_library.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+    
+    def find_bad_channels_stdTb(self, spectrometers, stdTb_threshold, apply_on='cal', dimension=['time','channel_idx']):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
 
-    def find_bad_channels_stdTb(self, spectro, stdTb_threshold):
+        Returns
+        -------
+        None.
+
+        '''
+        if apply_on=='cal':
+            for spectro in spectrometers:
+                bad_channels = self.return_bad_channels(self.date, spectro)
+                self.calibrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.calibrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.calibrated_data
+        elif apply_on=='int':
+            for spectro in spectrometers:
+                bad_channels = self.return_bad_channels(self.date, spectro)
+                self.integrated_dataset[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_dataset[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.integrated_dataset
+        else:
+            raise ValueError()
+
+    def find_bad_channels_stdTb_old(self, spectro, stdTb_threshold):
         '''
         Parameters
         ----------

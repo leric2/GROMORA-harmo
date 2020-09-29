@@ -437,7 +437,7 @@ def plot_level2(ds, ac, retrieval_param, title=""):
     
     ozone_ret, h2o_ret = ac.retrieval_quantities
     good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
-    f_backend = ds.frequencies.values[good_channels]
+    f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
     y = ds.Tb[retrieval_param['integration_cycle']].values[good_channels]
     #y = ac.y[0]
     yf = ac.yf[0]
@@ -583,7 +583,7 @@ def plot_level2_from_tropospheric_corrected(ds, ac, retrieval_param, title=""):
     '''
     ozone_ret = ac.retrieval_quantities[0]
     good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
-    f_backend = ds.frequencies.values[good_channels]
+    f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
     y = ds.Tb_corr[retrieval_param['integration_cycle']].values[good_channels]
     #y = ac.y[0]
     yf = ac.yf[0]

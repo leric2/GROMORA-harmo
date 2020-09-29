@@ -37,17 +37,21 @@ import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
 if __name__ == "__main__":
-    instrument_name = "GROMOS"
+    instrument_name = "mopi5"
     #date = datetime.date(2019,2,1)
-    date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    date = pd.date_range(start='2019-01-03', end='2019-01-05')
+    #date = pd.date_range(start='2019-01-30', end='2019-06-18')
+    #date = pd.date_range(start='2019-01-30', end='2019-02-22')
+
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
-    #date = pd.date_range(start='2019-06-11', end='2019-06-18')
-    date = pd.date_range(start='2019-02-10', end='2019-02-10')
+    date = pd.date_range(start='2019-06-11', end='2019-06-15')
+    #date = pd.date_range(start='2019-02-10', end='2019-02-10')
     # options are: 'TOD', 'classic' or 'meanTb'
-    integration_strategy = 'classic'
+    integration_strategy = 'meanTb'
     int_time = 1
     save_nc = False
+    plot_ts_Tb_Tsys = True
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
@@ -80,13 +84,35 @@ if __name__ == "__main__":
     #calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
     calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=50e6)
     
+    if plot_ts_Tb_Tsys:
+        fig = plt.figure()
+        ax = fig.add_subplot(2,1,1)
+        ax1 = fig.add_subplot(2,1,2)
+        #ax2 = fig.add_subplot(3,1,3)
+        for s in calibration.spectrometers:
+            ax.plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].mean_Tb,'.',markersize=4,label=s)
+            ax1.plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
+            #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
+
+            #ax.legend()        
+            ax1.legend()    
+        ax.set_ylabel('$T_B$ [K]')
+        ax1.set_ylabel('$T_{sys}$ [K]')
+        #plt.suptitle('Mean T_B and T_sys')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        #fig.savefig(calibration.level1_folder+'Tb_Tsys_all_'+calibration.datestr+'.pdf')
+
     # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
     #integrated_data = calibration.integrate(spectrometers = calibration.spectrometers, strategy=integration_strategy, Tb_chunks=[150])
-    
+
+# %%
+        
     # Define the parameters for integration
-    TOD = [4, 22]
+    TOD = [3, 9]
     interval = [0.5, 0.5]
-    meanTb_chunks = [100, 125, 150, 175]
+    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+    classic = np.arange(1,24)
 
     integrated_data, integrated_meteo = calibration.integrate(
         spectrometers = calibration.spectrometers, 
@@ -105,17 +131,23 @@ if __name__ == "__main__":
     # Note that the stdTb used here is just: mean(stdTb)/sqrt(N)
     integrated_data = calibration.find_bad_channels_stdTb(
         spectrometers = calibration.spectrometers, 
-        stdTb_threshold = 8,
+        stdTb_threshold = 12,
         apply_on='int',
         dimension=dimension
         )
 
-    integrated_data = calibration.correct_troposphere(calibration.spectrometers, dimension[0])
+    integrated_data = calibration.correct_troposphere(calibration.spectrometers, dimension[0], method='Ingold_v1', basis_spectro='AC240')
 
     integrated_data = calibration.add_noise_level(calibration.spectrometers, max_diff_level=10)
 
     if instrument_name == 'mopi5':
-        calibration.compare_spectra_mopi5(dim=dimension[0], idx=[0,1,2,3], save_plot = True, identifier=meanTb_chunks)
+        calibration.compare_spectra_mopi5(
+            dim=dimension[0], 
+            idx=np.arange(0,len(meanTb_chunks)+1), 
+            save_plot = True, 
+            identifier=meanTb_chunks+[300],
+            with_corr = True
+        )
     else:
         calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 
@@ -126,4 +158,3 @@ if __name__ == "__main__":
             groups=['spectrometer1','meteo'], 
             extra='')
 
-    
