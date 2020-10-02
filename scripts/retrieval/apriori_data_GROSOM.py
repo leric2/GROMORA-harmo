@@ -120,7 +120,14 @@ def get_apriori_fascod(retrieval_param):
         ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
     )
     print('Atmospheric state and apriori defined from Fascod climatology : ',fascod_clim)
-    print('Ozone apriori from : Fascod')
+    if retrieval_param['atm'] == 'fascod_gromos_o3':
+        o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+        fascod_atm.set_vmr_field(
+            "O3", o3_apriori["p"].values, o3_apriori['o3'].values
+        )
+        print('Ozone apriori from : OG GROMOS')
+    
+    print('Ozone apriori from : fascod')
     return fascod_atm
 
 def get_apriori_atmosphere(retrieval_param):
