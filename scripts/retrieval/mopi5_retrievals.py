@@ -27,7 +27,8 @@ from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from retrievals.data import p_interpolate
 
 from typhon.arts.workspace import arts_agenda
-from typhon.arts.xml import load
+
+from utils_GROSOM import var_allan
 
 def make_f_grid(retrieval_param): #TODO
     '''
@@ -93,8 +94,9 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
 
     cycle = retrieval_param["integration_cycle"]
     good_channels = spectro_dataset.good_channels[cycle].data == 1
-    ds_freq = spectro_dataset.frequencies.values[good_channels]
+    ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
     ds_y = spectro_dataset.Tb_corr[cycle].values[good_channels]
+    noise_level = spectro_dataset.noise_level[cycle].values
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
@@ -115,7 +117,7 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
     ds_df = ds_bw/(ds_num_of_channel-1)
         
     # Iniializing ArtsController object
-    ac = arts.ArtsController()
+    ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
     ac.setup(atmosphere_dim=1, iy_unit='RJBT', ppath_lmax=-1, stokes_dim=1)
 
     
@@ -145,11 +147,14 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
         line_shape=["VVH", 750e9],
     )
 
-    #.plot_apriori_cira86(retrieval_param)
-    print('State of the atmosphere defined with:')
+    #apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
     if retrieval_param['atm'] == 'fascod':
         atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
-        
+    elif retrieval_param['atm'] == 'fascod_2':
+        ac.ws.AtmRawRead(basename = "planets/Earth/Fascod/{}/{}".format('midlatitude-winter','midlatitude-winter'))
+        ac.ws.AtmFieldsCalc()    
+    elif retrieval_param['atm'] == 'fascod_gromos_o3':
+        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param) 
     elif retrieval_param['atm'] =='ecmwf_cira86':
         t1 = pd.to_datetime(retrieval_param['time_start'])
         t2 = pd.to_datetime(retrieval_param['time_stop'])
@@ -186,7 +191,6 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
         )
 
     ac.set_observations([obs])
-    ac.set_y([ds_y])
     
     # Defining our sensors
     sensor = arts.SensorFFT(ds_freq, ds_df)
@@ -195,11 +199,13 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
     # doing the checks
     ac.checked_calc()
     
-    # FM
-    #y = ac.y_calc()
+    # FM + noise --> to retrieve as test !
+    y_FM = ac.y_calc()
     
-    #plot_FM_comparison(ds_freq,f_grid,y,ds_y)
+    retrieval_module.plot_FM_comparison(ds_freq,y_FM[0],ds_y)
 
+    ac.set_y([ds_y])
+    
     # Setup the retrieval
     z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
     z_top_ret = retrieval_param["z_top_ret_grid"]
@@ -224,28 +230,32 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
     # The different things we want to retrieve
     fshift_ret = arts.FreqShift(100e3, df=50e3)
 
-    ozone_ret = arts.AbsSpecies('O3', p_grid_retrieval, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
-    #h2o_ret = arts.AbsSpecies('H2O', p_ret_grid, lat_ret_grid, lon_ret_grid, sx, unit='vmr')
-    
-
-    #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
-    
-    # increase variance for spurious spectra by factor
-    #factor = retrieval_param['increased_var_factor']
-    
-    #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
+    ozone_ret = arts.AbsSpecies(
+        species = 'O3',
+        p_grid = p_grid_retrieval,
+        lat_grid = lat_ret_grid,
+        lon_grid = lon_ret_grid,
+        covmat = sx,
+        unit = 'vmr'
+    )
     
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
-    #y_var = factor*utils.var_allan(ds_y) * np.ones_like(ds_y)
-    y_var = 5*spectro_dataset.stdTb[cycle].data[good_channels]
+    #y_var = 10*spectro_dataset.noise_level[cycle].data * np.ones_like(ds_y)
+    y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
+    fig, ax = plt.subplots(1,1,sharex=True)
+    y_var = 100*var_allan(ds_y) * np.ones(len(ds_y))
+    ax.plot(y_var, label='allan_var')
+    y_var = retrieval_param['increased_var_factor']*np.square(noise_level) * np.ones(len(ds_y))
+    ax.plot(y_var, label='noise_level')
+    ax.legend()
 
-    #polyfit_ret = arts.Polyfit(
-    #    poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
-    #)
+    polyfit_ret = arts.Polyfit(
+        poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    )
 
-    ac.define_retrieval([ozone_ret, fshift_ret], y_var)
-    #ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
+    #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
+    ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
     
     # Let a priori be off by 0.5 ppm (testing purpose)
     #vmr_offset = -0.5e-6
@@ -256,7 +266,7 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
     ac.oem(
         method='gn',
         max_iter=10,
-        stop_dx=0.1,
+        stop_dx=0.01,
         inversion_iterate_agenda=inversion_iterate_agenda,
       )
     

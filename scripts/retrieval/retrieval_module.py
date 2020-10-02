@@ -86,7 +86,7 @@ def retrieve_cycle(spectro_dataset, retrieval_param):
 
     cycle = retrieval_param["integration_cycle"]
     good_channels = spectro_dataset.good_channels[cycle].data == 1
-    ds_freq = spectro_dataset.frequencies.values[good_channels]
+    ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
     ds_y = spectro_dataset.Tb[cycle].values[good_channels]
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
@@ -313,7 +313,7 @@ def retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param):
 
     cycle = retrieval_param["integration_cycle"]
     good_channels = spectro_dataset.good_channels[cycle].data == 1
-    ds_freq = spectro_dataset.frequencies.values[good_channels]
+    ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
     ds_y = spectro_dataset.Tb_corr[cycle].values[good_channels]
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
@@ -509,7 +509,7 @@ def test_retrieval(spectro_dataset, retrieval_param):
 
     cycle = retrieval_param["integration_cycle"]
     good_channels = spectro_dataset.good_channels[cycle].data == 1
-    ds_freq = spectro_dataset.frequencies.values[good_channels]
+    ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
     ds_y = spectro_dataset.Tb[cycle].values[good_channels]
     #ds_y = spectro_dataset.Tb_corr[cycle].values[good_channels]
 

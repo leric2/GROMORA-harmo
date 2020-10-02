@@ -48,7 +48,7 @@ if __name__ == "__main__":
     date = datetime.date(2019,2,1)
     int_time = 6
     integration_strategy = 'classic'
-
+    recheck_channels = True
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
@@ -92,13 +92,11 @@ if __name__ == "__main__":
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
 
-    raise NotImplementedError('make frequencies an individual vector for each spectrum !')
-
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 2
+    retrieval_param["retrieval_type"] = 5
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
     
@@ -142,19 +140,29 @@ if __name__ == "__main__":
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
     
     if integration_strategy == 'classic':
-        data, flags, meteo = instrument.read_level1b()
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b()
     else:
         raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
+    if recheck_channels:
+        integrated_data = instrument.find_bad_channels_stdTb(
+            spectrometers = instrument.spectrometers, 
+            stdTb_threshold = 12,
+            apply_on='int',
+            dimension=['time','channel_idx']
+            )
+
+
     if instrument_name == 'mopi5':
-        instrument = instrument.correction_function_mopi5('U5303', 290)
-        instrument.plot_comparison_mopi5_spectrometers(calibration_cycle=[0,1,2,3])
+        #instrument = instrument.correction_function_mopi5('U5303', 290)
+        integrated_dataset = instrument.correct_troposphere(instrument.spectrometers, dim='time', method='Ingold_v1', basis_spectro='AC240')
+        instrument.compare_spectra_mopi5(dim='time', idx=[0,1,2,3], save_plot=False, identifier=[0,1,2,3], with_corr=True)
          
     #for i,s in enumerate(instrument.spectrometer):
     spectro = 'AC240'
-    spectro_dataset = instrument.data[spectro]
+    spectro_dataset = instrument.integrated_dataset[spectro]
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
     #else :
     #    raise ValueError('incoherent instrument definition')
