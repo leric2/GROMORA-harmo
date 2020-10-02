@@ -38,3 +38,10 @@ def save_single_pdf(filename, figures):
     with PdfPages(filename) as pdf:
         for fig in figures:
             pdf.savefig(fig)
+
+def var_allan(y, axis=0):
+    """
+    Compute Allan variance of `y` along `axis`.
+    """
+    var = np.mean(np.square(np.diff(y, axis=axis)), axis=axis) / 2
+    return var

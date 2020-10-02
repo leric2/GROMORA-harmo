@@ -39,19 +39,19 @@ from utils_GROSOM import save_single_pdf
 if __name__ == "__main__":
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,1)
-    date = pd.date_range(start='2019-01-03', end='2019-01-05')
+    #date = pd.date_range(start='2019-01-03', end='2019-01-05')
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
-    #date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    date = pd.date_range(start='2019-01-30', end='2019-02-22')
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
-    date = pd.date_range(start='2019-06-11', end='2019-06-15')
-    #date = pd.date_range(start='2019-02-10', end='2019-02-10')
-    # options are: 'TOD', 'classic' or 'meanTb'
-    integration_strategy = 'meanTb'
-    int_time = 1
+    #date = pd.date_range(start='2019-06-11', end='2019-06-11')
+    #date = pd.date_range(start='2019-03-12', end='2019-03-12')
+    # options are: 'TOD', 'classic' 'meanTb_harmo', or 'meanTb'
+    integration_strategy = 'meanTb_harmo'
+    int_time = 6
     save_nc = False
-    plot_ts_Tb_Tsys = True
+    plot_ts_Tb_Tsys = False
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     calibrated_data = calibration.find_bad_channels_stdTb(spectrometers = calibration.spectrometers, stdTb_threshold = 10, apply_on='cal')
 
     #calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
-    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=50e6)
+    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=20e6)
     
     if plot_ts_Tb_Tsys:
         fig = plt.figure()
@@ -108,10 +108,10 @@ if __name__ == "__main__":
 # %%
         
     # Define the parameters for integration
-    TOD = [3, 9]
-    interval = [0.5, 0.5]
-    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+    TOD = [3, 9, 15, 21]
+    interval = [3, 3, 3, 3]
+    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
     classic = np.arange(1,24)
 
     integrated_data, integrated_meteo = calibration.integrate(
@@ -120,10 +120,11 @@ if __name__ == "__main__":
         tod=TOD, 
         interval=interval,
         Tb_chunks=meanTb_chunks,
+        spectro_basis='U5303',
         freq=int_time,
         )
 
-    if integration_strategy == 'meanTb':
+    if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
         dimension=['chunks','channel_idx']
     else:
         dimension=['time','channel_idx']
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     # Note that the stdTb used here is just: mean(stdTb)/sqrt(N)
     integrated_data = calibration.find_bad_channels_stdTb(
         spectrometers = calibration.spectrometers, 
-        stdTb_threshold = 12,
+        stdTb_threshold = 15,
         apply_on='int',
         dimension=dimension
         )
@@ -144,10 +145,17 @@ if __name__ == "__main__":
         calibration.compare_spectra_mopi5(
             dim=dimension[0], 
             idx=np.arange(0,len(meanTb_chunks)+1), 
+            #idx=[0,1,2,3],
             save_plot = True, 
+            #identifier=TOD,
             identifier=meanTb_chunks+[300],
-            with_corr = True
+            with_corr = False
         )
+
+        plt.plot(integrated_data['AC240'].time_min,'x')
+        plt.plot(integrated_data['U5303'].time_min,'o')
+        plt.plot(integrated_data['USRP-A'].time_min,'.')
+
     else:
         calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 

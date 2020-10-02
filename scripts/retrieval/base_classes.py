@@ -35,10 +35,10 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -300,9 +300,10 @@ class Integration(ABC):
         fig, ax = plt.subplots(1,1,sharex=True)
         for s in spectrometers:
             if 'good_channels' in self.integrated_dataset[s].data_vars:
-                Tb_diff = self.integrated_dataset[s].Tb.diff(dim='channel_idx')
-                #.where(self.integrated_dataset[s].good_channels[i])
-                da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1)
+                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels)
+                Tb_diff = clean_Tb.diff(dim='channel_idx')
+                da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / np.sqrt(2)
+                #da_var_diff_Tb = np.var(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / 2
             else:
                 raise NotImplementedError('Identification of bad channels needed first')
                 
@@ -384,7 +385,87 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_dataset[s] = self.integrated_dataset[s].drop(
-                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                )
+
+        return self.integrated_dataset, self.integrated_meteo
+   
+    def integrate_by_mean_Tb_harmonized(self, spectrometers, Tb_chunks = [50, 100, 150, 200], use_basis='U5303'):
+        '''
+        integration based on the mean brightness temperature in a given dataset. In the case of the
+        harmonized version, we only use 1 spectrometer to decide which time stamp we integrate.
+
+        output an integrated dataset with dimension (time, chunks)
+        '''
+        print(f"Integration with Tb chunks: {Tb_chunks}")
+        self.integrated_dataset = dict()
+
+        # At this point this makes no sense to integrate any meteo data...
+        # this is not straightforward because the time of both datasets are different.
+        self.integrated_meteo = self.meteo_data
+        
+        # Use the basis spectro for defining the right timestamp.
+        
+        for s in spectrometers:
+            chunks_num_el = []
+            
+            for i in range(len(Tb_chunks)+1):
+                if i==0:
+                    chunks_lim = Tb_chunks[i]
+                    good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb < chunks_lim, drop=True)
+                    #good_times = good_times.time.values.astype('datetime64[m]')
+                    #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb < chunks_lim, drop=True)
+
+                    ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
+                    chunks_num_el.append(ds.dims['time'])
+                    #mean_time = ds.dims['time']
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
+                    
+                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    #self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                elif i==len(Tb_chunks):
+                    chunks_lim = Tb_chunks[i-1]
+                    #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb > chunks_lim, drop=True)
+                    good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb > chunks_lim, drop=True)
+                    
+                    ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
+                    chunks_num_el.append(ds.dims['time'])
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
+                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
+                else:
+                    good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
+                    good_times = good_times.where(self.calibrated_data[use_basis].mean_Tb < Tb_chunks[i], drop=True)               
+                    
+                    ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
+
+                    #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
+                    #ds = ds.where(self.calibrated_data[use_basis].mean_Tb < Tb_chunks[i], drop=True)
+                    
+                    chunks_num_el.append(ds.dims['time'])
+                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
+                    #meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
+                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
+            
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            #self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            
+            # New variable with the size of the chunks
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                chunk_size = xr.DataArray(chunks_num_el, dims = ['chunks'])
+                )
+
+            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            # #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            # #new_mean_stdTb = np.zeros(len(chunks_num_el))
+
+            for i in range(len(chunks_num_el)):
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+
+            # Drop meaningless variables:
+            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
         return self.integrated_dataset, self.integrated_meteo
@@ -449,7 +530,7 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_dataset[s] = self.integrated_dataset[s].drop(
-                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
         return self.integrated_dataset, self.integrated_meteo
@@ -538,7 +619,11 @@ class Integration(ABC):
         elif strategy == 'meanTb':
             #print(kwargs['Tb_chunks'])
             
-            return self.integrate_by_mean_Tb(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'])  
+            return self.integrate_by_mean_Tb(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'])
+        
+        elif strategy == 'meanTb_harmo':
+            return self.integrate_by_mean_Tb_harmonized(self.spectrometers, Tb_chunks=kwargs['Tb_chunks'], use_basis=kwargs['spectro_basis'])
+
         elif strategy == '...':
             print('Performing integration based on ...')
             raise NotImplementedError()
@@ -652,7 +737,7 @@ class DataRetrieval(ABC):
         ''' Get hot load temperature for a specific time.
         '''
         raise NotImplementedError("abstract base class")
-    
+
     def read_level1b(self):
         ''' 
         Reading level1b dataset and completing the information on the instrument

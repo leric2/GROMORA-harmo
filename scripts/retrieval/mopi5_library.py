@@ -59,6 +59,12 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
     '''
     generic tropospheric correction for GROSOM
     '''
+
+    if use_basis == 'U5303':
+        skip_ch = [200,8000]
+    else:
+        skip_ch = [100,100]
+
     # little trick to work with other dimensions than time
     tb_corr_da = dict()
     mean_opacity = dict()
@@ -98,7 +104,7 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
             y = clean_tb,
             t_trop=tropospheric_temperature,
             use_wings='both',
-            skip=[100,100],
+            skip=skip_ch,
             num_el=500)
     
         # Run correction on all spectrometers
@@ -192,3 +198,124 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, title=
     plt.show()
     
     return fig
+
+def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title="", figures=list()):
+    '''
+    Plotting function directly taken from Jonas ;)
+    OG can be found in retrieval.py in MOPI retrievals
+    
+    Parameters
+    ----------
+    ds : TYPE
+        DESCRIPTION.
+    ac : TYPE
+        DESCRIPTION.
+    title : TYPE, optional
+        DESCRIPTION. The default is "".
+
+    Returns
+    -------
+    figures : TYPE
+        DESCRIPTION.
+
+    '''
+    ozone_ret, fshift_ret, polyfit_ret = ac.retrieval_quantities
+    good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
+    f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
+    y = ds.Tb_corr[retrieval_param['integration_cycle']].values[good_channels]
+    #y = ac.y[0]
+    yf = ac.yf[0]
+    bl = ac.y_baseline[0]
+    r = y - yf
+    r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
+
+    # Text
+    fshift_text = "$\\Delta f =$ {:g} kHz".format(fshift_ret.x[0] / 1e3)
+    #fshift_text='without'
+    baseline_text = ", ".join(
+        ["$b_{}={:.2f}$".format(i, b[0]) for i, b in enumerate(polyfit_ret.x)]
+    )
+
+    #figures = list()
+
+    fig, axs = plt.subplots(2, sharex=True)
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
+    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, bl, label="baseline")
+    axs[0].set_ylim(-5, 50)
+    axs[0].legend(loc='upper right')
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    axs[1].set_ylim(-2, 2)
+    axs[1].legend()
+    axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
+    axs[0].text(
+        0.02,
+        0.8,
+        fshift_text + "\n" + baseline_text,
+        transform=axs[0].transAxes,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    for ax in axs:
+        ax.set_ylabel("$T_B$ [K]")
+        ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
+    fig.suptitle(title + " - Spectrum")
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
+
+    fig, axs = plt.subplots(2, 2, sharey=True)
+    axs[0][0].plot(
+        ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
+    )
+    axs[0][0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
+    axs[0][0].set_xlim(-0.5,15)
+    axs[0][0].set_xlabel("Ozone VMR [ppm]")
+    axs[0][0].set_ylabel("Altitude [km]")
+    axs[0][0].legend()
+
+    axs[0][1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
+    axs[0][1].set_xlabel("Measurement response")
+    
+    axs[1][0].plot(ozone_ret.es * 1e6, ozone_ret.z_grid / 1e3, label="smoothing error")
+    axs[1][0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3, label="obs error")
+    axs[1][0].set_xlabel("$e$ [ppm]")
+    axs[1][0].set_ylabel("Altitude [km]")
+    axs[1][0].legend()
+
+    for avk in ozone_ret.avkm:
+        if 0.8 <= np.sum(avk) <= 1.2:
+            axs[1][1].plot(avk, ozone_ret.z_grid / 1e3)
+    axs[1][1].set_xlabel("AVKM")
+
+    axs[0][0].grid(True)
+    axs[0][1].grid(True)
+    axs[1][1].grid(True)
+    axs[1][0].grid(True)
+
+
+    fig.suptitle(title + " - Ozone")
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    figures.append(fig)
+
+
+    # temp = ac.ws.t_field_raw.value.to_xarray()
+    # alt = ac.ws.z_field_raw.value.to_xarray()
+    # fig, axs = plt.subplots(1, 2)
+    # axs[0].plot(temp.sel(Latitude=0, Longitude=0).data, temp.Pressure)
+    # axs[0].invert_yaxis()
+    # axs[0].set_yscale('log')
+    # axs[0].set_xlabel('T [K]')
+    # axs[0].set_ylabel('$P$ [Pa]')
+
+    # axs[1].plot(temp.sel(Latitude=0, Longitude=0).data, alt.sel(Latitude=0, Longitude=0).data/1e3)
+    # #axs[1].invert_yaxis()
+    # #axs[1].set_yscale('log')
+    # axs[1].set_xlabel('T [K]')
+    # axs[1].set_ylabel('$Z$ [km]')
+    # fig.suptitle('Raw PTZ profile')
+   
+    # figures.append(fig)   
+
+    return figures

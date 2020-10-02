@@ -144,6 +144,49 @@ class MOPI5_LvL2(DataRetrieval):
 
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
 
+    def import_standard_retrieval_params_mopi5(self):
+
+        retrieval_param = dict()
+        retrieval_param["retrieval_type"] = 1
+
+        retrieval_param["obs_freq"] = self.observation_frequency
+    
+        retrieval_param["plot_meteo_ds"] = True
+        retrieval_param["number_of_freq_points"] = 601
+        retrieval_param["irregularity_f_grid"] = 10
+        retrieval_param["show_f_grid"] = True
+
+        retrieval_param["z_top_sim_grid"] = 97e3
+        retrieval_param["z_bottom_sim_grid"] = 1000
+        retrieval_param["z_resolution_sim_grid"] = 1e3
+
+        retrieval_param["z_top_ret_grid"] = 95e3
+        retrieval_param["z_bottom_ret_grid"] = 1000
+        retrieval_param["z_resolution_ret_grid"] = 3e3
+
+        #retrieval_param["z_top_ret_grid_h2o"] = 50e3
+        #retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
+
+        
+        retrieval_param['unit_var_y']  = 3
+
+
+        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+        retrieval_param["apriori_O3_cov"] = 1.5e-6
+
+        retrieval_param['water_vapor_model'] = "H2O-PWR98"
+        #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
+        #retrieval_param["azimuth_angle"]=32
+
+        
+        
+        retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+        retrieval_param['extra_time_ecmwf'] = 6
+
+
+        return retrieval_param
+
     def return_bad_channels(self, date, spectro):
         '''
         to get the bad channels as a function of the date for MOPI5
@@ -179,15 +222,15 @@ class MOPI5_LvL2(DataRetrieval):
         and a weighted mean torpospheric temperature.
         Returns a function f: (f, y) -> y_corr
         '''
-        l = len(self.data[spectro_as_basis].time)
+        l = len(self.integrated_dataset[spectro_as_basis].time)
         y_corr = dict()
         for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
-            y_corr[s] = np.ones((l,len(self.data[s].channel_idx.data)))*np.nan
+            y_corr[s] = np.ones((l,len(self.integrated_dataset[s].channel_idx.data)))*np.nan
 
         for c in range(l):
-            good_channels = self.data[spectro_as_basis].good_channels[c].data == 1
-            f_basis = self.data[spectro_as_basis].frequencies.data[good_channels]
-            y_basis = self.data[spectro_as_basis].Tb[c].data[good_channels]
+            good_channels = self.integrated_dataset[spectro_as_basis].good_channels[c].data == 1
+            f_basis = self.integrated_dataset[spectro_as_basis].frequencies.data[good_channels]
+            y_basis = self.integrated_dataset[spectro_as_basis].Tb[c].data[good_channels]
 
             # Skip 100 channels at beginning
             # use 500 channels for reference
@@ -203,8 +246,8 @@ class MOPI5_LvL2(DataRetrieval):
 
             for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
 
-                f = self.data[s].frequencies.data
-                y = self.data[s].Tb[c].data
+                f = self.integrated_dataset[s].frequencies.data
+                y = self.integrated_dataset[s].Tb[c].data
 
                 # Correct by frequency dependant opacity for the three spectrometers
                 y_eff = a * f + b
@@ -215,8 +258,8 @@ class MOPI5_LvL2(DataRetrieval):
 
         for i, spectro in enumerate(["U5303", "AC240", "USRP-A"]):
             new_tb_corr = xr.DataArray(y_corr[spectro], dims = ['time', 'channel_idx'])
-            self.data[spectro] = self.data[spectro].assign(Tb_corr_old = self.data[spectro].Tb_corr.rename('old_tb_corr'))
-            self.data[spectro] = self.data[spectro].assign(Tb_corr = new_tb_corr)
+            self.integrated_dataset[spectro] = self.integrated_dataset[spectro].assign(Tb_corr_old = self.integrated_dataset[spectro].Tb_corr.rename('old_tb_corr'))
+            self.integrated_dataset[spectro] = self.integrated_dataset[spectro].assign(Tb_corr = new_tb_corr)
 
         return self
 
@@ -235,4 +278,27 @@ class MOPI5_LvL2(DataRetrieval):
         '''
         retrieval_param["binned_ch"] = False
         retrieval_param['ref_elevation_angle'] = 180
-        return retrieval_module.retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param)
+        return mopi5_retrievals.retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param)
+
+    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        ac : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+        title : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
+       
