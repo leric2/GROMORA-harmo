@@ -650,7 +650,7 @@ switch instrumentName
         % Filters for flagging "bad channels"
         % On 10 minutes spectra
         calibrationTool.maxStdDevTbCal = nan; %TODO
-        calibrationTool.maxStdDevTbInt = 4;
+        calibrationTool.maxStdDevTbInt = 15;
         
         calibrationTool.filterTypeChannelQualityCal = 3;
         calibrationTool.filterTypeChannelQualityInt = 4;

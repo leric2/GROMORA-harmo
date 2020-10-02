@@ -68,7 +68,7 @@ for i = 1:size(integratedSpectra,2)
         integratedSpectra(i).meanStdFromWings = prctile([leftWing,rightWing],95)-prctile([leftWing,rightWing],5);
         
         diff_Tb = diff(cleanTb);
-        integratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)));
+        integratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)))/sqrt(2);
     end
     
     %%%%%%%%%%% Flag 1 %%%%%%%%%%%
