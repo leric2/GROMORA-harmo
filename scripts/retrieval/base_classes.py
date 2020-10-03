@@ -47,6 +47,8 @@ import GROSOM_library
 import retrieval_module
 import mopi5_retrievals
 
+from retrievals import data
+
 #%%
 
 # class MicrowaveRadiometerIAP(ABC):
@@ -250,7 +252,7 @@ class Integration(ABC):
         for s in spectrometers:
             if around_center:
                 if 'good_channels' in self.calibrated_data[s].data_vars:
-                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
+                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels==1)
                     clean_Tb = clean_Tb.where(abs(self.calibrated_data[s].frequencies-self.observation_frequency)<around_center_value)
                     da_mean_Tb = clean_Tb.mean(dim='channel_idx')
                     da_median_Tb = clean_Tb.median(dim='channel_idx')
@@ -261,7 +263,7 @@ class Integration(ABC):
                     da_median_Tb = center_Tb.median(dim='channel_idx')
             else:
                 if 'good_channels' in self.calibrated_data[s].data_vars:
-                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels)
+                    clean_Tb = self.calibrated_data[s].Tb.where(self.calibrated_data[s].good_channels==1)
                     da_mean_Tb = clean_Tb.mean(dim='channel_idx')
                     da_median_Tb = clean_Tb.median(dim='channel_idx')
                 else:
@@ -300,7 +302,7 @@ class Integration(ABC):
         fig, ax = plt.subplots(1,1,sharex=True)
         for s in spectrometers:
             if 'good_channels' in self.integrated_dataset[s].data_vars:
-                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels)
+                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels==1)
                 Tb_diff = clean_Tb.diff(dim='channel_idx')
                 da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / np.sqrt(2)
                 #da_var_diff_Tb = np.var(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / 2
@@ -314,6 +316,66 @@ class Integration(ABC):
             ax.legend()
         
         plt.title('Noise level')
+
+        return self.integrated_dataset
+
+    def add_interpolated_spectra(self, spectrometers=None, use_basis='AC240', dim='chunks', right=np.nan, left=np.nan, plot_diff=False):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        fig, axs = plt.subplots(len(spectrometers),1,sharex=True)
+        for l, s in enumerate(spectrometers):
+            if 'good_channels' in self.integrated_dataset[s].data_vars:
+                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels==1)
+                clean_f = self.integrated_dataset[s].frequencies.where(self.integrated_dataset[s].good_channels==1)
+                clean_Tb_basis = self.integrated_dataset[use_basis].Tb.where(self.integrated_dataset[use_basis].good_channels==1)
+
+                #if grid is None:
+                grid = self.integrated_dataset[use_basis].frequencies
+                #else:
+                #    raise NotImplementedError('grid must be matrix --> check size')
+                
+                da_interp_Tb = xr.DataArray(
+                    np.ones_like(self.integrated_dataset[use_basis].Tb),
+                    dims=[dim, 'channels_idx'],
+                )
+                for i in range(len(self.integrated_dataset[s].Tb)):
+                    interp_tb = data.interpolate(
+                        grid[i].data, 
+                        clean_f[i].data, 
+                        clean_Tb[i].data, 
+                        left, 
+                        right
+                        )
+                    da_interp_Tb[i,:] = interp_tb
+
+                    Tb_diff = clean_Tb_basis[i]-da_interp_Tb[i].data
+                    if plot_diff:
+                        lab = str(self.integrated_dataset[use_basis].coords[dim].data[i])
+                        axs[l].plot(grid[i], Tb_diff, lw=0.2, label=lab)
+                        axs[l].set_title(s)
+                #da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / np.sqrt(2)
+                #da_var_diff_Tb = np.var(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / 2
+                
+                axs[l].legend()
+            else:
+                raise NotImplementedError('Identification of bad channels needed first')
+                
+
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(interpolated_Tb = da_interp_Tb)
+    
+        
+        plt.title('Tb interp diff')
 
         return self.integrated_dataset
 
@@ -398,11 +460,12 @@ class Integration(ABC):
         output an integrated dataset with dimension (time, chunks)
         '''
         print(f"Integration with Tb chunks: {Tb_chunks}")
+        print(use_basis, ' is taken as basis')
         self.integrated_dataset = dict()
-
+        self.integrated_meteo = dict()
         # At this point this makes no sense to integrate any meteo data...
         # this is not straightforward because the time of both datasets are different.
-        self.integrated_meteo = self.meteo_data
+        #self.integrated_meteo = self.meteo_data
         
         # Use the basis spectro for defining the right timestamp.
         
@@ -419,10 +482,10 @@ class Integration(ABC):
                     ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     chunks_num_el.append(ds.dims['time'])
                     #mean_time = ds.dims['time']
-                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
+                    meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     
                     self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
-                    #self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 elif i==len(Tb_chunks):
                     chunks_lim = Tb_chunks[i-1]
                     #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb > chunks_lim, drop=True)
@@ -430,9 +493,9 @@ class Integration(ABC):
                     
                     ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     chunks_num_el.append(ds.dims['time'])
-                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
+                    meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
-                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
                 else:
                     good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
                     good_times = good_times.where(self.calibrated_data[use_basis].mean_Tb < Tb_chunks[i], drop=True)               
@@ -441,15 +504,15 @@ class Integration(ABC):
 
                     #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
                     #ds = ds.where(self.calibrated_data[use_basis].mean_Tb < Tb_chunks[i], drop=True)
-                    
                     chunks_num_el.append(ds.dims['time'])
-                    #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
-                    #meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
+
+                    meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
+                    
                     self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
-                    #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
             
             self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
-            #self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             
             # New variable with the size of the chunks
             self.integrated_dataset[s] = self.integrated_dataset[s].assign(
@@ -491,11 +554,13 @@ class Integration(ABC):
                 
                 chunks_num_el.append(ds.dims['time'])
 
-                meteo_hour = pd.DatetimeIndex(self.meteo_data[s].time.data).hour 
-                good_meteo_times = self.meteo_data[s].time[(meteo_hour >= t-it) & (meteo_hour < t+it)]
+                #meteo_hour = pd.DatetimeIndex(self.meteo_data[s].time.data).hour 
+                #good_meteo_times = self.meteo_data[s].time[(meteo_hour >= t-it) & (meteo_hour < t+it)]
 
-                meteo = self.meteo_data[s].where(self.meteo_data[s].time == good_meteo_times, drop=True)
+                #meteo = self.meteo_data[s].where(self.meteo_data[s].time == good_meteo_times, drop=True)
                 
+                meteo = self.meteo_data[s].sel(time=ds.time, method='nearest', drop=True)
+
                 if index == 0:
                     self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
@@ -590,7 +655,62 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_dataset[s] = self.integrated_dataset[s].drop(
-                ['time_min','stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                )
+
+        return self.integrated_dataset, self.integrated_meteo
+
+    def integrate_by_tod_harmonized(self, spectrometers, tod = [9, 16], interval= [2, 1], use_basis='U5303'):
+        '''
+        integration based on the mean brightness temperature in a given dataset
+
+        output an integrated dataset with dimension (time, chunks)
+        '''
+        print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
+        print(use_basis, ' is taken as basis')
+        self.integrated_dataset = dict()
+        self.integrated_meteo = dict()
+        for s in spectrometers:
+            chunks_num_el = []
+            for index, (t, it) in enumerate(zip(tod, interval)):
+
+                good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].time_of_day > t-it, drop=True)
+                good_times = good_times.where(self.calibrated_data[use_basis].time_of_day < t+it, drop=True)
+
+                ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
+                
+                chunks_num_el.append(ds.dims['time'])
+
+                #meteo_hour = pd.DatetimeIndex(self.meteo_data[s].time.data).hour 
+                #good_meteo_times = self.meteo_data[s].time[(meteo_hour >= t-it) & (meteo_hour < t+it)]
+
+                meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
+                
+                if index == 0:
+                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                else:
+                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
+
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
+            
+            # New variable with the size of the chunks
+            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+                chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
+                )
+
+            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
+            #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            #new_mean_stdTb = np.zeros(len(chunks_num_el))
+
+            for i in range(len(chunks_num_el)):
+                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+
+            # Drop meaningless variables:
+            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
         return self.integrated_dataset, self.integrated_meteo
@@ -615,7 +735,15 @@ class Integration(ABC):
                 return self.integrate_by_tod(self.spectrometers, tod=kwargs['tod'], interval=kwargs['interval'])
             else:
                 raise ValueError('Number of interval must equal the number of TOD chosen')
-            
+
+        elif strategy == 'TOD_harmo':
+            print('TOD integration harmonized')
+            if len(kwargs['tod']) == len(kwargs['interval']):
+                
+                return self.integrate_by_tod_harmonized(self.spectrometers, tod=kwargs['tod'], interval=kwargs['interval'], use_basis=kwargs['spectro_basis'])
+            else:
+                raise ValueError('Number of interval must equal the number of TOD chosen')   
+
         elif strategy == 'meanTb':
             #print(kwargs['Tb_chunks'])
             
@@ -677,7 +805,8 @@ class Integration(ABC):
         
         if save:
             raise NotImplementedError()
-        
+    
+
 class DataRetrieval(ABC):
     def __init__(
         self,

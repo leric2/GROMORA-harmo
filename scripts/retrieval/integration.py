@@ -36,28 +36,30 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
+from retrievals import data
+
 if __name__ == "__main__":
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,1)
-    #date = pd.date_range(start='2019-01-03', end='2019-01-05')
+    date = pd.date_range(start='2019-01-03', end='2019-01-05')
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
-    date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    #date = pd.date_range(start='2019-01-30', end='2019-02-22')
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
     #date = pd.date_range(start='2019-06-11', end='2019-06-11')
     #date = pd.date_range(start='2019-03-12', end='2019-03-12')
-    # options are: 'TOD', 'classic' 'meanTb_harmo', or 'meanTb'
+    # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     integration_strategy = 'meanTb_harmo'
     int_time = 6
-    save_nc = False
+    save_nc = True
     plot_ts_Tb_Tsys = False
 
-    #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-    #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+    basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+    basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
-    basename_lvl1 = "/scratch/GROSOM/Level1/"
-    basename_lvl2 = "/scratch/GROSOM/Level2/"
+    #basename_lvl1 = "/scratch/GROSOM/Level1/"
+    #basename_lvl2 = "/scratch/GROSOM/Level2/"
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
@@ -69,8 +71,8 @@ if __name__ == "__main__":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
-        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+        basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
         #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
@@ -110,13 +112,14 @@ if __name__ == "__main__":
     # Define the parameters for integration
     TOD = [3, 9, 15, 21]
     interval = [3, 3, 3, 3]
-    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
+    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
     classic = np.arange(1,24)
 
     integrated_data, integrated_meteo = calibration.integrate(
         spectrometers = calibration.spectrometers, 
-        strategy=integration_strategy, 
+        strategy=integration_strategy,
+        harmonized=True,
         tod=TOD, 
         interval=interval,
         Tb_chunks=meanTb_chunks,
@@ -137,7 +140,11 @@ if __name__ == "__main__":
         dimension=dimension
         )
 
-    integrated_data = calibration.correct_troposphere(calibration.spectrometers, dimension[0], method='Ingold_v1', basis_spectro='AC240')
+    integrated_data = calibration.correct_troposphere(
+        calibration.spectrometers, 
+        dimension[0], 
+        method='Ingold_v1', 
+        basis_spectro='AC240')
 
     integrated_data = calibration.add_noise_level(calibration.spectrometers, max_diff_level=10)
 
@@ -152,10 +159,13 @@ if __name__ == "__main__":
             with_corr = False
         )
 
-        plt.plot(integrated_data['AC240'].time_min,'x')
-        plt.plot(integrated_data['U5303'].time_min,'o')
-        plt.plot(integrated_data['USRP-A'].time_min,'.')
+        integrated_data = calibration.add_interpolated_spectra(
+            spectrometers=['AC240', 'USRP-A', 'U5303'],
+            use_basis='U5303',
+            dim=dimension[0],              
+            plot_diff=True)
 
+        calibration.plot_time_min_comp()
     else:
         calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 
@@ -166,3 +176,5 @@ if __name__ == "__main__":
             groups=['spectrometer1','meteo'], 
             extra='')
 
+
+# %%
