@@ -73,7 +73,8 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
     for s in spectrometers:
         if dim != 'time':
             calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({dim:'time'})
-        
+            calibration.integrated_meteo[s] = calibration.integrated_meteo[s].swap_dims({dim:'time'})
+
         tb_corr_da[s] = xr.DataArray(None,
             coords = [calibration.integrated_dataset[s].coords['time'], calibration.integrated_dataset[s].coords['channel_idx']])
         mean_opacity[s] = xr.DataArray(None,
@@ -178,9 +179,18 @@ def compare_spectra_mopi5_new(cal_int_obj, ds_dict, calibration_cycle=0, title='
     
     return fig
 
+def plot_time_min_comp(cal_int_obj, title='Mean of integration time'):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    symbol = ['x','o','.']
+    for i, s in enumerate(cal_int_obj.spectrometers):
+        ax1.plot(cal_int_obj.integrated_dataset[s].time_min, symbol[i], label=s)
+    ax1.legend()
+
 def compare_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, title=''):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
+    ax2 = ax1.inset_axes([0.05, 0.6, 0.25, 0.35])
     for s in cal_int_obj.spectrometers:
         mask = ds_dict[s].good_channels[calibration_cycle].data
         mask[mask==0]=np.nan
@@ -194,6 +204,15 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, title=
         ax1.grid()
         ax1.legend(fontsize='xx-small')
         #ax3.legend()
+        ax2.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2)
+        ax2.set_xlim(110.835, 110.837)
+        #ax2.set_yticklabels([])
+        ax2.set_xticklabels([])
+        ymax = np.nanmax(ds_dict[s].Tb[calibration_cycle].data*mask)
+        if not np.isnan(ymax):
+            ax2.set_ylim(ymax-3,ymax+0.5)
+        ax2.grid()
+        #ax2.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
     
