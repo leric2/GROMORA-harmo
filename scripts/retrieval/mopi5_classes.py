@@ -122,6 +122,9 @@ class IntegrationMOPI5(Integration):
         #basis_spectro = 'AC240'
         return mopi5_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1', use_basis=basis_spectro)
 
+    def plot_time_min_comp(self):
+        return mopi5_library.plot_time_min_comp(self)
+
 class MOPI5_LvL2(DataRetrieval):
     '''
     Implementing the Dataretrieval class for the MOPI5 case.
