@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 #from retrievals import arts
 
-def read_level1(filenameLevel1):
+def read_level1(filenameLevel1, no_flag = False):
     """Example function with types documented in the docstring.
     Description HERE
 
@@ -48,12 +48,16 @@ def read_level1(filenameLevel1):
         decode_times=True,
         decode_coords=True,
         )
-    flags=xr.open_dataset(
-        filenameLevel1+".nc",
-        group="flags",
-        decode_times=True,
-        decode_coords=True,
-        )
+
+    if no_flag:
+        flags = xr.Dataset()
+    else:
+        flags=xr.open_dataset(
+            filenameLevel1+".nc",
+            group="flags",
+            decode_times=True,
+            decode_coords=True,
+            )
     #except FileNotFoundError:
     #    print('The following file could not be found : ' +filenameLevel1)
         # print('Set to empty dataset')
