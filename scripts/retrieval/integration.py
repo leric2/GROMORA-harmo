@@ -38,12 +38,14 @@ from utils_GROSOM import save_single_pdf
 
 from retrievals import data
 
+# %%
+
 if __name__ == "__main__":
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,1)
     date = pd.date_range(start='2019-01-03', end='2019-01-05')
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
-    #date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    date = pd.date_range(start='2019-01-30', end='2019-02-22')
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
@@ -54,12 +56,13 @@ if __name__ == "__main__":
     int_time = 6
     save_nc = True
     plot_ts_Tb_Tsys = False
+    df_bins=200e3
 
-    basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-    basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+    #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
-    #basename_lvl1 = "/scratch/GROSOM/Level1/"
-    #basename_lvl2 = "/scratch/GROSOM/Level2/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/"
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
@@ -71,11 +74,24 @@ if __name__ == "__main__":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
-        basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-        basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
         #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
+    # Define the parameters for integration
+    TOD = [3, 9, 15, 21]
+    interval = [3, 3, 3, 3]
+    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
+    classic = np.arange(1,24)
+
+    if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
+        dimension=['chunks','channel_idx']
+    else:
+        dimension=['time','channel_idx']
+
+# %%
     calibrated_data, cal_flags, meteo_data = calibration.read_level1a()
     assert calibration.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -107,15 +123,6 @@ if __name__ == "__main__":
     # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
     #integrated_data = calibration.integrate(spectrometers = calibration.spectrometers, strategy=integration_strategy, Tb_chunks=[150])
 
-# %%
-        
-    # Define the parameters for integration
-    TOD = [3, 9, 15, 21]
-    interval = [3, 3, 3, 3]
-    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-    meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
-    classic = np.arange(1,24)
-
     integrated_data, integrated_meteo = calibration.integrate(
         spectrometers = calibration.spectrometers, 
         strategy=integration_strategy,
@@ -126,11 +133,6 @@ if __name__ == "__main__":
         spectro_basis='U5303',
         freq=int_time,
         )
-
-    if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
-        dimension=['chunks','channel_idx']
-    else:
-        dimension=['time','channel_idx']
 
     # Note that the stdTb used here is just: mean(stdTb)/sqrt(N)
     integrated_data = calibration.find_bad_channels_stdTb(
@@ -147,9 +149,53 @@ if __name__ == "__main__":
         basis_spectro='AC240')
 
     integrated_data = calibration.add_noise_level(calibration.spectrometers, max_diff_level=10)
+    
+    if instrument_name == 'mopi5':
+        
+        integrated_data = calibration.add_binned_spectra(
+            spectrometers=['AC240', 'USRP-A', 'U5303'],
+            bin_size=[3, 15, 2],
+            dim=dimension[0],
+            df=None,              
+            plot_diff=False)
+                
+        integrated_data = calibration.add_interpolated_spectra(
+            spectrometers=['AC240', 'USRP-A', 'U5303'],
+            use_basis='U5303',
+            dim=dimension[0],              
+            plot_diff=False,
+            from_binned=True
+            )
+
+    if save_nc:
+        calibration.save_dataset_level1b(
+            spectrometers = calibration.spectrometers, 
+            datasets=[integrated_data, integrated_meteo], 
+            groups=['spectrometer1','meteo'], 
+            extra='')
+            
+# %%
+    date1b = pd.to_datetime(date[-1])
+    if instrument_name=="GROMOS":
+        import gromos_classes as gc
+        integration = gc.GROMOS_LvL2(date1b, basename_lvl1, integration_strategy, int_time)
+    elif instrument_name=="SOMORA":
+        import somora_classes as sm
+        integration = sm.SOMORA_LvL2(date1b, basename_lvl1, integration_strategy, int_time)
+    elif instrument_name=="mopi5":
+        import mopi5_classes as mc
+        basename_lvl1 = "/scratch/MOPI5/Level1/"
+        basename_lvl2 = "/scratch/MOPI5/Level2/"
+        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
+        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
+        integration = mc.MOPI5_LvL2(date1b, basename_lvl1, integration_strategy, integration_strategy, integration_time=int_time)
+
+    # Plotting part
+    integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(no_flag=True, meta_data=False)
 
     if instrument_name == 'mopi5':
-        calibration.compare_spectra_mopi5(
+        integration.compare_spectra_mopi5(
             dim=dimension[0], 
             idx=np.arange(0,len(meanTb_chunks)+1), 
             #idx=[0,1,2,3],
@@ -158,23 +204,41 @@ if __name__ == "__main__":
             identifier=meanTb_chunks+[300],
             with_corr = False
         )
+        integration.plot_time_min_comp()
+    
+        integration.compare_spectra_binned_interp_mopi5(
+                dim=dimension[0], 
+                idx=np.arange(0,len(meanTb_chunks)+1), 
+                #idx=[0,1,2,3],
+                spectrometers=integration.spectrometers,
+                save_plot = True, 
+                #identifier=TOD,
+                identifier=meanTb_chunks+[300],
+                use_basis='U5303'
+            )      
+        # integration.compare_binned_spectra_mopi5(
+        #         dim=dimension[0], 
+        #         idx=np.arange(0,len(meanTb_chunks)+1), 
+        #         #idx=[0,1,2,3],
+        #         save_plot = True, 
+        #         #identifier=TOD,
+        #         identifier=meanTb_chunks+[300],
+        #         use_basis='U5303',
+        #         df=df_bins
+        #     )
+        
+        # integration.compare_interpolated_spectra_mopi5(
+        #     dim=dimension[0], 
+        #     idx=np.arange(0,len(meanTb_chunks)+1), 
+        #     #idx=[0,1,2,3],
+        #     spectrometers=integration.spectrometers,
+        #     use_basis='U5303',
+        #     save_plot = True, 
+        #     #identifier=TOD,
+        #     identifier=meanTb_chunks+[300],
+        # )
 
-        integrated_data = calibration.add_interpolated_spectra(
-            spectrometers=['AC240', 'USRP-A', 'U5303'],
-            use_basis='U5303',
-            dim=dimension[0],              
-            plot_diff=True)
-
-        calibration.plot_time_min_comp()
     else:
-        calibration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
-
-    if save_nc:
-        calibration.save_dataset_level1b(
-            spectrometers = calibration.spectrometers, 
-            datasets=[integrated_data, integrated_meteo], 
-            groups=['spectrometer1','meteo'], 
-            extra='')
-
+        integration.compare_Tb_chunks(dim=dimension[0], idx=[0,1,2,3], Tb_corr = True)
 
 # %%

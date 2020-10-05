@@ -229,8 +229,8 @@ class Integration(ABC):
         elif apply_on=='int':
             for spectro in spectrometers:
                 bad_channels = self.return_bad_channels(self.dates, spectro)
-                self.integrated_dataset[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_dataset[spectro], bad_channels, stdTb_threshold, dimension)
-            return self.integrated_dataset
+                self.integrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.integrated_data
         else:
             raise ValueError()
 
@@ -301,8 +301,8 @@ class Integration(ABC):
         '''
         fig, ax = plt.subplots(1,1,sharex=True)
         for s in spectrometers:
-            if 'good_channels' in self.integrated_dataset[s].data_vars:
-                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels==1)
+            if 'good_channels' in self.integrated_data[s].data_vars:
+                clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
                 Tb_diff = clean_Tb.diff(dim='channel_idx')
                 da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / np.sqrt(2)
                 #da_var_diff_Tb = np.var(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / 2
@@ -310,16 +310,16 @@ class Integration(ABC):
                 raise NotImplementedError('Identification of bad channels needed first')
                 
 
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(noise_level = da_std_diff_Tb)
-            ax.plot(self.integrated_dataset[s].time, self.integrated_dataset[s].noise_level,'.', label = s)
+            self.integrated_data[s] = self.integrated_data[s].assign(noise_level = da_std_diff_Tb)
+            ax.plot(self.integrated_data[s].time, self.integrated_data[s].noise_level,'.', label = s)
         
             ax.legend()
         
         plt.title('Noise level')
 
-        return self.integrated_dataset
+        return self.integrated_data
 
-    def add_interpolated_spectra(self, spectrometers=None, use_basis='AC240', dim='chunks', right=np.nan, left=np.nan, plot_diff=False):
+    def add_binned_spectra(self, spectrometers=['AC240', 'USRP-A', 'U5303'], bin_size=[16, 80, 10], dim='chunks', df=None, plot_diff=False):
         '''
         Parameters
         ----------
@@ -333,23 +333,99 @@ class Integration(ABC):
         None.
 
         '''
-        fig, axs = plt.subplots(len(spectrometers),1,sharex=True)
-        for l, s in enumerate(spectrometers):
-            if 'good_channels' in self.integrated_dataset[s].data_vars:
-                clean_Tb = self.integrated_dataset[s].Tb.where(self.integrated_dataset[s].good_channels==1)
-                clean_f = self.integrated_dataset[s].frequencies.where(self.integrated_dataset[s].good_channels==1)
-                clean_Tb_basis = self.integrated_dataset[use_basis].Tb.where(self.integrated_dataset[use_basis].good_channels==1)
 
+        if df is not None:
+            new_freq = np.arange(self.observation_frequency-1e9 ,self.observation_frequency+1e9, df)
+            for l, s in enumerate(spectrometers):
+                #new_freq = np.arange(min(self.integrated_data['U5303'].frequencies[0].data),max(self.integrated_data['U5303'].frequencies[0].data),df)
+                da_binned_Tb = xr.DataArray(
+                    np.ones((len(self.integrated_data[s].coords[dim]), len(new_freq)-1)),
+                    dims=[dim, 'bin_freq'],
+                )
+
+                if 'good_channels' in self.integrated_data[s].data_vars:
+                    clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+                    clean_f = self.integrated_data[s].frequencies#.where(self.integrated_data[s].good_channels==1)
+                    
+                    for i in range(len(self.integrated_data[s].coords[dim])):
+                        digitized = np.digitize(clean_f[i], new_freq)
+                        binned_f = [clean_f[i][digitized==n].mean() for n in range(1,len(new_freq))]
+                        binned_Tb = [clean_Tb[i][digitized==n].mean() for n in range(1,len(new_freq))]
+                        da_binned_Tb.loc[i,:] = binned_Tb
+                    
+                    da_binned_Tb = da_binned_Tb.assign_coords({'bin_freq':binned_f})
+                else:
+                    raise NotImplementedError('!')
+
+                self.integrated_data[s] = self.integrated_data[s].assign(binned_Tb = da_binned_Tb)
+        else:
+            #fig, axs = plt.subplots(len(spectrometers),1,sharex=True)
+            for l, s in enumerate(spectrometers):
+                size = bin_size[l]
+                da_binned_Tb = xr.DataArray(
+                    np.ones((len(self.integrated_data[s].coords[dim]), len(self.integrated_data[s].coords['channel_idx'])//size)),
+                    dims=[dim, 'bin_freq'],
+                )
+
+                if 'good_channels' in self.integrated_data[s].data_vars:
+                    clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+                    clean_f = self.integrated_data[s].frequencies#.where(self.integrated_data[s].good_channels==1)
+
+                    for i in range(len(self.integrated_data[s].coords[dim])):
+                        binned_f = clean_f[i].data[-size*(clean_f[i].data.size//size):].reshape(-1,size).mean(axis=1)
+                        binned_Tb = clean_Tb[i].data[-size*(clean_Tb[i].data.size//size):].reshape(-1,size).mean(axis=1)  
+
+                        da_binned_Tb.loc[i,:] = binned_Tb
+
+                    da_binned_Tb = da_binned_Tb.assign_coords({'bin_freq':binned_f})
+
+                    if plot_diff:
+                        raise NotImplementedError('!')
+                    #lab = str(self.integrated_data[use_basis].coords[dim].data[i])
+                    #axs[l].plot(da_binned_Tb.coords['bin_freq'], Tb_diff, lw=0.2, label=lab)
+                    #axs[l].set_title(s)
+
+                    #axs[l].legend()
+                else:
+                    raise NotImplementedError('Identification of bad channels needed first')
+
+
+                self.integrated_data[s] = self.integrated_data[s].assign(binned_Tb = da_binned_Tb)
+
+
+            #plt.title('Tb interp diff')
+
+        return self.integrated_data
+
+    def add_interpolated_spectra(self, spectrometers=None, use_basis='AC240', dim='chunks', right=np.nan, left=np.nan, plot_diff=False, from_binned=True):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        if not from_binned:
+            fig, axs = plt.subplots(len(spectrometers),1,sharex=True)
+            for l, s in enumerate(spectrometers):
+                clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+                clean_f = self.integrated_data[s].frequencies.where(self.integrated_data[s].good_channels==1)
+                clean_Tb_basis = self.integrated_data[use_basis].Tb.where(self.integrated_data[use_basis].good_channels==1)
                 #if grid is None:
-                grid = self.integrated_dataset[use_basis].frequencies
+                grid = self.integrated_data[use_basis].frequencies
                 #else:
                 #    raise NotImplementedError('grid must be matrix --> check size')
-                
                 da_interp_Tb = xr.DataArray(
-                    np.ones_like(self.integrated_dataset[use_basis].Tb),
+                    np.ones_like(self.integrated_data[use_basis].Tb),
                     dims=[dim, 'channels_idx'],
                 )
-                for i in range(len(self.integrated_dataset[s].Tb)):
+                for i in range(len(self.integrated_data[s].Tb)):
                     interp_tb = data.interpolate(
                         grid[i].data, 
                         clean_f[i].data, 
@@ -358,26 +434,46 @@ class Integration(ABC):
                         right
                         )
                     da_interp_Tb[i,:] = interp_tb
-
                     Tb_diff = clean_Tb_basis[i]-da_interp_Tb[i].data
                     if plot_diff:
-                        lab = str(self.integrated_dataset[use_basis].coords[dim].data[i])
+                        lab = str(self.integrated_data[use_basis].coords[dim].data[i])
                         axs[l].plot(grid[i], Tb_diff, lw=0.2, label=lab)
                         axs[l].set_title(s)
                 #da_std_diff_Tb = np.std(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / np.sqrt(2)
                 #da_var_diff_Tb = np.var(Tb_diff.where(abs(Tb_diff)<max_diff_level),1) / 2
-                
                 axs[l].legend()
-            else:
-                raise NotImplementedError('Identification of bad channels needed first')
+                plt.title('Tb interp diff')
+                self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb = da_interp_Tb)
+        else:
+            for l, s in enumerate(spectrometers):
+                clean_Tb = self.integrated_data[s].binned_Tb
+                clean_f = self.integrated_data[s].bin_freq
+                clean_Tb_basis = self.integrated_data[use_basis].binned_Tb
+                #if grid is None:
+                grid = self.integrated_data[use_basis].bin_freq
+                #else:
+                #    raise NotImplementedError('grid must be matrix --> check size')
+                da_interp_Tb = xr.DataArray(
+                    np.ones_like(self.integrated_data[use_basis].binned_Tb),
+                    dims=[dim, 'bin_freq_interp'],
+                )
+                for i in range(len(self.integrated_data[s].Tb)):
+                    interp_tb = data.interpolate(
+                        grid.data, 
+                        clean_f.data, 
+                        clean_Tb[i].data, 
+                        left, 
+                        right
+                        )
+                    da_interp_Tb[i,:] = interp_tb
                 
+                da_interp_Tb = da_interp_Tb.assign_coords({'bin_freq_interp':grid.data})
+                    #Tb_diff = clean_Tb_basis[i]-da_interp_Tb[i].data
+                self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb = da_interp_Tb)
 
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(interpolated_Tb = da_interp_Tb)
-    
-        
-        plt.title('Tb interp diff')
+            
 
-        return self.integrated_dataset
+        return self.integrated_data
 
     def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
         '''
@@ -386,7 +482,7 @@ class Integration(ABC):
         output an integrated dataset with dimension (time, chunks)
         '''
         print(f"Integration with Tb chunks: {Tb_chunks}")
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
 
         # At this point this makes no sense to integrate any meteo data...
         # this is not straightforward because the time of both datasets are different.
@@ -402,14 +498,14 @@ class Integration(ABC):
                     
                     #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb < chunks_lim, drop=True)
                     
-                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     #self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 elif i==len(Tb_chunks):
                     chunks_lim = Tb_chunks[i-1]
                     ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
                     chunks_num_el.append(ds.dims['time'])
                     #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > chunks_lim, drop=True)
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
                     #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
                 else:
                     ds = self.calibrated_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
@@ -417,40 +513,40 @@ class Integration(ABC):
                     chunks_num_el.append(ds.dims['time'])
                     #meteo = self.meteo_data[s].where(self.calibrated_data[s].mean_Tb > Tb_chunks[i-1], drop=True)
                     #meteo = meteo.where(self.calibrated_data[s].mean_Tb < Tb_chunks[i], drop=True)
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
                     #self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
             
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            self.integrated_data[s] = self.integrated_data[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             #self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             
             # New variable with the size of the chunks
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            self.integrated_data[s] = self.integrated_data[s].assign(
                 chunk_size = xr.DataArray(chunks_num_el, dims = ['chunks'])
                 )
 
-            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            # #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            new_stdTb = np.ones(shape=self.integrated_data[s].stdTb.data.shape)
+            # #noise = np.ones(shape=self.integrated_data[s].mean_Tb.data.shape)
             # #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
-                #noise[i] = np.std(np.diff(self.integrated_dataset[s].Tb[i].data[self.integrated_dataset[s].good_channels[i]]))
+                new_stdTb[i] = self.integrated_data[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                #noise[i] = np.std(np.diff(self.integrated_data[s].Tb[i].data[self.integrated_data[s].good_channels[i]]))
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            # self.integrated_data[s] = self.integrated_data[s].assign(
             #     stdTb = xr.DataArray(new_stdTb, dims = ['chunks','channel_idx'])
             #     )
             
-            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #self.integrated_data[s] = self.integrated_data[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
             #    )
 
             # Drop meaningless variables:
-            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+            self.integrated_data[s] = self.integrated_data[s].drop(
                 ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
-        return self.integrated_dataset, self.integrated_meteo
+        return self.integrated_data, self.integrated_meteo
    
     def integrate_by_mean_Tb_harmonized(self, spectrometers, Tb_chunks = [50, 100, 150, 200], use_basis='U5303'):
         '''
@@ -461,7 +557,7 @@ class Integration(ABC):
         '''
         print(f"Integration with Tb chunks: {Tb_chunks}")
         print(use_basis, ' is taken as basis')
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
         self.integrated_meteo = dict()
         # At this point this makes no sense to integrate any meteo data...
         # this is not straightforward because the time of both datasets are different.
@@ -484,7 +580,7 @@ class Integration(ABC):
                     #mean_time = ds.dims['time']
                     meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     
-                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 elif i==len(Tb_chunks):
                     chunks_lim = Tb_chunks[i-1]
@@ -494,7 +590,7 @@ class Integration(ABC):
                     ds = self.calibrated_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     chunks_num_el.append(ds.dims['time'])
                     meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
                     self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
                 else:
                     good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
@@ -508,30 +604,30 @@ class Integration(ABC):
 
                     meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
                     self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
             
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
+            self.integrated_data[s] = self.integrated_data[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             
             # New variable with the size of the chunks
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            self.integrated_data[s] = self.integrated_data[s].assign(
                 chunk_size = xr.DataArray(chunks_num_el, dims = ['chunks'])
                 )
 
-            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            # #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            new_stdTb = np.ones(shape=self.integrated_data[s].stdTb.data.shape)
+            # #noise = np.ones(shape=self.integrated_data[s].mean_Tb.data.shape)
             # #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                new_stdTb[i] = self.integrated_data[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
 
             # Drop meaningless variables:
-            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+            self.integrated_data[s] = self.integrated_data[s].drop(
                 ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
-        return self.integrated_dataset, self.integrated_meteo
+        return self.integrated_data, self.integrated_meteo
 
     def integrate_classic(self, spectrometers, freq = 1):
         '''
@@ -544,7 +640,7 @@ class Integration(ABC):
 
         print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
         print(f"This is equivalent to an integration time of {freq} hours.")
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
         self.integrated_meteo = dict()
         for s in spectrometers:
             chunks_num_el = []
@@ -562,43 +658,43 @@ class Integration(ABC):
                 meteo = self.meteo_data[s].sel(time=ds.time, method='nearest', drop=True)
 
                 if index == 0:
-                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 else:
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='time') 
                     self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
 
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_data[s] = self.integrated_data[s].assign_coords({'time':tod})
             self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
             
             # New variable with the size of the chunks
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            self.integrated_data[s] = self.integrated_data[s].assign(
                 chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
                 )
 
-            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            # noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            new_stdTb = np.ones(shape=self.integrated_data[s].stdTb.data.shape)
+            # noise = np.ones(shape=self.integrated_data[s].mean_Tb.data.shape)
             # #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
-                #noise[i] = np.std(np.diff(self.integrated_dataset[s].Tb[i].data[self.integrated_dataset[s].good_channels[i]]))
+                new_stdTb[i] = self.integrated_data[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                #noise[i] = np.std(np.diff(self.integrated_data[s].Tb[i].data[self.integrated_data[s].good_channels[i]]))
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            # self.integrated_data[s] = self.integrated_data[s].assign(
             #     stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
             #     )
             
-            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #self.integrated_data[s] = self.integrated_data[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
             #    )
 
             # Drop meaningless variables:
-            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+            self.integrated_data[s] = self.integrated_data[s].drop(
                 ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
-        return self.integrated_dataset, self.integrated_meteo
+        return self.integrated_data, self.integrated_meteo
 
     def integrate_by_tod(self, spectrometers, tod = [9, 16], interval= [2, 1]):
         '''
@@ -607,7 +703,7 @@ class Integration(ABC):
         output an integrated dataset with dimension (time, chunks)
         '''
         print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
         self.integrated_meteo = dict()
         for s in spectrometers:
             chunks_num_el = []
@@ -622,43 +718,43 @@ class Integration(ABC):
                 meteo = self.meteo_data[s].where(self.meteo_data[s].time == good_meteo_times, drop=True)
                 
                 if index == 0:
-                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 else:
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='time') 
                     self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
 
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_data[s] = self.integrated_data[s].assign_coords({'time':tod})
             self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
             
             # New variable with the size of the chunks
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            self.integrated_data[s] = self.integrated_data[s].assign(
                 chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
                 )
 
-            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            new_stdTb = np.ones(shape=self.integrated_data[s].stdTb.data.shape)
+            #noise = np.ones(shape=self.integrated_data[s].mean_Tb.data.shape)
             #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                new_stdTb[i] = self.integrated_data[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
 
                 #new_mean_stdTb[i] = np.nanmean(new_stdTb[i])
             
-            # self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            # self.integrated_data[s] = self.integrated_data[s].assign(
             #     stdTb = xr.DataArray(new_stdTb, dims = ['time','channel_idx'])
             #     )
 
-            #self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            #self.integrated_data[s] = self.integrated_data[s].assign(
             #    mean_stdTb = xr.DataArray(new_mean_stdTb, dims = ['chunks'])
             #    )
 
             # Drop meaningless variables:
-            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+            self.integrated_data[s] = self.integrated_data[s].drop(
                 ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
-        return self.integrated_dataset, self.integrated_meteo
+        return self.integrated_data, self.integrated_meteo
 
     def integrate_by_tod_harmonized(self, spectrometers, tod = [9, 16], interval= [2, 1], use_basis='U5303'):
         '''
@@ -668,7 +764,7 @@ class Integration(ABC):
         '''
         print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
         print(use_basis, ' is taken as basis')
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
         self.integrated_meteo = dict()
         for s in spectrometers:
             chunks_num_el = []
@@ -687,33 +783,33 @@ class Integration(ABC):
                 meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                 
                 if index == 0:
-                    self.integrated_dataset[s] = ds.mean(dim='time', skipna=True)
+                    self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
                 else:
-                    self.integrated_dataset[s]=xr.concat([self.integrated_dataset[s],ds.mean(dim='time', skipna=True)], dim='time') 
+                    self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='time') 
                     self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='time') 
 
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign_coords({'time':tod})
+            self.integrated_data[s] = self.integrated_data[s].assign_coords({'time':tod})
             self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'time':tod})
             
             # New variable with the size of the chunks
-            self.integrated_dataset[s] = self.integrated_dataset[s].assign(
+            self.integrated_data[s] = self.integrated_data[s].assign(
                 chunk_size = xr.DataArray(chunks_num_el, dims = ['time'])
                 )
 
-            new_stdTb = np.ones(shape=self.integrated_dataset[s].stdTb.data.shape)
-            #noise = np.ones(shape=self.integrated_dataset[s].mean_Tb.data.shape)
+            new_stdTb = np.ones(shape=self.integrated_data[s].stdTb.data.shape)
+            #noise = np.ones(shape=self.integrated_data[s].mean_Tb.data.shape)
             #new_mean_stdTb = np.zeros(len(chunks_num_el))
 
             for i in range(len(chunks_num_el)):
-                new_stdTb[i] = self.integrated_dataset[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
+                new_stdTb[i] = self.integrated_data[s].stdTb[i].data / np.sqrt(chunks_num_el[i])
 
             # Drop meaningless variables:
-            self.integrated_dataset[s] = self.integrated_dataset[s].drop(
+            self.integrated_data[s] = self.integrated_data[s].drop(
                 ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
-        return self.integrated_dataset, self.integrated_meteo
+        return self.integrated_data, self.integrated_meteo
 
     def integrate(self, spectrometers, strategy=None, **kwargs):
         '''
@@ -797,11 +893,11 @@ class Integration(ABC):
         figures = list()
 
         for i in idx:
-            figures.append(GROSOM_library.plot_Tb_chunks(self, self.integrated_dataset, i)) 
+            figures.append(GROSOM_library.plot_Tb_chunks(self, self.integrated_data, i)) 
 
         if Tb_corr:
             for i in idx:
-                figures.append(GROSOM_library.plot_Tb_corr_chunks(self, self.integrated_dataset, i)) 
+                figures.append(GROSOM_library.plot_Tb_corr_chunks(self, self.integrated_data, i)) 
         
         if save:
             raise NotImplementedError()
@@ -867,12 +963,12 @@ class DataRetrieval(ABC):
         '''
         raise NotImplementedError("abstract base class")
 
-    def read_level1b(self):
+    def read_level1b(self, no_flag=False, meta_data=True):
         ''' 
         Reading level1b dataset and completing the information on the instrument
         
         '''
-        self.integrated_dataset = dict()
+        self.integrated_data = dict()
         self.flags = dict()
         self.integrated_meteo = dict()
         #self.filename_level1a = dict()
@@ -911,22 +1007,24 @@ class DataRetrieval(ABC):
         
             print('reading : ', self.filename_level1b[s])
             #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
-            self.integrated_dataset[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s])
-        
-        # Meta data
-        self.institution = global_attrs_level1b['institution']
-        self.instrument_name_from_level1b = global_attrs_level1b['instrument']
-        self.location = global_attrs_level1b['location']
 
-        self.number_of_spectrometer = global_attrs_level1b['number_of_spectrometer']
-        self.calibration_version = global_attrs_level1b['calibration_version']
+            self.integrated_data[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s], no_flag=no_flag)
 
-        self.raw_data_filename = global_attrs_level1b['raw_data_filename']
-        self.raw_data_software_version = global_attrs_level1b['raw_data_software_version']
-        
-        self.filename_level1a = global_attrs_level1b['filename_level1a']
-        self.raw_file_warning = global_attrs_level1b['raw_file_warning']
-        self.labview_logfile_warning = global_attrs_level1b['labview_logfile_warning']
+        if meta_data:       
+            # Meta data
+            self.institution = global_attrs_level1b['institution']
+            self.instrument_name_from_level1b = global_attrs_level1b['instrument']
+            self.location = global_attrs_level1b['location']
+
+            self.number_of_spectrometer = global_attrs_level1b['number_of_spectrometer']
+            self.calibration_version = global_attrs_level1b['calibration_version']
+
+            self.raw_data_filename = global_attrs_level1b['raw_data_filename']
+            self.raw_data_software_version = global_attrs_level1b['raw_data_software_version']
+
+            self.filename_level1a = global_attrs_level1b['filename_level1a']
+            self.raw_file_warning = global_attrs_level1b['raw_file_warning']
+            self.labview_logfile_warning = global_attrs_level1b['labview_logfile_warning']
 
         # some information from the ds
         #self.number_of_channels = len(self.level1b_ds.channel_idx.values)
@@ -936,7 +1034,7 @@ class DataRetrieval(ABC):
 
         #self.time = self.level1b_ds.time.values
         #self.number_of_time_records = len(self.time)
-        return self.integrated_dataset, self.flags, self.integrated_meteo
+        return self.integrated_data, self.flags, self.integrated_meteo
         #return self.level1b_ds, self.flags, self.meteo_ds
     
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
@@ -1107,8 +1205,8 @@ class DataRetrieval(ABC):
         elif apply_on=='int':
             for spectro in spectrometers:
                 bad_channels = self.return_bad_channels(self.date, spectro)
-                self.integrated_dataset[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_dataset[spectro], bad_channels, stdTb_threshold, dimension)
-            return self.integrated_dataset
+                self.integrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+            return self.integrated_data
         else:
             raise ValueError()
 

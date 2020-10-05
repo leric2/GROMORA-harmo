@@ -93,15 +93,27 @@ class IntegrationMOPI5(Integration):
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
             title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])
-            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
             if with_corr:
-                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_dataset, i, title=title))
+                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, i, title=title))
             else:
-                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_dataset, i, title=title))
+                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_data, i, title=title))
+
+        if save_plot:
+            save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+
+    def compare_interpolated_spectra_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[]):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
+            figures.append(mopi5_library.compare_spectra_diff_mopi5(self, self.integrated_data, i, spectrometers, use_basis, title=title))
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
+
     def correct_troposphere_old(self, spectrometers, dim, method='Ingold_v1'):
         '''
         Correction function for the troposphere. 
@@ -200,7 +212,7 @@ class MOPI5_LvL2(DataRetrieval):
             DESCRIPTION.
         
         '''
-        number_of_channel = len(self.integrated_dataset[spectro].channel_idx)
+        number_of_channel = len(self.integrated_data[spectro].channel_idx)
         #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
         return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
@@ -209,15 +221,47 @@ class MOPI5_LvL2(DataRetrieval):
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
             title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])
-            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_dataset, i)) 
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
             if with_corr:
-                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_dataset, i, title=title))
+                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, i, title=title))
             else:
-                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_dataset, i, title=title))
+                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_data, i, title=title))
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+
+    def compare_binned_spectra_mopi5(self, dim='time', idx=[0], save_plot = False, identifier=[], use_basis = 'U5303', df=200e3):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i]) + ', binned with df='+str(df/1e3)+' kHz'
+            figures.append(mopi5_library.compare_binned_spectra_only_mopi5(self, self.integrated_data, i, use_basis=use_basis, title=title))
+
+        if save_plot:
+            save_single_pdf(self.level1_folder+'spectra_binned_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
+    def compare_spectra_binned_interp_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[]):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i]) + ', binned and interpolated Tb with ' + use_basis
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
+            figures.append(mopi5_library.compare_spectra_binned_interp_mopi5(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+
+        if save_plot:
+            save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+
+    def compare_interpolated_spectra_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[]):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i]) + ', interpolated Tb with ' + use_basis
+            #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
+            figures.append(mopi5_library.compare_spectra_diff_mopi5(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+
+        if save_plot:
+            save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
         '''
         From Jonas
@@ -225,15 +269,15 @@ class MOPI5_LvL2(DataRetrieval):
         and a weighted mean torpospheric temperature.
         Returns a function f: (f, y) -> y_corr
         '''
-        l = len(self.integrated_dataset[spectro_as_basis].time)
+        l = len(self.integrated_data[spectro_as_basis].time)
         y_corr = dict()
         for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
-            y_corr[s] = np.ones((l,len(self.integrated_dataset[s].channel_idx.data)))*np.nan
+            y_corr[s] = np.ones((l,len(self.integrated_data[s].channel_idx.data)))*np.nan
 
         for c in range(l):
-            good_channels = self.integrated_dataset[spectro_as_basis].good_channels[c].data == 1
-            f_basis = self.integrated_dataset[spectro_as_basis].frequencies.data[good_channels]
-            y_basis = self.integrated_dataset[spectro_as_basis].Tb[c].data[good_channels]
+            good_channels = self.integrated_data[spectro_as_basis].good_channels[c].data == 1
+            f_basis = self.integrated_data[spectro_as_basis].frequencies.data[good_channels]
+            y_basis = self.integrated_data[spectro_as_basis].Tb[c].data[good_channels]
 
             # Skip 100 channels at beginning
             # use 500 channels for reference
@@ -249,8 +293,8 @@ class MOPI5_LvL2(DataRetrieval):
 
             for i, s in enumerate(["U5303", "AC240", "USRP-A"]):
 
-                f = self.integrated_dataset[s].frequencies.data
-                y = self.integrated_dataset[s].Tb[c].data
+                f = self.integrated_data[s].frequencies.data
+                y = self.integrated_data[s].Tb[c].data
 
                 # Correct by frequency dependant opacity for the three spectrometers
                 y_eff = a * f + b
@@ -261,8 +305,8 @@ class MOPI5_LvL2(DataRetrieval):
 
         for i, spectro in enumerate(["U5303", "AC240", "USRP-A"]):
             new_tb_corr = xr.DataArray(y_corr[spectro], dims = ['time', 'channel_idx'])
-            self.integrated_dataset[spectro] = self.integrated_dataset[spectro].assign(Tb_corr_old = self.integrated_dataset[spectro].Tb_corr.rename('old_tb_corr'))
-            self.integrated_dataset[spectro] = self.integrated_dataset[spectro].assign(Tb_corr = new_tb_corr)
+            self.integrated_data[spectro] = self.integrated_data[spectro].assign(Tb_corr_old = self.integrated_data[spectro].Tb_corr.rename('old_tb_corr'))
+            self.integrated_data[spectro] = self.integrated_data[spectro].assign(Tb_corr = new_tb_corr)
 
         return self
 
@@ -304,4 +348,6 @@ class MOPI5_LvL2(DataRetrieval):
 
         '''
         return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
-       
+
+    def plot_time_min_comp(self):
+        return mopi5_library.plot_time_min_comp(self)

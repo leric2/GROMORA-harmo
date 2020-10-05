@@ -72,18 +72,18 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
 
     for s in spectrometers:
         if dim != 'time':
-            calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({dim:'time'})
+            calibration.integrated_data[s] = calibration.integrated_data[s].swap_dims({dim:'time'})
             calibration.integrated_meteo[s] = calibration.integrated_meteo[s].swap_dims({dim:'time'})
 
         tb_corr_da[s] = xr.DataArray(None,
-            coords = [calibration.integrated_dataset[s].coords['time'], calibration.integrated_dataset[s].coords['channel_idx']])
+            coords = [calibration.integrated_data[s].coords['time'], calibration.integrated_data[s].coords['channel_idx']])
         mean_opacity[s] = xr.DataArray(None,
-            coords = [calibration.integrated_dataset[s].coords['time']])
+            coords = [calibration.integrated_data[s].coords['time']])
         mean_transmittance[s] = xr.DataArray(None,
-            coords = [calibration.integrated_dataset[s].coords['time']])
+            coords = [calibration.integrated_data[s].coords['time']])
     
     # first run with the spectrometer to use as basis (just initiating the corr_func)
-    for i, t in enumerate(calibration.integrated_dataset[s].coords['time']):
+    for i, t in enumerate(calibration.integrated_data[s].coords['time']):
         s = use_basis
         try:
             temperature = calibration.integrated_meteo[s].air_temperature.isel(time=i).data.item()
@@ -96,12 +96,12 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
         elif method == 'Ingold_v2':
             raise NotImplementedError
         
-        bad_channels = calibration.integrated_dataset[s].good_channels.isel(time=i).data
+        bad_channels = calibration.integrated_data[s].good_channels.isel(time=i).data
         bad_channels[bad_channels==0]=np.nan
-        clean_tb = calibration.integrated_dataset[s].Tb.isel(time=i).data * bad_channels
+        clean_tb = calibration.integrated_data[s].Tb.isel(time=i).data * bad_channels
         
         corr_func = tropospheric_correction(
-            f = calibration.integrated_dataset[s].frequencies.isel(time=i).data,
+            f = calibration.integrated_data[s].frequencies.isel(time=i).data,
             y = clean_tb,
             t_trop=tropospheric_temperature,
             use_wings='both',
@@ -110,24 +110,24 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1', use
     
         # Run correction on all spectrometers
         for s in spectrometers:        
-        #for i, t in enumerate(calibration.integrated_dataset[s].coords['time']):
+        #for i, t in enumerate(calibration.integrated_data[s].coords['time']):
             tb_corr, opac, transm = corr_func(
-                f = calibration.integrated_dataset[s].frequencies.isel(time=i).data,
-                y = calibration.integrated_dataset[s].Tb.isel(time=i).data
+                f = calibration.integrated_data[s].frequencies.isel(time=i).data,
+                y = calibration.integrated_data[s].Tb.isel(time=i).data
                 )
             tb_corr_da[s][i,:] =  tb_corr
             mean_transmittance[s][i] = transm
             mean_opacity[s][i] = opac
 
     for s in spectrometers:    
-        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(Tb_corr = tb_corr_da[s])
-        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(tropospheric_transmittance = mean_transmittance[s])
-        calibration.integrated_dataset[s] = calibration.integrated_dataset[s].assign(tropospheric_opacity = mean_opacity[s])
+        calibration.integrated_data[s] = calibration.integrated_data[s].assign(Tb_corr = tb_corr_da[s])
+        calibration.integrated_data[s] = calibration.integrated_data[s].assign(tropospheric_transmittance = mean_transmittance[s])
+        calibration.integrated_data[s] = calibration.integrated_data[s].assign(tropospheric_opacity = mean_opacity[s])
         
         if dim != 'time':
-            calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({'time':dim})
+            calibration.integrated_data[s] = calibration.integrated_data[s].swap_dims({'time':dim})
     
-    return calibration.integrated_dataset
+    return calibration.integrated_data
 
 def compare_spectra_mopi5_new(cal_int_obj, ds_dict, calibration_cycle=0, title=''):
     #fig, axs = plt.subplots(2,2,sharex=True)
@@ -184,7 +184,7 @@ def plot_time_min_comp(cal_int_obj, title='Mean of integration time'):
     ax1 = fig.add_subplot(111)
     symbol = ['x','o','.']
     for i, s in enumerate(cal_int_obj.spectrometers):
-        ax1.plot(cal_int_obj.integrated_dataset[s].time_min, symbol[i], label=s)
+        ax1.plot(cal_int_obj.integrated_data[s].time_min, symbol[i], label=s)
     ax1.legend()
 
 def compare_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, title=''):
@@ -204,15 +204,138 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, title=
         ax1.grid()
         ax1.legend(fontsize='xx-small')
         #ax3.legend()
-        ax2.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2)
-        ax2.set_xlim(110.835, 110.837)
+        #ax2.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2)
+        ax2.plot(
+            (ds_dict[s].frequencies[calibration_cycle].data-cal_int_obj.observation_frequency)/1e6,
+            ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2
+        )
+        ax2.set_xlim(-10, 10)
         #ax2.set_yticklabels([])
-        ax2.set_xticklabels([])
+        #ax2.set_xticklabels([])
         ymax = np.nanmax(ds_dict[s].Tb[calibration_cycle].data*mask)
         if not np.isnan(ymax):
             ax2.set_ylim(ymax-3,ymax+0.5)
         ax2.grid()
         #ax2.legend(fontsize='xx-small')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
+def compare_binned_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, use_basis='U5303', title=''):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(211)
+    ax2 = ax1.inset_axes([0.1, 0.6, 0.15, 0.35])
+    ax3 = fig.add_subplot(212)
+    for s in cal_int_obj.spectrometers:
+        ax1.plot(ds_dict[s].bin_freq.data/1e9, ds_dict[s].binned_Tb[calibration_cycle], lw=0.5, label=s)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("f [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_title(title)
+        ax1.grid()
+        #ax1.legend(fontsize='xx-small')
+        #ax3.legend()
+        #ax2.plot(ds_dict[s].bin_freq.data/1e9, ds_dict[s].binned_Tb[calibration_cycle], lw=0.2)
+        ax2.plot(
+            (ds_dict[s].bin_freq.data-cal_int_obj.observation_frequency)/1e6,
+            ds_dict[s].binned_Tb[calibration_cycle], lw=0.2
+        )
+        ax2.set_xlim(-10, 10)
+        #ax2.set_yticklabels([])
+        #ax2.set_xticklabels([])
+        ymax = np.nanmax(ds_dict[s].binned_Tb[calibration_cycle])
+        if not np.isnan(ymax):
+            ax2.set_ylim(ymax-3,ymax+0.5)
+        ax2.grid()
+
+        Tb_diff = ds_dict[use_basis].binned_Tb[calibration_cycle].data-ds_dict[s].binned_Tb[calibration_cycle].data
+        
+        ax3.plot(ds_dict[s].bin_freq.data/1e9, Tb_diff, lw=0.5, label=s)
+        ax3.set_title('Tb difference with: '+use_basis)
+        ax3.set_ylim(-0.5,1.5)
+        ax3.legend(fontsize='xx-small')
+        ax3.grid()
+
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
+def compare_spectra_diff_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(211)
+    ax2 = ax1.inset_axes([0.1, 0.6, 0.15, 0.35])
+    ax3 = fig.add_subplot(212)
+    clean_Tb = ds_dict[use_basis].Tb[calibration_cycle].where(ds_dict[use_basis].good_channels[calibration_cycle]==1).data
+    clean_f = ds_dict[use_basis].frequencies[calibration_cycle].data
+    for s in spectrometers:
+        #mask = ds_dict[s].good_channels[calibration_cycle].data
+        #mask[mask==0]=np.nan
+        Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
+        Tb_diff = clean_Tb-Tb
+        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("f [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_title(title)
+        ax1.grid()
+        #ax1.legend(fontsize='xx-small')
+        #ax3.legend()
+        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.2)
+        ax2.set_xlim(-10, 10)
+        #ax2.set_yticklabels([])
+        ax2.set_xticklabels([])
+        ymax = np.nanmax(ds_dict[s].interpolated_Tb[calibration_cycle].data)
+        if not np.isnan(ymax):
+            ax2.set_ylim(ymax-4,ymax+0.5)
+        ax2.grid()
+        ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s)
+        ax3.set_title('Interpolated Tb difference with: '+use_basis)
+        ax3.set_ylim(-0.5,1.5)
+        ax3.grid()
+        ax3.legend(fontsize='xx-small')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
+def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(211)
+    ax2 = ax1.inset_axes([0.1, 0.6, 0.15, 0.35])
+    ax3 = fig.add_subplot(212)
+    clean_Tb = ds_dict[use_basis].binned_Tb[calibration_cycle].data
+    clean_f = ds_dict[use_basis].bin_freq.data
+    for s in spectrometers:
+        #mask = ds_dict[s].good_channels[calibration_cycle].data
+        #mask[mask==0]=np.nan
+        Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
+        Tb_diff = clean_Tb-Tb
+        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("f [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_title(title)
+        ax1.grid()
+        #ax1.legend(fontsize='xx-small')
+        #ax3.legend()
+        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.2)
+        ax2.set_xlim(-10, 10)
+        #ax2.set_yticklabels([])
+        ax2.set_xticklabels([])
+        ymax = np.nanmax(ds_dict[s].interpolated_Tb[calibration_cycle].data)
+        if not np.isnan(ymax):
+            ax2.set_ylim(ymax-4,ymax+0.5)
+        ax2.grid()
+        ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s)
+        ax3.set_title('Binned and interpolated Tb difference with: '+use_basis)
+        ax3.set_ylim(-0.5,1.5)
+        ax3.grid()
+        ax3.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
     
