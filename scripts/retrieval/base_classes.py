@@ -96,10 +96,17 @@ class Integration(ABC):
 
         self.dates = dates
 
-        if len(self.dates) > 1:
-            self.multiday = True
-        else:
+        try:
+            len(self.dates) > 1
+        except TypeError:
             self.multiday = False
+        else:
+            self.multiday = True
+
+        # if len(self.dates) > 1:
+        #     self.multiday = True
+        # else:
+        #     self.multiday = False
 
         self.calibrated_data = dict()
         self.meteo_data = dict()
@@ -109,16 +116,43 @@ class Integration(ABC):
 
         for s in self.spectrometers:
             self.filename_level1a[s] = list()
+            if self.multiday:
+                for date in dates:
+                    self.datestr = date.strftime('%Y_%m_%d')
+                    self.filename_level1a[s].append(
+                        os.path.join(
+                    self.level1_folder,
+                    self.instrument_name + "_level1a_" +
+                    s + "_" + self.datestr
+                    ))
 
-            for date in dates:
-                self.datestr = date.strftime('%Y_%m_%d')
+                    if self.integration_strategy == 'classic':
+                        if self.int_time == 1:
+                            self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_" +
+                            s + "_" + self.datestr
+                            )
+                        else:
+                            self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                            s + "_" + self.datestr
+                            )
+                    else:
+                        self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
+                            s + "_" + self.datestr
+                            )
+            else:
+                self.datestr = self.dates.strftime('%Y_%m_%d')
                 self.filename_level1a[s].append(
                     os.path.join(
                 self.level1_folder,
                 self.instrument_name + "_level1a_" +
                 s + "_" + self.datestr
                 ))
-
                 if self.integration_strategy == 'classic':
                     if self.int_time == 1:
                         self.filename_level1b[s] = os.path.join(
@@ -192,6 +226,23 @@ class Integration(ABC):
         for s in self.spectrometers:
             sum_flags_da = self.calibration_flags[s].sum(dim='flags')
             good_time = sum_flags_da.where(sum_flags_da.calibration_flags == 6, drop=True).time
+            self.calibrated_data[s] = self.calibrated_data[s].where(self.calibrated_data[s].time == good_time, drop=True)
+            
+            #self.meteo_data[s] = self.meteo_data[s].where(self.meteo_data[s].time == meteo_good_times, drop=True)
+
+        return self.calibrated_data#, self.meteo_data
+
+    def clean_level1a_byFlags_all(self):
+        '''
+        cleaning the flagged level1a timestamps
+        '''
+        sum_flags = dict()
+        for s in self.spectrometers:
+            sum_flags[s] = self.calibration_flags[s].sum(dim='flags')
+        
+        good_time = sum_flags['AC240'].where((sum_flags['AC240'].calibration_flags == 6)&(sum_flags['U5303'].calibration_flags == 6)&(sum_flags['USRP-A'].calibration_flags == 6),drop=True).time
+        
+        for s in self.spectrometers:
             self.calibrated_data[s] = self.calibrated_data[s].where(self.calibrated_data[s].time == good_time, drop=True)
             
             #self.meteo_data[s] = self.meteo_data[s].where(self.meteo_data[s].time == meteo_good_times, drop=True)
@@ -474,6 +525,55 @@ class Integration(ABC):
             
 
         return self.integrated_data
+
+    def add_bias_characterization(self, spectrometers, use_basis, dim, param_slope, around_center_value):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        ''' 
+
+        # Base spectro:
+        cleanTb_basis = self.integrated_data[use_basis].interpolated_Tb
+        meanTb_lc_basis = self.integrated_data[use_basis].interpolated_Tb.where(abs(self.integrated_data[use_basis].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+        for s in spectrometers:
+            meanTb_lc = self.integrated_data[s].interpolated_Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+            bias_lc = meanTb_lc_basis-meanTb_lc
+
+
+            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+
+            cleanTb = self.integrated_data[s].interpolated_Tb
+            Tb_diff = cleanTb_basis-cleanTb
+            right_wing_center = param_slope[s][0]
+            right_wing_interval = param_slope[s][1]
+            left_wing_center = param_slope[s][2]
+            left_wing_interval = param_slope[s][3]
+
+            mean_diff_right_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            mean_diff_left_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
+            slope = (mean_diff_right_wing - mean_diff_left_wing) / (right_wing_center - left_wing_center)
+
+            self.integrated_data[s] = self.integrated_data[s].assign(slope = slope)
+
+            deltaTb0 = mean_diff_left_wing-slope*left_wing_center
+            #deltaTb02 = mean_diff_right_wing-slope*right_wing_center
+
+            f_deltaTb0 = -deltaTb0 / slope
+
+            self.integrated_data[s] = self.integrated_data[s].assign(f_deltaTb0 = f_deltaTb0)
+
+        return self.integrated_data
+
 
     def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
         '''
@@ -963,7 +1063,7 @@ class DataRetrieval(ABC):
         '''
         raise NotImplementedError("abstract base class")
 
-    def read_level1b(self, no_flag=False, meta_data=True):
+    def read_level1b(self, no_flag=False, meta_data=True, extra_base=None):
         ''' 
         Reading level1b dataset and completing the information on the instrument
         
