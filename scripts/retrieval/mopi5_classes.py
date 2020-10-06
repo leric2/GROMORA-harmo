@@ -125,14 +125,16 @@ class IntegrationMOPI5(Integration):
         print('Using the correction function from GROSOM, TODO')
         return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
-    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1', basis_spectro='AC240'):
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1', basis_spectro='AC240', skip_ch=[1000,1000], num_of_ch=500, interp=False):
         '''
         Correction function for the troposphere. 
         
         For MOPI, we call it a first time 
         '''
-        #basis_spectro = 'AC240'
-        return mopi5_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1', use_basis=basis_spectro)
+        if interp:
+            return mopi5_library.correct_troposphere_interpolated(self, spectrometers, dim, method='Ingold_v1', use_basis=basis_spectro, skip_ch=skip_ch, num_of_ch=num_of_ch)
+        else:
+            return mopi5_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1', use_basis=basis_spectro, skip_ch=skip_ch, num_of_ch=num_of_ch)
 
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)
