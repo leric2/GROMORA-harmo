@@ -218,14 +218,14 @@ class MOPI5_LvL2(DataRetrieval):
         #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
         return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
-    def compare_spectra_mopi5(self, dim='time', idx=[0], save_plot = False, identifier=[], with_corr = True):
+    def compare_spectra_mopi5(self, dim='time', idx=[0], save_plot = False, identifier=[], with_corr = True, corr_band=False):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
-            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])
+            title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])+', int_time='+str(10*self.integrated_data['U5303'].chunk_size[i].data) + 'min'
             #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
             if with_corr:
-                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, i, title=title))
+                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, i, title=title, corr_band=corr_band))
             else:
                 figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_data, i, title=title))
 
@@ -242,17 +242,22 @@ class MOPI5_LvL2(DataRetrieval):
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_binned_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
-    def compare_spectra_binned_interp_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[]):
+    def compare_spectra_binned_interp_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[], corrected=False):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
             title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i]) + ', binned and interpolated Tb with ' + use_basis
             #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
-            figures.append(mopi5_library.compare_spectra_binned_interp_mopi5(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+            if corrected:
+                figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_corrected(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+            else:
+                figures.append(mopi5_library.compare_spectra_binned_interp_mopi5(self, self.integrated_data, i, spectrometers, use_basis, title=title))
 
         if save_plot:
-            save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
-
+            if corrected:
+                save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+            else: 
+                save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     def compare_interpolated_spectra_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[]):
         figures = list()
         #spectro_ds = self.calibrated_data[s]

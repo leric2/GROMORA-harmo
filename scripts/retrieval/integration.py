@@ -81,15 +81,17 @@ def integrate(date, integration_strategy):
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
     # Define the parameters for integration
-    #TOD = [3, 9, 15, 21]
-    #interval = [3, 3, 3, 3]
-    TOD = [2, 6, 10, 14, 18, 22]
-    interval = [2, 2, 2, 2, 2, 2]
-    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    TOD = [3, 9, 15, 21]
+    interval = [3, 3, 3, 3]
+    TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
+    interval = np.ones(len(TOD))
+    TOD = np.arange(24)
+    interval = 0.5*np.ones(len(TOD))
+    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
     #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
     #meanTb_chunks = [105, 110, 115, 120, 130, 140, 160, 180, 200]
     #meanTb_chunks=[95, 100, 105]
-    #meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
     classic = np.arange(1,24)
 
     if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
@@ -148,12 +150,19 @@ def integrate(date, integration_strategy):
         dimension=dimension
         )
 
+    # skip_ch_U5303 = [int(integrated_data['U5303'].channel_idx.where(integrated_data['U5303'].frequencies[3]>calibration.observation_frequency-400e6, drop=True)[0].data),
+    #                 len(calibration.integrated_data['U5303'].channel_idx)-int(integrated_data['U5303'].channel_idx.where(integrated_data['U5303'].frequencies[3]>calibration.observation_frequency+400e6, drop=True)[3].data)]
+    # skip_ch_AC240 = [int(integrated_data['AC240'].channel_idx.where(integrated_data['AC240'].frequencies[3]>calibration.observation_frequency-400e6, drop=True)[0].data),
+    #                 len(calibration.integrated_data['AC240'].channel_idx)-int(integrated_data['AC240'].channel_idx.where(integrated_data['AC240'].frequencies[3]>calibration.observation_frequency+400e6, drop=True)[3].data)]
+    
+    skip_ch_U5303 = [1541, 6651]
+    skip_ch_AC240 = [2559, 815]
     integrated_data = calibration.correct_troposphere(
         ['U5303', 'USRP-A'], 
         dimension[0], 
         method='Ingold_v1', 
         basis_spectro='U5303',
-        skip_ch = [1000,5300],
+        skip_ch = skip_ch_U5303,
         num_of_ch = 500
         )
         
@@ -162,8 +171,8 @@ def integrate(date, integration_strategy):
         dimension[0], 
         method='Ingold_v1', 
         basis_spectro='AC240',
-        skip_ch = [1000,1000],
-        num_of_ch = 500
+        skip_ch = skip_ch_AC240,
+        num_of_ch = 800
         )
 
     integrated_data = calibration.add_noise_level(calibration.spectrometers, max_diff_level=10)
@@ -176,13 +185,31 @@ def integrate(date, integration_strategy):
             dim=dimension[0],
             df=None,              
             plot_diff=False)
-                
+        
+        integrated_data = calibration.add_binned_spectra(
+            spectrometers=['AC240', 'USRP-A', 'U5303'],
+            bin_size=[3, 15, 2],
+            dim=dimension[0],
+            df=None,              
+            plot_diff=False,
+            corrected=True
+            )
+
         integrated_data = calibration.add_interpolated_spectra(
             spectrometers=['AC240', 'USRP-A', 'U5303'],
             use_basis='U5303',
             dim=dimension[0],              
             plot_diff=False,
-            from_binned=True
+            from_binned=True,
+            )
+
+        integrated_data = calibration.add_interpolated_spectra(
+            spectrometers=['AC240', 'USRP-A', 'U5303'],
+            use_basis='U5303',
+            dim=dimension[0],              
+            plot_diff=False,
+            from_binned=True,
+            corrected=True
             )
         
         # integrated_data = calibration.correct_troposphere(
@@ -190,8 +217,8 @@ def integrate(date, integration_strategy):
         #     dimension[0], 
         #     method='Ingold_v1', 
         #     basis_spectro='U5303',
-        #     skip_ch = [100,100],
-        #     num_of_ch = 100,
+        #     skip_ch = [1000,5300],
+        #     num_of_ch = 500,
         #     interp=True
         #     )
 
@@ -200,13 +227,21 @@ def integrate(date, integration_strategy):
         #     dimension[0], 
         #     method='Ingold_v1', 
         #     basis_spectro='AC240',
-        #     skip_ch = [100,100],
-        #     num_of_ch = 100,
+        #     skip_ch = [1000,1000],
+        #     num_of_ch = 500,
         #     interp=True
         #     )
 
-        param_slope = {'AC240' : [111.1e9, 5e6, 110.5e9, 5e6], 'USRP-A': [110.84e9, 2e6, 110.72e9, 2e6], 'U5303': []}
+        param_slope = {'AC240' : [111.2e9, 25e6, 110.5e9, 25e6], 'USRP-A': [110.84e9, 5e6, 110.72e9, 5e6], 'U5303': []}
         integrated_data = calibration.add_bias_characterization(
+            spectrometers=['AC240', 'USRP-A'],
+            use_basis='U5303',
+            dim=dimension[0],
+            param_slope = param_slope, 
+            around_center_value=1e6
+            )
+
+        integrated_data = calibration.add_bias_characterization_corrected(
             spectrometers=['AC240', 'USRP-A'],
             use_basis='U5303',
             dim=dimension[0],
@@ -223,14 +258,15 @@ def integrate(date, integration_strategy):
 
 # %%
 
-def plot_integrated(date1b, integration_strategy):
+def plot_integrated(date, integration_strategy):
     #date1b = pd.to_datetime(date[-1])
+    date1b = pd.to_datetime(date[-1])
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        integration = gc.GROMOS_LvL2(date1b, basename_lvl1, integration_strategy, int_time)
+        integration = gc.GROMOS_LvL2(date, basename_lvl1, integration_strategy, int_time)
     elif instrument_name=="SOMORA":
         import somora_classes as sm
-        integration = sm.SOMORA_LvL2(date1b, basename_lvl1, integration_strategy, int_time)
+        integration = sm.SOMORA_LvL2(date, basename_lvl1, integration_strategy, int_time)
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -263,8 +299,9 @@ def plot_integrated(date1b, integration_strategy):
                 save_plot = True, 
                 identifier=TOD,
                 #identifier=meanTb_chunks+[300],
-                use_basis='U5303'
-            )      
+                use_basis='U5303',
+                corrected=True
+        )
         # integration.compare_binned_spectra_mopi5(
         #         dim=dimension[0], 
         #         idx=np.arange(0,len(meanTb_chunks)+1), 
@@ -292,10 +329,17 @@ def plot_integrated(date1b, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    dateR = pd.date_range(start='2019-02-03', end='2019-02-10')
-
+    dateR = pd.date_range(start='2019-06-11', end='2019-06-15')
+    integrate(dateR, 'meanTb_harmo')
+    
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     integration_strategy = 'TOD_harmo'
-    for date in dateR:
-        integrate(date, integration_strategy)
+    plot_integrated(dateR[-1], integration_strategy)
+    #for date in dateR:
+    #      try:
+    #          integrate(date, integration_strategy)
+    #      except:
+    #          print('not working for day : ', date)
         #plot_integrated(date, integration_strategy)
+
+# %%

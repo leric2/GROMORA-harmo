@@ -370,7 +370,7 @@ class Integration(ABC):
 
         return self.integrated_data
 
-    def add_binned_spectra(self, spectrometers=['AC240', 'USRP-A', 'U5303'], bin_size=[16, 80, 10], dim='chunks', df=None, plot_diff=False):
+    def add_binned_spectra(self, spectrometers=['AC240', 'USRP-A', 'U5303'], bin_size=[16, 80, 10], dim='chunks', df=None, plot_diff=False, corrected=False):
         '''
         Parameters
         ----------
@@ -419,7 +419,11 @@ class Integration(ABC):
                 )
 
                 if 'good_channels' in self.integrated_data[s].data_vars:
-                    clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+                    if corrected:
+                        clean_Tb = self.integrated_data[s].Tb_corr.where(self.integrated_data[s].good_channels==1)
+                    else:
+                        clean_Tb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+                    
                     clean_f = self.integrated_data[s].frequencies#.where(self.integrated_data[s].good_channels==1)
 
                     for i in range(len(self.integrated_data[s].coords[dim])):
@@ -440,15 +444,15 @@ class Integration(ABC):
                 else:
                     raise NotImplementedError('Identification of bad channels needed first')
 
-
-                self.integrated_data[s] = self.integrated_data[s].assign(binned_Tb = da_binned_Tb)
-
-
+                if corrected:
+                    self.integrated_data[s] = self.integrated_data[s].assign(binned_Tb_corr = da_binned_Tb)
+                else:
+                    self.integrated_data[s] = self.integrated_data[s].assign(binned_Tb = da_binned_Tb)
             #plt.title('Tb interp diff')
 
         return self.integrated_data
 
-    def add_interpolated_spectra(self, spectrometers=None, use_basis='AC240', dim='chunks', right=np.nan, left=np.nan, plot_diff=False, from_binned=True):
+    def add_interpolated_spectra(self, spectrometers=None, use_basis='AC240', dim='chunks', right=np.nan, left=np.nan, plot_diff=False, from_binned=True, corrected=False):
         '''
         Parameters
         ----------
@@ -497,9 +501,15 @@ class Integration(ABC):
                 self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb = da_interp_Tb)
         else:
             for l, s in enumerate(spectrometers):
-                clean_Tb = self.integrated_data[s].binned_Tb
+                if corrected:
+                    clean_Tb = self.integrated_data[s].binned_Tb_corr
+                else:
+                    clean_Tb = self.integrated_data[s].binned_Tb
                 clean_f = self.integrated_data[s].bin_freq
-                clean_Tb_basis = self.integrated_data[use_basis].binned_Tb
+                if corrected:
+                    clean_Tb_basis = self.integrated_data[use_basis].binned_Tb_corr
+                else:
+                    clean_Tb_basis = self.integrated_data[use_basis].binned_Tb
                 #if grid is None:
                 grid = self.integrated_data[use_basis].bin_freq
                 #else:
@@ -520,9 +530,10 @@ class Integration(ABC):
                 
                 da_interp_Tb = da_interp_Tb.assign_coords({'bin_freq_interp':grid.data})
                     #Tb_diff = clean_Tb_basis[i]-da_interp_Tb[i].data
-                self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb = da_interp_Tb)
-
-            
+                if corrected:
+                    self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb_corr = da_interp_Tb)
+                else:
+                    self.integrated_data[s] = self.integrated_data[s].assign(interpolated_Tb = da_interp_Tb)
 
         return self.integrated_data
 
@@ -573,7 +584,54 @@ class Integration(ABC):
             self.integrated_data[s] = self.integrated_data[s].assign(f_deltaTb0 = f_deltaTb0)
 
         return self.integrated_data
+    
+    def add_bias_characterization_corrected(self, spectrometers, use_basis, dim, param_slope, around_center_value):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
 
+        Returns
+        -------
+        None.
+
+        ''' 
+
+        # Base spectro:
+        cleanTb_basis = self.integrated_data[use_basis].interpolated_Tb_corr
+        meanTb_lc_basis = self.integrated_data[use_basis].interpolated_Tb_corr.where(abs(self.integrated_data[use_basis].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+        for s in spectrometers:
+            meanTb_lc = self.integrated_data[s].interpolated_Tb_corr.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+            bias_lc = meanTb_lc_basis-meanTb_lc
+
+
+            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc_corr = bias_lc)
+
+            cleanTb = self.integrated_data[s].interpolated_Tb_corr
+            Tb_diff = cleanTb_basis-cleanTb
+            right_wing_center = param_slope[s][0]
+            right_wing_interval = param_slope[s][1]
+            left_wing_center = param_slope[s][2]
+            left_wing_interval = param_slope[s][3]
+
+            mean_diff_right_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            mean_diff_left_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
+            slope = (mean_diff_right_wing - mean_diff_left_wing) / (right_wing_center - left_wing_center)
+
+            self.integrated_data[s] = self.integrated_data[s].assign(slope_corr = slope)
+
+            deltaTb0 = mean_diff_left_wing-slope*left_wing_center
+            #deltaTb02 = mean_diff_right_wing-slope*right_wing_center
+
+            f_deltaTb0 = -deltaTb0 / slope
+
+            self.integrated_data[s] = self.integrated_data[s].assign(f_deltaTb0_corr = f_deltaTb0)
+
+        return self.integrated_data
 
     def integrate_by_mean_Tb(self, spectrometers, Tb_chunks = [50, 100, 150, 200]):
         '''
@@ -863,7 +921,7 @@ class Integration(ABC):
         output an integrated dataset with dimension (time, chunks)
         '''
         print(f"Integration around TOD: {tod}, with interval of {interval} hours.")
-        print(use_basis, ' is taken as basis')
+        print(use_basis, ' is taken as basis for defining the integration')
         self.integrated_data = dict()
         self.integrated_meteo = dict()
         for s in spectrometers:
@@ -1034,7 +1092,7 @@ class DataRetrieval(ABC):
         self.calibration_flags = dict()
         self.filename_level1a = dict()
         self.filename_level1b = dict()
-
+        extra_base =''
         for s in self.spectrometers:
             self.filename_level1a[s] = list()
 
@@ -1055,7 +1113,7 @@ class DataRetrieval(ABC):
                 self.filename_level1b[s] = os.path.join(
                     self.level1_folder,
                     self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                    s + "_" + self.datestr
+                    s + "_" + self.datestr+extra_base
                     )
 
     def get_hot_load_temperature(self, time):

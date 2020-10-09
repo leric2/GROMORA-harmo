@@ -100,11 +100,17 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
-    retrieval_param["time"] = spectro_dataset.time[cycle].values
+    
     retrieval_param["lat"] = spectro_dataset.lat[cycle].values
     retrieval_param["lon"] = spectro_dataset.lon[cycle].values
-    retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
-    retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
+    try:
+        retrieval_param["time"] = spectro_dataset.time[cycle].values
+        retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
+        retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
+    except:
+        retrieval_param["time"] = 1
+        retrieval_param['time_start'] = 1
+        retrieval_param['time_stop'] = 2
     retrieval_param["f_max"] = max(ds_freq)
     retrieval_param["f_min"] = min(ds_freq)
     retrieval_param["bandwidth"] = 1e9

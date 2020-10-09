@@ -47,17 +47,17 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     instrument_name = "mopi5"
-    date = datetime.date(2019,6,11)
-    date = datetime.date(2019,6,15)
+    date = datetime.date(2019,2,22)
+    #date = datetime.date(2019,6,15)
     #date = datetime.date(2019,2,4)
     #date = datetime.date(2019,2,1)
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
     #date = datetime.date(2019,1,4)
     int_time = 6
-    integration_strategy = 'classic'
+    integration_strategy = 'meanTb_harmo'
     recheck_channels = True
-    
+    do_corr = False
     cycles = np.arange(0,4)
 
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
@@ -80,27 +80,29 @@ if __name__ == "__main__":
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
     
-    if integration_strategy == 'classic':
-        integrated_dataset, flags, integrated_meteo = instrument.read_level1b()
+    if integration_strategy == 'classic' or integration_strategy == 'TOD_harmo' or integration_strategy == 'TOD':
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
+        dimension=['time', 'channel_idx']
     else:
-        raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=True, meta_data=False, extra_base=None)
+        dimension=['chunks', 'channel_idx']
 
     if recheck_channels:
         integrated_data = instrument.find_bad_channels_stdTb(
             spectrometers = instrument.spectrometers, 
             stdTb_threshold = 15,
             apply_on='int',
-            dimension=['time','channel_idx']
+            dimension=dimension
             )
 
-    integrated_dataset = instrument.correct_troposphere(instrument.spectrometers, dim='time', method='Ingold_v1', basis_spectro='AC240')
-    instrument.compare_spectra_mopi5(dim='time', idx=[0,1,2,3], save_plot=True, identifier=[0,1,2,3], with_corr=True)
+    if do_corr:
+        integrated_dataset = instrument.correct_troposphere(instrument.spectrometers, dim=dimension[0], method='Ingold_v1', basis_spectro='AC240')
     
     # %%
     #
     spectrometers = instrument.spectrometers
     #spectrometers = ['U5303']
-    cycles = [0, 1, 2]
+    cycles = [4]
 
     var_factor = {'U5303':500, 'AC240':400, 'USRP-A':100}
     #[450 , 450, 350]
@@ -109,13 +111,14 @@ if __name__ == "__main__":
 
     for i, spectro in enumerate(spectrometers):
         print('Retrieving ', spectro, ' on day: ')
-        spectro_dataset = instrument.integrated_dataset[spectro]
+        spectro_dataset = instrument.integrated_data[spectro]
 
         figure_list = []
         retrieval_param['increased_var_factor'] = var_factor[spectro]
         #print(retrieval_param['increased_var_factor'])
         for c in cycles:
             retrieval_param["integration_cycle"] = c
+            instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
 
             #bin_vector = instrument.create_binning(
             #    instrument.frequencies,
