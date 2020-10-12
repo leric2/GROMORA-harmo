@@ -54,7 +54,7 @@ if __name__ == "__main__":
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
     #date = datetime.date(2019,1,4)
-    int_time = 6
+    int_time = 1
     integration_strategy = 'meanTb_harmo'
     recheck_channels = True
     do_corr = False
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     #
     spectrometers = instrument.spectrometers
     #spectrometers = ['U5303']
-    cycles = [4]
+    cycles = [1,7]
 
     var_factor = {'U5303':500, 'AC240':400, 'USRP-A':100}
     #[450 , 450, 350]
@@ -116,7 +116,9 @@ if __name__ == "__main__":
         figure_list = []
         retrieval_param['increased_var_factor'] = var_factor[spectro]
         #print(retrieval_param['increased_var_factor'])
+        counter = 0
         for c in cycles:
+            counter=counter+1
             retrieval_param["integration_cycle"] = c
             instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
 
@@ -132,8 +134,19 @@ if __name__ == "__main__":
                 retrieval_param["surface_altitude"] = 10e3
                 retrieval_param["observation_altitude"] =  15e3
                 ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
-                figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(ac, spectro_dataset, retrieval_param, title = 'MOPI5 '+spectro + ' - ' + date.strftime('%Y%m%d')+ ' - ' + str(c), figure_list = figure_list)
-                #level2 = ac.get_level2_xarray()
+                figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(
+                    ac, 
+                    spectro_dataset, 
+                    retrieval_param, 
+                    title = 'MOPI5 '+spectro + ' - ' + date.strftime('%Y%m%d')+ ' - ' + str(c), 
+                    figure_list = figure_list,
+                    fshift=True,
+                    bl=True
+                )
+                level2_cycle = ac.get_level2_xarray()
+                #ds1=level2_cycle.expand_dims({'chunks':1})
+                #level2_cycle=level2_cycle.assign_coords({'chunks':c})
+
                 #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
                 #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
             elif retrieval_param["retrieval_type"] == 2:
@@ -144,6 +157,12 @@ if __name__ == "__main__":
                 save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
             else:
                 pass
+            
+            if counter>1:
+                level2 = xr.concat([level2, level2_cycle], dim='observation')
+            else: 
+                level2 = level2_cycle
         
         save_single_pdf(instrument.filename_level2[spectro]+'_Perrin_corrected_'+retrieval_param['atm']+'_'+str(cycles)+'.pdf', figure_list)
 
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
