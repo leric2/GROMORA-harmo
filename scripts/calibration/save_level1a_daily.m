@@ -91,6 +91,8 @@ nccreate(filename,'/spectrometer1/number_of_hot_spectra','Dimensions',{'time',In
 nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/mean_hot_counts','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
 
@@ -212,6 +214,8 @@ numInd=vertcat(calibratedSpectra.numberOfIndices);
 ncwrite(filename,'/spectrometer1/number_of_hot_spectra',numInd(:,1));
 ncwrite(filename,'/spectrometer1/number_of_cold_spectra',numInd(:,2));
 ncwrite(filename,'/spectrometer1/number_of_sky_spectra',numInd(:,3));
+
+ncwrite(filename,'/spectrometer1/mean_hot_counts',[calibratedSpectra.meanHotCounts]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables 

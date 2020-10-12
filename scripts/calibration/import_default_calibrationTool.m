@@ -584,6 +584,8 @@ switch instrumentName
         % Folder, Raw and log file data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/mopi5/' dateStr(1:4) '/'];
+        %calibrationTool.rawFileFolder=['smb://resstore.unibe.ch/iap_mwlake/instrumentdata/mopi5/' dateStr(1:4) '/'];
+        
         calibrationTool.level1Folder='/scratch/MOPI5/Level1/';
         calibrationTool.extraFileFolder='/scratch/MOPI5/ExtraRawFiles/'; % no write permission on the IAP lake
         
@@ -671,6 +673,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Read meteo data
         calibrationTool.meteoFolder='/mnt/datalake/instrumentdata/meteo/exwi/meteo/';
+        %calibrationTool.meteoFolder='smb://resstore.unibe.ch/iap_mwlake/instrumentdata/meteo/exwi/meteo/';
         %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';
     
         % Function specific to this instrument

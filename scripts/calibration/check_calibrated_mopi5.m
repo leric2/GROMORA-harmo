@@ -136,8 +136,11 @@ for i =1:size(calibratedSpectra,2)
     
     % Mean standard deviation of calibrated sky measurement during the
     % cycle
-    calibratedSpectra(i).potentialBadChannels = calibratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
+    calibratedSpectra(i).potentialBadChannels = calibratedSpectra(i).stdTb > calibrationTool.maxStdDevTbCal;
     calibratedSpectra(i).meanStdTb=nanmean(calibratedSpectra(i).stdTb(~calibratedSpectra(i).potentialBadChannels));
+    
+    % Mean hot counts
+    calibratedSpectra(i).meanHotCounts = nanmean(calibratedSpectra(i).meanHotSpectra);
     
     %%%%%%%%%%% Flag HL %%%%%%%%%%%
     % Hot load check flag
