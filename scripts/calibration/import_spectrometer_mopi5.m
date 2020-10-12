@@ -52,7 +52,7 @@ calibrationTool.filenameLevel1a=['/scratch/MOPI5/Level1/mopi5_level1a_' calibrat
 
 % Tsys threshold:
 TSysCenter = [550 0 550 500];
-TSysThresh = [50 0 50 50];
+TSysThresh = [25 0 25 25];
 stdTSysThresh = [20 0 15 15];
 
 frequencyBandAroundCenterTSys = 1e6*[20 10 200 200];
