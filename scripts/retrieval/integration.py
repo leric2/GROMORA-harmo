@@ -55,8 +55,8 @@ def integrate(date, integration_strategy):
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = True
-    plot_ts_Tb_Tsys = False
+    save_nc = False
+    plot_ts_Tb_Tsys = True
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
@@ -111,21 +111,7 @@ def integrate(date, integration_strategy):
     calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=20e6)
     
     if plot_ts_Tb_Tsys:
-        fig = plt.figure()
-        ax = fig.add_subplot(2,1,1)
-        ax1 = fig.add_subplot(2,1,2)
-        #ax2 = fig.add_subplot(3,1,3)
-        for s in calibration.spectrometers:
-            ax.plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].mean_Tb,'.',markersize=4,label=s)
-            ax1.plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
-            #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
-
-            #ax.legend()        
-            ax1.legend()    
-        ax.set_ylabel('$T_B$ [K]')
-        ax1.set_ylabel('$T_{sys}$ [K]')
-        #plt.suptitle('Mean T_B and T_sys')
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        calibration.plot_time_series_all_mopi5()
         #fig.savefig(calibration.level1_folder+'Tb_Tsys_all_'+calibration.datestr+'.pdf')
 
     # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
@@ -282,23 +268,23 @@ def plot_integrated(date, integration_strategy):
     if instrument_name == 'mopi5':
         integration.compare_spectra_mopi5(
             dim=dimension[0], 
-            #idx=np.arange(0,len(meanTb_chunks)+1), 
-            idx=np.arange(len(TOD)),
+            idx=np.arange(0,len(meanTb_chunks)+1), 
+            #idx=np.arange(len(TOD)),
             save_plot = True, 
-            identifier=TOD,
-            #identifier=meanTb_chunks+[300],
+            #identifier=TOD,
+            identifier=meanTb_chunks+[300],
             with_corr = True
         )
         integration.plot_time_min_comp()
     
         integration.compare_spectra_binned_interp_mopi5(
                 dim=dimension[0], 
-                #idx=np.arange(0,len(meanTb_chunks)+1), 
-                idx=np.arange(len(TOD)),
+                idx=np.arange(0,len(meanTb_chunks)+1), 
+                #idx=np.arange(len(TOD)),
                 spectrometers=integration.spectrometers,
                 save_plot = True, 
-                identifier=TOD,
-                #identifier=meanTb_chunks+[300],
+                #identifier=TOD,
+                identifier=meanTb_chunks+[300],
                 use_basis='U5303',
                 corrected=True
         )
@@ -329,12 +315,12 @@ def plot_integrated(date, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    dateR = pd.date_range(start='2019-06-11', end='2019-06-15')
+    dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
     integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
-    integration_strategy = 'TOD_harmo'
-    plot_integrated(dateR[-1], integration_strategy)
+    #integration_strategy = 'TOD_harmo'
+
     #for date in dateR:
     #      try:
     #          integrate(date, integration_strategy)
@@ -343,3 +329,4 @@ if __name__ == "__main__":
         #plot_integrated(date, integration_strategy)
 
 # %%
+

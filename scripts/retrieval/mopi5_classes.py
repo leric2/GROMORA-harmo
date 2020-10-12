@@ -139,6 +139,13 @@ class IntegrationMOPI5(Integration):
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)
 
+    def plot_time_series_all_mopi5(self, title=''):
+        figures = list()        
+        figures.append(mopi5_library.plot_ts_mopi5(self, title=title))
+
+        save_single_pdf(self.level1_folder+'time_series_'+self.datestr+'_'+'.pdf', figures)
+
+
 class MOPI5_LvL2(DataRetrieval):
     '''
     Implementing the Dataretrieval class for the MOPI5 case.
@@ -269,6 +276,7 @@ class MOPI5_LvL2(DataRetrieval):
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
 
+
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
         '''
         From Jonas
@@ -334,7 +342,7 @@ class MOPI5_LvL2(DataRetrieval):
         retrieval_param['ref_elevation_angle'] = 180
         return mopi5_retrievals.retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param)
 
-    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list):
+    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list, fshift, bl):
         '''
         
 
@@ -354,7 +362,7 @@ class MOPI5_LvL2(DataRetrieval):
         None.
 
         '''
-        return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
+        return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list, fshift=fshift, compute_bl=bl)
 
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)

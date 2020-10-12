@@ -368,6 +368,59 @@ def compare_binned_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0,
     
     return fig
 
+def plot_ts_mopi5(calibration, title):
+    import matplotlib.dates as mdates
+    fig = plt.figure()
+    ax = fig.subplots(nrows=3, ncols=1, sharex=True)
+    #ax2 = fig.add_subplot(412, sharex=True)
+    ax31 = ax[1]
+    ax32 = ax31.twinx()
+    ax41 = ax[2]
+    ax42 = ax41.twinx()
+    #ax2 = fig.add_subplot(3,1,3)
+    
+    marker = ['x','*','.']
+    for a, spectro in enumerate(calibration.spectrometers):
+        dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
+        ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
+        #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
+        #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
+        #ax.legend()
+    ax[0].legend(fontsize='xx-small')
+    s = 'AC240'
+    ax31.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_temperature-273.15,'r-') 
+    ax32.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_pressure,'k-')   
+    ax31.set_ylabel('$T_{air}$ [$\degree C$]', color='r')
+    ax31.tick_params(axis='y', labelcolor='r')
+    ax32.set_ylabel('$P_{air}$ [HPa]', color='k')
+    ax42.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].relative_humidity,'b-') 
+    ax41.bar(calibration.meteo_data[s].time.data, calibration.meteo_data[s].precipitation.data, width=0.01, color='k')
+    ax42.set_ylabel('$RH$ [%]', color='b')
+    ax42.tick_params(axis='y', labelcolor='b')
+    ax41.set_ylabel('Prec [mm]', color='k')
+    ax41.tick_params(axis='y', labelcolor='k')
+    ax41.tick_params()
+    ax[0].set_ylabel('$T_B$ [K]')
+
+    days = mdates.DayLocator() 
+    hours = mdates.HourLocator() 
+    ax[1].xaxis.set_major_locator(days)
+    date_form = mdates.DateFormatter("%m-%d")
+    #ax[1].xaxis.set_major_formatter(date_form)
+
+    # Ensure a major tick for each week using (interval=1) 
+    #ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
+    
+    ax[1].xaxis.set_minor_locator(hours)
+    #plt.suptitle('Mean T_B and T_sys')
+    for i in range(len(ax)):
+        ax[i].grid(which='major')
+    fig.tight_layout(rect=[0, 0.01, 1, 1])
+
+    
+    return fig
+
+
 def compare_spectra_diff_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
     fig = plt.figure()
     ax1 = fig.add_subplot(211)
@@ -488,7 +541,7 @@ def compare_spectra_binned_interp_mopi5_corrected(cal_int_obj, ds_dict, calibrat
     
     return fig
 
-def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title="", figures=list()):
+def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title="", figures=list(), fshift=True, compute_bl=True):
     '''
     Plotting function directly taken from Jonas ;)
     OG can be found in retrieval.py in MOPI retrievals
@@ -507,30 +560,37 @@ def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title
     figures : TYPE
         DESCRIPTION.
 
-    '''
-    ozone_ret, fshift_ret, polyfit_ret = ac.retrieval_quantities
+    ''' 
+    if fshift or compute_bl:
+        ozone_ret, fshift_ret, polyfit_ret = ac.retrieval_quantities
+    else:
+        [ozone_ret] = ac.retrieval_quantities
     good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
     f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
     y = ds.Tb_corr[retrieval_param['integration_cycle']].values[good_channels]
     #y = ac.y[0]
     yf = ac.yf[0]
-    bl = ac.y_baseline[0]
+    if compute_bl:
+        bl = ac.y_baseline[0]
+
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
 
-    # Text
-    fshift_text = "$\\Delta f =$ {:g} kHz".format(fshift_ret.x[0] / 1e3)
-    #fshift_text='without'
-    baseline_text = ", ".join(
-        ["$b_{}={:.2f}$".format(i, b[0]) for i, b in enumerate(polyfit_ret.x)]
-    )
+    if fshift:
+        # Text
+        fshift_text = "$\\Delta f =$ {:g} kHz".format(fshift_ret.x[0] / 1e3)
+        #fshift_text='without'
+        baseline_text = ", ".join(
+            ["$b_{}={:.2f}$".format(i, b[0]) for i, b in enumerate(polyfit_ret.x)]
+        )
 
     #figures = list()
 
     fig, axs = plt.subplots(2, sharex=True)
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
-    axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, bl, label="baseline")
+    if compute_bl:
+        axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, bl, label="baseline")
     axs[0].set_ylim(-5, 50)
     axs[0].legend(loc='upper right')
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
@@ -538,14 +598,15 @@ def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title
     axs[1].set_ylim(-2, 2)
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
-    axs[0].text(
-        0.02,
-        0.8,
-        fshift_text + "\n" + baseline_text,
-        transform=axs[0].transAxes,
-        verticalalignment="top",
-        horizontalalignment="left",
-    )
+    if fshift or compute_bl:
+        axs[0].text(
+            0.02,
+            0.8,
+            fshift_text + "\n" + baseline_text,
+            transform=axs[0].transAxes,
+            verticalalignment="top",
+            horizontalalignment="left",
+        )
 
     for ax in axs:
         ax.set_ylabel("$T_B$ [K]")
