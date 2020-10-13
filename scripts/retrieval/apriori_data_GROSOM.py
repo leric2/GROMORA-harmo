@@ -126,8 +126,8 @@ def get_apriori_fascod(retrieval_param):
             "O3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
         print('Ozone apriori from : OG GROMOS')
-    
-    print('Ozone apriori from : fascod')
+    else:
+        print('Ozone apriori from : fascod')
     return fascod_atm
 
 def get_apriori_atmosphere(retrieval_param):
