@@ -44,19 +44,32 @@ def integrate(date, integration_strategy):
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,21)
     #date = pd.date_range(start='2019-01-03', end='2019-01-05')
+    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
+
+
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
+
     #date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
+    # No U5303
+
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
+    #meanTb_chunks = [105, 110, 115, 120, 130, 140, 160, 180, 200]
+
+
     #date = pd.date_range(start='2019-06-11', end='2019-06-15')
+    #meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+
+
     #date = pd.date_range(start='2019-03-12', end='2019-03-12')
     #date = pd.date_range(start='2019-06-13', end='2019-06-13')
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = False
-    plot_ts_Tb_Tsys = True
+    save_nc = True
+    plot_ts_Tb_Tsys = False
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
@@ -81,17 +94,17 @@ def integrate(date, integration_strategy):
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
     # Define the parameters for integration
-    TOD = [3, 9, 15, 21]
-    interval = [3, 3, 3, 3]
-    TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
-    interval = np.ones(len(TOD))
+    #TOD = [3, 9, 15, 21]
+    #interval = [3, 3, 3, 3]
+    #TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
+    #interval = np.ones(len(TOD))
     TOD = np.arange(24)
     interval = 0.5*np.ones(len(TOD))
-    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
-    #meanTb_chunks = [105, 110, 115, 120, 130, 140, 160, 180, 200]
+    
+    
+    
     #meanTb_chunks=[95, 100, 105]
-    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+    
     classic = np.arange(1,24)
 
     if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
@@ -186,7 +199,7 @@ def integrate(date, integration_strategy):
             use_basis='U5303',
             dim=dimension[0],              
             plot_diff=False,
-            from_binned=True,
+            from_binned=True
             )
 
         integrated_data = calibration.add_interpolated_spectra(
@@ -315,17 +328,17 @@ def plot_integrated(date, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
-    integrate(dateR, 'meanTb_harmo')
+    dateR = pd.date_range(start='2019-03-01', end='2019-03-12')
+    #integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
-    #integration_strategy = 'TOD_harmo'
+    integration_strategy = 'TOD_harmo'
 
-    #for date in dateR:
-    #      try:
-    #          integrate(date, integration_strategy)
-    #      except:
-    #          print('not working for day : ', date)
+    for date in dateR:
+         try:
+             integrate(date, integration_strategy)
+         except:
+             print('not working for day : ', date)
         #plot_integrated(date, integration_strategy)
 
 # %%

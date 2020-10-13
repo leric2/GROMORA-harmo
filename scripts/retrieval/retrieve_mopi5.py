@@ -102,23 +102,25 @@ if __name__ == "__main__":
     #
     spectrometers = instrument.spectrometers
     #spectrometers = ['U5303']
-    cycles = [1,7]
+    cycles = [2]
 
-    var_factor = {'U5303':500, 'AC240':400, 'USRP-A':100}
+    var_factor = {'U5303':[1000, 1500], 'AC240':[400, 400], 'USRP-A':[100, 100]}
     #[450 , 450, 350]
 
     retrieval_param['atm'] ='fascod_gromos_o3'
 
+    lvl2 = dict()
     for i, spectro in enumerate(spectrometers):
         print('Retrieving ', spectro, ' on day: ')
         spectro_dataset = instrument.integrated_data[spectro]
 
         figure_list = []
-        retrieval_param['increased_var_factor'] = var_factor[spectro]
+        
         #print(retrieval_param['increased_var_factor'])
         counter = 0
         for c in cycles:
             counter=counter+1
+            retrieval_param['increased_var_factor'] = var_factor[spectro][counter-1]
             retrieval_param["integration_cycle"] = c
             instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
 
@@ -166,3 +168,25 @@ if __name__ == "__main__":
         save_single_pdf(instrument.filename_level2[spectro]+'_Perrin_corrected_'+retrieval_param['atm']+'_'+str(cycles)+'.pdf', figure_list)
 
         level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+
+        # read and plot from the level 2
+        lvl2[spectro] = level2
+
+#%%
+    color_spectro = {'AC240':'orange', 'USRP-A':'g', 'U5303':'blue'}
+    for spectro in spectrometers:
+        for i in range(len(lvl2[spectro].observation)):
+            o3 = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            mr = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            error = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
+            
+            o3_good = o3.where(mr>0.8).data
+            plt.plot(o3*1e6, o3_z/1e3, '--', linewidth=0.5, color=color_spectro[spectro])
+            plt.plot(error*1e6, o3_z/1e3, 'x', linewidth=0.5, color=color_spectro[spectro])
+            plt.plot(o3_good*1e6, o3_z/1e3, linewidth=3, label=spectro,color=color_spectro[spectro])
+
+    plt.legend()
+    plt.plot(o3_apriori*1e6, o3_z/1e3)
+# %%
