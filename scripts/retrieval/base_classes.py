@@ -428,11 +428,13 @@ class Integration(ABC):
 
                     for i in range(len(self.integrated_data[s].coords[dim])):
                         binned_f = clean_f[i].data[-size*(clean_f[i].data.size//size):].reshape(-1,size).mean(axis=1)
-                        binned_Tb = clean_Tb[i].data[-size*(clean_Tb[i].data.size//size):].reshape(-1,size).mean(axis=1)  
+                        binned_Tb = clean_Tb[i].data[-size*(clean_Tb[i].data.size//size):].reshape(-1,size).mean(axis=1) 
+                        if not any(np.isnan(binned_f)):
+                            saved_binned_f = binned_f
 
                         da_binned_Tb.loc[i,:] = binned_Tb
 
-                    da_binned_Tb = da_binned_Tb.assign_coords({'bin_freq':binned_f})
+                    da_binned_Tb = da_binned_Tb.assign_coords({'bin_freq':saved_binned_f})
 
                     if plot_diff:
                         raise NotImplementedError('!')
@@ -1076,7 +1078,7 @@ class DataRetrieval(ABC):
         
         self.instrument_name = instrument_name
         self.date = date
-        self.datestr = date.strftime('%Y_%m_%d')
+        #self.datestr = date.strftime('%Y_%m_%d')
         self.observation_frequency = observation_frequency
         self.spectrometers = spectrometers
         self.integration_strategy = integration_strategy
@@ -1086,6 +1088,12 @@ class DataRetrieval(ABC):
 
         # must be false for Integration
         self.multiday = False
+        try:
+            len(self.date) > 1
+        except TypeError:
+            self.multiday = False
+        else:
+            self.multiday = True
 
         self.calibrated_data = dict()
         self.meteo_data = dict()
@@ -1095,26 +1103,56 @@ class DataRetrieval(ABC):
         extra_base =''
         for s in self.spectrometers:
             self.filename_level1a[s] = list()
-
-            if self.integration_strategy == 'classic':
-                if self.int_time == 1:
-                    self.filename_level1b[s] = os.path.join(
+            self.filename_level1b[s] = list()
+            if self.multiday:
+                for date in date:
+                    self.datestr = date.strftime('%Y_%m_%d')
+                    self.filename_level1a[s].append(
+                        os.path.join(
                     self.level1_folder,
-                    self.instrument_name + "_level1b_" +
+                    self.instrument_name + "_level1a_" +
                     s + "_" + self.datestr
-                    )
-                else:
-                    self.filename_level1b[s] = os.path.join(
-                    self.level1_folder,
-                    self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                    s + "_" + self.datestr
-                    )
+                    ))
+                    if self.integration_strategy == 'classic':
+                        if self.int_time == 1:
+                            self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_" +
+                            s + "_" + self.datestr
+                            )
+                        else:
+                            self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                            s + "_" + self.datestr
+                            )
+                    else:
+                        self.filename_level1b[s] = os.path.join(
+                            self.level1_folder,
+                            self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
+                            s + "_" + self.datestr
+                            )
             else:
-                self.filename_level1b[s] = os.path.join(
-                    self.level1_folder,
-                    self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                    s + "_" + self.datestr+extra_base
-                    )
+                self.datestr = self.date.strftime('%Y_%m_%d')
+                if self.integration_strategy == 'classic':
+                    if self.int_time == 1:
+                        self.filename_level1b[s].append(os.path.join(
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_" +
+                        s + "_" + self.datestr
+                        ))
+                    else:
+                        self.filename_level1b[s].append(os.path.join(
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
+                        s + "_" + self.datestr
+                        ))
+                else:
+                    self.filename_level1b[s].append(os.path.join(
+                        self.level1_folder,
+                        self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
+                        s + "_" + self.datestr+extra_base
+                        ))
 
     def get_hot_load_temperature(self, time):
         ''' Get hot load temperature for a specific time.
@@ -1163,10 +1201,14 @@ class DataRetrieval(ABC):
                 s + "_" + self.datestr
                 )
         
-            print('reading : ', self.filename_level1b[s])
+            #print('reading : ', self.filename_level1b[s])
             #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
+            try:
+                self.integrated_data[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s][0], no_flag=no_flag)
+                print('Read : ', self.filename_level1b[s][0])
+            except FileNotFoundError:
+                print('No file for this day, skipping ', self.filename_level1b[s][0])
 
-            self.integrated_data[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s], no_flag=no_flag)
 
         if meta_data:       
             # Meta data
@@ -1189,7 +1231,20 @@ class DataRetrieval(ABC):
 
         #self.frequencies = self.level1b_ds.frequencies.values
         #self.IF = self.level1b_ds.intermediate_freq.values
-
+        if self.multiday:
+            print('No meta data updates for multi-days reading (only first day is saved) !')
+            for i in range(1,len(self.date)):
+                for s in self.spectrometers:
+                    try:
+                        calibrated_data, calibration_flags, meteo_data, global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s][i], no_flag=no_flag)
+                    except FileNotFoundError:
+                        print('No file for this day, skipping ', self.filename_level1b[s][i])
+                    else:
+                        print('Read : ', self.filename_level1b[s][i])
+                        self.calibrated_data[s] = xr.concat([self.calibrated_data[s],calibrated_data], dim='time')
+                        self.calibration_flags[s] = xr.concat([self.calibration_flags[s],calibration_flags], dim='time')
+                        self.meteo_data[s] = xr.concat([self.meteo_data[s], meteo_data], dim='time')
+                        
         #self.time = self.level1b_ds.time.values
         #self.number_of_time_records = len(self.time)
         return self.integrated_data, self.flags, self.integrated_meteo
