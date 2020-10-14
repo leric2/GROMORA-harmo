@@ -1249,7 +1249,37 @@ class DataRetrieval(ABC):
         #self.number_of_time_records = len(self.time)
         return self.integrated_data, self.flags, self.integrated_meteo
         #return self.level1b_ds, self.flags, self.meteo_ds
-    
+
+    def read_level2(self, spectrometers=None, extra_base=''):
+        ''' 
+        Reading level2 dataset and completing the information on the instrument
+        
+        '''
+        if spectrometers is None:
+            spectrometers = self.spectrometers
+
+        self.integrated_data = dict()
+        self.filename_level2 = dict()
+        self.level2_data=dict()
+        for s in spectrometers:
+            self.filename_level2[s] = os.path.join(
+            self.level2_folder,
+            self.instrument_name + "_level2_" +
+            s + "_" + self.datestr + extra_base
+            )
+
+            try:
+                self.level2_data[s] = xr.open_dataset(
+                    self.filename_level2[s] + ".nc",
+                    )
+                print('Read : ', self.filename_level2[s])
+            except FileNotFoundError:
+                print('No file for this day, skipping ', self.filename_level2[s])
+
+
+        return self.level2_data
+
+
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
         plt.plot(level1b_dataset.frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
         plt.ylim((0,200))
