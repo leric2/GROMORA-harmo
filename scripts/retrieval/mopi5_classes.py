@@ -112,18 +112,6 @@ class IntegrationMOPI5(Integration):
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
-    
-
-    def correct_troposphere_old(self, spectrometers, dim, method='Ingold_v1'):
-        '''
-        Correction function for the troposphere. 
-        
-        Invidual correction for each spectrometers specified !
-        '''
-        raise NotImplementedError
-        import GROSOM_library
-        print('Using the correction function from GROSOM, TODO')
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
     def correct_troposphere(self, spectrometers, dim, method='Ingold_v1', basis_spectro='AC240', skip_ch=[1000,1000], num_of_ch=500, interp=False):
         '''
