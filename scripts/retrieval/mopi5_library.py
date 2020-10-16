@@ -472,7 +472,7 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
         Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
-        Tb_diff = clean_Tb-Tb
+        Tb_diff = Tb-clean_Tb
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
@@ -493,7 +493,7 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
         ax2.grid()
         ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s)
         ax3.set_title('Binned and interpolated Tb difference with: '+use_basis)
-        ax3.set_ylim(-0.5,1.5)
+        ax3.set_ylim(-1.5,0.5)
         ax3.grid()
         ax3.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
@@ -512,7 +512,7 @@ def compare_spectra_binned_interp_mopi5_corrected(cal_int_obj, ds_dict, calibrat
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
         Tb =  ds_dict[s].interpolated_Tb_corr[calibration_cycle].data
-        Tb_diff = clean_Tb-Tb
+        Tb_diff = Tb-clean_Tb
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb_corr[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
@@ -533,7 +533,7 @@ def compare_spectra_binned_interp_mopi5_corrected(cal_int_obj, ds_dict, calibrat
         ax2.grid()
         ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s)
         ax3.set_title('Binned and interpolated Tb difference with: '+use_basis)
-        ax3.set_ylim(-0.5,1.5)
+        ax3.set_ylim(-1.5,0.5)
         ax3.grid()
         ax3.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
