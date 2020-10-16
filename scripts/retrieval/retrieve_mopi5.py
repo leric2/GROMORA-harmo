@@ -47,9 +47,9 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     instrument_name = "mopi5"
-    date = datetime.date(2019,2,22)
+    #date = datetime.date(2019,2,22)
     #date = datetime.date(2019,6,15)
-    #date = datetime.date(2019,2,4)
+    date = datetime.date(2019,4,27)
     #date = datetime.date(2019,2,1)
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     )
     
     retrieval_param = instrument.import_standard_retrieval_params_mopi5()
+    retrieval_param["apriori_O3_cov"] = 1.5e-6
     
     retrieval_param['cira86_path'] = os.path.join(ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly')
     retrieval_param['line_file'] = line_file
@@ -101,15 +102,31 @@ if __name__ == "__main__":
     # %%
     #
     spectrometers = instrument.spectrometers
-    #spectrometers = ['U5303']
-    cycles = [2]
+    spectrometers = ['AC240','U5303']
+    #spectrometers = ['AC240']
+    #spectrometers = ['USRP-A']
+    cycles = np.arange(0,11)
+    #cycles = [8]
+    
+    #var_fac_U5303_feb = [400, 1500, 1200, 1200, 1500, 1500, 800, 700, 700, 600, 600, 600, 600, 600, 600]
+    var_fac_U5303_apr = np.ones((15,1))*100
 
-    var_factor = {'U5303':[1000, 1500], 'AC240':[400, 400], 'USRP-A':[100, 100]}
+    #var_factor_USRP_feb = np.ones((15,1))*200
+    var_fac_USRP_apr = np.ones((11,1))*20
+
+    var_fac_AC240_apr = np.ones((11,1))*200
+    #var_fac_AC240_feb = np.ones((15,1))*600
+    #var_fac_AC240[0] = 200
+
+    
+    
+    #var_factor = {'U5303':var_fac_U5303, 'AC240':var_fac_AC240_feb, 'USRP-A':var_factor_USRP_feb}
+    var_factor = {'U5303':var_fac_U5303_apr, 'AC240':var_fac_AC240_apr, 'USRP-A':var_fac_USRP_apr}
     #[450 , 450, 350]
 
     retrieval_param['atm'] ='fascod_gromos_o3'
 
-    lvl2 = dict()
+    #lvl2 = dict()
     for i, spectro in enumerate(spectrometers):
         print('Retrieving ', spectro, ' on day: ')
         spectro_dataset = instrument.integrated_data[spectro]
@@ -119,74 +136,60 @@ if __name__ == "__main__":
         #print(retrieval_param['increased_var_factor'])
         counter = 0
         for c in cycles:
-            counter=counter+1
-            retrieval_param['increased_var_factor'] = var_factor[spectro][counter-1]
-            retrieval_param["integration_cycle"] = c
-            instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
+            try:
+                counter=counter+1
+                retrieval_param['increased_var_factor'] = var_factor[spectro][c]
+                retrieval_param["integration_cycle"] = c
+                instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
 
-            #bin_vector = instrument.create_binning(
-            #    instrument.frequencies,
-            #    instrument.level1b_ds.Tb[retrieval_param["integration_cycle"]].data,
-            #    retrieval_param
-            #)
+                #bin_vector = instrument.create_binning(
+                #    instrument.frequencies,
+                #    instrument.level1b_ds.Tb[retrieval_param["integration_cycle"]].data,
+                #    retrieval_param
+                #)
 
-            #f_bin, tb_bin = instrument.bin_spectrum(instrument.frequencies, instrument.level1b_ds.Tb[retrieval_param["integration_cycle"]].data, bin_vector)
+                #f_bin, tb_bin = instrument.bin_spectrum(instrument.frequencies, instrument.level1b_ds.Tb[retrieval_param["integration_cycle"]].data, bin_vector)
 
-            if retrieval_param["retrieval_type"] == 1:
-                retrieval_param["surface_altitude"] = 10e3
-                retrieval_param["observation_altitude"] =  15e3
-                ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
-                figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(
-                    ac, 
-                    spectro_dataset, 
-                    retrieval_param, 
-                    title = 'MOPI5 '+spectro + ' - ' + date.strftime('%Y%m%d')+ ' - ' + str(c), 
-                    figure_list = figure_list,
-                    fshift=True,
-                    bl=True
-                )
-                level2_cycle = ac.get_level2_xarray()
-                #ds1=level2_cycle.expand_dims({'chunks':1})
-                #level2_cycle=level2_cycle.assign_coords({'chunks':c})
+                if retrieval_param["retrieval_type"] == 1:
+                    retrieval_param["surface_altitude"] = 10e3
+                    retrieval_param["observation_altitude"] =  15e3
+                    ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                    figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(
+                        ac, 
+                        spectro_dataset, 
+                        retrieval_param, 
+                        title = 'MOPI5 '+spectro + ' - ' + date.strftime('%Y%m%d')+ ' - ' + str(c), 
+                        figure_list = figure_list,
+                        fshift=True,
+                        bl=True
+                    )
+                    level2_cycle = ac.get_level2_xarray()
+                    #ds1=level2_cycle.expand_dims({'chunks':1})
+                    #level2_cycle=level2_cycle.assign_coords({'chunks':c})
 
-                #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
-                #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
-            elif retrieval_param["retrieval_type"] == 2:
-                retrieval_param["surface_altitude"] = 1200
-                retrieval_param["observation_altitude"] =  1200
-                ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
-                figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3_h20')
-                save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
-            else:
-                pass
-            
-            if counter>1:
-                level2 = xr.concat([level2, level2_cycle], dim='observation')
-            else: 
-                level2 = level2_cycle
+                    #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+                    #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
+                elif retrieval_param["retrieval_type"] == 2:
+                    retrieval_param["surface_altitude"] = 1200
+                    retrieval_param["observation_altitude"] =  1200
+                    ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                    figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3_h20')
+                    save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
+                else:
+                    pass
+                
+                if counter>1:
+                    level2 = xr.concat([level2, level2_cycle], dim='observation')
+                else: 
+                    level2 = level2_cycle
+            except:
+                print('could not retrieve this cycle: ',c)
         
         save_single_pdf(instrument.filename_level2[spectro]+'_Perrin_corrected_'+retrieval_param['atm']+'_'+str(cycles)+'.pdf', figure_list)
 
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
-
+        #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_all_april'+'.nc')
         # read and plot from the level 2
-        lvl2[spectro] = level2
+        #lvl2[spectro] = level2
 
-#%%
-    color_spectro = {'AC240':'orange', 'USRP-A':'g', 'U5303':'blue'}
-    for spectro in spectrometers:
-        for i in range(len(lvl2[spectro].observation)):
-            o3 = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
-            o3_apriori = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_xa
-            o3_z = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
-            mr = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
-            error = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
-            
-            o3_good = o3.where(mr>0.8).data
-            plt.plot(o3*1e6, o3_z/1e3, '--', linewidth=0.5, color=color_spectro[spectro])
-            plt.plot(error*1e6, o3_z/1e3, 'x', linewidth=0.5, color=color_spectro[spectro])
-            plt.plot(o3_good*1e6, o3_z/1e3, linewidth=3, label=spectro,color=color_spectro[spectro])
-
-    plt.legend()
-    plt.plot(o3_apriori*1e6, o3_z/1e3)
 # %%
