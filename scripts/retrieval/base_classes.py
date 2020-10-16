@@ -559,13 +559,13 @@ class Integration(ABC):
         meanTb_lc_basis = self.integrated_data[use_basis].interpolated_Tb.where(abs(self.integrated_data[use_basis].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
         for s in spectrometers:
             meanTb_lc = self.integrated_data[s].interpolated_Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
-            bias_lc = meanTb_lc_basis-meanTb_lc
+            bias_lc = meanTb_lc-meanTb_lc_basis
 
 
             self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
 
             cleanTb = self.integrated_data[s].interpolated_Tb
-            Tb_diff = cleanTb_basis-cleanTb
+            Tb_diff = cleanTb-cleanTb_basis
             right_wing_center = param_slope[s][0]
             right_wing_interval = param_slope[s][1]
             left_wing_center = param_slope[s][2]
@@ -607,13 +607,13 @@ class Integration(ABC):
         meanTb_lc_basis = self.integrated_data[use_basis].interpolated_Tb_corr.where(abs(self.integrated_data[use_basis].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
         for s in spectrometers:
             meanTb_lc = self.integrated_data[s].interpolated_Tb_corr.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
-            bias_lc = meanTb_lc_basis-meanTb_lc
+            bias_lc = meanTb_lc-meanTb_lc_basis
 
 
             self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc_corr = bias_lc)
 
             cleanTb = self.integrated_data[s].interpolated_Tb_corr
-            Tb_diff = cleanTb_basis-cleanTb
+            Tb_diff = cleanTb-cleanTb_basis
             right_wing_center = param_slope[s][0]
             right_wing_interval = param_slope[s][1]
             left_wing_center = param_slope[s][2]
