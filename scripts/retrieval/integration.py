@@ -44,19 +44,19 @@ def integrate(date, integration_strategy):
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,21)
     #date = pd.date_range(start='2019-01-03', end='2019-01-05')
-    #meanTb_chunks = [100, 110, 120, 130, 140, 160, 180]
+    meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
     #date = pd.date_range(start='2019-01-30', end='2019-02-22')
-    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     # No U5303
 
     #date = pd.date_range(start='2019-04-25', end='2019-04-27')
-    #meanTb_chunks = [105, 110, 115, 120, 130, 140, 160, 180, 200]
+    #meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
 
 
     #date = pd.date_range(start='2019-06-11', end='2019-06-15')
@@ -272,8 +272,8 @@ def plot_integrated(date, integration_strategy):
         basename_lvl2 = "/scratch/MOPI5/Level2/"
         #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
         #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
-        #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
-        integration = mc.MOPI5_LvL2(date1b, basename_lvl1, integration_strategy, integration_strategy, integration_time=int_time)
+        
+        integration = mc.MOPI5_LvL2(date1b, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
 
     # Plotting part
     integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(no_flag=True, meta_data=False)
@@ -328,7 +328,7 @@ def plot_integrated(date, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    dateR = pd.date_range(start='2019-03-01', end='2019-03-12')
+    dateR = pd.date_range(start='2019-01-03', end='2019-06-18')
     #integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
