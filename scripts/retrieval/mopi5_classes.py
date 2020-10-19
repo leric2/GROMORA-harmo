@@ -40,6 +40,7 @@ from base_classes import Integration, DataRetrieval
 import mopi5_retrievals
 import mopi5_library
 from utils_GROSOM import save_single_pdf
+from utils_GROSOM import save_pngs
 import retrieval_module
 
 class IntegrationMOPI5(Integration):
@@ -127,11 +128,15 @@ class IntegrationMOPI5(Integration):
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)
 
-    def plot_time_series_all_mopi5(self, title=''):
-        figures = list()        
-        figures.append(mopi5_library.plot_ts_mopi5(self, title=title))
+    def plot_time_series_all_mopi5(self, title='', special=False):
+        figures = list()
+        if special:
+            figures.append(mopi5_library.plot_ts_mopi5_Feb(self, title=title))
+        else:
+            figures.append(mopi5_library.plot_ts_mopi5(self, title=title))
 
-        save_single_pdf(self.level1_folder+'time_series_'+self.datestr+'_'+'.pdf', figures)
+        save_single_pdf(self.level1_folder+'time_series_'+self.datestr+'.pdf', figures)
+        save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
 
 class MOPI5_LvL2(DataRetrieval):

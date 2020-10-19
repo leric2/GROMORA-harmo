@@ -16,6 +16,7 @@ import netCDF4
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 
 from GROSOM_library import tropospheric_correction
 
@@ -378,7 +379,7 @@ def plot_ts_mopi5(calibration, title):
     ax41 = ax[2]
     ax42 = ax41.twinx()
     #ax2 = fig.add_subplot(3,1,3)
-    
+    meteo_lw = 0.5
     marker = ['x','*','.']
     for a, spectro in enumerate(calibration.spectrometers):
         dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
@@ -386,38 +387,157 @@ def plot_ts_mopi5(calibration, title):
         #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
         #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
         #ax.legend()
+    ax[0].set_ylim(70,260)
     ax[0].legend(fontsize='xx-small')
     s = 'AC240'
-    ax31.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_temperature-273.15,'r-') 
-    ax32.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_pressure,'k-')   
+
+    ax31.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_temperature-273.15,'r-', lw=meteo_lw) 
+    ax32.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].air_pressure,'k-', lw=meteo_lw)  
     ax31.set_ylabel('$T_{air}$ [$\degree C$]', color='r')
+    ax31.set_ylim(-6, 22)
     ax31.tick_params(axis='y', labelcolor='r')
+
     ax32.set_ylabel('$P_{air}$ [HPa]', color='k')
-    ax42.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].relative_humidity,'b-') 
+    ax32.set_ylim(920, 970)
+
+    ax42.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].relative_humidity,'b-', lw=meteo_lw)
     ax41.bar(calibration.meteo_data[s].time.data, calibration.meteo_data[s].precipitation.data, width=0.01, color='k')
+    
+
     ax42.set_ylabel('$RH$ [%]', color='b')
     ax42.tick_params(axis='y', labelcolor='b')
+    ax42.set_ylim(20, 100)
+
     ax41.set_ylabel('Prec [mm]', color='k')
     ax41.tick_params(axis='y', labelcolor='k')
-    ax41.tick_params()
+    ax41.set_ylim(0, 0.5)
+    ax41.yaxis.set_major_locator(MultipleLocator(0.2))
+    #ax41.yaxis.set_minor_locator(MultipleLocator(10))
+    
     ax[0].set_ylabel('$T_B$ [K]')
 
     days = mdates.DayLocator() 
     hours = mdates.HourLocator() 
+    
     ax[1].xaxis.set_major_locator(days)
     date_form = mdates.DateFormatter("%m-%d")
-    #ax[1].xaxis.set_major_formatter(date_form)
+
+    # ax.yaxis.set_major_locator(MultipleLocator(20))
+    # ax.yaxis.set_minor_locator(MultipleLocator(10))
+    # ax.xaxis.set_major_locator(MultipleLocator(10))
+    # ax.xaxis.set_minor_locator(MultipleLocator(5))
+    # ax.grid(which='both',  axis='x', linewidth=0.5)
+    # ax.grid(which='minor', axis='y', linewidth=0.5)
+    # #ax[1].xaxis.set_major_formatter(date_form)
 
     # Ensure a major tick for each week using (interval=1) 
-    #ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
+    #ax[1].xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
     
+    ax[0].yaxis.set_major_locator(MultipleLocator(50))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    
+    ax[1].xaxis.set_major_locator(days)
     ax[1].xaxis.set_minor_locator(hours)
     #plt.suptitle('Mean T_B and T_sys')
     for i in range(len(ax)):
         ax[i].grid(which='major')
+        ax[i].grid(which='minor', linewidth=0.2)
     fig.tight_layout(rect=[0, 0.01, 1, 1])
-
+    #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_04.png', dpi=600, facecolor='w', edgecolor='w')
     
+    return fig
+
+def plot_ts_mopi5_Feb(calibration, title):
+    import matplotlib.dates as mdates
+    fig = plt.figure()
+    ax = fig.subplots(nrows=3, ncols=1, sharex=True)
+    #ax2 = fig.add_subplot(412, sharex=True)
+    ax31 = ax[1]
+    ax32 = ax31.twinx()
+    ax41 = ax[2]
+    ax42 = ax41.twinx()
+    #ax2 = fig.add_subplot(3,1,3)
+    meteo_lw = 0.5
+    marker = ['x','*','.']
+    for a, spectro in enumerate(calibration.spectrometers):
+        dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
+        ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
+        #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
+        #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
+        #ax.legend()
+    ax[0].set_ylim(70,260)
+    ax[0].legend(fontsize='xx-small')
+    s = 'AC240'
+
+    ts1 = calibration.meteo_data[s].where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-02'), drop=True)
+   
+    ts2 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-02'), drop=True)
+    ts2 = ts2.where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-11'), drop=True)
+    
+    ts3 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-11'), drop=True)
+
+    ax31.plot(ts1.time, ts1.air_temperature-273.15,'r-', lw=meteo_lw) 
+    ax31.plot(ts2.time, ts2.air_temperature-273.15,'r-', lw=meteo_lw) 
+    ax31.plot(ts3.time, ts3.air_temperature-273.15,'r-', lw=meteo_lw) 
+
+    ax32.plot(ts1.time, ts1.air_pressure,'k-', lw=meteo_lw)  
+    ax32.plot(ts2.time, ts2.air_pressure,'k-', lw=meteo_lw)  
+    ax32.plot(ts3.time, ts3.air_pressure,'k-', lw=meteo_lw)  
+    ax31.set_ylabel('$T_{air}$ [$\degree C$]', color='r')
+    ax31.set_ylim(-6, 22)
+    ax31.tick_params(axis='y', labelcolor='r')
+
+    ax32.set_ylabel('$P_{air}$ [HPa]', color='k')
+    ax32.set_ylim(920, 970)
+
+    ax42.plot(ts1.time, ts1.relative_humidity,'b-', lw=meteo_lw)
+    ax42.plot(ts2.time, ts2.relative_humidity,'b-', lw=meteo_lw)
+    ax42.plot(ts3.time, ts3.relative_humidity,'b-', lw=meteo_lw)
+    
+    ax41.bar(calibration.meteo_data[s].time.data, calibration.meteo_data[s].precipitation.data, width=0.01, color='k')
+    
+    ax42.set_ylabel('$RH$ [%]', color='b')
+    ax42.tick_params(axis='y', labelcolor='b')
+    ax42.set_ylim(20, 100)
+
+    ax41.set_ylabel('Prec [mm]', color='k')
+    ax41.tick_params(axis='y', labelcolor='k')
+    ax41.set_ylim(0, 0.5)
+    ax41.yaxis.set_major_locator(MultipleLocator(0.2))
+    #ax41.yaxis.set_minor_locator(MultipleLocator(10))
+    
+    ax[0].set_ylabel('$T_B$ [K]')
+
+    midmonth = mdates.DayLocator(15) 
+    days = mdates.DayLocator() 
+    hours = mdates.HourLocator() 
+    
+    #ax[1].xaxis.set_major_locator(days)
+    date_form = mdates.DateFormatter("%m-%d")
+
+    # ax.yaxis.set_major_locator(MultipleLocator(20))
+    # ax.yaxis.set_minor_locator(MultipleLocator(10))
+    # ax.xaxis.set_major_locator(MultipleLocator(10))
+    # ax.xaxis.set_minor_locator(MultipleLocator(5))
+    # ax.grid(which='both',  axis='x', linewidth=0.5)
+    # ax.grid(which='minor', axis='y', linewidth=0.5)
+    # #ax[1].xaxis.set_major_formatter(date_form)
+
+    # Ensure a major tick for each week using (interval=1) 
+    ax[1].xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
+    
+    ax[0].yaxis.set_major_locator(MultipleLocator(50))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    
+    #ax[1].xaxis.set_major_locator(midmonth)
+    ax[1].xaxis.set_minor_locator(days)
+    #plt.suptitle('Mean T_B and T_sys')
+    for i in range(len(ax)):
+        ax[i].grid(which='major')
+        ax[i].grid(which='minor', linewidth=0.2)
+    fig.tight_layout(rect=[0, 0.01, 1, 1])
+    #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_02_22.png', dpi=600, facecolor='w', edgecolor='w')
+
     return fig
 
 

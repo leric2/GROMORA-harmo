@@ -39,6 +39,15 @@ def save_single_pdf(filename, figures):
         for fig in figures:
             pdf.savefig(fig)
 
+def save_pngs(basename, figures):
+    """
+    Save all `figures` to a single PDF. taken from Jonas
+    """
+    for i, fig in enumerate(figures):
+        filename = basename+str(i)+'.png'
+        fig.savefig(filename, dpi=600, facecolor='w', edgecolor='w')
+
+
 def var_allan(y, axis=0):
     """
     Compute Allan variance of `y` along `axis`.
