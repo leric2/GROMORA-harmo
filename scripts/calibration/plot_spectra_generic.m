@@ -107,7 +107,7 @@ try
         %set(ax2(1),'ylim', [0,300])
         set(ax2(1),'xlim',[xstart,xstop])
         set(ax2(1),'YColor','k');
-        ylabel(ax2(1),({'precipitation [?]'}))
+        ylabel(ax2(1),({'precipitation [mm]'}))
         
         yyaxis(ax2(1),'right')
         plot(ax2(1),[meteoData.dateTime], [meteoData.rel_humidity] ,'b')

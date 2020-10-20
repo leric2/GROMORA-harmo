@@ -103,7 +103,7 @@ try
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax4(1),'YColor','k');
-    ylabel(ax4(1),({'precipitation [...]'}))
+    ylabel(ax4(1),({'precipitation [mm]'}))
     
     yyaxis(ax4(1),'right')
     plot([integratedSpectra.dateTime],100*[integratedSpectra.meanRelativeHumidity],'b-x');

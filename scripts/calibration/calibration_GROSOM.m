@@ -36,7 +36,7 @@ instrumentName='mopi5';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
 readLabviewLog = true;
 
@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_05_02','yyyy_mm_dd'):datenum('2019_06_18','yyyy_mm_dd');
+dates=datenum('2019_04_27','yyyy_mm_dd'):datenum('2019_04_27','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
