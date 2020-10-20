@@ -742,6 +742,8 @@ class Integration(ABC):
                     
                     self.integrated_data[s] = ds.mean(dim='time', skipna=True)
                     self.integrated_meteo[s] = meteo.mean(dim='time', skipna=True)
+                    #self.integrated_meteo[s]['new_prec'] = meteo.precipitation.sum(dim='time', skipna=True)
+
                 elif i==len(Tb_chunks):
                     chunks_lim = Tb_chunks[i-1]
                     #ds = self.calibrated_data[s].where(self.calibrated_data[use_basis].mean_Tb > chunks_lim, drop=True)
@@ -751,7 +753,8 @@ class Integration(ABC):
                     chunks_num_el.append(ds.dims['time'])
                     meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')    
-                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')         
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')     
+                    #self.integrated_meteo[s].new_prec = xr.concat([self.integrated_meteo[s].new_prec,meteo.precipitation.sum(dim='time', skipna=True)], dim='chunks')    
                 else:
                     good_times = self.calibrated_data[use_basis].where(self.calibrated_data[use_basis].mean_Tb > Tb_chunks[i-1], drop=True)
                     good_times = good_times.where(self.calibrated_data[use_basis].mean_Tb < Tb_chunks[i], drop=True)               
@@ -765,8 +768,9 @@ class Integration(ABC):
                     meteo = self.meteo_data[s].sel(time=good_times.time, method='nearest', drop=True)
                     
                     self.integrated_data[s]=xr.concat([self.integrated_data[s],ds.mean(dim='time', skipna=True)], dim='chunks')  
-                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')      
-            
+                    self.integrated_meteo[s]=xr.concat([self.integrated_meteo[s],meteo.mean(dim='time', skipna=True)], dim='chunks')
+                    #self.integrated_meteo[s].new_prec = xr.concat([self.integrated_meteo[s].new_prec,meteo.precipitation.sum(dim='time', skipna=True)], dim='chunks')
+
             self.integrated_data[s] = self.integrated_data[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             self.integrated_meteo[s] = self.integrated_meteo[s].assign_coords({'chunks':np.hstack((0, Tb_chunks))})
             
@@ -1278,7 +1282,23 @@ class DataRetrieval(ABC):
 
 
         return self.level2_data
+    
+    def plot_level1b_TB_all(self, title='', save=False, save_name='int_spectra', idx=None):
+        figures = list()
+        
+        if idx is None:
+            figures.append(GROSOM_library.plot_Tb_all(self, self.integrated_data, title=title)) 
+        else:
+            figures.append(GROSOM_library.plot_Tb_selected(self, self.integrated_data, title=title, idx=idx)) 
 
+        if save:
+            save_single_pdf(self.level1_folder+'/'+save_name+self.datestr+'.pdf', figures)
+            #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
+    
+
+        if save:
+            save_single_pdf(self.level1_folder+'/'+save_name+self.datestr+'.pdf', figures)
+            #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
     def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
         plt.plot(level1b_dataset.frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])

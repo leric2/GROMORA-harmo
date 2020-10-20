@@ -349,6 +349,61 @@ def create_bin_vector(F0, f, tb, n_f, bw_extra):
     
     return bin_vect
 
+def plot_Tb_all(self, ds_dict, title=''):
+    fig, axs = plt.subplots(1,1,sharex=True)
+    
+    sm = plt.cm.ScalarMappable(cmap='plasma', norm=plt.Normalize(vmin=0.0, vmax=24.0))
+    
+    for s in self.spectrometers:
+        colors = plt.cm.plasma(np.linspace(0,1,len(ds_dict[s].coords['time'])))
+        for calibration_cycle in range(len(ds_dict[s].coords['time'])):
+            mask = ds_dict[s].good_channels[calibration_cycle].data
+            mask[mask==0]=np.nan
+            axs.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle]*mask, lw=0.02, color=colors[calibration_cycle], label=s)
+            #axs.set_xlim(110.25, 111.4)
+            #axs.set_ylim(0,250)
+            #ax].set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[calibration_cycle].data)+15)
+            axs.set_xlabel("frequency [GHz]")
+            axs.set_ylabel(r"$T_B$ [K]")
+            
+            
+            #axs.legend(fontsize='xx-small')
+            #ax3.legend()
+        axs.set_title(title+ self.date.strftime('%Y-%m-%d'))
+        axs.grid()
+        cbar=plt.colorbar(sm, ticks=None)
+        cbar.set_label('Time of day [h]')
+        #cbar.ax.set_yticklabels(np.arange(0,100,1))
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.show()
+
+    return fig  
+
+def plot_Tb_selected(self, ds_dict, title='', idx=[1]):
+    fig, axs = plt.subplots(1,1,sharex=True)
+    for s in self.spectrometers:
+        colors = plt.cm.plasma(np.linspace(0,1,24))
+        for calibration_cycle in idx:
+            lab = '{:.1f}'.format(ds_dict[s].time_of_day[calibration_cycle].data)
+            mask = ds_dict[s].good_channels[calibration_cycle].data
+            mask[mask==0]=np.nan
+            axs.plot((ds_dict[s].frequencies[calibration_cycle].data-self.observation_frequency)/1e6,ds_dict[s].Tb[calibration_cycle]*mask, lw=0.05, color=colors[calibration_cycle], label=lab)
+            axs.set_xlim(-200, 200)
+            #axs.set_ylim(0,250)
+            #ax].set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[calibration_cycle].data)+15)
+            axs.set_xlabel("$f-142.175$ GHz [MHz]")
+            axs.set_ylabel(r"$T_B$ [K]")
+            
+            
+        #axs.legend(title='Time of day [h]')
+            axs.set_title(title + pd.to_datetime(ds_dict[s].time[calibration_cycle].data).strftime('%Y-%m-%d %H:%M'))
+        axs.grid()
+
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.show()
+
+    return fig  
+
 def plot_Tb_chunks(self, ds_dict, calibration_cycle):
     fig, axs = plt.subplots(1,1,sharex=True)
     for s in self.spectrometers:

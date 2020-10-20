@@ -81,8 +81,9 @@ if __name__ == "__main__":
     basename_lvl2 = "/scratch/GROSOM/Level2/"
 
     plot_comparison = False
+    plot_fancy = True
     plot_bias = False
-    plot_o3 = True
+    plot_o3 = False
 
     # Define the parameters for integration
     #TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -115,7 +116,30 @@ if __name__ == "__main__":
         dimension=['time','channel_idx']
         identifier_plot = TOD
         idx_all = np.arange(0,len(TOD))
-    
+
+    if plot_fancy:
+            integration.compare_spectra_mopi5(
+            dim=dimension[0], 
+            idx=[3], 
+            #idx=[0,1,2,3],
+            save_plot = True, 
+            #identifier=TOD,
+            with_corr = False,
+            corr_band=False,
+            title='Integrated spectra with $T_{B,mean}$ between 90 and 100K',
+        )
+
+            integration.compare_spectra_binned_interp_mopi5(
+                dim=dimension[0],
+                idx=idx_all, 
+                spectrometers=['AC240','USRP-A'],
+                save_plot = True, 
+                use_basis='U5303',
+                #identifier=TOD,
+                identifier=identifier_plot,
+                clean=True
+        )
+
     if plot_comparison:
         integration.compare_spectra_mopi5(
             dim=dimension[0], 
