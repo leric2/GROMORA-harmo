@@ -250,8 +250,14 @@ class MOPI5_LvL2(DataRetrieval):
             title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i]) + ', binned and interpolated Tb with ' + use_basis
             #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
             if clean:
-                title ='Integrated spectra with $T_{b,mean}$ between '+str(identifier[i]-10)+' and '+str(identifier[i])+'K'
-                figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+                if corrected:
+                    lowerBound = [0, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+                    title ='Integrated and corrected spectra with $T_{b,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+                    figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_corr(self, self.integrated_data, i, spectrometers, use_basis, title=title))
+                else:
+                    lowerBound = [0, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+                    title ='Integrated spectra with $T_{b,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+                    figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean(self, self.integrated_data, i, spectrometers, use_basis, title=title))
             else:
                 if corrected:
                     figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_corrected(self, self.integrated_data, i, spectrometers, use_basis, title=title))
@@ -260,7 +266,10 @@ class MOPI5_LvL2(DataRetrieval):
             
         if save_plot:
             if clean:
-                save_pngs(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_', figures)
+                if corrected:
+                    print('no png saved')
+                else:
+                    save_pngs(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_', figures)
             if corrected:
                 save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
             else: 

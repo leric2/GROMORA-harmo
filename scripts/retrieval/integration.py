@@ -44,13 +44,13 @@ def integrate(date, integration_strategy):
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,21)
     #date = pd.date_range(start='2019-01-03', end='2019-01-05')
-    meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
+    #meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
     #date = pd.date_range(start='2019-01-30', end='2019-02-22')
-    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     # No U5303
@@ -68,8 +68,8 @@ def integrate(date, integration_strategy):
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = False
-    plot_ts_Tb_Tsys = True
+    save_nc = True
+    plot_ts_Tb_Tsys = False
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"

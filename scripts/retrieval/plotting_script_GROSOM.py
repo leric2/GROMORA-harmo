@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
 if __name__ == "__main__":
-    instrument_name = "GROMOS"
+    instrument_name = "mopi5"
     date = datetime.date(2019,1,5)
     int_time = 1
     integration_strategy = 'classic'
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     retrieval_param = dict()
 
     if integration_strategy == 'classic':
-        integrated_dataset, flags, integrated_meteo = instrument.read_level1b()
+        integrated_data, flags, integrated_meteo = instrument.read_level1b()
     else:
         raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
 
@@ -97,4 +97,4 @@ if __name__ == "__main__":
     base_title = "GROMOS hourly integrated spectra : "
     #instrument.plot_level1b_TB_all(title = base_title, save=True, save_name='integrated_spectra_all_')
     base_title = "GROMOS hourly integrated spectrum : "
-    instrument.plot_level1b_TB_all(title = base_title, save=True, save_name='integrated_spectra_sel_',idx=[0])
+    #instrument.plot_level1b_TB_all(title = base_title, save=True, save_name='integrated_spectra_sel_',idx=[0])

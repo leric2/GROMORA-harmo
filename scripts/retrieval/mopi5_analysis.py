@@ -77,12 +77,12 @@ if __name__ == "__main__":
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
     #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
     
-    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/fractional_diff/"
     basename_lvl2 = "/scratch/GROSOM/Level2/"
 
     plot_comparison = False
-    plot_fancy = True
-    plot_bias = False
+    plot_fancy = False
+    plot_bias = True
     plot_o3 = False
 
     # Define the parameters for integration
@@ -117,6 +117,7 @@ if __name__ == "__main__":
         identifier_plot = TOD
         idx_all = np.arange(0,len(TOD))
 
+
     if plot_fancy:
             integration.compare_spectra_mopi5(
             dim=dimension[0], 
@@ -139,7 +140,17 @@ if __name__ == "__main__":
                 identifier=identifier_plot,
                 clean=True
         )
-
+            integration.compare_spectra_binned_interp_mopi5(
+                dim=dimension[0],
+                idx=idx_all, 
+                spectrometers=['AC240','USRP-A'],
+                save_plot = True, 
+                use_basis='U5303',
+                #identifier=TOD,
+                identifier=identifier_plot,
+                clean=True,
+                corrected=True
+        )
     if plot_comparison:
         integration.compare_spectra_mopi5(
             dim=dimension[0], 
@@ -177,9 +188,10 @@ if __name__ == "__main__":
     if plot_bias:
         figures=list()
         fig = plt.figure()
-        ax1 = fig.add_subplot(1,3,1)
-        ax2 = fig.add_subplot(1,3,2)
-        ax3 = fig.add_subplot(1,3,3)
+        ax2 = fig.add_subplot(1,1,1)
+        #ax1 = fig.add_subplot(1,3,1)
+        #ax2 = fig.add_subplot(1,3,2)
+        #ax3 = fig.add_subplot(1,3,3)
         # ax1 = fig.add_subplot(3,1,1)
         # ax2 = fig.add_subplot(3,1,2)
         # ax3 = fig.add_subplot(3,1,3)
@@ -205,25 +217,26 @@ if __name__ == "__main__":
                 # ax1.scatter(integrated_data['AC240'].time_min, integrated_data['AC240'].mean_hot_counts, s=size)
                 # ax2.scatter(integrated_data['U5303'].time_min, integrated_data['U5303'].mean_hot_counts, s=size)
                 # ax3.scatter(integrated_data['USRP-A'].time_min, integrated_data['USRP-A'].mean_hot_counts, s=size)
-                s='USRP-A'    
-                scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].bias_Tb_lc.data, c=color, s=size)
-                ax1.set_ylabel(r'$\Delta T_b$ [K]')
-                #ax1.set_ylim(-2,0)
-                ax1.set_ylim(-1,1)
-                ax1.set_title('Line center bias')
-                ax1.set_xlabel('Mean $T_b$ [K]')
-                ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope*1e9, c=color, s=size)
-                ax3.set_ylabel('m [K/GHz]') 
-                ax3.set_ylim(-1,0.5)
+                s='AC240'    
+                #scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].bias_Tb_lc.data, c=color, s=size)
+                # ax1.set_ylabel(r'$\Delta T_b$ [K]')
+                # #ax1.set_ylim(-2,0)
+                # #ax1.set_ylim(-1,0.5)
+                # ax1.set_title('Line center bias')
+                # ax1.set_xlabel('Mean $T_b$ [K]')
+                # ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope*1e9, c=color, s=size)
+                # ax3.set_ylabel('m [K/GHz]') 
+                # ax3.set_ylim(-1,0.5)
                 
-                ax3.set_title('Slope difference')
-                ax3.set_xlabel('Mean $T_b$ [K]')
-                ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].bias_Tb_lc_corr.data, c=color, s=size)
-                ax2.set_ylabel(r'$\Delta T_b$ [K]')
+                # ax3.set_title('Slope difference')
+                # ax3.set_xlabel('Mean $T_b$ [K]')
+
+                ax2.scatter(integrated_data[s].mean_Tb.data, 100*integrated_data[s].bias_Tb_lc_corr.data, c=color, s=size)
+                ax2.set_ylabel(r'$\Delta T_b$ [%]')
                 ax2.set_xlabel('Mean $T_b$ [K]')
-                ax2.set_title('$\Delta T_b$ after trop corr')
+                ax2.set_title('$\Delta T_b$ at the line center after tropospheric correction')
                 #ax2.set_ylim(-2,0)
-                ax2.set_ylim(-1,1)
+                #ax2.set_ylim(-1,1)
             except:
                 print('no data for :', d)
                 pass           
@@ -246,17 +259,17 @@ if __name__ == "__main__":
 
         #legend = ax1.legend(*scatter.legend_elements(prop='colors'), month_name, fontsize='xx-small',loc=1, title='Month')
         #ax1.add_artist(legend)
-        ax1.legend(handles=legend_elements, fontsize='small',loc=4, title='Month')
-        ax1.grid()
+        ax2.legend(handles=legend_elements, fontsize='small',loc=3, title='Month')
+        #ax1.grid()
         ax2.grid()
-        ax3.grid()
+        #ax3.grid()
         fig.suptitle('Bias '+s+' vs U5303')
         #fig.suptitle('Mean hot counts')
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
         
         figures.append(fig)
-        save_single_pdf(basename_lvl1+'bias_binned_'+s+'_'+integration_strategy+'.pdf',figures)
+        save_single_pdf(basename_lvl1+'bias_binned_tropo'+s+'_'+integration_strategy+'.pdf',figures)
 
     if plot_o3:
 

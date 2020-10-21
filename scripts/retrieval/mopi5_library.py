@@ -624,6 +624,62 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
     
     return fig
 
+def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(211)
+    ax2 = ax1.inset_axes([0.1, 0.5, 0.2, 0.45])
+    ax3 = fig.add_subplot(212)
+    clean_Tb = ds_dict[use_basis].interpolated_Tb_corr[calibration_cycle].data
+    clean_f = ds_dict[use_basis].bin_freq.data
+    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    for s in cal_int_obj.spectrometers:
+        #mask = ds_dict[s].good_channels[calibration_cycle].data
+        #mask[mask==0]=np.nan
+        Tb =  ds_dict[s].interpolated_Tb_corr[calibration_cycle].data
+        #Tb_diff = (Tb-clean_Tb)/clean_Tb
+        Tb_diff = Tb-clean_Tb
+        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb_corr[calibration_cycle].data, lw=0.5, label=s)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("f [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.yaxis.set_major_locator(MultipleLocator(4))
+        ax1.set_title(title)
+        ax1.grid()
+        ax1.legend(fontsize='xx-small')
+        #ax3.legend()
+        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb_corr[calibration_cycle].data, lw=0.2, color=color_spectro[s])
+        ax2.set_xlim(-10, 10)
+        #ax2.set_xlabel('[MHz]')
+        #ax2.set_yticklabels([])
+        #ax2.set_xticklabels([])
+        ymax = np.nanmax(ds_dict[s].interpolated_Tb_corr[calibration_cycle].data)
+        if not np.isnan(ymax):
+            ax2.set_ylim(ymax-4,ymax+0.5)
+            ax2.yaxis.set_major_locator(MultipleLocator(2))
+            ax2.yaxis.set_minor_locator(MultipleLocator(1))
+            ax2.xaxis.set_minor_locator(MultipleLocator(5))
+            ax2.tick_params(axis='both', which='major', labelsize=8)
+        ax2.set_xlabel('[MHz]',fontsize='x-small')
+        ax2.grid(which='both')
+
+        if s in spectrometers:
+            ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s, color=color_spectro[s])
+        ax3.set_title('$T_b$ differences with: '+use_basis)
+        ax3.set_ylim(-2,0.5)
+        ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
+        ax3.set_ylabel('$\Delta T_B$ [K]')
+        ax3.set_xlabel("f [GHz]")
+        ax3.set_xlim(110.25, 111.4)
+        #ax3.set_ylabel('[%]')
+        ax3.grid(which='both')
+        #ax3.legend(fontsize='xx-small')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
+
 def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
     fig = plt.figure()
     ax1 = fig.add_subplot(211)
@@ -636,6 +692,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
         Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
+        #Tb_diff = (Tb-clean_Tb)/clean_Tb
         Tb_diff = Tb-clean_Tb
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
@@ -668,6 +725,9 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax3.set_ylim(-1.5,0.5)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
         ax3.set_ylabel('$\Delta T_B$ [K]')
+        ax3.set_xlabel("f [GHz]")
+        ax3.set_xlim(110.25, 111.4)
+        #ax3.set_ylabel('[%]')
         ax3.grid(which='both')
         #ax3.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
@@ -707,7 +767,8 @@ def compare_spectra_binned_interp_mopi5_corrected(cal_int_obj, ds_dict, calibrat
         ax2.grid()
         ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s)
         ax3.set_title('Binned and interpolated Tb difference with: '+use_basis)
-        ax3.set_ylim(-1.5,0.5)
+        ax3.set_ylim(-2,0.5)
+        ax3.set_xlabel("f [GHz]")
         ax3.grid()
         ax3.legend(fontsize='xx-small')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])

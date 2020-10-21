@@ -560,12 +560,14 @@ class Integration(ABC):
         for s in spectrometers:
             meanTb_lc = self.integrated_data[s].interpolated_Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
             bias_lc = meanTb_lc-meanTb_lc_basis
+            bias_lc_fract = bias_lc/meanTb_lc_basis
 
-
-            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+            #self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc_fract)
 
             cleanTb = self.integrated_data[s].interpolated_Tb
             Tb_diff = cleanTb-cleanTb_basis
+            Tb_diff_fract = Tb_diff/cleanTb_basis
             right_wing_center = param_slope[s][0]
             right_wing_interval = param_slope[s][1]
             left_wing_center = param_slope[s][2]
@@ -574,12 +576,14 @@ class Integration(ABC):
             mean_diff_right_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
             mean_diff_left_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
 
+            #mean_diff_right_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            #mean_diff_left_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
             slope = (mean_diff_right_wing - mean_diff_left_wing) / (right_wing_center - left_wing_center)
 
             self.integrated_data[s] = self.integrated_data[s].assign(slope = slope)
 
             deltaTb0 = mean_diff_left_wing-slope*left_wing_center
-            #deltaTb02 = mean_diff_right_wing-slope*right_wing_center
 
             f_deltaTb0 = -deltaTb0 / slope
 
@@ -608,12 +612,14 @@ class Integration(ABC):
         for s in spectrometers:
             meanTb_lc = self.integrated_data[s].interpolated_Tb_corr.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
             bias_lc = meanTb_lc-meanTb_lc_basis
+            bias_lc_fract = bias_lc/meanTb_lc_basis
 
-
-            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc_corr = bias_lc)
+            #self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc_corr = bias_lc)
+            self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc_corr = bias_lc_fract)
 
             cleanTb = self.integrated_data[s].interpolated_Tb_corr
             Tb_diff = cleanTb-cleanTb_basis
+            Tb_diff_fract = Tb_diff/cleanTb_basis
             right_wing_center = param_slope[s][0]
             right_wing_interval = param_slope[s][1]
             left_wing_center = param_slope[s][2]
@@ -622,12 +628,14 @@ class Integration(ABC):
             mean_diff_right_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
             mean_diff_left_wing = Tb_diff.where(abs(Tb_diff.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
 
+            #mean_diff_right_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            #mean_diff_left_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
             slope = (mean_diff_right_wing - mean_diff_left_wing) / (right_wing_center - left_wing_center)
 
             self.integrated_data[s] = self.integrated_data[s].assign(slope_corr = slope)
 
             deltaTb0 = mean_diff_left_wing-slope*left_wing_center
-            #deltaTb02 = mean_diff_right_wing-slope*right_wing_center
 
             f_deltaTb0 = -deltaTb0 / slope
 
