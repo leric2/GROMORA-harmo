@@ -31,7 +31,7 @@ for i = 1:size(integratedSpectra,2)
     
     integratedSpectra(i).meanDatetime=datenum(integratedSpectra(i).dateTime)-datenum(1970,1,1);
     
-    integratedSpectra(i).meanTb = nanmean(integratedSpectra(i).Tb);
+    
     
     integratedSpectra(i).numberOfIndices=[
         integratedSpectra(i).numHotSpectra,...
@@ -52,7 +52,9 @@ for i = 1:size(integratedSpectra,2)
         integratedSpectra(i).meanStdTbFromGoodCh = -9999;
         integratedSpectra(i).meanStdFromWings = -9999;
         integratedSpectra(i).meanStdTb = -9999;
+        integratedSpectra(i).meanTb =-9999;
     else
+        integratedSpectra(i).meanTb = nanmean(cleanTb);
         integratedSpectra(i).meanStdTbFromGoodCh=nanmean(integratedSpectra(i).stdTb(~integratedSpectra(i).potentialBadChannels));
     
         N = length(cleanTb);
