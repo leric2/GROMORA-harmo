@@ -92,7 +92,8 @@ logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
 
 if calibrationTool.doTippingCurve
     % Tipping Curve
-    logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
+    logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile,...
+        calibrationTool);
 end
 
 %%
@@ -107,17 +108,20 @@ disp('Calibrating...')
 % - debug
 % - time
 % - all
-[drift,calibratedSpectra] = calibrationTool.calibrate(rawSpectra,logFile,calibrationTool,calibrationTool.calType);
+[drift,calibratedSpectra] = calibrationTool.calibrate(rawSpectra, ...
+    logFile, calibrationTool, calibrationTool.calType);
 
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file and storing
 % everything in calibrated spectra
-calibratedSpectra = calibrationTool.check_calibrated(logFile,calibrationTool,calibratedSpectra);
+calibratedSpectra = calibrationTool.check_calibrated(logFile, ...
+    calibrationTool, calibratedSpectra);
 
 % Option for plotting and saving drift and calibrated spectra
 if calibrationTool.calibratedSpectraPlot
     try
-        calibrationTool.plot_calibrated_spectra(calibrationTool,drift,logFile.meteo,calibratedSpectra,40,280,24);
+        calibrationTool.plot_calibrated_spectra(calibrationTool, drift, ...
+            logFile.meteo, calibratedSpectra, 40, 280, 24);
     catch ME
         warning(ME.identifier,'problem with the plotting:');
         disp(ME.message)
@@ -126,7 +130,8 @@ end
 
 % Saving calibrated spectra (level1a) into NetCDF-4 file
 disp('Saving Level 1a...')
-calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,calibratedSpectra,warningLevel0);
+calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,...
+    calibratedSpectra,warningLevel0);
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)

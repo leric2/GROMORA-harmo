@@ -37,7 +37,7 @@ instrumentName='mopi5';
 calibrationType='standard';
 
 calibrate = false;
-integrate = true;
+integrate = false;
 readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
@@ -97,7 +97,8 @@ addpath(genpath(root_dir))
 for d = 1:numel(dates)
     dateStr=datestr(dates(d),'yyyy_mm_dd');
     
-    % Import default tools for running a retrieval for a given instrument
+    % Import default tools for running a calibration or integration for a 
+    % given instrument
     calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
