@@ -218,7 +218,7 @@ class MOPI5_LvL2(DataRetrieval):
         #intermediate_frequency = self.calibrated_data[spectro].intermediate_frequency.data
         return mopi5_library.return_bad_channels_mopi5(number_of_channel, date, spectro)
 
-    def compare_spectra_mopi5(self, dim='time', idx=[0], save_plot = False, identifier=[], with_corr = True, corr_band=False, title=None):
+    def compare_spectra_mopi5(self, spectrometers=[], dim='time', idx=[0], save_plot = False, identifier=[], lowerBound=[], with_corr = True, corr_band=[], title=None):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         for i in idx:
@@ -226,9 +226,11 @@ class MOPI5_LvL2(DataRetrieval):
                 title = self.integration_strategy + ' n.'+ str(i) + ' : ' + str(identifier[i])+', int_time='+str(10*self.integrated_data['U5303'].chunk_size[i].data) + 'min'
             #figures.append(mopi5_library.compare_Tb_mopi5(self, self.integrated_data, i)) 
             if with_corr:
-                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, i, title=title, corr_band=corr_band))
+                figures.append(mopi5_library.compare_spectra_mopi5_new(self, self.integrated_data, spectrometers, i, title=title, corr_band=corr_band))
             else:
-                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_data, i, title=title))
+                #print(corr_band)
+                title ='Integrated spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+                figures.append(mopi5_library.compare_spectra_only_mopi5(self, self.integrated_data, spectrometers, i, title=title, corr_band=corr_band))
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
@@ -243,6 +245,17 @@ class MOPI5_LvL2(DataRetrieval):
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_binned_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
+    def compare_spectra_binned_interp_mopi5_factor(self, dim='time', idx=[0], save_plot = False, spectrometers=['AC240'], identifier=[], use_basis = 'U5303', alpha=[0,7,8,9], binning=8, lowerBound=[], corr_band=[]):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        
+        for i in idx:            
+            title ='Integrated spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+            figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, corr_band=corr_band))
+
+        if save_plot:
+            save_single_pdf(self.level1_folder+'binned_factor'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+    
     def compare_spectra_binned_interp_mopi5(self, dim='time', idx=[0], spectrometers=['AC240','USRP-A'], use_basis='U5303', save_plot = False, identifier=[], corrected=False, clean=False):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
@@ -252,11 +265,11 @@ class MOPI5_LvL2(DataRetrieval):
             if clean:
                 if corrected:
                     lowerBound = [0, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-                    title ='Integrated and corrected spectra with $T_{b,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+                    title ='Integrated and corrected spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
                     figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_corr(self, self.integrated_data, i, spectrometers, use_basis, title=title))
                 else:
                     lowerBound = [0, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
-                    title ='Integrated spectra with $T_{b,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+                    title ='Integrated spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
                     figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean(self, self.integrated_data, i, spectrometers, use_basis, title=title))
             else:
                 if corrected:
@@ -268,8 +281,8 @@ class MOPI5_LvL2(DataRetrieval):
             if clean:
                 if corrected:
                     print('no png saved')
-                else:
-                    save_pngs(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_', figures)
+                #else:
+                    #save_pngs(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_', figures)
             if corrected:
                 save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_corr_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
             else: 

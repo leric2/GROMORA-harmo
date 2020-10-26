@@ -35,10 +35,10 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -539,6 +539,63 @@ class Integration(ABC):
 
         return self.integrated_data
 
+    def add_bias_characterization_new(self, spectrometers, dim, param_slope, around_center_value):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        ''' 
+
+        # For each spectrometer individually
+        for s in spectrometers:
+            #meanTb_lc = self.integrated_data[s].Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+            # bias_lc = meanTb_lc-meanTb_lc_basis
+            # bias_lc_fract = bias_lc/meanTb_lc_basis
+
+            # #self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+            # self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc_fract)
+
+            cleanTb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+            # Tb_diff = cleanTb-cleanTb_basis
+            # Tb_diff_fract = Tb_diff/cleanTb_basis
+            right_wing_center = param_slope[s][0]
+            right_wing_interval = param_slope[s][1]
+            left_wing_center = param_slope[s][2]
+            left_wing_interval = param_slope[s][3]
+
+            mean_Tb_right_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-right_wing_center)<right_wing_interval,drop=True).mean(dim='channel_idx')
+            mean_Tb_left_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-left_wing_center)<left_wing_interval,drop=True).mean(dim='channel_idx')
+
+            #mean_diff_right_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            #mean_diff_left_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
+            slope = (mean_Tb_right_wing - mean_Tb_left_wing) / (right_wing_center - left_wing_center)
+
+            self.integrated_data[s] = self.integrated_data[s].assign(slope_indiv = slope)
+            
+            self.integrated_data[s].slope_indiv.attrs['left_f']=left_wing_center
+            self.integrated_data[s].slope_indiv.attrs['right_f']=right_wing_center
+            
+            Tb0 = mean_Tb_left_wing-slope*left_wing_center
+
+            continuum_value_line_center = self.observation_frequency * slope + Tb0
+
+            self.integrated_data[s] = self.integrated_data[s].assign(continuum_value_line_center = continuum_value_line_center)
+
+            line_center_amplitude = cleanTb.where(abs(self.integrated_data[s].frequencies-self.observation_frequency)<around_center_value,drop=True).mean(dim='channel_idx')
+            diff_lc_continuum = line_center_amplitude - continuum_value_line_center
+            self.integrated_data[s] = self.integrated_data[s].assign(line_amplitude = diff_lc_continuum)
+
+        return self.integrated_data
+
     def add_bias_characterization(self, spectrometers, use_basis, dim, param_slope, around_center_value):
         '''
         Parameters
@@ -619,7 +676,7 @@ class Integration(ABC):
 
             cleanTb = self.integrated_data[s].interpolated_Tb_corr
             Tb_diff = cleanTb-cleanTb_basis
-            Tb_diff_fract = Tb_diff/cleanTb_basis
+            #Tb_diff_fract = Tb_diff/cleanTb_basis
             right_wing_center = param_slope[s][0]
             right_wing_interval = param_slope[s][1]
             left_wing_center = param_slope[s][2]
