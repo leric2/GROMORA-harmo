@@ -130,7 +130,7 @@ try
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
         
-        ylim([lowerLim,upperLim])
+        
         %TOD{i}=num2str(integratedSpectra(i).TOD);
         hold on
     end
