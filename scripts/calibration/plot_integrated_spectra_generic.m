@@ -129,7 +129,7 @@ try
         %title([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
-        
+        ylim([lowerLim,upperLim])
         
         %TOD{i}=num2str(integratedSpectra(i).TOD);
         hold on
@@ -156,8 +156,10 @@ try
     % saveas(gcf,[retrievalTool.level1Folder 'calibratedHourlySpectra_' correctedSpectra.date],'jpg')
     if calibrationTool.integrationTime==60
         print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
-    else
+    elseif calibrationTool.integrationTime>60
         print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' num2str(calibrationTool.integrationTime/60) 'h_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
+    else
+        print([calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' num2str(calibrationTool.integrationTime) 'min_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
     end
     %print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_integratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-fillpage')
     close
