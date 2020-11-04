@@ -1347,7 +1347,69 @@ class DataRetrieval(ABC):
 
 
         return self.level2_data
-    
+
+    def add_bias_characterization_with_non_linearities(self, spectrometers, dim, param_slope, around_center_value):
+        '''
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        ''' 
+
+        # For each spectrometer individually
+        for s in spectrometers:
+            theoretical_nonlinearities =  np.polyfit([80,186,292],[0,-0.20,0],deg=2)
+            fitted_poly_theoretical_nonlinearities = np.poly1d(theoretical_nonlinearities) 
+        
+            non_lin=fitted_poly_theoretical_nonlinearities(self.integrated_data[s].Tb.data)
+            
+            #meanTb_lc = self.integrated_data[s].Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+            # bias_lc = meanTb_lc-meanTb_lc_basis
+            # bias_lc_fract = bias_lc/meanTb_lc_basis
+
+            # #self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+            # self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc_fract)
+
+            cleanTb = (self.integrated_data[s].Tb+fitted_poly_theoretical_nonlinearities(self.integrated_data[s].Tb)).where(self.integrated_data[s].good_channels==1)
+            # Tb_diff = cleanTb-cleanTb_basis
+            # Tb_diff_fract = Tb_diff/cleanTb_basis
+            right_wing_center = param_slope[s][0]
+            right_wing_interval = param_slope[s][1]
+            left_wing_center = param_slope[s][2]
+            left_wing_interval = param_slope[s][3]
+
+            mean_Tb_right_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-right_wing_center)<right_wing_interval,drop=True).mean(dim='channel_idx')
+            mean_Tb_left_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-left_wing_center)<left_wing_interval,drop=True).mean(dim='channel_idx')
+
+            #mean_diff_right_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            #mean_diff_left_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
+            slope = (mean_Tb_right_wing - mean_Tb_left_wing) / (right_wing_center - left_wing_center)
+
+            self.integrated_data[s] = self.integrated_data[s].assign(slope_indiv_nonlin = slope)
+            
+            self.integrated_data[s].slope_indiv.attrs['left_f']=left_wing_center
+            self.integrated_data[s].slope_indiv.attrs['right_f']=right_wing_center
+            
+            Tb0 = mean_Tb_left_wing-slope*left_wing_center
+
+            continuum_value_line_center = self.observation_frequency * slope + Tb0
+
+            self.integrated_data[s] = self.integrated_data[s].assign(continuum_value_line_center_nonlin = continuum_value_line_center)
+
+            line_center_amplitude = cleanTb.where(abs(self.integrated_data[s].frequencies-self.observation_frequency)<around_center_value,drop=True).mean(dim='channel_idx')
+            diff_lc_continuum = line_center_amplitude - continuum_value_line_center
+            self.integrated_data[s] = self.integrated_data[s].assign(line_amplitude_nonlin = diff_lc_continuum)
+
+        return self.integrated_data
+
     def plot_level1b_TB_all(self, title='', save=False, save_name='int_spectra', idx=None):
         figures = list()
         

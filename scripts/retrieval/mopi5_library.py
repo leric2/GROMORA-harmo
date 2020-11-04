@@ -19,6 +19,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 
 from GROSOM_library import tropospheric_correction
+from utils_GROSOM import save_single_pdf
+
+
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.lines import Line2D
+
+color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
     '''
@@ -647,8 +654,8 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
     
     return fig
 
-def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='',corr_band=[]):
-    fig = plt.figure(figsize=(8, 11))
+def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',corr_band=[]):
+    fig = plt.figure(figsize=(8, 8))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
@@ -702,7 +709,88 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
             smoothed_diff = np.convolve(Tb-mod_U5303, np.ones((binning,))/binning, mode='full')
             ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_alpha[i], label=lab)
         
-        ax2.set_title('$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean}$ ')
+        ax2.set_title(title2)
+        ax2.set_ylim(-1,0.5)
+        ax2.yaxis.set_major_locator(MultipleLocator(0.2))
+        ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
+        ax2.set_ylabel('$\Delta T_B$ [K]')
+        ax2.set_xlabel("f [GHz]")
+        ax2.set_xlim(110.25, 111.4)
+        #ax23.set_ylabel('[%]')
+        ax2.grid(which='both')
+        ax2.legend()
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
+def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',broadband_bias=[]):
+    fig = plt.figure(figsize=(8, 8))
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+    clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
+    clean_f = ds_dict[use_basis].bin_freq.data
+    color_alpha = ['tab:orange','red','green','blue']
+    for s in spectrometers:
+        #mask = ds_dict[s].good_channels[calibration_cycle].data
+        #mask[mask==0]=np.nan
+        Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
+        #Tb_diff = (Tb-clean_Tb)/clean_Tb
+        Tb_diff = Tb-clean_Tb
+        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, color=color_spectro[s], lw=0.5, label=s)
+        ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("f [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.yaxis.set_major_locator(MultipleLocator(2))
+        ax1.set_title(title)
+        ax1.grid()
+        
+        ymax = np.nanmax(ds_dict[s].interpolated_Tb_corr[calibration_cycle].data)
+        # if not np.isnan(ymax):
+        #     ax2.set_ylim(ymax-4,ymax+0.5)
+        #     ax2.yaxis.set_major_locator(MultipleLocator(2))
+        #     ax2.yaxis.set_minor_locator(MultipleLocator(1))
+        #     ax2.xaxis.set_minor_locator(MultipleLocator(5))
+        #     ax2.tick_params(axis='both', which='major', labelsize=8)
+        # ax2.set_xlabel('[MHz]',fontsize='x-small')
+        # ax2.grid(which='both')
+
+        Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
+        a = alpha[calibration_cycle]/100
+        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.2f}%'
+
+        #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
+        
+        mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
+        
+        U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
+        Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
+        #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
+
+        #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
+        Tb_diff_corrected = Tb-mod_U5303
+        Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
+        Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+        #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
+        ax1.legend()
+
+        #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
+
+        clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
+        smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
+        smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
+        smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
+        smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
+        
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, non-lin corr')
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_corr_non_lin , lw=0.8, color='k', label='alpha on non-linearities')
+
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_alpha[2], label=lab)
+        
+        ax2.set_title(title2)
         ax2.set_ylim(-1,0.5)
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
@@ -996,3 +1084,267 @@ def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title
     # figures.append(fig)   
 
     return figures
+
+
+def plot_O3_all_mopi5(level2_data, outName):
+    figures2=list()
+    #fig, axs = plt.subplots(nrows=3, ncols=5, sharex=True, sharey=True)
+    fig = plt.figure()
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+
+    fig_mr = plt.figure()
+    fig_mr.subplots_adjust(hspace=0.4, wspace=0.4)
+
+    for spectro in level2_data.spectrometers:
+        for i in range(len(level2_data[spectro].observation)):
+            ax = fig.add_subplot(3,5,i+1)
+            ax2 = fig_mr.add_subplot(3,5,i+1)
+            o3 = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            #error = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            ax.plot(o3*1e6, o3_z/1e3, '--', linewidth=0.1, color=color_spectro[spectro])
+            #ax.plot(error_frac.where(mr>0.8).data*100, o3_z/1e3, '-.', linewidth=0.5, color=color_spectro[spectro])
+            #ax.plot(error*1e6, o3_z/1e3, '-.', linewidth=0.5, color=color_spectro[spectro])
+            ax.plot(o3_good*1e6, o3_z/1e3, linewidth=1, label=spectro,color=color_spectro[spectro])
+            ax.set_title('Tb = ' + str(identifier_plot[i]), fontsize='small')
+            ax.set_xlim(-0.5,12)
+            ax.yaxis.set_major_locator(MultipleLocator(20))
+            ax.yaxis.set_minor_locator(MultipleLocator(10))
+            ax.xaxis.set_major_locator(MultipleLocator(5))
+            ax.xaxis.set_minor_locator(MultipleLocator(1))
+            ax.grid(which='both',  axis='x', linewidth=0.5)
+            ax.grid(which='minor', axis='y', linewidth=0.5)
+
+
+            ax2.plot(mr, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
+            ax2.set_title('Tb = ' + str(identifier_plot[i]), fontsize='small')
+            ax2.set_xlim(-0.1,1.2)
+            ax2.yaxis.set_major_locator(MultipleLocator(20))
+            ax2.yaxis.set_minor_locator(MultipleLocator(10))
+            ax2.xaxis.set_major_locator(MultipleLocator(1))
+            ax2.xaxis.set_minor_locator(MultipleLocator(0.1))
+            ax2.grid(which='both',  axis='x', linewidth=0.5)
+            ax2.grid(which='minor', axis='y', linewidth=0.5)
+            #ax2.set_xticklabels([])
+            if i==0 or i==5 or i==10:
+                ax.set_ylabel('alt [km]', fontsize='small')
+                ax2.set_ylabel('alt [km]', fontsize='small')
+            else: 
+                ax.set_yticklabels([])
+                ax2.set_yticklabels([])
+            if i in [10, 11, 12, 13, 14]:
+                ax.set_xlabel('$O_3$ [ppm]', fontsize='small')
+                ax2.set_xlabel('MR', fontsize='small') 
+            else: 
+                ax.set_xticklabels([])
+                ax2.set_xticklabels([])
+    ax.legend()
+    fig.suptitle('$O_3$ VMR')
+    figures2.append(fig)
+    fig_mr.suptitle('Measurement response')
+    figures2.append(fig_mr)
+    #plt.plot(o3_apriori*1e6, o3_z/1e3)
+
+    #fig, axs = plt.subplots(nrows=3, ncols=5, sharex=True, sharey=True)
+    fig2 = plt.figure()
+    fig2.subplots_adjust(hspace=0.4, wspace=0.4)
+    for i in range(len(level2_data[spectro].observation)):
+        for spectro in ['AC240','USRP-A']:
+            ax = fig2.add_subplot(3,5,i+1)
+            o3_diff = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+
+            mr = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            mr_basis = level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            #o3_rel_diff = o3_diff / level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p  
+            o3_good_diff = o3_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
+            #o3_good_rel_diff = o3_rel_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
+            ax.plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
+            ax.plot(o3_good_diff*1e6, o3_z/1e3, '-', linewidth=1, color=color_spectro[spectro], label=spectro)
+            #ax.plot(o3_good_rel_diff*100, o3_z/1e3, '-', linewidth=1, color=color_spectro[spectro], label=spectro)
+            ax.set_title('Tb = ' + str(identifier_plot[i]), fontsize='small')
+            ax.set_xlim(-2,2)
+            ax.set_ylim(10,70)
+            ax.yaxis.set_major_locator(MultipleLocator(20))
+            ax.yaxis.set_minor_locator(MultipleLocator(10))
+            ax.xaxis.set_major_locator(MultipleLocator(2))
+            ax.xaxis.set_minor_locator(MultipleLocator(0.2))
+            ax.grid(which='minor',  axis='x', linewidth=0.2)
+            ax.grid(which='major',  axis='x', linewidth=1)
+            ax.grid(which='both', axis='y', linewidth=0.5)
+
+            #ax2.set_xticklabels([])
+            if i==0 or i==5 or i==10:
+                ax.set_ylabel('altitude [km]',fontsize='small')
+            else: 
+                ax.set_yticklabels([])  
+            if i in [10, 11, 12, 13, 14]:
+                ax.set_xlabel('$O_3$ [ppm]',fontsize='small')
+            else: 
+                ax.set_xticklabels([])
+
+    ax.legend()
+    fig2.suptitle('$O_3$ VMR difference')
+    figures2.append(fig2)
+    fig4 = plt.figure()
+    fig4.subplots_adjust(hspace=0.4, wspace=0.4)
+    for spectro in spectro_lvl2:
+        for i in range(len(level2_data[spectro].observation)):
+            ax = fig4.add_subplot(3,5,i+1)
+            obs_error = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo
+            smoothing_error = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
+            #error = np.sqrt(level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es**2)
+            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p  
+            mr = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_m  
+            ax.plot(obs_error*1e6, o3_z/1e3, '--', linewidth=0.5, color=color_spectro[spectro])
+            ax.plot(obs_error.where(mr>0.8)*1e6, o3_z/1e3, '-.', linewidth=1, color=color_spectro[spectro], label='$e_o$, '+spectro)
+            ax.plot(smoothing_error*1e6, o3_z/1e3, '--', linewidth=0.5, color=color_spectro[spectro])
+            ax.plot(smoothing_error.where(mr>0.8)*1e6, o3_z/1e3, '-', linewidth=1, color=color_spectro[spectro], label='$e_s$,'+spectro)
+            #ax.plot(error/1e3, o3_z/1e3, '-', linewidth=1, color=color_spectro[spectro], label=spectro)
+            ax.set_title('Tb = ' + str(identifier_plot[i]), fontsize='small')
+            #ax.set_xlim(-0.5,12)
+            ax.yaxis.set_major_locator(MultipleLocator(20))
+            ax.yaxis.set_minor_locator(MultipleLocator(10))
+            ax.xaxis.set_major_locator(MultipleLocator(1))
+            ax.xaxis.set_minor_locator(MultipleLocator(0.2))
+            ax.grid(which='both',  axis='x', linewidth=0.5)
+            ax.grid(which='minor', axis='y', linewidth=0.5)
+
+            #ax2.set_xticklabels([])
+            if i==0 or i==5 or i==10:
+                ax.set_ylabel('alt [km]',fontsize='small')
+            else: 
+                ax.set_yticklabels([])  
+            if i in [10, 11, 12, 13, 14]:
+                ax.set_xlabel('$O_3$ [ppm]',fontsize='small')
+            else: 
+                ax.set_xticklabels([])  
+    ax.legend()
+    fig4.suptitle('Error')
+    figures2.append(fig4)   
+    fig3 = plt.figure()
+    fig3.subplots_adjust(hspace=0.4, wspace=0.4)
+    for spectro in spectro_lvl2:
+        for i in range(len(level2_data[spectro].observation)):
+            ax = fig3.add_subplot(3,5,i+1)
+            o3_offset = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_offset
+            o3_fwhm = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_fwhm
+            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p  
+            #ax.plot(o3_offset/1e3, o3_z/1e3, '--', linewidth=0.5, color=color_spectro[spectro])
+            ax.plot(o3_fwhm/1e3, o3_z/1e3, '-', linewidth=0.5, color=color_spectro[spectro], label=spectro)
+            ax.set_title('Tb = ' + str(identifier_plot[i]), fontsize='small')
+            #ax.set_xlim(-0.5,12)
+            ax.yaxis.set_major_locator(MultipleLocator(20))
+            ax.yaxis.set_minor_locator(MultipleLocator(10))
+            ax.xaxis.set_major_locator(MultipleLocator(10))
+            ax.xaxis.set_minor_locator(MultipleLocator(5))
+            ax.grid(which='both',  axis='x', linewidth=0.5)
+            ax.grid(which='minor', axis='y', linewidth=0.5)
+
+            #ax2.set_xticklabels([])
+            if i==0 or i==5 or i==10:
+                ax.set_ylabel('alt [km]',fontsize='small')
+            else: 
+                ax.set_yticklabels([])  
+            if i in [10, 11, 12, 13, 14]:
+                ax.set_xlabel('FWHM [km]',fontsize='small')
+            else: 
+                ax.set_xticklabels([])  
+    ax.legend()
+    fig3.suptitle('FWHM')
+    figures2.append(fig3)
+    save_single_pdf(basename_lvl2+outName+integration_strategy+'.pdf',figures2)  
+
+def plot_O3_sel_mopi5(level2_data, outName):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3   
+
+    figure_o3_sel=list()
+    for i in range(len(level2_data['AC240'].observation)):
+        fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+        for spectro in spectro_lvl2:
+            o3 = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            #error = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
+            axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1, label=spectro,color=color_spectro[spectro])
+            axs[0].plot(o3_apriori*1e6, o3_z/1e3, '--', linewidth=0.2, label=spectro,color='r')
+            axs[0].set_title('$O_3$ VMR')
+            axs[0].set_xlim(-0.5,11)
+            axs[0].set_xlabel('$O_3$ VMR [ppm]')
+            axs[0].yaxis.set_major_locator(MultipleLocator(10))
+            axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[0].xaxis.set_major_locator(MultipleLocator(5))
+            axs[0].xaxis.set_minor_locator(MultipleLocator(1))
+            axs[0].grid(which='both',  axis='x', linewidth=0.5)
+            axs[0].set_ylabel('Altitude [km]')
+
+            mr_basis = level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            axs[1].plot(mr, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
+            axs[1].set_xlim(-0.1,1.2)
+            axs[1].yaxis.set_major_locator(MultipleLocator(10))
+            axs[1].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[1].xaxis.set_major_locator(MultipleLocator(0.4))
+            axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
+            axs[1].set_xlabel('MR [-]')
+            axs[1].grid(which='both',  axis='x', linewidth=0.5)
+            axs[1].set_title('Measurement response') 
+            o3_diff = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_good_diff = o3_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
+            if not spectro=='U5303':
+                axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
+                axs[2].plot(o3_good_diff*1e6, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
+            axs[2].set_title('$O_3$ VMR difference with U5303')
+            axs[2].set_xlim(-2,2)
+            axs[2].set_xlabel('$\Delta O_3$ [ppm]')
+            axs[2].yaxis.set_major_locator(MultipleLocator(10))
+            axs[2].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[2].xaxis.set_major_locator(MultipleLocator(1))
+            axs[2].xaxis.set_minor_locator(MultipleLocator(0.5))
+
+            axs[2].grid(which='both',  axis='x', linewidth=0.5) 
+            for a in axs:
+                a.set_ylim(10,80)
+                a.grid(which='both', axis='y', linewidth=0.5)
+
+            # #ax2.set_xticklabels([])
+            # if i==0 or i==5 or i==10:
+            #     ax.set_ylabel('alt [km]', fontsize='small')
+            #     ax2.set_ylabel('alt [km]', fontsize='small')
+            # else: 
+            #     ax.set_yticklabels([])
+            #     ax2.set_yticklabels([])
+            # if i in [10, 11, 12, 13, 14]:
+            #     ax.set_xlabel('$O_3$ [ppm]', fontsize='small')
+            #     ax2.set_xlabel('MR', fontsize='small') 
+            # else: 
+            #     ax.set_xticklabels([])
+            #     ax2.set_xticklabels([])
+        legend_elements = [
+        Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
+        Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
+        Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
+        Line2D([0], [0], linestyle='--', color='r', label='a priori')
+        ]
+        axs[0].legend(handles=legend_elements)
+        axs[2].axvline(x=0, linewidth=0.6,color='k')
+        fig.suptitle('$O_3$ retrievals with $T_{B,mean}$ between '+str(lowerBound[i])+' and '+str(identifier_plot[i]))
+        figure_o3_sel.append(fig)
+    save_single_pdf(basename_lvl2+outName+integration_strategy+'.pdf',figure_o3_sel)
