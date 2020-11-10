@@ -253,7 +253,7 @@ class MOPI5_LvL2(DataRetrieval):
             title ='Integrated spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
             if variable:
                 #title2='$\Delta T_B$ using $T_{B,AC240}^{\'} = (1+\\alpha) T_B - \\alpha T_{B,mean} - \Delta T_{B,continuum}$'
-                title2='$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean}$'
+                title2='$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean} + \Delta T_{B,nonlin}$'
                 outName='Tb_scaling_non_lin_'
                 figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor_variable(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, title2=title2,broadband_bias=broadband_bias))
             else:

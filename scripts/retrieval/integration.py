@@ -68,8 +68,8 @@ def integrate(date, integration_strategy):
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = False
-    plot_ts_Tb_Tsys = True
+    save_nc = True
+    plot_ts_Tb_Tsys = False
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/Level1a/"
@@ -119,7 +119,7 @@ def integrate(date, integration_strategy):
     calibrated_data = calibration.find_bad_channels_stdTb(spectrometers = calibration.spectrometers, stdTb_threshold = 10, apply_on='cal')
 
     #calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
-    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=20e6)
+    calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=500e6)
     
     if plot_ts_Tb_Tsys:
         calibration.plot_time_series_all_mopi5(special=False)
@@ -333,21 +333,21 @@ def plot_integrated(date, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    dateR = pd.date_range(start='2019-01-03', end='2019-01-05')
-    dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
-    dateR = pd.date_range(start='2019-01-30', end='2019-02-22')
-    dateR = pd.date_range(start='2019-01-03', end='2019-06-30')
-    #integrate(dateR, 'meanTb_harmo')
+    #dateR = pd.date_range(start='2019-01-03', end='2019-01-05')
+    #dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
+    #dateR = pd.date_range(start='2019-01-30', end='2019-02-22')
+    #dateR = pd.date_range(start='2019-01-03', end='2019-06-30')
+    integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
-    integration_strategy = 'TOD_harmo'
+    # integration_strategy = 'TOD_harmo'
 
-    for date in dateR:
-        try:
-            integrate(date, integration_strategy)
-        except:
-            print('not working for day : ', date)
-        #plot_integrated(date, integration_strategy)
+    # for date in dateR:
+    #     try:
+    #         integrate(date, integration_strategy)
+    #     except:
+    #         print('not working for day : ', date)
+    #     #plot_integrated(date, integration_strategy)
 
 # %%
 

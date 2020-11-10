@@ -759,20 +759,25 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
         a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.2f}%'
+        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.0f}%'
 
         #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
         
+        # 
         mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
-        
+        Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
+
         U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
-        Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
+
+        #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
         #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
 
         #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
         Tb_diff_corrected = Tb-mod_U5303
         Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
-        Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+        #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+        Tb_diff_corrected_non_lin_1 = Tb-Tb_corrected_factor_non_lin
+
         #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
         ax1.legend()
 
@@ -781,17 +786,22 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
         smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
         smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
-        smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
+        #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
         smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
+        smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, non-lin corr')
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_corr_non_lin , lw=0.8, color='k', label='alpha on non-linearities')
-
+        
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_alpha[2], label=lab)
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha$ = 8%, with $\Delta T_{B,nonlin}$')
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
+
+
+        ax2.axhline(0,lw=0.6, color='k', ls='--')
         ax2.set_title(title2)
-        ax2.set_ylim(-1,0.5)
+        ax2.set_ylim(-1,0.4)
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
         ax2.set_ylabel('$\Delta T_B$ [K]')
@@ -799,7 +809,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         ax2.set_xlim(110.25, 111.4)
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
-        ax2.legend()
+        ax2.legend(loc=4)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
     

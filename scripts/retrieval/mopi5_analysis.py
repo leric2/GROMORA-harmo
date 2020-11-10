@@ -239,7 +239,7 @@ if __name__ == "__main__":
             identifier=identifier_plot,
             #alpha=-100*line_amplitude_diff.data,
             alpha=8*np.ones(15),
-            binning=2,
+            binning=4,
             lowerBound=lowerBound,
             variable=True,
             broadband_bias=non_lin
@@ -555,8 +555,8 @@ if __name__ == "__main__":
                 fitted_poly_theoretical_nonlinearities = np.poly1d(theoretical_nonlinearities) 
 
                 ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data-integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
-                ax2.plot(np.arange(70,250,1), fitted_poly_theoretical_nonlinearities(np.arange(70,250,1)), 'k-', linewidth=0.4)
-                ax2.axvline(80,color='b',linewidth=0.6, ls='--')
+                #ax2.plot(np.arange(70,300,1), fitted_poly_theoretical_nonlinearities(np.arange(70,300,1)), 'k-', linewidth=0.4)
+                #ax2.axvline(80,color='b',linewidth=0.6, ls='--')
                 #ax2.axvline(292,color='r',linewidth=0.6, ls='--')
                 ax2.set_ylabel(r'$\Delta T_B$ [K]')
                 ax2.set_xlabel('Mean $T_B$ [K]')
@@ -581,6 +581,8 @@ if __name__ == "__main__":
         #legend = ax1.legend(*scatter.legend_elements(prop='colors'), month_name, fontsize='xx-small',loc=1, title='Month')
         #ax1.add_artist(legend)
         #ax2.legend(['U5303','AC240'], fontsize='small')
+        #ax2.text(85, -0.23, '$T_{cold}$', fontsize=12, color='b')
+        #ax2.text(250, -0.23, '$T_{hot}$', fontsize=12, color='r')
         ax1.grid()
         ax2.grid()
         ax3.grid()
@@ -593,9 +595,9 @@ if __name__ == "__main__":
         figures2.append(fig2)
 
         fig4 = plt.figure(figsize=(9,6))
-        ax1 = fig4.add_subplot(1,3,1)
-        ax2 = fig4.add_subplot(1,3,2)
-        ax3 = fig4.add_subplot(1,3,3)
+        ax1 = fig4.add_subplot(1,2,1)
+        #ax2 = fig4.add_subplot(1,3,2)
+        ax3 = fig4.add_subplot(1,2,2)
         count = 0
         for d in end_dates:
             try:
@@ -611,10 +613,10 @@ if __name__ == "__main__":
                 #ax1.set_ylim(-1,0.5)
                 ax1.set_title('line amplitude difference')
                 ax1.set_xlabel('Mean $T_B$ [K]')
-                ax2.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].continuum_value_line_center.data-integrated_data['U5303'].continuum_value_line_center.data)/integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
-                ax2.set_ylabel(r'$\Delta T_B$ [%]')
-                ax2.set_xlabel('Mean $T_B$ [K]')
-                ax2.set_title('$\Delta T_B$ continuum')
+                # ax2.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].continuum_value_line_center.data-integrated_data['U5303'].continuum_value_line_center.data)/integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
+                # ax2.set_ylabel(r'$\Delta T_B$ [%]')
+                # ax2.set_xlabel('Mean $T_B$ [K]')
+                # ax2.set_title('$\Delta T_B$ continuum')
                 #ax2.set_ylim(-2,0)
                 #ax2.set_ylim(-1,1)
                 ax3.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].slope_indiv-integrated_data['U5303'].slope_indiv)/integrated_data['U5303'].slope_indiv, color=color, s=12)
@@ -628,7 +630,7 @@ if __name__ == "__main__":
                 pass       
 
         ax1.grid()
-        ax2.grid()
+        #ax2.grid()
         ax3.grid()
         ax1.legend(handles=legend_elements,fontsize=12,loc=3)
         fig4.suptitle('Fractional difference with U5303')
@@ -638,6 +640,69 @@ if __name__ == "__main__":
         plt.show()
         
         figures2.append(fig4)
+
+        fig3 = plt.figure(figsize=(6,6))
+        #ax1 = fig2.add_subplot(1,1,1)
+        ax2 = fig3.add_subplot(1,1,1)
+        #ax3 = fig2.add_subplot(1,3,3)
+        count = 0
+        for d in end_dates:
+            try:
+                integration = mc.MOPI5_LvL2(d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
+                integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(no_flag=True, meta_data=False)
+                color = monthly_color[d.month-1]
+                s = 'AC240'
+                # scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
+                # #scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
+
+                # ax1.set_ylabel(r'$\Delta T_B$ [K]')
+                # #ax1.set_ylim(-2,0)
+                # #ax1.set_ylim(-1,0.5)
+                # ax1.set_title('line amplitude difference')
+                # ax1.set_xlabel('Mean $T_B$ [K]')
+
+                theoretical_nonlinearities =  np.polyfit([80,186,292],[0,-0.20,0],deg=2)
+                fitted_poly_theoretical_nonlinearities = np.poly1d(theoretical_nonlinearities) 
+
+                ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data-integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
+                ax2.plot(np.arange(70,303,1), fitted_poly_theoretical_nonlinearities(np.arange(70,303,1)), 'k-', linewidth=0.4)
+                ax2.axvline(80,color='b',linewidth=0.6, ls='--')
+                ax2.axvline(292,color='r',linewidth=0.6, ls='--')
+                ax2.set_ylabel(r'$\Delta T_B$ [K]')
+                ax2.set_xlabel('Mean $T_B$ [K]')
+                ax2.set_title('$\Delta T_B$ continuum')
+                #ax2.set_ylim(-2,0)
+                #ax2.set_ylim(-1,1)
+                # ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv*1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=12)
+                # ax3.set_ylabel('$\Delta m$ [K/GHz]') 
+                # #ax3.set_ylim(-0.8,0.2)
+                # ax3.set_title('Slope difference')
+                # ax3.set_xlabel('Mean $T_B$ [K]')
+
+            except:
+                print('no data for :', d)
+                pass           
+        legend_elements = [
+            Line2D([0], [0], marker='.', color='w', markerfacecolor='magenta', label=month_name[0], markersize=size+2),
+            Line2D([0], [0], marker='.', color='w', markerfacecolor='blue', label=month_name[1], markersize=size+2),
+            Line2D([0], [0], marker='.', color='w', markerfacecolor='cyan', label=month_name[2], markersize=size+2),
+            Line2D([0], [0], marker='.', color='w', markerfacecolor='orange', label=month_name[3], markersize=size+2)
+        ]
+        #legend = ax1.legend(*scatter.legend_elements(prop='colors'), month_name, fontsize='xx-small',loc=1, title='Month')
+        #ax1.add_artist(legend)
+        #ax2.legend(['U5303','AC240'], fontsize='small')
+        ax2.text(85, -0.23, '$T_{cold}$', fontsize=14, color='b')
+        ax2.text(270, -0.23, '$T_{hot}$', fontsize=14, color='r')
+        #ax1.grid()
+        ax2.grid()
+        #ax3.grid()
+        #ax2.legend(handles=legend_elements,fontsize=14,loc=2)
+        #fig2.suptitle('Difference : '+s+' - U5303')
+        #fig.suptitle('Mean hot counts')
+        fig3.tight_layout(rect=[0, 0.01, 1, 0.95])
+        plt.show()
+
+        figures2.append(fig3)
 
         save_single_pdf(basename_lvl1+'full_bias_all_'+integration_strategy+'.pdf',figures2)
 
