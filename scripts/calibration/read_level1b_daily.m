@@ -100,15 +100,15 @@ end
 calibrationTool.logFile.raw_file_warning=ncreadatt(filename,'/','raw_file_warning');
 calibrationTool.logFile.comment=ncreadatt(filename,'/','comment');
 calibrationTool.logFile.raw_file_comment=ncreadatt(filename,'/','raw_file_comment');
-calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
-calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
+%calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
+%calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.calibration_version=ncreadatt(filename,'/','calibration_version');
 calibrationTool.logFile.creation_date_level1a=ncreadatt(filename,'/','creation_date');
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 
-calibrationTool.flagVectorLength = ncreadatt(filename,'/flags/','number_of_flags');
+%calibrationTool.flagVectorLength = ncreadatt(filename,'/flags/','number_of_flags');
 
 % Coordinate variables, directly adding the attributes
 calibrationTool.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
