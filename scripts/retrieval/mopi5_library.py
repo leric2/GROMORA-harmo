@@ -871,7 +871,7 @@ def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibra
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title='', corr_band=[]):
-    fig = plt.figure(figsize=(9,6))
+    fig = plt.figure(figsize=(8,8))
     ax1 = fig.add_subplot(211)
     ax2 = ax1.inset_axes([0.1, 0.5, 0.2, 0.45])
     ax3 = fig.add_subplot(212)
@@ -892,7 +892,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax1.yaxis.set_major_locator(MultipleLocator(4))
         ax1.set_title(title)
         ax1.grid()
-        ax1.legend(fontsize='xx-small')
+        ax1.legend()
         #ax3.legend()
         ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.2, color=color_spectro[s])
         ax2.set_xlim(-10, 10)
@@ -906,11 +906,12 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
             ax2.yaxis.set_minor_locator(MultipleLocator(1))
             ax2.xaxis.set_minor_locator(MultipleLocator(5))
             ax2.tick_params(axis='both', which='major', labelsize=8)
-        ax2.set_xlabel('[MHz]',fontsize='x-small')
+        ax2.set_xlabel('[MHz]',fontsize='small')
         ax2.grid(which='both')
 
         if s in spectrometers:
             ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s, color=color_spectro[s])
+            ax3.axhline(0,lw=0.6, color='k', ls='--')
         ax3.set_title('$T_b$ differences with: '+use_basis)
         ax3.set_ylim(-1.5,0.5)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
