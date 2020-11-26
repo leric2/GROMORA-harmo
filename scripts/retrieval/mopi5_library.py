@@ -21,6 +21,8 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLoc
 from GROSOM_library import tropospheric_correction
 from utils_GROSOM import save_single_pdf
 
+import matplotlib.dates as mdates
+import datetime
 
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
@@ -426,7 +428,7 @@ def plot_ts_mopi5(calibration, title):
     ax31.set_ylim(-6, 22)
     ax31.tick_params(axis='y', labelcolor='r')
 
-    ax32.set_ylabel('$P_{air}$ [HPa]', color='k')
+    ax32.set_ylabel('$P_{air}$ [hPa]', color='k')
     ax32.set_ylim(920, 970)
 
     ax42.plot(calibration.meteo_data[s].time, calibration.meteo_data[s].relative_humidity,'b-', lw=meteo_lw)
@@ -480,7 +482,6 @@ def plot_ts_mopi5(calibration, title):
     return fig
 
 def plot_ts_mopi5_Feb(calibration, title):
-    import matplotlib.dates as mdates
     fig = plt.figure()
     ax = fig.subplots(nrows=3, ncols=1, sharex=True)
     #ax2 = fig.add_subplot(412, sharex=True)
@@ -491,23 +492,34 @@ def plot_ts_mopi5_Feb(calibration, title):
     #ax2 = fig.add_subplot(3,1,3)
     meteo_lw = 0.5
     marker = ['x','*','.']
+
+    start = datetime.date(2019,1,30)
+    stop = datetime.date(2019,2,23)
+
     for a, spectro in enumerate(calibration.spectrometers):
-        dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
+        #dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
+        dates =calibration.calibrated_data[spectro].time.data
         ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
         #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
         #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
         #ax.legend()
-    ax[0].set_ylim(70,260)
-    ax[0].legend(fontsize='xx-small')
+    ax[0].set_xlim([start,stop])
+    ax[0].set_ylim(60,260)
+
+    ax[0].legend(fontsize='small', loc='upper left', bbox_to_anchor=(0.75, 0.99))
     s = 'AC240'
 
-    ts1 = calibration.meteo_data[s].where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-02'), drop=True)
-   
-    ts2 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-02'), drop=True)
-    ts2 = ts2.where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-11'), drop=True)
-    
-    ts3 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-11'), drop=True)
+    #ts1 = calibration.meteo_data[s].where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-02'), drop=True)
+    ts1 = calibration.meteo_data[s].sel(time=slice('2019-01-30','2019-02-02'),drop=True)
 
+    ts2 = calibration.meteo_data[s].sel(time=slice('2019-02-03','2019-02-10'),drop=True)
+
+    #ts2 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-02'), drop=True)
+    #ts2 = ts2.where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-11'), drop=True)
+    
+    #ts3 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-11'), drop=True)
+    ts3 = calibration.meteo_data[s].sel(time=slice('2019-02-11','2019-02-22'),drop=True)
+    
     ax31.plot(ts1.time, ts1.air_temperature-273.15,'r-', lw=meteo_lw) 
     ax31.plot(ts2.time, ts2.air_temperature-273.15,'r-', lw=meteo_lw) 
     ax31.plot(ts3.time, ts3.air_temperature-273.15,'r-', lw=meteo_lw) 
@@ -519,7 +531,7 @@ def plot_ts_mopi5_Feb(calibration, title):
     ax31.set_ylim(-6, 22)
     ax31.tick_params(axis='y', labelcolor='r')
 
-    ax32.set_ylabel('$P_{air}$ [HPa]', color='k')
+    ax32.set_ylabel('$P_{air}$ [hPa]', color='k')
     ax32.set_ylim(920, 970)
 
     ax42.plot(ts1.time, ts1.relative_humidity,'b-', lw=meteo_lw)
@@ -541,7 +553,7 @@ def plot_ts_mopi5_Feb(calibration, title):
     
     ax[0].set_ylabel('$T_B$ [K]')
 
-    midmonth = mdates.DayLocator(15) 
+    midmonth = mdates.DayLocator(7) 
     days = mdates.DayLocator() 
     hours = mdates.HourLocator() 
     
@@ -557,7 +569,7 @@ def plot_ts_mopi5_Feb(calibration, title):
     # #ax[1].xaxis.set_major_formatter(date_form)
 
     # Ensure a major tick for each week using (interval=1) 
-    ax[1].xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
+    ax[1].xaxis.set_major_locator(mdates.DayLocator(interval=5))
     
     ax[0].yaxis.set_major_locator(MultipleLocator(50))
     ax[0].yaxis.set_minor_locator(MultipleLocator(10))
@@ -655,7 +667,7 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',corr_band=[]):
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 7))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
@@ -672,7 +684,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
         ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("f [GHz]")
+        ax1.set_xlabel("frequency [GHz]")
         ax1.set_ylabel(r"$T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
         ax1.set_title(title)
@@ -714,7 +726,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
         ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("f [GHz]")
+        ax2.set_xlabel("frequency [GHz]")
         ax2.set_xlim(110.25, 111.4)
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
@@ -725,7 +737,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',broadband_bias=[]):
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 7))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
@@ -741,7 +753,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("f [GHz]")
+        ax1.set_xlabel("frequency [GHz]")
         ax1.set_ylabel(r"$T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
         ax1.set_title(title)
@@ -805,7 +817,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
         ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("f [GHz]")
+        ax2.set_xlabel("frequency [GHz]")
         ax2.set_xlim(110.25, 111.4)
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
@@ -871,7 +883,7 @@ def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibra
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title='', corr_band=[]):
-    fig = plt.figure(figsize=(8,8))
+    fig = plt.figure(figsize=(8,7))
     ax1 = fig.add_subplot(211)
     ax2 = ax1.inset_axes([0.1, 0.5, 0.2, 0.45])
     ax3 = fig.add_subplot(212)
@@ -887,7 +899,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("f [GHz]")
+        ax1.set_xlabel("frequency [GHz]")
         ax1.set_ylabel(r"$T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(4))
         ax1.set_title(title)
@@ -905,8 +917,8 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
             ax2.yaxis.set_major_locator(MultipleLocator(2))
             ax2.yaxis.set_minor_locator(MultipleLocator(1))
             ax2.xaxis.set_minor_locator(MultipleLocator(5))
-            ax2.tick_params(axis='both', which='major', labelsize=8)
-        ax2.set_xlabel('[MHz]',fontsize='small')
+            ax2.tick_params(axis='both', which='major', labelsize=10)
+        ax2.set_xlabel('[MHz]',fontsize='medium')
         ax2.grid(which='both')
 
         if s in spectrometers:
@@ -916,7 +928,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax3.set_ylim(-1.5,0.5)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
         ax3.set_ylabel('$\Delta T_B$ [K]')
-        ax3.set_xlabel("f [GHz]")
+        ax3.set_xlabel("frequency [GHz]")
         ax3.set_xlim(110.25, 111.4)
         #ax3.set_ylabel('[%]')
         ax3.grid(which='both')

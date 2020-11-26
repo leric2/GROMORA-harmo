@@ -537,58 +537,56 @@ if plot_bias:
                     '_'+integration_strategy+'.pdf', figures3)
 
 # %%
-    if plot_bias_TOD:
-        monthly_color = ['magenta', 'blue', 'cyan', 'orange', 'red']
-        month_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-        size = 8
-        figures2 = list()
-        end_dates = pd.date_range(start='2019-01-03', end='2019-04-30')
-        fig2 = plt.figure(figsize=(9, 6))
-        ax1 = fig2.add_subplot(1, 3, 1)
-        ax2 = fig2.add_subplot(1, 3, 2)
-        ax3 = fig2.add_subplot(1, 3, 3)
-        count = 0
-        for d in end_dates:
-            try:
-                integration = mc.MOPI5_LvL2(
-                    d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
-                integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
-                    no_flag=True, meta_data=False)
-
-                color = monthly_color[d.month-1]
-                s = 'AC240'
-
-                scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data -
-                                      integrated_data['U5303'].line_amplitude.data, color=color, s=12)
-                # scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
-                ax1.set_ylabel(r'$\Delta T_B$ [K]')
-                # ax1.set_ylim(-2,0)
-                # ax1.set_ylim(-1,0.5)
-                ax1.set_title('line amplitude difference')
-                ax1.set_xlabel('Mean $T_B$ [K]')
-                theoretical_nonlinearities = np.polyfit(
-                    [80, 186, 292], [0, -0.20, 0], deg=2)
-                fitted_poly_theoretical_nonlinearities = np.poly1d(
-                    theoretical_nonlinearities)
-                ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data -
-                            integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
-                ax2.plot(np.arange(70,300,1), fitted_poly_theoretical_nonlinearities(np.arange(70,300,1)), 'k-', linewidth=0.4)
-                ax2.axvline(80,color='b',linewidth=0.6, ls='--')
-                ax2.axvline(292,color='r',linewidth=0.6, ls='--')
-                ax2.set_ylabel(r'$\Delta T_B$ [K]')
-                ax2.set_xlabel('Mean $T_B$ [K]')
-                ax2.set_title(r'$\Delta T_B$ continuum')
-                # ax2.set_ylim(-2,0)
-                # ax2.set_ylim(-1,1)
-                ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv *
-                            1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=12)
-                ax3.set_ylabel(r'$\Delta m$ [K/GHz]')
-                # ax3.set_ylim(-0.8,0.2)
-                ax3.set_title('Slope difference')
-                ax3.set_xlabel('Mean $T_B$ [K]')
-            except:
-                print('no data for :', d)
-                pass
+if plot_bias_TOD:
+    monthly_color = ['magenta', 'blue', 'cyan', 'orange', 'red']
+    month_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    size = 8
+    figures2 = list()
+    end_dates = pd.date_range(start='2019-01-03', end='2019-04-30')
+    fig2 = plt.figure(figsize=(9, 6))
+    ax1 = fig2.add_subplot(1, 3, 1)
+    ax2 = fig2.add_subplot(1, 3, 3)
+    ax3 = fig2.add_subplot(1, 3, 2)
+    count = 0
+    for d in end_dates:
+        try:
+            integration = mc.MOPI5_LvL2(
+                d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
+            integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
+                no_flag=True, meta_data=False)
+            color = monthly_color[d.month-1]
+            s = 'AC240'
+            scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data -
+                                  integrated_data['U5303'].line_amplitude.data, color=color, s=12)
+            # scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
+            ax1.set_ylabel(r'$\Delta T_B$ [K]')
+            # ax1.set_ylim(-2,0)
+            # ax1.set_ylim(-1,0.5)
+            ax1.set_title('line amplitude difference')
+            ax1.set_xlabel('Mean $T_B$ [K]')
+            theoretical_nonlinearities = np.polyfit(
+                [80, 186, 292], [0, -0.20, 0], deg=2)
+            fitted_poly_theoretical_nonlinearities = np.poly1d(
+                theoretical_nonlinearities)
+            ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data -
+                        integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
+            ax2.plot(np.arange(70,300,1), fitted_poly_theoretical_nonlinearities(np.arange(70,300,1)), 'k-', linewidth=0.4)
+            ax2.axvline(80,color='b',linewidth=0.6, ls='--')
+            ax2.axvline(292,color='r',linewidth=0.6, ls='--')
+            ax2.set_ylabel(r'$\Delta T_B$ [K]')
+            ax2.set_xlabel('Mean $T_B$ [K]')
+            ax2.set_title(r'$\Delta T_B$ continuum')
+            # ax2.set_ylim(-2,0)
+            # ax2.set_ylim(-1,1)
+            ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv *
+                        1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=12)
+            ax3.set_ylabel(r'$\Delta m$ [K/GHz]')
+            # ax3.set_ylim(-0.8,0.2)
+            ax3.set_title('Slope difference')
+            ax3.set_xlabel('Mean $T_B$ [K]')
+        except:
+            print('no data for :', d)
+            pass
     legend_elements = [
         Line2D([0], [0], marker='.', color='w', markerfacecolor='magenta',
                label=month_name[0], markersize=size+2),
@@ -599,6 +597,8 @@ if plot_bias:
         Line2D([0], [0], marker='.', color='w', markerfacecolor='orange',
                label=month_name[3], markersize=size+2)
     ]
+    ax2.text(85, -0.23, '$T_{cold}$', fontsize=14, color='b')
+    ax2.text(245, -0.23, '$T_{hot}$', fontsize=14, color='r')
     # legend = ax1.legend(*scatter.legend_elements(prop='colors'), month_name, fontsize='xx-small',loc=1, title='Month')
     # ax1.add_artist(legend)
     # ax2.legend(['U5303','AC240'], fontsize='small')
@@ -727,17 +727,17 @@ if plot_bias:
     figures2.append(fig3)
     save_single_pdf(basename_lvl1+'full_bias_all_' +
                     integration_strategy+'.pdf', figures2)
-    if plot_o3:
-        spectro_lvl2 = integration.spectrometers
-        level2_data = integration.read_level2(
-            spectrometers=spectro_lvl2, extra_base='_all')
-        outName = 'bias_o3_feb'
-        mopi5_library.plot_O3_all_mopi5(level2_data, outName)
-    if  plot_o3_sel:
-        spectro_lvl2 = integration.spectrometers
-        level2_data = integration.read_level2(
-            spectrometers=spectro_lvl2, extra_base='_all')
-        outName = 'bias_o3_feb_all_'
-        mopi5_library.plot_O3_sel_mopi5(level2_data, outName)       
+if plot_o3:
+   spectro_lvl2 = integration.spectrometers
+   level2_data = integration.read_level2(
+       spectrometers=spectro_lvl2, extra_base='_all')
+   outName = 'bias_o3_feb'
+   mopi5_library.plot_O3_all_mopi5(level2_data, outName)
+if  plot_o3_sel:
+   spectro_lvl2 = integration.spectrometers
+   level2_data = integration.read_level2(
+       spectrometers=spectro_lvl2, extra_base='_all')
+   outName = 'bias_o3_feb_all_'
+   mopi5_library.plot_O3_sel_mopi5(level2_data, outName)       
  
 # %%
