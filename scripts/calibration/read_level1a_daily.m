@@ -56,14 +56,6 @@ correctedSpectra.lastSkyTime=ncread(filename,'/spectrometer1/last_sky_time')';
 correctedSpectra.timeMin=ncread(filename,'/spectrometer1/time_min')';
 correctedSpectra.tod = ncread(filename,'/spectrometer1/time_of_day')';
 
-% TO IMPLEMENT, NEEDED ? 
-% function vec = split_vec(v)
-% vec=num2cell(v);
-% vec=a{:};
-% end
-% 
-% split_vec(ncread(filename,'/spectrometer1/THot'))
-
 % % Scientific Dataset (spectrometer1,2,...)
 % Calibration variable
 correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
@@ -124,7 +116,7 @@ meteoData.dateNum = ncread(filename,'/meteo/time')';
 meteoData.dateTime = datetime(meteoData.dateNum + datenum(1970,1,1),'ConvertFrom','datenum');
 meteoData.air_pressure = ncread(filename,'/meteo/air_pressure')';
 meteoData.air_temperature = ncread(filename,'/meteo/air_temperature')';
-meteoData.rel_humidity = ncread(filename,'/meteo/relative_humidity')';
+meteoData.relative_humidity = ncread(filename,'/meteo/relative_humidity')';
 meteoData.precipitation = ncread(filename,'/meteo/precipitation')';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,8 +138,9 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).Tb = correctedSpectra.Tb(i,:);
     calib(i).stdTb = correctedSpectra.stdTb(i,:);
     calib(i).dateTime = correctedSpectra.meanDateTime(i);
-    calib(i).freq = correctedSpectra.freq(:)';
-    calib(i).if = correctedSpectra.if(:)';
+    calib(i).dateTime.TimeZone = calibrationTool.timeZone;
+    calib(i).frequencies = correctedSpectra.freq(:)';
+    calib(i).intermediate_freq = correctedSpectra.if(:)';
     calib(i).year = correctedSpectra.year(i);
     calib(i).month = correctedSpectra.month(i);
     calib(i).day = correctedSpectra.day(i);
@@ -156,17 +149,17 @@ for i = 1:length(correctedSpectra.meanTime)
     calib(i).TSys = correctedSpectra.TSys(i);
     calib(i).TWindow = correctedSpectra.TWindow(i);
     calib(i).meanStdTb = correctedSpectra.meanStdTb(i);
-    calib(i).meanAngleAntenna  =  correctedSpectra.meanAngleAntenna(i);
-    calib(i).numHotSpectra  =  correctedSpectra.numHotSpectra(i);
-    calib(i).numColdSpectra  =  correctedSpectra.numColdSpectra(i);
-    calib(i).numAntSpectra  =  correctedSpectra.numAntSpectra(i);
+    calib(i).mean_sky_elevation_angle  =  correctedSpectra.meanAngleAntenna(i);
+    calib(i).number_of_hot_spectra  =  correctedSpectra.numHotSpectra(i);
+    calib(i).number_of_cold_spectra  =  correctedSpectra.numColdSpectra(i);
+    calib(i).number_of_sky_spectra  =  correctedSpectra.numAntSpectra(i);
     calib(i).stdTSys = correctedSpectra.stdTSys(i);
-    calib(i).calibrationTime = correctedSpectra.calibrationTime(i);
-    calib(i).firstSkyTime = correctedSpectra.firstSkyTime(i);
-    calib(i).lastSkyTime = correctedSpectra.lastSkyTime(i);
-    calib(i).timeMin = correctedSpectra.timeMin(i);
-    calib(i).TOD = correctedSpectra.tod(i);
-    calib(i).noiseLevel = correctedSpectra.noiseLevel(i);
+    calib(i).calibration_time = correctedSpectra.calibrationTime(i);
+    calib(i).first_sky_time = correctedSpectra.firstSkyTime(i);
+    calib(i).last_sky_time = correctedSpectra.lastSkyTime(i);
+    calib(i).time_min = correctedSpectra.timeMin(i);
+    calib(i).time_of_day = correctedSpectra.tod(i);
+    calib(i).noise_level = correctedSpectra.noiseLevel(i);
     calib(i).flags = correctedSpectra.flagVector(i,:);
 end
 

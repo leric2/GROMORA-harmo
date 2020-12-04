@@ -1,4 +1,4 @@
-function log = harmonize_log_somora(calibrationTool, log)
+function logFile = harmonize_log_somora(calibrationTool, logFile)
 %==========================================================================
 % NAME          | 
 % TYPE          |
@@ -38,12 +38,12 @@ function log = harmonize_log_somora(calibrationTool, log)
 %   
 % SOMORA
 % Add variable time
-log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
-log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
+logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone);
 
-log.Tipping_Curve_active=(log.Position==6);
-log.T_Hot_Absorber=log.AI_0*100;
-log.T_Window=log.AI_1*100;
-log.T_Out=log.AI_7*100;
-log.T_Room=log.AI_1*100;
+logFile.Tipping_Curve_active=(logFile.Position==6);
+logFile.T_Hot_Absorber=logFile.AI_0*100;
+logFile.T_Window=logFile.AI_1*100;
+logFile.T_Out=logFile.AI_7*100;
+logFile.T_Room=logFile.AI_1*100;
 end

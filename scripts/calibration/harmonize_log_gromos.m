@@ -39,7 +39,7 @@ function log = harmonize_log_gromos(calibrationTool,log)
 % For GROMOS
 % Add variable time
 log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
-log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
+log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second, 'TimeZone',calibrationTool.timeZone);
 
 if (~(mean(log.Elevation_Angle(log.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26))
     error('angle for the cold load might be wrongly defined') 

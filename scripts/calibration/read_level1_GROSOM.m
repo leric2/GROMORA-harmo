@@ -74,8 +74,8 @@ for g=1:length(gNames)
             varName = vNames{1};
             data(t).(varName) = ncread(filename,fullfile(gName,varName),t,1);
         end
-        dateT = num2cell(datetime([data.time] + datenum(1970,1,1),'ConvertFrom','datenum'));
-        [data.meanDateTime] = dateT{:};
+        dateT = num2cell(datetime([data.time] + datenum(1970,1,1),'ConvertFrom','datenum'),'TimeZone',calibrationTool.timeZone);
+        [data.dateTime] = dateT{:};
         %if strcmp('time',dimName)
         for v=2:length(vNames)
             varName = vNames{v};
@@ -113,13 +113,15 @@ calibrationTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 if sublevel == 1
 calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
 calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
+end
 
 % Coordinate variables, directly adding the attributes
 calibrationTool.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
 calibrationTool.timeCalendar= ncreadatt(filename,'/spectrometer1/time','calendar');
-
+calibrationTool.timeZone = ncreadatt(filename,'/spectrometer1/time','time_zone');
 
 meteoData.dateTime = datetime(meteoData.time + datenum(1970,1,1),'ConvertFrom','datenum');
+meteoData.dateTime.TimeZone = calibrationTool.timeZone;
 
 if ~isfield(data,'noise_level')
      warning('no noise level defined for calibration');

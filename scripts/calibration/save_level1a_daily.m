@@ -57,6 +57,7 @@ nccreate(filename,'/spectrometer1/alt','Dimensions',{'time',Inf},'Datatype','sin
 nccreate(filename,'/spectrometer1/azimuth_angle','Dimensions',{'time',Inf},'Datatype','single','FillValue',-9999);
 
 % time variables
+nccreate(filename,'/spectrometer1/MJD2K','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/year','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/month','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
 nccreate(filename,'/spectrometer1/day','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999);
@@ -129,6 +130,12 @@ ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUn
 ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
 
+if isfield(calibratedSpectra, 'meanDatetimeMJD2K')
+    ncwrite(filename,'/spectrometer1/MJD2K',[calibratedSpectra.meanDatetimeMJD2K]);
+    ncwriteatt(filename,'/spectrometer1/MJD2K','units','MJD2K');
+    ncwriteatt(filename,'/spectrometer1/MJD2K','calendar','Julian');
+    ncwriteatt(filename,'/spectrometer1/MJD2K','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
+end
 ncwrite(filename,'/spectrometer1/channel_idx',1:calibrationTool.numberOfChannels);
 
 %%%%%%%%%%%%%%%%%

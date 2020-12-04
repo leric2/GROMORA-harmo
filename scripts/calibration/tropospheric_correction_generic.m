@@ -25,8 +25,8 @@ Tbg = calibrationTool.backgroundMWTb; % Microwave background
 for t = 1:length(spectra)
     spectra(t).troposphericCorrType = tropCorrType;
     
-    if spectra(t).meanAirTemperature==-9999 | sum(spectra(t).Tb == -9999) == calibrationTool.numberOfChannels
-        spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+    if spectra(t).mean_air_temperature==-9999 | sum(spectra(t).Tb == -9999) == calibrationTool.numberOfChannels
+        spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
         spectra(t).troposphericTransmittance = -9999;
         spectra(t).troposphericOpacity=-9999;
         %spectra(t).meanTroposphericTransmittance  = -9999;
@@ -34,10 +34,10 @@ for t = 1:length(spectra)
     else
         % Mean tropospheric temperature definition
         if strcmp(tropCorrType,'Ingold_v1') | strcmp(tropCorrType,'Ingold_v1_fit')
-            Tmean = spectra(t).meanAirTemperature - deltaT;
+            Tmean = spectra(t).mean_air_temperature - deltaT;
         elseif strcmp(tropCorrType,'Ingold_v2')  
             %Ingold, v2: CHECK UNITS FOR T
-            Tmean  = (-18.772 + 0.7721 * (spectra(t).meanAirTemperature-calibrationTool.zeroDegInKelvin) + 0.1452 * calibratedSpectra(t).meanRelHumidity)+calibrationTool.zeroDegInKelvin;
+            Tmean  = (-18.772 + 0.7721 * (spectra(t).mean_air_temperature-calibrationTool.zeroDegInKelvin) + 0.1452 * calibratedSpectra(t).mean_relative_humidity)+calibrationTool.zeroDegInKelvin;
         else
             error('Please specify a type of tropospheric correction to apply')
         end
@@ -54,7 +54,7 @@ for t = 1:length(spectra)
             Tb=spectra(t).Tb;
         end
         
-        f_temp = spectra(t).freq;
+        f_temp = spectra(t).frequencies;
         %Tb(isnan(spectra(t).channelsQuality))=NaN;
         
         Tb_temp = Tb;
@@ -62,7 +62,7 @@ for t = 1:length(spectra)
         f_temp(isnan(spectra(t).channelsQuality)) = [];
         
         if length(Tb_temp) < 10*calibrationTool.troposphericCorrection.numberOfChannelsTropCorr
-            spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+            spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
             spectra(t).troposphericTransmittance = -9999;
             spectra(t).troposphericOpacity=-9999;
             continue
@@ -129,7 +129,7 @@ for t = 1:length(spectra)
                 spectra(t).troposphericTransmittance = nanmean(transmittanceVector);
                 spectra(t).troposphericOpacity=-log(nanmean(transmittanceVector));
             else
-                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
                 spectra(t).troposphericTransmittance = -9999;
                 spectra(t).troposphericOpacity=-9999;
             end
@@ -144,7 +144,7 @@ for t = 1:length(spectra)
                 spectra(t).troposphericOpacity=-log(transmittance);
                 %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
             else
-                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).if));
+                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
                 spectra(t).troposphericTransmittance = -9999;
                 spectra(t).troposphericOpacity=-9999;
                 %spectra(t).meanTroposphericTransmittance  = -9999;
