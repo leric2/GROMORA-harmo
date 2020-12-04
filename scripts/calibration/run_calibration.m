@@ -8,7 +8,7 @@ function calibrationTool = run_calibration(calibrationTool)
 % ABSTRACT  | The main function executing the calibration for the
 %           | instrument defined in calibrationTool. Some parts and
 %           | functions are dependent on the instrument that we want to
-%           | calibrate. 
+%           | calibrate (also integrated in calibrationTool).
 %           | 
 %           |
 % ARGUMENTS | INPUTS: - calibrationTool: structure containing all
@@ -17,8 +17,8 @@ function calibrationTool = run_calibration(calibrationTool)
 %           | document.
 %           |
 %           |
-%           | OUTPUTS: - Level1a
-%           |
+%           | OUTPUTS: - level1a netCDF file and plots
+%           |          - calibrationTool
 %           |
 % CALLS     | Some depends on instruments, all are stored in calibrationTool:
 %           | %%%%%%%%%%%%%%%%%%%%% Level0 -> Level1a
@@ -37,12 +37,12 @@ function calibrationTool = run_calibration(calibrationTool)
 % Just checking that dateStr is a str...
 assert(ischar(calibrationTool.dateStr),'Please enter the date in the right format')
 
-% Check here that all required fields are filled in calibrationTool !!
-% Check if needed ?
+% Check here that all required fields are filled in calibrationTool ?
 % calibrationTool_complete(calibrationTool)
 
-% Check if both raw file exist (does not check their content yet)
-assert(exist([calibrationTool.file calibrationTool.logFileDataExtension],'file') && exist([calibrationTool.file calibrationTool.binaryDataExtension],'file'),'Files not found')
+% Check if both bin and log file exist (does not check their content yet)
+assert(exist([calibrationTool.file calibrationTool.logFileDataExtension],'file') ...
+    && exist([calibrationTool.file calibrationTool.binaryDataExtension],'file'),'Raw files not found !')
 
 % Start calibration
 disp(['Starting the calibration process for ' calibrationTool.instrumentName ' ' calibrationTool.spectrometer ': ' calibrationTool.dateStr])
@@ -58,10 +58,9 @@ toc
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
-% instrument and might need date information later ?).
+% instrument).
 logFile = calibrationTool.harmonize_log(calibrationTool, logFile);
 
-%% TO CHECK IF RIGHT
 % Reformat the raw spectra from vector to matrix
 if size(rawSpectra,1) == 1
     rawSpectra = calibrationTool.reformat_spectra(rawSpectra,logFile,calibrationTool);
@@ -74,7 +73,7 @@ else
     warningLevel0 = '';
 end
 
-% when needed, flip it !
+% this function should be integrated to reformat_spectra()
 if calibrationTool.flipped_spectra
     rawSpectra = calibrationTool.flip_spectra(rawSpectra);
 end

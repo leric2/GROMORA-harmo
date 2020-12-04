@@ -28,7 +28,7 @@
 %           |
 %==========================================================================
 
-%clear; close all; clc;
+clear; close all; clc;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
 instrumentName='SOMORA';
@@ -36,15 +36,15 @@ instrumentName='SOMORA';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = false;
+calibrate = true;
 integrate = true;
-readLabviewLog = true;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_10_02','yyyy_mm_dd'):datenum('2019_10_02','yyyy_mm_dd');
+dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -85,11 +85,11 @@ else
     labviewLog = struct();
 end
 
-% working directory
-%root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
-root_dir = pwd;
-%cd work_path
-addpath(genpath(root_dir))
+% % working directory
+% %root_dir = '/home/franziska/Documents/MW/GROSOM-harmo/';
+% root_dir = pwd;
+% %cd work_path
+% addpath(genpath(root_dir))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Defining all parameters for the calibration
@@ -104,9 +104,6 @@ for d = 1:numel(dates)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
-    
-    % for gaining time.
-    %calibrationTool.level1aExist=false;
     
     calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
     calibrationTool.calendar='standard';
@@ -131,6 +128,7 @@ for d = 1:numel(dates)
     % On the long term this should be all taken from import_default_calTool
     
     if strcmp(instrumentName,'GROMOS')
+        
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
     
@@ -143,7 +141,11 @@ for d = 1:numel(dates)
     
         % Temperature of the cold load
         calibrationTool.TCold=80;
+        
+        calibrationTool = import_GROMOS_calibrationTool(calibrationTool);
+        
     elseif strcmp(instrumentName, 'SOMORA')
+        
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
     
@@ -155,7 +157,9 @@ for d = 1:numel(dates)
         calibrationTool.filterByFlags = true;
         
         % Temperature of the cold load
-        calibrationTool.TCold=80;        
+        calibrationTool.TCold=80;      
+        
+        calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
 
     elseif strcmp(instrumentName,'mopi5')
         % FOR MOPI:
@@ -164,10 +168,10 @@ for d = 1:numel(dates)
     
         % Total integration time
         calibrationTool.integrationTime=6*60;
-        calibrationTool.minNumberOfAvgSpectra = 12;
+        calibrationTool.minNumberOfAvgSpectra = 6;
         
         calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
-        calibrationTool.filterByFlags = true;
+        calibrationTool.filterByFlags = false;
         
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -177,16 +181,12 @@ for d = 1:numel(dates)
         %modelFFTS=[1 3 4];
         modelFFTS=[1 3 4];
         
+        calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
-        % Everything stored into "import_default_calibrationTool"
+        
+        calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);
     end
-    
-    %TODO
-    % create all filenames at that stage and store them in calibrationTool
-    % Not possible before if we want to include the calibrationTime for
-    % instance.
-    % calibrationTool = create_filenames(calibrationTool);
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Launching the calibration process
@@ -198,7 +198,7 @@ for d = 1:numel(dates)
             try
                 calibrationTool = run_calibration(calibrationTool);
             catch ME
-                warning('Problem with the calibration:');
+                warning(['Problem with the calibration of day : ', calibrationTool.dateStr]);
                 disp(ME.message)
             end
         end
@@ -230,10 +230,6 @@ for d = 1:numel(dates)
                 end
             end 
         end
-        
-        % Integrate the successful calibration into 1 output file... maybe
-        % not yet
-
     end
     %clearvars level1b
 end

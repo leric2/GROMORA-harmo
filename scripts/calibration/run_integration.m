@@ -52,9 +52,9 @@ disp(['Starting the integration process for ' calibrationTool.instrumentName ': 
 % spectra read from the level1a data (level1b.calibratedSpectra and the 
 % integrated spectra that will be added later (level1b.integration) 
 level1b = struct();
-
+tic
 [level1b.calibratedSpectra, meteoData, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
-
+toc 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now because no Payerne dataset
 % calibrationTool.meteoFolder = '/mnt/instrumentdata/meteo/exwi/meteo/';
