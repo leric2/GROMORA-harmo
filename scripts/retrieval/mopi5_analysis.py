@@ -58,18 +58,18 @@ instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2019-01-30', end='2019-02-22')
-meanTb_chunks = [80, 85, 90, 95, 100, 105,
-                 110, 115, 120, 130, 140, 150, 170, 190]
-lowerBound = [0, 80, 85, 90, 95, 100, 105,
-              110, 115, 120, 130, 140, 150, 170, 190]
+# date = pd.date_range(start='2019-01-30', end='2019-02-22')
+# meanTb_chunks = [80, 85, 90, 95, 100, 105,
+#                  110, 115, 120, 130, 140, 150, 170, 190]
+# lowerBound = [0, 80, 85, 90, 95, 100, 105,
+#               110, 115, 120, 130, 140, 150, 170, 190]
 
 # date = pd.date_range(start='2019-05-01', end='2019-05-04')
 # No U5303
 
-# date = pd.date_range(start='2019-04-25', end='2019-04-27')
-# meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
-# lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
+date = pd.date_range(start='2019-04-25', end='2019-04-27')
+meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
+lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
 
 # date = pd.date_range(start='2019-06-11', end='2019-06-15')
 # meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
@@ -87,8 +87,8 @@ date1b = pd.to_datetime(date[-1])
 
 plot_comparison = False
 plot_fancy1 = False
-plot_fancy2 = False
-plot_interp_facny3 = True
+plot_fancy2 = True
+plot_interp_facny3 = False
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
@@ -543,11 +543,12 @@ if plot_bias_TOD:
     size = 8
     figures2 = list()
     end_dates = pd.date_range(start='2019-01-03', end='2019-04-30')
-    fig2 = plt.figure(figsize=(9, 6))
+    fig2 = plt.figure(figsize=(10, 4))
     ax1 = fig2.add_subplot(1, 3, 1)
     ax2 = fig2.add_subplot(1, 3, 3)
     ax3 = fig2.add_subplot(1, 3, 2)
     count = 0
+    fs=12
     for d in end_dates:
         try:
             integration = mc.MOPI5_LvL2(
@@ -559,11 +560,11 @@ if plot_bias_TOD:
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data -
                                   integrated_data['U5303'].line_amplitude.data, color=color, s=12)
             # scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
-            ax1.set_ylabel(r'$\Delta T_B$ [K]')
+            ax1.set_ylabel(r'$\Delta T_B$ [K]', fontsize=fs)
             # ax1.set_ylim(-2,0)
             # ax1.set_ylim(-1,0.5)
-            ax1.set_title('line amplitude difference')
-            ax1.set_xlabel('Mean $T_B$ [K]')
+            ax1.set_title('line amplitude difference', fontsize=fs+2)
+            ax1.set_xlabel('Mean $T_B$ [K]', fontsize=fs)
             theoretical_nonlinearities = np.polyfit(
                 [80, 186, 292], [0, -0.20, 0], deg=2)
             fitted_poly_theoretical_nonlinearities = np.poly1d(
@@ -573,17 +574,17 @@ if plot_bias_TOD:
             ax2.plot(np.arange(70,300,1), fitted_poly_theoretical_nonlinearities(np.arange(70,300,1)), 'k-', linewidth=0.4)
             ax2.axvline(80,color='b',linewidth=0.6, ls='--')
             ax2.axvline(292,color='r',linewidth=0.6, ls='--')
-            ax2.set_ylabel(r'$\Delta T_B$ [K]')
-            ax2.set_xlabel('Mean $T_B$ [K]')
-            ax2.set_title(r'$\Delta T_B$ continuum')
+            ax2.set_ylabel(r'$\Delta T_B$ [K]', fontsize=fs)
+            ax2.set_xlabel('Mean $T_B$ [K]', fontsize=fs)
+            ax2.set_title(r'$\Delta T_B$ continuum', fontsize=fs+2)
             # ax2.set_ylim(-2,0)
             # ax2.set_ylim(-1,1)
             ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv *
                         1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=12)
-            ax3.set_ylabel(r'$\Delta m$ [K/GHz]')
+            ax3.set_ylabel(r'$\Delta m$ [K/GHz]', fontsize=fs)
             # ax3.set_ylim(-0.8,0.2)
-            ax3.set_title('Slope difference')
-            ax3.set_xlabel('Mean $T_B$ [K]')
+            ax3.set_title('Slope difference',fontsize=fs+2)
+            ax3.set_xlabel('Mean $T_B$ [K]',fontsize=fs)
         except:
             print('no data for :', d)
             pass
@@ -608,7 +609,7 @@ if plot_bias_TOD:
     ax2.grid()
     ax3.grid()
     ax1.legend(handles=legend_elements, fontsize=12, loc=2)
-    fig2.suptitle('Difference : '+s+' - U5303')
+    #fig2.suptitle('Difference : '+s+' - U5303')
     # fig.suptitle('Mean hot counts')
     fig2.tight_layout(rect=[0, 0.01, 1, 0.95])
     plt.show()
