@@ -1,6 +1,6 @@
 function calibrationTool = import_SOMORA_calibrationTool(calibrationTool)
 %==========================================================================
-% NAME      | import_SOMORA_calibrationTool(instrumentName,calibrationTool)
+% NAME      | import_SOMORA_calibrationTool(calibrationTool)
 % TYPE      | Function
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 12.2020
@@ -29,6 +29,9 @@ calibrationTool.lon=6.95;
 calibrationTool.lat=46.82;
 calibrationTool.altitude=491;
 calibrationTool.azimuthAngle=34;
+
+calibrationTool.timeZone = 'local';
+calibrationTool.dateTime.TimeZone = calibrationTool.timeZone;
 
 % Observation frequency
 calibrationTool.observationFreq=1.4217504e11;
@@ -81,6 +84,9 @@ calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
 %calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
+
+% calibrationTool.rawFile = [calibrationTool.rawFileFolder, calibrationTool.filename, calibrationTool.binaryDataExtension];
+% calibrationTool.logFile = [calibrationTool.rawFileFolder, calibrationTool.filename, calibrationTool.logFileDataExtension];
 
 % Log
 calibrationTool.delimiter_logfile = '\t';
@@ -229,6 +235,7 @@ calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLeve
 
 % Function reading the daily calibrated spectra from netCDF file
 calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
+%calibrationTool.read_level1a = @(calibrationTool,sublevel) read_level1_GROSOM(calibrationTool,sublevel);
 
 % Check of the channels quality on the calibrated spectra:
 calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
