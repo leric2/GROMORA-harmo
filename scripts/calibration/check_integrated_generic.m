@@ -34,13 +34,13 @@ for i = 1:size(integratedSpectra,2)
     
     
     integratedSpectra(i).numberOfIndices=[
-        integratedSpectra(i).numHotSpectra,...
-        integratedSpectra(i).numColdSpectra,...
-        integratedSpectra(i).numSkySpectra];
+        integratedSpectra(i).number_of_hot_spectra,...
+        integratedSpectra(i).number_of_cold_spectra,...
+        integratedSpectra(i).number_of_sky_spectra];
     
-    integratedSpectra(i).estimatedIntegrationTimeCold = calibrationTool.cycleDurationCold * integratedSpectra(i).numColdSpectra;
-    integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).numHotSpectra;
-    integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).numSkySpectra;
+    integratedSpectra(i).estimatedIntegrationTimeCold = calibrationTool.cycleDurationCold * integratedSpectra(i).number_of_cold_spectra;
+    integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).number_of_hot_spectra;
+    integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).number_of_sky_spectra;
     
     %integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
     integratedSpectra(i).potentialBadChannels = isnan(integratedSpectra(i).channelsQuality);
@@ -104,7 +104,7 @@ for i = 1:size(integratedSpectra,2)
     
     % Rain
     calibrationTool.rainAccumulationThreshold = 0.1*calibrationTool.integrationTime/60;
-    if (integratedSpectra(i).rainAccumulation <= calibrationTool.rainAccumulationThreshold)
+    if (integratedSpectra(i).rain_accumulation <= calibrationTool.rainAccumulationThreshold)
         rain_Accumulation_OK=1;
     else
         rain_Accumulation_OK=0;

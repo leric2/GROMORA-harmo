@@ -25,14 +25,14 @@ function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, 
 for t=1:length(calibratedSpectra)
     %start=datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
     %stop=datenum(datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
-    timeMin = datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
-    stop = timeMin+seconds(calibratedSpectra(t).calibrationTime);
+    timeMin = datetime(calibratedSpectra(t).time_min+datenum(1970,1,1),'ConvertFrom','datenum');
+    stop = timeMin+seconds(calibratedSpectra(t).calibration_time);
     % Selecting the interesting values for each calibration cycle:
     rowInd=([meteoData.dateTime]>=timeMin & [meteoData.dateTime]<=stop);
     
-    calibratedSpectra(t).meanAirTemperature=nanmean(vertcat(meteoData.air_temperature(rowInd)));
-    calibratedSpectra(t).meanRelHumidity=0.01*nanmean(vertcat(meteoData.rel_humidity(rowInd)));
-    calibratedSpectra(t).meanAirPressure=nanmean(vertcat(meteoData.air_pressure(rowInd)));
-    calibratedSpectra(t).rainAccumulation=nansum(vertcat(meteoData.precipitation(rowInd)));
+    calibratedSpectra(t).mean_air_temperature=nanmean(vertcat(meteoData.air_temperature(rowInd)));
+    calibratedSpectra(t).mean_relative_humidity=0.01*nanmean(vertcat(meteoData.relative_humidity(rowInd)));
+    calibratedSpectra(t).mean_air_pressure=nanmean(vertcat(meteoData.air_pressure(rowInd)));
+    calibratedSpectra(t).rain_accumulation=nansum(vertcat(meteoData.precipitation(rowInd)));
 end
 end

@@ -57,7 +57,7 @@ try
     ylabel(ax2(1),({'Tb [K]'}))
     set(ax2,'ylim', [yLow,yUp])
     yyaxis(ax2(1),'right')
-    plot([integratedSpectra.dateTime],[integratedSpectra.meanAirTemperature ],'r-x');
+    plot([integratedSpectra.dateTime],[integratedSpectra.mean_air_temperature ],'r-x');
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax2(1),'YColor','r');
@@ -99,14 +99,14 @@ try
     
     ax4 = subplot(3,2,4);
     yyaxis(ax4(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.rainAccumulation ],'k-x');
+    plot([integratedSpectra.dateTime],[integratedSpectra.rain_accumulation ],'k-x');
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax4(1),'YColor','k');
     ylabel(ax4(1),({'precipitation [mm]'}))
     
     yyaxis(ax4(1),'right')
-    plot([integratedSpectra.dateTime],100*[integratedSpectra.meanRelativeHumidity],'b-x');
+    plot([integratedSpectra.dateTime],100*[integratedSpectra.mean_relative_humidity],'b-x');
     set(ax4(1),'ylim', [0,100])
     set(ax4(1),'YColor','b');
     ylabel(ax4(1),({'RH [%]'}))
@@ -125,7 +125,7 @@ try
 
     subplot(3,2,5); 
     for i=1:N
-        plot(integratedSpectra(i).if,integratedSpectra(i).Tb,'Color',cm(i,:));
+        plot(integratedSpectra(i).intermediate_freq,integratedSpectra(i).Tb,'Color',cm(i,:));
         %title([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
@@ -141,7 +141,7 @@ try
     subplot(3,2,6);
     for i=1:N
        
-        plot(integratedSpectra(i).if,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
+        plot(integratedSpectra(i).intermediate_freq,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
         
         xlabel('IF [MHz]')
         ylabel('T_B [K]')

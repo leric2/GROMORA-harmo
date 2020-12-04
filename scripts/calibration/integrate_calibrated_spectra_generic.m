@@ -24,6 +24,7 @@ function integratedSpectra = integrate_calibrated_spectra_generic(calibrationToo
 dt=hours(calibrationTool.integrationTime/60);
 %timeThresh=0:dt:23;
 timeThresh = datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day):dt:datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1);
+timeThresh.TimeZone = calibrationTool.timeZone;
 
 for h = 1:length(timeThresh)-1
     % Finding the spectra during this time stamp:
@@ -74,12 +75,12 @@ for h = 1:length(timeThresh)-1
         integratedMeanStdTbFromCalMean = mean(integratedStdTb(good_quality_all));
         
         % Summing the number of spectra for hot, cold and antenna:
-        integratedSpectra(h).numHotSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numHotSpectra));
-        integratedSpectra(h).numColdSpectra = sum(vertcat(calibratedSpectra(goodSpectra).numColdSpectra));
-        integratedSpectra(h).numSkySpectra = sum(vertcat(calibratedSpectra(goodSpectra).numAntSpectra));
+        integratedSpectra(h).number_of_hot_spectra = sum(vertcat(calibratedSpectra(goodSpectra).number_of_hot_spectra));
+        integratedSpectra(h).number_of_cold_spectra = sum(vertcat(calibratedSpectra(goodSpectra).number_of_cold_spectra));
+        integratedSpectra(h).number_of_sky_spectra = sum(vertcat(calibratedSpectra(goodSpectra).number_of_sky_spectra));
         
-        meanAngleAT = nanmean([calibratedSpectra(goodSpectra).meanAngleAntenna]);
-        tod = nanmean([calibratedSpectra(goodSpectra).TOD]);
+        meanAngleAT = nanmean([calibratedSpectra(goodSpectra).mean_sky_elevation_angle]);
+        tod = nanmean([calibratedSpectra(goodSpectra).time_of_day]);
         dateTime=nanmean([calibratedSpectra(goodSpectra).dateTime]);
     end
     
@@ -103,47 +104,47 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).TOut = -9999;
     end
 
-    integratedSpectra(h).if=calibratedSpectra(indSpectra(1)).if;
-    integratedSpectra(h).freq=calibratedSpectra(indSpectra(1)).freq;
-    integratedSpectra(h).timeMin=calibratedSpectra(indSpectra(1)).timeMin;
+    integratedSpectra(h).intermediate_freq=calibratedSpectra(indSpectra(1)).intermediate_freq;
+    integratedSpectra(h).frequencies=calibratedSpectra(indSpectra(1)).frequencies;
+    integratedSpectra(h).time_min=calibratedSpectra(indSpectra(1)).time_min;
     
-    integratedSpectra(h).firstSkyTime=calibratedSpectra(indSpectra(1)).firstSkyTime;
-    integratedSpectra(h).lastSkyTime=calibratedSpectra(indSpectra(end)).lastSkyTime;
+    integratedSpectra(h).first_sky_time=calibratedSpectra(indSpectra(1)).first_sky_time;
+    integratedSpectra(h).last_sky_time=calibratedSpectra(indSpectra(end)).last_sky_time;
     
     integratedSpectra(h).year=calibratedSpectra(indSpectra(1)).year;
     integratedSpectra(h).month=calibratedSpectra(indSpectra(1)).month;
     integratedSpectra(h).day=calibratedSpectra(indSpectra(1)).day;
     
-    integratedSpectra(h).calibrationTime=calibratedSpectra(1).calibrationTime;
-    integratedSpectra(h).integrationTime=calibrationTool.integrationTime*60;
+    integratedSpectra(h).calibration_time=calibratedSpectra(1).calibration_time;
+    integratedSpectra(h).integration_time=calibrationTool.integrationTime*60;
     
     % variable that we want to integrate with good spectra if exist
     integratedSpectra(h).Tb=integratedTb;
     integratedSpectra(h).stdTb=integratedStdTb;
     integratedSpectra(h).meanStdTbFromCal=integratedMeanStdTbFromCalMean;
-    integratedSpectra(h).meanAngleAntenna = meanAngleAT;
-    integratedSpectra(h).TOD=tod;
+    integratedSpectra(h).mean_sky_elevation_angle = meanAngleAT;
+    integratedSpectra(h).time_of_day=tod;
     integratedSpectra(h).dateTime=dateTime;
     
     % Meteo Data are integrated on all calibrated spectra
-    integratedSpectra(h).meanAirPressure=nanmean([calibratedSpectra(indSpectra).meanAirPressure]);
-    if isnan(integratedSpectra(h).meanAirPressure)
-        integratedSpectra(h).meanAirPressure=-9999;
+    integratedSpectra(h).mean_air_pressure=nanmean([calibratedSpectra(indSpectra).mean_air_pressure]);
+    if isnan(integratedSpectra(h).mean_air_pressure)
+        integratedSpectra(h).mean_air_pressure=-9999;
     end
     
-    integratedSpectra(h).meanAirTemperature=nanmean([calibratedSpectra(indSpectra).meanAirTemperature]);   
-    if isnan(integratedSpectra(h).meanAirTemperature)
-        integratedSpectra(h).meanAirTemperature=-9999;
+    integratedSpectra(h).mean_air_temperature=nanmean([calibratedSpectra(indSpectra).mean_air_temperature]);   
+    if isnan(integratedSpectra(h).mean_air_temperature)
+        integratedSpectra(h).mean_air_temperature=-9999;
     end
     
-    integratedSpectra(h).meanRelativeHumidity=nanmean([calibratedSpectra(indSpectra).meanRelHumidity]);
-    if isnan(integratedSpectra(h).meanRelativeHumidity)
-        integratedSpectra(h).meanRelativeHumidity=-9999;
+    integratedSpectra(h).mean_relative_humidity=nanmean([calibratedSpectra(indSpectra).mean_relative_humidity]);
+    if isnan(integratedSpectra(h).mean_relative_humidity)
+        integratedSpectra(h).mean_relative_humidity=-9999;
     end
     
-    integratedSpectra(h).rainAccumulation=nansum([calibratedSpectra(indSpectra).rainAccumulation]);
-    if isnan(integratedSpectra(h).rainAccumulation)
-        integratedSpectra(h).rainAccumulation=-9999;
+    integratedSpectra(h).rain_accumulation=nansum([calibratedSpectra(indSpectra).rain_accumulation]);
+    if isnan(integratedSpectra(h).rain_accumulation)
+        integratedSpectra(h).rain_accumulation=-9999;
     end
     
 end
