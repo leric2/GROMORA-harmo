@@ -1,11 +1,11 @@
-function [data, meteoData, calibrationTool] = read_level1b_daily(calibrationTool)
+function [data, meteoData, calibrationTool] = read_level1_GROSOM(calibrationTool, sublevel)
 %==========================================================================
-% NAME          | read_level1a_daily.m
+% NAME          | read_level1b_daily.m
 % TYPE          | function
 % AUTHOR(S)     | Eric Sauvageat
 % CREATION      | 01.2020
 %               |
-% ABSTRACT      | Function to read a level1a previously saved.
+% ABSTRACT      | Function to read a level1b previously saved.
 %               |
 %               |
 %               |
@@ -23,9 +23,13 @@ function [data, meteoData, calibrationTool] = read_level1b_daily(calibrationTool
 %==========================================================================
 
 % filename:
-filename=calibrationTool.filenameLevel1b;
+if sublevel == 1
+    filename=calibrationTool.filenameLevel1a;
+else
+    filename=calibrationTool.filenameLevel1b;
+end
 
-ncinfo(filename)
+%ncinfo(filename)
 gNames = {ncinfo(filename).Groups.Name};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,15 +104,15 @@ end
 calibrationTool.logFile.raw_file_warning=ncreadatt(filename,'/','raw_file_warning');
 calibrationTool.logFile.comment=ncreadatt(filename,'/','comment');
 calibrationTool.logFile.raw_file_comment=ncreadatt(filename,'/','raw_file_comment');
-%calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
-%calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.calibration_version=ncreadatt(filename,'/','calibration_version');
 calibrationTool.logFile.creation_date_level1a=ncreadatt(filename,'/','creation_date');
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 
-%calibrationTool.flagVectorLength = ncreadatt(filename,'/flags/','number_of_flags');
+if sublevel == 1
+calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
+calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
 
 % Coordinate variables, directly adding the attributes
 calibrationTool.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
