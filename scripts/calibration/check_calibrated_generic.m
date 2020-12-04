@@ -230,9 +230,22 @@ for i = 1:size(calibratedSpectra,2)
         
         % "mean time" of the calibration cycle (mean of all antenna measurements)
         calibratedSpectra(i).meanAntTime = nanmean(logFile.dateTime(ia));
+        calibratedSpectra(i).meanAntTimeUTC = nanmean(logFile.dateTime(ia));
+        calibratedSpectra(i).meanAntTimeUTC.TimeZone='Z';
+        
         calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
         
-        calibratedSpectra(i).timeOfDay = 24*(datenum(calibratedSpectra(i).meanAntTime) -datenum(calibratedSpectra(i).year,calibratedSpectra(i).month,calibratedSpectra(i).day));
+        calibratedSpectra(i).meanDatetimeMJD2K = convert_to_MJD2K(...
+            calibratedSpectra(i).meanAntTimeUTC.Year,...
+            calibratedSpectra(i).meanAntTimeUTC.Month,...
+            calibratedSpectra(i).meanAntTimeUTC.Day,...
+            calibratedSpectra(i).meanAntTimeUTC.Hour,...
+            calibratedSpectra(i).meanAntTimeUTC.Minute,...
+            calibratedSpectra(i).meanAntTimeUTC.Second);
+        
+        %calibratedSpectra(i).timeOfDay = 24*(datenum(calibratedSpectra(i).meanAntTime) -datenum(calibratedSpectra(i).year,calibratedSpectra(i).month,calibratedSpectra(i).day));
+        
+        calibratedSpectra(i).timeOfDay = calibratedSpectra(i).meanAntTime.Hour + (calibratedSpectra(i).meanAntTime.Minute*60 + calibratedSpectra(i).meanAntTime.Second)/3600;
         %calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
         %calibratedSpectra(i).calendar='standard';
     
@@ -245,20 +258,17 @@ for i = 1:size(calibratedSpectra,2)
         
         
         calibratedSpectra(i).meanAntTime = calibratedSpectra(i).theoreticalStartTime + 0.5*minutes(calibratedSpectra(i).calibrationTime);
+        calibratedSpectra(i).meanAntTimeUTC = calibratedSpectra(i).theoreticalStartTime + 0.5*minutes(calibratedSpectra(i).calibrationTime);
+        calibratedSpectra(i).meanAntTimeUTC.TimeZone='Z';
         calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
-%         if calibratedSpectra(i).theoreticalStartTime.Month < 10
-%             m = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Month)];
-%         else
-%             m = num2str(calibratedSpectra(i).theoreticalStartTime.Month);
-%         end
-%         
-%         if calibratedSpectra(i).theoreticalStartTime.Day < 10
-%             d = ['0' num2str(calibratedSpectra(i).theoreticalStartTime.Day)];
-%         else
-%             d = num2str(calibratedSpectra(i).theoreticalStartTime.Day);
-%         end
-%         
-%         calibratedSpectra(i).date=[num2str(logFile.Year(1)) '_' m '_' d];
+        
+        calibratedSpectra(i).meanDatetimeMJD2K = convert_to_MJD2K(...
+            calibratedSpectra(i).meanAntTimeUTC.Year,...
+            calibratedSpectra(i).meanAntTimeUTC.Month,...
+            calibratedSpectra(i).meanAntTimeUTC.Day,...
+            calibratedSpectra(i).meanAntTimeUTC.Hour,...
+            calibratedSpectra(i).meanAntTimeUTC.Minute,...
+            calibratedSpectra(i).meanAntTimeUTC.Second);
     end
     
 %     % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
