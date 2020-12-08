@@ -21,7 +21,7 @@ function meteoData = read_meteo_data_unibe(calibrationTool)
 
 %==========================================================================
 try
-    if calibrationTool.dateTime >= datetime(2017,08,10)
+    if calibrationTool.dateTime >= datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone)
         % First reading the Meteo dataset for this day
         dateStringMeteo=[calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)];
         meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
@@ -33,8 +33,9 @@ try
         meteoData(1).precipitation = meteoData(1).rain_accumulation;
         for i = 1:length(meteoData)
             dateN = datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ');
-            meteoData(i).dateNum=dateN-datenum(1970,1,1);
+            meteoData(i).dateNum=dateN-calibrationTool.referenceTime;
             meteoData(i).dateTime=datetime(dateN,'ConvertFrom','datenum');
+            meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
             %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');
             meteoData(i).air_temperature=meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
             meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
@@ -43,7 +44,7 @@ try
                 meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
             end
         end
-    elseif  (calibrationTool.dateTime > datetime(2017,01,01) && calibrationTool.dateTime < datetime(2017,08,10))
+    elseif  (calibrationTool.dateTime > datetime(2017,01,01, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime < datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone))
         disp('status of meteo data unkown between 01.01 and 09.08.2017')
         meteoData = struct();
     else
@@ -81,7 +82,7 @@ try
         for i = 1:height(meteoFile)
             meteoRow = meteoFile(i,:);
             meteoData(i).dateTime=meteoRow.Var1;
-            meteoData(i).dateNum=datenum(meteoData(i).dateTime)-datenum(1970,1,1);
+            meteoData(i).dateNum=datenum(meteoData(i).dateTime)-calibrationTool.referenceTime;
             meteoData(i).air_temperature=meteoRow.Var4 + calibrationTool.zeroDegInKelvin;
             meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
             

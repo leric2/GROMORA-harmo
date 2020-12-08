@@ -22,7 +22,7 @@ function calibratedSpectra = add_meteo_data_unibe(calibrationTool,calibratedSpec
 %==========================================================================
 
 
-if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateStr(6:7)),str2num(calibrationTool.dateStr(9:10))) > datetime(2017,08,10)
+if calibrationTool.dateTime > datetime(2017,08,10, 'TimeZone',calibrationTool.timeZone)
     % First reading the Meteo dataset for this day
     dateStringMeteo=[calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)];
     meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
@@ -32,13 +32,13 @@ if datetime(str2num(calibrationTool.dateStr(1:4)),str2num(calibrationTool.dateSt
     meteoData=table2struct(T);
     
     for i = 1:length(meteoData)
-        meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-datenum(1970,1,1);
+        meteoData(i).dateTime=datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ')-calibrationTool.referenceTime;
     end
     
     %%%%%% Storing values into calibratedSpectra
     for t=1:length(calibratedSpectra)
         %start=datetime(calibratedSpectra(t).time_min+datenum(1970,1,1),'ConvertFrom','datenum');
-        stop=datenum(datetime(calibratedSpectra(t).time_min+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
+        stop=datenum(datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-calibrationTool.referenceTime;
         
         % Selecting the interesting values for each calibration cycle:
         rowInd=([meteoData.dateTime]>=calibratedSpectra(t).time_min & [meteoData.dateTime]<=stop);

@@ -29,19 +29,39 @@ function integratedSpectra = check_integrated_generic(calibrationTool,integrated
 % Checking all calibration cycle
 for i = 1:size(integratedSpectra,2)
     
-    integratedSpectra(i).meanDatetime=datenum(integratedSpectra(i).dateTime)-datenum(1970,1,1);
+    integratedSpectra(i).meanDatetime=datenum(integratedSpectra(i).dateTime)-calibrationTool.referenceTime;
+    integratedSpectra(i).meanDatetimeUTC = integratedSpectra(i).dateTime;
+    integratedSpectra(i).meanDatetimeUTC.TimeZone='Z';
     
-    
+    integratedSpectra(i).MJD2K = convert_to_MJD2K(...
+        integratedSpectra(i).meanDatetimeUTC.Year,...
+        integratedSpectra(i).meanDatetimeUTC.Month,...
+        integratedSpectra(i).meanDatetimeUTC.Day,...
+        integratedSpectra(i).meanDatetimeUTC.Hour,...
+        integratedSpectra(i).meanDatetimeUTC.Minute,...
+        integratedSpectra(i).meanDatetimeUTC.Second);
     
     integratedSpectra(i).numberOfIndices=[
         integratedSpectra(i).number_of_hot_spectra,...
         integratedSpectra(i).number_of_cold_spectra,...
         integratedSpectra(i).number_of_sky_spectra];
     
-    integratedSpectra(i).estimatedIntegrationTimeCold = calibrationTool.cycleDurationCold * integratedSpectra(i).number_of_cold_spectra;
-    integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).number_of_hot_spectra;
-    integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).number_of_sky_spectra;
-    
+    if ~isempty(integratedSpectra(i).number_of_cold_spectra)
+        integratedSpectra(i).estimatedIntegrationTimeCold = calibrationTool.cycleDurationCold * integratedSpectra(i).number_of_cold_spectra;
+    else
+        integratedSpectra(i).estimatedIntegrationTimeCold = 0;
+    end
+    if ~isempty(integratedSpectra(i).number_of_hot_spectra)
+        integratedSpectra(i).estimatedIntegrationTimeHot = calibrationTool.cycleDurationHot * integratedSpectra(i).number_of_hot_spectra;
+    else
+        integratedSpectra(i).estimatedIntegrationTimeHot = 0;
+    end
+    if ~isempty(integratedSpectra(i).number_of_sky_spectra)
+        integratedSpectra(i).estimatedIntegrationTimeSky = calibrationTool.cycleDurationSky * integratedSpectra(i).number_of_sky_spectra;
+    else
+        integratedSpectra(i).estimatedIntegrationTimeSky = 0;
+    end
+
     %integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
     integratedSpectra(i).potentialBadChannels = isnan(integratedSpectra(i).channelsQuality);
     

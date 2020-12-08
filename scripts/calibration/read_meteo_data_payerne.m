@@ -46,7 +46,7 @@ try
     
     datemet=datevec(met(:,1)-1+datenum(str2num(dateStringMeteo(1:4)),01,01));
     
-    dateNum=datenum(datemet)-datenum(1970,1,1);
+    dateNum=datenum(datemet)-calibrationTool.referenceTime;
     dateTime=datetime(datemet);
     
     meteoData=struct();
@@ -54,6 +54,7 @@ try
     for i = 1:length(met)
         meteoData(i).dateNum=dateNum(i);
         meteoData(i).dateTime=dateTime(i);
+        meteoData(i).dateTime.TimeZone =calibrationTool.timeZone;
         meteoData(i).air_temperature=met(i,2) + calibrationTool.zeroDegInKelvin;
         meteoData(i).rel_humidity=met(i,3);
         meteoData(i).air_pressure=met(i,4);

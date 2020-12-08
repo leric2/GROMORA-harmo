@@ -23,9 +23,9 @@ function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, 
 
 %%%%%% Storing values into calibratedSpectra
 for t=1:length(calibratedSpectra)
-    %start=datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum');
-    %stop=datenum(datetime(calibratedSpectra(t).timeMin+datenum(1970,1,1),'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
-    timeMin = datetime(calibratedSpectra(t).time_min+datenum(1970,1,1),'ConvertFrom','datenum');
+    %start=datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum');
+    %stop=datenum(datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
+    timeMin = datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum');
     stop = timeMin+seconds(calibratedSpectra(t).calibration_time);
     % Selecting the interesting values for each calibration cycle:
     rowInd=([meteoData.dateTime]>=timeMin & [meteoData.dateTime]<=stop);
