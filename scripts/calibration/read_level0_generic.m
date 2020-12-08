@@ -119,6 +119,8 @@ if rawFileReading
     if nargout>1
         fid = fopen( [file calibrationTool.binaryDataExtension], 'r', calibrationTool.binaryType);
         rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
+        %rawSpectra = fread(fid,[theoreticalNumberDataEntries, calibrationTool.numberOfChannels],'float32=>float32');
+        %rawSpectra = fread(fid,[calibrationTool.numberOfChannels, theoreticalNumberDataEntries],'float32=>float32');
         fclose(fid);
     end
     

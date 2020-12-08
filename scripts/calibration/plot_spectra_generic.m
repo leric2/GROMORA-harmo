@@ -120,7 +120,8 @@ try
     %subplot(4,2,7); plot([calibratedSpectra.meanAntTime], [calibratedSpectra.flagged]);
     
     for i=1:6; subplot(3,2,i); grid on; end
-    print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-fillpage')
+    %print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-fillpage')
+    print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
     close
     
     if calibrationTool.calibratedSpectraSpectralPlot
@@ -196,8 +197,9 @@ try
         end
         for i=3:4; subplot(2,2,i); grid on, xlabel('IF [MHz]'); end
         
-        print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
- 
+        %print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
+        print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_spectral_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
+
     end
 catch ME
     warning(ME.identifier,'%s',['Plotting calibration problem: ' ME.message])
