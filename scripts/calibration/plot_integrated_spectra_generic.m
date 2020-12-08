@@ -129,7 +129,7 @@ try
         %title([calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)])
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
-        ylim([lowerLim,upperLim])
+        ylim([yLow,yUp])
         
         %TOD{i}=num2str(integratedSpectra(i).TOD);
         hold on
@@ -146,7 +146,7 @@ try
         xlabel('IF [MHz]')
         ylabel('T_B [K]')
 
-        ylim([0,30])
+        ylim([-5,35])
         
         hold on
     end

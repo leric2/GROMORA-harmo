@@ -123,78 +123,82 @@ try
     print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-fillpage')
     close
     
-    fig2 = figure('visible','off');
-    %fig2 = figure();
-    clf
-    set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
-    orient(fig2,'landscape')
-    cm = colormap(parula(N));
-    %subplot(1,2,1);
-    count=1;
-    for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
-            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
+    if calibrationTool.calibratedSpectraSpectralPlot
         
-            %plot(calibratedSpectra(l(i)).Tb)
-            
+        fig2 = figure('visible','off');
+        %fig2 = figure();
+        clf
+        set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
+        orient(fig2,'landscape')
+        cm = colormap(parula(N));
+        subplot(2,2,[1 2]);
+        count=1;
+        for i=1:N
+            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
+                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
+                
+                %plot(calibratedSpectra(l(i)).Tb)
+                
+                
+                %plot(calibratedSpectra(i).meanFromTbDownAll)
+                %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
+                %xlabel('f [GHz]')
+                %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
+                ylabel('T_B [K]')
+                
+                ylim([lowerLim,upperLim])
+                TOD{count}=num2str(calibratedSpectra(l(i)).timeOfDay);
+                count = count + 1;
+                %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
+            end
+            hold on
+        end
         
-        %plot(calibratedSpectra(i).meanFromTbDownAll)
-        %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
-        %xlabel('f [GHz]')
-        %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
-            ylabel('T_B [K]')
+        legend(TOD,'Location','northoutside','NumColumns',4);
+        grid on, xlabel('IF [MHz]');
         
-            ylim([lowerLim,upperLim])
-            TOD{count}=num2str(calibratedSpectra(l(i)).timeOfDay);
-            count = count + 1;
-        %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
+        
+        %legend(TOD)
+        %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
+        %print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
+    %end
+    %if calibrationTool.calibratedSpectraStdTbPlot
+        %fig3 = figure('visible','off');
+        %fig2 = figure();
+        %clf
+        %set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
+        
+        yInfstd = 0;
+        ySupStd = 20;
+        %orient(fig3,'landscape')
+        %cm = colormap(parula(N));
+        subplot(2,2,3);
+        for i=1:N
+            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
+                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+                ylabel('stdTb [K]')
+                ylim([yInfstd,ySupStd])
+            end
+            hold on
         end
-        hold on
-    end
-
-    legend(TOD,'Location','southoutside','NumColumns',4);
-    grid on, xlabel('IF [MHz]');
-    
-    
-    %legend(TOD)
-    %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
-    print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
-    
-    fig3 = figure('visible','off');
-    %fig2 = figure();
-    clf
-    set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
-    
-    yInfstd = 0;
-    ySupStd = 20;
-    orient(fig3,'landscape')
-    cm = colormap(parula(N));
-    subplot(1,2,1);
-    for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
-        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-            ylabel('stdTb [K]')
-            ylim([yInfstd,ySupStd])
+        
+        subplot(2,2,4);
+        for i=1:N
+            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
+                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+                ylabel('TN [K]')
+                ylim([limTNPlot-1000,limTNPlot+1000])
+            end
+            hold on
         end
-        hold on
+        for i=3:4; subplot(2,2,i); grid on, xlabel('IF [MHz]'); end
+        
+        print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
+ 
     end
-    
-    subplot(1,2,2);
-    for i=1:N
-        if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
-        %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-            ylabel('TN [K]')
-            ylim([limTNPlot-1000,limTNPlot+1000])
-        end
-        hold on
-    end
-    for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
-    
-    print(fig3,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
-    
 catch ME
     warning(ME.identifier,'%s',['Plotting calibration problem: ' ME.message])
 end

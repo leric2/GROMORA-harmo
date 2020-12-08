@@ -140,8 +140,8 @@ ncwrite(filename,'/spectrometer1/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
-if isfield(integratedSpectra, 'meanDatetimeMJD2K')
-    ncwrite(filename,'/spectrometer1/MJD2K',[calibratedSpectra.meanDatetimeMJD2K]);
+if isfield(integratedSpectra, 'MJD2K')
+    ncwrite(filename,'/spectrometer1/MJD2K',[integratedSpectra.MJD2K]);
     ncwriteatt(filename,'/spectrometer1/MJD2K','units','MJD2K');
     ncwriteatt(filename,'/spectrometer1/MJD2K','calendar','Julian');
     ncwriteatt(filename,'/spectrometer1/MJD2K','description','mean time of THE BEGINNING of all antenna measurements for this cycle');

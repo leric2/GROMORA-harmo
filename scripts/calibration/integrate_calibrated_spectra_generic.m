@@ -52,12 +52,12 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).numberOfAveragedSpectra = 0;
         % goodSpectra=indSpectra;
         
-        integratedSpectra(h).numHotSpectra = 0;
-        integratedSpectra(h).numColdSpectra = 0;
-        integratedSpectra(h).numSkySpectra = 0;
+        integratedSpectra(h).number_of_hot_spectra = 0;
+        integratedSpectra(h).number_of_cold_spectra = 0;
+        integratedSpectra(h).number_of_sky_spectra = 0;
         
         meanAngleAT = -9999;
-        tod = nanmean([calibratedSpectra(indSpectra).TOD]);
+        tod = nanmean([calibratedSpectra(indSpectra).time_of_day]);
         dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
     else
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);

@@ -120,7 +120,7 @@ calibratedSpectra = calibrationTool.check_calibrated(logFile, ...
 if calibrationTool.calibratedSpectraPlot
     try
         calibrationTool.plot_calibrated_spectra(calibrationTool, drift, ...
-            logFile.meteo, calibratedSpectra, 40, 280, 24);
+            logFile.meteo, calibratedSpectra, 40, 280, 12);
     catch ME
         warning(ME.identifier,'problem with the plotting:');
         disp(ME.message)
