@@ -30,7 +30,7 @@ calibrationTool.lat=46.95;
 calibrationTool.altitude=560;
 calibrationTool.azimuthAngle=45;
 
-calibrationTool.timeZone = 'local';
+calibrationTool.timeZone = 'Z';
 calibrationTool.dateTime.TimeZone = calibrationTool.timeZone;
 
 % Observation frequency
@@ -80,10 +80,10 @@ calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
 calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
 calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -180,8 +180,8 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-calibrationTool.meteoFolder='/mnt/datalake/instrumentdata/meteo/exwi/meteo/';
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
 
 % Read meteo data
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
@@ -235,7 +235,7 @@ calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spec
 calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_generic(rawSpectra,log,calibrationTool,calType);
 
 % Plot some calibrated spectra:
-calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
+calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,N);
 
 % Function for quality check of the calibrated spectra
 calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);

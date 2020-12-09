@@ -1,4 +1,4 @@
-function calibrationTool = import_default_calibrationTool(instrumentName,dateStr)
+function calibrationTool = import_default_calibrationTool(dateStr)
 %==========================================================================
 % NAME          | import_default_calibrationTool(instrumentName)
 % TYPE          | Function
@@ -36,7 +36,6 @@ calibrationTool.dateTime = datetime(dateStr,'InputFormat','yyyy_MM_dd');
 calibrationTool.timeNumber=datenum(dateStr,'yyyy_mm_dd');
 
 % Name of the instrument
-calibrationTool.instrumentName=instrumentName;
 calibrationTool.dateStr=dateStr;
 
 % Physical constant
