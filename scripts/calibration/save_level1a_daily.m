@@ -299,11 +299,11 @@ else
 end
 
 % Geolocation attributes
-ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).timeMin);
-ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).timeMax);
+ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).firstSkyTime);
+ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).lastSkyTime);
 
 ncwriteatt(filename,'/','filename',filename);
-ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
+ncwriteatt(filename,'/','creation_date',datestr(datetime('now','TimeZone','Z'),'yyyymmddTHHMMSSZ'));
 ncwriteatt(filename,'/','raw_filename','')
 ncwriteatt(filename,'/','featureType','timeSeries');
 

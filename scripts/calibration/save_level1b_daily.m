@@ -291,7 +291,7 @@ ncwriteatt(filename,'/','raw_file_warning',calibrationTool.logFile.raw_file_warn
 
 % Global file attributes
 ncwriteatt(filename,'/','filename',filename);
-ncwriteatt(filename,'/','creation_date',datestr(now,'yyyymmddTHHMMSSZ'));   %TODO
+ncwriteatt(filename,'/','creation_date',datestr(datetime('now','TimeZone','Z'),'yyyymmddTHHMMSSZ'));
 ncwriteatt(filename,'/','featureType','timeSeries');
 
 if ~isempty(fieldnames(calibrationTool.labviewLog))
@@ -307,8 +307,8 @@ else
 end
 
 % Geolocation attributes
-%ncwriteatt(filename,'/','data_start_date',datestr(calibratedSpectra(1).dateStart,'yyyymmddTHHMMSSZ'));
-%ncwriteatt(filename,'/','data_stop_date',datestr(calibratedSpectra(end).dateStop,'yyyymmddTHHMMSSZ'));
+ncwriteatt(filename,'/','data_start_date', integratedSpectra(1).first_sky_time);
+ncwriteatt(filename,'/','data_stop_date', integratedSpectra(end).last_sky_time);
 
 %ncwriteatt(filename,'/','data_start_date',integratedSpectra(1).dateStart);
 %ncwriteatt(filename,'/','data_stop_date',integratedSpectra(end).dateStop);
