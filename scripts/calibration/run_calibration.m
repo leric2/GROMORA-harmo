@@ -116,18 +116,21 @@ disp('Calibrating...')
 calibratedSpectra = calibrationTool.check_calibrated(logFile, ...
     calibrationTool, calibratedSpectra);
 
-% Option for plotting and saving drift and calibrated spectra
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plotting and saving level 1a
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if calibrationTool.calibratedSpectraPlot
     try
         calibrationTool.plot_calibrated_spectra(calibrationTool, drift, ...
-            logFile.meteo, calibratedSpectra, 40, 280, 12);
+            logFile.meteo, calibratedSpectra, 24);
     catch ME
         warning(ME.identifier,'problem with the plotting:');
         disp(ME.message)
     end
 end
 
-% Saving calibrated spectra (level1a) into NetCDF-4 file
+% Saving calibrated spectra (level 1a) into NetCDF-4 file
 disp('Saving Level 1a...')
 calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,...
     calibratedSpectra,warningLevel0);
@@ -143,4 +146,6 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 % Clearing some variables for space
 clear rawSpectra; 
 clear calibratedSpectra;
+
+% close all force
 end

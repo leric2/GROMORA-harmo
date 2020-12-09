@@ -1,6 +1,8 @@
-function plot_spectra_generic(calibrationTool, drift, meteoData,calibratedSpectra,lowerLim,upperLim,N)
+function plot_spectra_generic(calibrationTool, drift, meteoData, calibratedSpectra, N)
 % Just for a first look
 % plotting a spectra every N measurements 
+% lowerLim = 60
+% upperLim = 280
 try 
     l=floor(linspace(1,length(calibratedSpectra),N));
     
@@ -149,14 +151,16 @@ try
                 ylabel('T_B [K]')
                 
                 ylim([lowerLim,upperLim])
-                TOD{count}=num2str(calibratedSpectra(l(i)).timeOfDay);
+                TOD{count}=num2str(round(calibratedSpectra(l(i)).timeOfDay,1));
                 count = count + 1;
                 %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
             end
             hold on
         end
         
-        legend(TOD,'Location','northoutside','NumColumns',4);
+        %legend(TOD,'Location','northoutside','NumColumns',4);
+        lgd = legend(TOD,'Location','eastoutside','NumColumns',2);
+        title(lgd,'Time of day [h]');
         grid on, xlabel('IF [MHz]');
         
         
@@ -196,7 +200,7 @@ try
             hold on
         end
         for i=3:4; subplot(2,2,i); grid on, xlabel('IF [MHz]'); end
-        
+
         %print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
         print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_spectral_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
 

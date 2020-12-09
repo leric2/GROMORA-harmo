@@ -128,6 +128,7 @@ if rawFileReading
     if (size(rawSpectra,2)==1)
         rawSpectra=rawSpectra';
     end
+    disp(['Read: ' file])
 else
     rawSpectra = NaN;
 end

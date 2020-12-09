@@ -28,7 +28,7 @@
 %           |
 %==========================================================================
 
-clear; close all; clc;
+clear; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
 instrumentName='SOMORA';
@@ -99,13 +99,15 @@ for d = 1:numel(dates)
     
     % Import default tools for running a calibration or integration for a 
     % given instrument
-    calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
+    calibrationTool=import_default_calibrationTool(dateStr);
     
+    calibrationTool.instrumentName=instrumentName;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
     
-    calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
+    calibrationTool.meanDatetimeUnit='days since 2000-01-01 00:00:00';
+    calibrationTool.referenceTime = datenum(2000,1,1,0,0,0);
     calibrationTool.calendar='standard';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -120,45 +122,55 @@ for d = 1:numel(dates)
     
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;
+    calibrationTool.calibratedSpectraSpectralPlot = true;
+    calibrationTool.calibratedSpectraStdTbPlot = false;
     calibrationTool.integratedSpectraPlot = true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % On the long term this should be all taken from import_default_calTool
+    % For each instruments, we define some key parameters here and we
+    % import the rest of the parameters and function from their specific
+    % import calibrationTool routines. 
     
     if strcmp(instrumentName,'GROMOS')
-        
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
     
         % Total integration time
         calibrationTool.integrationTime=60;
-        calibrationTool.minNumberOfAvgSpectra = 3;
         
+        % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
         calibrationTool.filterByFlags = true;
-    
+        
+        % Minimum number of averaged spectra needed for the level 1b
+        calibrationTool.minNumberOfAvgSpectra = 3;
+
         % Temperature of the cold load
         calibrationTool.TCold=80;
         
+        % Import specific parameter and functions for this instrument
         calibrationTool = import_GROMOS_calibrationTool(calibrationTool);
         
     elseif strcmp(instrumentName, 'SOMORA')
-        
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
     
         % Total integration time
         calibrationTool.integrationTime=60;
-        calibrationTool.minNumberOfAvgSpectra = 3;
-    
+        
+        % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
         calibrationTool.filterByFlags = true;
         
+        % Minimum number of averaged spectra needed for the level 1b
+        calibrationTool.minNumberOfAvgSpectra = 3;
+
         % Temperature of the cold load
-        calibrationTool.TCold=80;      
+        calibrationTool.TCold=80;
         
+        % Import specific parameter and functions for this instrument
         calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
 
     elseif strcmp(instrumentName,'mopi5')
@@ -178,35 +190,35 @@ for d = 1:numel(dates)
         
         % the number of the spectrometer models we are interested in
         % see order in calibrationTool.spectrometerTypes
-        %modelFFTS=[1 3 4];
         modelFFTS=[1 3 4];
         
         calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
-        
         calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Launching the calibration process
+% Launching the calibration and integration processes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For now, we keep it dirty for separating between GROSOM and MOPI
+% For now, we keep the number of spectrometer as condition for separating 
+% between GROSOM and mopi5.
     if calibrationTool.numberOfSpectrometer==1
-            % if commented, nothing happens --> developping purposes
+        % Performing calibration
         if calibrate
             try
                 calibrationTool = run_calibration(calibrationTool);
             catch ME
-                warning(['Problem with the calibration of day : ', calibrationTool.dateStr]);
+                warning(['Problem with the calibration of day: ', calibrationTool.dateStr]);
                 disp(ME.message)
             end
         end
+        % Performing integration
         if integrate
             try
                 [calibrationTool, level1b] = run_integration(calibrationTool);
             catch ME
-                warning('Problem with the integration:');
+                warning(['Problem with the integration of day: ', calibrationTool.dateStr]);
                 disp(ME.message)
             end
         end
@@ -231,6 +243,7 @@ for d = 1:numel(dates)
             end 
         end
     end
-    %clearvars level1b
+    %clearvars level1b; 
+    clear functions
 end
 
