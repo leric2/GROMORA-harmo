@@ -7,8 +7,19 @@ but also the functions that will be used to performed the calibration.
 All parameters must contain: type, units, where it is defined
 
 ## Parameters
-* dateStr
-* Year
+
+
+| # | name | type | unit | Description |
+|---|------|------|------|:-----------:|
+| 1 | dateStr | str | unit | 'YYYY_MM_HH' |
+| 2 | Year | str | double | YYYY |
+| 3 | calibratedSpectraSpectralPlot | boolean | double | YYYY |
+
+This is a table listing all the parameter stored into calibrationTool.
+
+### Variable list
+* dateStr (str):        'YYYY_MM_HH'
+* Year (double):         YYYY
 * Month
 * Day
 * dateTime
