@@ -1,26 +1,36 @@
 function warningLevel0 = check_level0_generic(logFile,rawSpectra,calibrationTool)
 %==========================================================================
-% NAME          | check_level0_generic 
-% TYPE          |
-% AUTHOR(S)     |
-% CREATION      |
+% NAME          | check_level0_generic.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
 %               |
-% ABSTRACT      | 
-%               | 
+% ABSTRACT      | Function to perfom some little checks on level0. This is
+%               | also here that we extract and save some extra timestamps
+%               | that do not belong to this day.
 %               |
+% ARGUMENTS     | INPUTS:   1. logFile
+%               |           2. rawSpectra
+%               |           3. calibrationTool:
+%               |               - numberOfChannels
+%               |               - bytesPerValue
+%               |               - tippingSize
+%               |               - numberOfTippingCurveExpected
+%               |               - toleranceTippingCurves
+%               |               - numberOfCyclesExpected
+%               |               - toleranceNumberCycles
+%               |               - dateStr
+%               |               - extraFileFolder
+%               |               - filename
+%               |               - binaryDataExtension
+%               |               - delimiter_logfile
+%               |               - logFileDataExtension
 %               |
-% ARGUMENTS     | INPUTS:
+%               | OUTPUTS: 1. warningLevel0: a str containing some insight
+%               |               on the raw files warnings
 %               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
 %==========================================================================
-% Initialize structure containing the error that are non fatal for the
-% retrieval
+% Initialize string containing the error on level 0 files
 warningLevel0='';
 
 % Compare size of the log and raw spectra for this day

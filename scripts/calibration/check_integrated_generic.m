@@ -5,28 +5,29 @@ function integratedSpectra = check_integrated_generic(calibrationTool,integrated
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 2020
 %           |
-% ABSTRACT  | Function performing some checks on the calibration and
+% ABSTRACT  | Function performing some checks on the integration and
 %           | adding meta information to the integratedSpectra structure.
-%           | It builts also the flags vector for the level1a data for each
-%           | calibration cycle and add every new information to the
-%           | calibrated spectra structure (IN/OUT).
+%           | It builts also the flags vector for the level1b data for each
+%           | integration cycle and add every new information to the
+%           | integrated spectra structure (IN/OUT).
 %           | 
 %           |
-% ARGUMENTS | INPUTS:   - standardLog: harmonized GROSOM log file 
-%           |           - calibrationTool
-%           |           - integratedSpectra
+% ARGUMENTS | INPUTS:   1. integratedSpectra: standard structure containing
+%           |             the integrated data.
+%           |           2. calibrationTool:
+%           |               - referenceTime
+%           |               - integrationTime
+%           |               - cycleDurationCold
+%           |               - cycleDurationHot
+%           |               - cycleDurationSky
+%           |               - troposphericCorrection
+%           |               - minNumberOfAvgSpectra
+%           |               - rainAccumulationThreshold
 %           |
-%           |
-%           | OUTPUTS: - integratedSpectra
-%           |
-%           |
-% CALLS     | 
-%           | 
-%           | 
-%           | 
+%           | OUTPUTS:  1. integratedSpectra
 %           |
 %==========================================================================
-% Checking all calibration cycle
+% Checking all integration cycles
 for i = 1:size(integratedSpectra,2)
     
     integratedSpectra(i).meanDatetime=datenum(integratedSpectra(i).dateTime)-calibrationTool.referenceTime;

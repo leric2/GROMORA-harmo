@@ -10,14 +10,29 @@ function [log,rawSpectra] = read_level0_generic(calibrationTool, rawFileReading)
 %               | 
 %               |
 %               |
-% ARGUMENTS     | INPUTS: Filename without extension
+% ARGUMENTS     | INPUTS: 1. calibrationTool:
+%               |           - file
+%               |           - logFileDataExtension
+%               |           - delimiter_logfile
+%               |           - positionIndAsName
+%               |           - binaryDataExtension
+%               |           - numberOfChannels
+%               |           - binaryType
+
+%               |           Optional in calibrationTool:
+%               |           - nameColdIndice, indiceCold
+%               |           - nameHotIndice, indiceHot
+%               |           - nameAntennaIndice, indiceAntenna
+%               |           - otherName
+%               |  
+%               |         2. rawFileReading: an option to avoid reading the
+%               |            raw file
 %               |
-%               | OUTPUTS:  1. Housekeeping structure with field names for each parameter
+%               | OUTPUTS:  1. log: Housekeeping structure with field names 
+%               |             for each parameter |           
 %               |           2. [length(file)*#channels] line vector of binary file
-%               |             
-% CALLED by     | run_retrieval(retrievalTool);
 %               |
-% CALLS         | readtext([file '.txt'], retrievalTool.delimiter_logfile, '', '"');
+% CALLS         | importdata();
 %               |
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DATA FORMAT:
@@ -30,7 +45,7 @@ function [log,rawSpectra] = read_level0_generic(calibrationTool, rawFileReading)
 % -  Adapted for files separated with given delimiter e.g. ';' (F. Schranz 2020-06-08)
 %
 % file.bin
-% 32bit floatinig point data 
+% 32bit floating point data 
 %==========================================================================
 
 file=calibrationTool.file;

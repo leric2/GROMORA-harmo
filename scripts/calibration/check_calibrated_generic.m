@@ -12,18 +12,33 @@ function calibratedSpectra = check_calibrated_generic(logFile,calibrationTool,ca
 %           | calibrated spectra structure (IN/OUT).
 %           | 
 %           |
-% ARGUMENTS | INPUTS:   - standardLog: harmonized GROSOM log file 
-%           |           - calibrationTool
-%           |           - calibratedSpectra
-%           |
-%           |
-%           | OUTPUTS: - calibratedSpectra
-%           |
-%           |
-% CALLS     | 
+% ARGUMENTS | INPUTS:   1. logFile: harmonized log file 
+%           |           2. calibratedSpectra
+%           |           3. calibrationTool:
+%           |               - minNumberOfIndicePerCycle
+%           |               - IQProcessing
+%           |               - samplingRateFFTS
+%           |               - numberOfChannels
+%           |               - observationFreq
+%           |               - LOFreqTot
+%           |               - frequencyBandAroundCenterTSys
+%           |               - TCold
+%           |               - TSysCenterTh
+%           |               - TSysThresh
+%           |               - stdTSys
+%           |               - stdTSysThresh
+%           |               - maxStdDevTbCal
+%           |               - maxProportionOfIndLN2SensorOutlier
+%           |               - maxProportionOfIndLN2LevelOutlier
+%           |               - hotTemperatureStdThreshold
+%           |               - maxProportionOfIndFFTadcOverload
+%           |               - numberOfAquisitionSpectraAntenna
+%           |               - numberOfAquisitionSpectraHot
+%           |               - numberOfAquisitionSpectraCold
+%           |               - stdAntAngleThresh
+%           |               - referenceTime
 %           | 
-%           | 
-%           | 
+%           | OUTPUTS:  1. calibratedSpectra
 %           |
 %==========================================================================
 % Checking all calibration cycle
@@ -42,7 +57,6 @@ for i = 1:size(calibratedSpectra,2)
         sufficientNumberOfIndices=1;
     else
         sufficientNumberOfIndices=0;
-        %warning('Low number of spectra for this cycle');
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,13 +82,6 @@ for i = 1:size(calibratedSpectra,2)
     
         calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
     end
-    %bw=retrievalTool.instrumentBandwidth;
-    %nChannel=retrievalTool.numberOfChannels;
-    %df=bw/(nChannel+1); % TOCHECK
-    % lc=log.Spectr_line_center(1);
-    %calibratedSpectra(i).freq=horzcat(sort(calibratedSpectra(i).LOFreqTot-df*(0:retrievalTool.DCChannel-1)),calibratedSpectra(i).LOFreqTot+df*(1:nChannel-retrievalTool.DCChannel));
-    %calibratedSpectra(i).if=calibratedSpectra(i).freq-calibratedSpectra(i).freq(1);
-    %calibratedSpectra(i).freq=(calibratedSpectra(i).f0-(lc*df)):df:calibratedSpectra(i).f0+((nChannel-(lc+1))*df);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
@@ -203,8 +210,6 @@ for i = 1:size(calibratedSpectra,2)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Time variable for this cycle
-    % Correspond to the first sky measurements taken into account for the
-    % mean calibrated spectra.
     
     % As we are always using daily raw files:
     calibratedSpectra(i).year=calibratedSpectra(i).theoreticalStartTime.Year;

@@ -1,31 +1,45 @@
 function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibratedSpectra,warningLevel0)
 %==========================================================================
-% NAME          | save_level1a_daily.m
-% TYPE          | function
-% AUTHOR(S)     | Eric Sauvageat
-% CREATION      | 01.2020
-%               |
-% ABSTRACT      | Function saving the calibrated spectra for a complete day
-%               | in the form of netCDF4 file. The file contains one entry
-%               | per calibration cylce (typically 10 minutes) on a time 
-%               | coordinate as well as all necessery metadata to identify
-%               | and re-use the data.
-%               |
-%               |
-% ARGUMENTS     | INPUTS: - calibrationTool
-%               |         - logFile
-%               |         - calibratedSpectra
-%               |         - warningLevel0
-%               |         
-%               | OUTPUTS: - saving netCDF4 level1a file
-%               |          - calibrationTool with add field
-%               |
-% SAVE          | Level1a netCDF4 containing the following groups:
-%               |   - '/' for global attributes
-%               |   - '/spectrometer1/' for integration
-%               |   - '/flags/' for
+% NAME      | save_level1a_daily.m
+% TYPE      | function
+% AUTHOR(S) | Eric Sauvageat
+% CREATION  | 01.2020
+%           |
+% ABSTRACT  | Function saving the calibrated spectra for a complete day
+%           | in the form of netCDF4 file. The file contains one entry
+%           | per calibration cylce (typically 10 minutes) on a time 
+%           | coordinate as well as all necessery metadata to identify
+%           | and re-use the data.
+%           |
+%           |
+% ARGUMENTS | INPUTS: 1. calibrationTool:
+%           |           - calType
+%           |           - level1Folder
+%           |           - instrumentName
+%           |           - spectrometer
+%           |           - dateStr
+%           |           - numberOfChannels
+%           |           - meanDatetimeUnit
+%           |           - calendar
+%           |           - lat, lon, altitude, azimuthAngle
+%           |           - dataLocation, dataSource
+%           |           - PI_NAME, PI_AFFILIATION, PI_ADDRESS, PI_EMAIL
+%           |           - numberOfSpectrometer
+%           |           - labviewLog (optional)
+%           |         2. logFile
+%           |         3. calibratedSpectra
+%           |         4. warningLevel0
+%           |         
+%           | OUTPUTS: 1. calibrationTool with added field
+%           |             "filenameLevel1a"
+%           |
+% SAVE      | Level1a netCDF4 containing the following groups:
+%           |   - '/' for global attributes
+%           |   - '/spectrometer1/' for spectrometer dataset
+%           |   - '/flags/'
+%           |   - '/meteo/'
+%           |  
 %==========================================================================
-
 % Filename and location for DAILY netCDF file
 if calibrationTool.calType=="debug"
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];

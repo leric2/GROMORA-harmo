@@ -1,6 +1,32 @@
-function plot_spectra_mopi(calibrationTool, drift, meteoData,calibratedSpectra, lowerLim, upperLim,N)
-% Just for a first look
-% plotting a spectra every N measurements 
+function plot_spectra_mopi(calibrationTool, drift, meteoData,calibratedSpectra,N)
+%==========================================================================
+% NAME          | plot_spectra_mopi.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 12.2020
+%               |
+% ABSTRACT      | Complete plotting of level1a data for MOPI5.
+%               | 
+%               | 
+% ARGUMENTS     | INPUTS:   1. calibrationTool:
+%               |               - dateTime
+%               |               - TSysCenterTh
+%               |               - level1Folder
+%               |               - instrumentName
+%               |               - spectrometer
+%               |               - dateStr
+%               |               - calibratedSpectraSpectralPlot
+%               |           2. drift
+%               |           3. meteoData
+%               |           4. calibratedSpectra
+%               |           5. N: number of calibrated spectra to plot
+%               |               (spectral)
+%               |
+%               | OUTPUTS: -
+%               |
+% SAVE          |  
+%               |
+%==========================================================================
 l=floor(linspace(1,length(calibratedSpectra),N));
 
 %TOD={};

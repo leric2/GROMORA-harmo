@@ -5,19 +5,35 @@ function spectra = tropospheric_correction_generic(spectra,calibrationTool)
 % AUTHOR(S)     | Susana Fernandez (adapted to GROSOM by ES)
 % CREATION      | 09.2014, adapted 2020
 %               |
-% ABSTRACT      |
-%               | 
+% ABSTRACT      | Function doing tipping curve correction for GROSOM. It
+%               | can be on a calibrated or integrated spectra and include
+%               | different type of tropospheric correction.
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | INPUTS:  1. spectra: standard spectra structure to
+%               |            correct (calibrated or Integrated)
+%               |          2. calibrationTool:
+%               |            - troposphericCorrection: sub-structure
+%               |            containing all needed parameters for a given
+%               |            correction.
+%               |            - backgroundMWTb
+%               |            - deltaTCorr
+%               |            - numberOfChannels
+%               |            - zeroDegInKelvin
+%               |            - referenceTime
+%               |            - referenceTime
 %               |
-%               | OUTPUTS:
+%               | OUTPUTS: 1. spectra with the following added fields:
+%               |            - TbTroposphericWindowCorr
+%               |            - troposphericTransmittance
+%               |            - troposphericOpacity
+%               |       
+% COMMENTS      | The tropospheric corrected spectral Tb is done after the
+%               | window correction and we therefore name it
+%               | "TbTroposphericWindowCorr"
 %               |
-% CALLS         |
-%               |
-%               |
-%               | 
 %==========================================================================
+
 tropCorrType = calibrationTool.troposphericCorrection.type;
 
 Tbg = calibrationTool.backgroundMWTb; % Microwave background

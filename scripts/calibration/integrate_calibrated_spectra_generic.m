@@ -1,24 +1,32 @@
 function integratedSpectra = integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra)
 %==========================================================================
 % NAME          | integrate_calibrated_spectra_generic.m
-% TYPE          | Function
+% TYPE          | function
 % AUTHOR(S)     | Eric Sauvageat
 % CREATION      | 03.2020
 %               |
 % ABSTRACT      | Function for integrating calibrated spectra from an
-%               | instrument
-%               | 
+%               | instrument. It takes the standard calibratedSpectra
+%               | structure and performs the integration on the defined 
+%               | integrationTime. Note that for some variables (e.g. for 
+%               | precipitation), this is more than a simple averaging. 
+%               | The results is saved into integratedSpectra, a similar
+%               | structure to calibratedSpectra but on a timescale 
+%               | corresponding to the integration times. 
 %               |
+% ARGUMENTS     | INPUTS:  1. calibrationTool:
+%               |           - integrationTime
+%               |           - Year, Month, Day
+%               |           - timeZone
+%               |           - integrationTime
+%               |           - filterByTransmittance
+%               |           - filterByFlags
+%               |           - flagVectorLength
+%               |           - numberOfChannels
+%               |          2. calibratedSpectra
 %               |
-% ARGUMENTS     | INPUTS: 
+%               | OUTPUTS: 1. integratedSpectra
 %               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
 %==========================================================================
 % Threshold for the integration, calibTime has to be in [min]
 dt=hours(calibrationTool.integrationTime/60);
@@ -146,7 +154,5 @@ for h = 1:length(timeThresh)-1
     if isnan(integratedSpectra(h).rain_accumulation)
         integratedSpectra(h).rain_accumulation=-9999;
     end
-    
 end
-level1b.integration=integratedSpectra;
 end

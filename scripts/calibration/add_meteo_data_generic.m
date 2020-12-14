@@ -2,31 +2,34 @@ function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, 
 %==========================================================================
 % NAME          | add_meteo_data_generic
 % TYPE          | function
-% AUTHOR(S)     | Susana Fernandez (adapted to GROSOM by ES)
-% CREATION      | 09.2014 // modified 01.2020
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
 %               |
 % ABSTRACT      | Function to add the meteo value to the calibrated spectra
-%               | 
-%               | 
+%               | structure. It does a simple averaged on the values from
+%               | meteoData depeding on the calibrationTime defined.
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | INPUTS:  1. calibrationTool:
+%               |            - referenceTime
+%               |          2. meteoData: standard structure containing the
+%               |            meteo data.
+%               |          3. calibratedSpectra
 %               |
-%               | OUTPUTS:
+%               | OUTPUTS: 1. calibratedSpectra with meteoData
 %               |
-% CALLS         |
+% COMMENTS      | Called only from run_integration() before performing the 
+%               | integration because meteoData are saved in full in
+%               | level1a
 %               |
-%               |
-%               |
-
 %==========================================================================
-
 %%%%%% Storing values into calibratedSpectra
 for t=1:length(calibratedSpectra)
     %start=datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum');
     %stop=datenum(datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
     timeMin = datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum');
     stop = timeMin+seconds(calibratedSpectra(t).calibration_time);
+    
     % Selecting the interesting values for each calibration cycle:
     rowInd=([meteoData.dateTime]>=timeMin & [meteoData.dateTime]<=stop);
     

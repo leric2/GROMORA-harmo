@@ -1,6 +1,6 @@
 function meteoData = read_meteo_data_unibe(calibrationTool)
 %==========================================================================
-% NAME          | get_meteo_data_unibe
+% NAME          | read_meteo_data_unibe.m
 % TYPE          | function
 % AUTHOR(S)     | Susana Fernandez (adapted to GROSOM by ES)
 % CREATION      | 09.2014 // modified 01.2020
@@ -8,17 +8,26 @@ function meteoData = read_meteo_data_unibe(calibrationTool)
 % ABSTRACT      | Function to read temperature and humidity values measured
 %               | by the sensors on the top of ExWi building at Unibe
 %               |
+% ARGUMENTS     | INPUTS: 1. calibrationTool:
+%               |           - dateTime
+%               |           - timeZone
+%               |           - dateStr
+%               |           - meteoFolder
+%               |           - referenceTime
+%               |           - timeZone
 %               |
-%               |
-% ARGUMENTS     | INPUTS:
-%               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
+%               | OUTPUTS: 1. meteoData: structure containing the meteo
+%               |            data read from exwi meteo station with the
+%               |            folowing fields:
+%               |           - dateNum
+%               |           - dateTime
+%               |           - air_temperature
+%               |           - rel_humidity
+%               |           - air_pressure
+%               |           - precipitation
+%               |           - tod
+%               | 
+% COMMENTS      | Time variations for this functions: TODO
 %==========================================================================
 try
     if calibrationTool.dateTime >= datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone)

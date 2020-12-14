@@ -5,34 +5,38 @@ function calibrationTool = run_calibration(calibrationTool)
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 01.2020
 %           |
-% ABSTRACT  | The main function executing the calibration for the
-%           | instrument defined in calibrationTool. Some parts and
+% ABSTRACT  | The main function executing the calibration Level0 -> Level1a 
+%           | for the instrument defined in calibrationTool. Some parts and
 %           | functions are dependent on the instrument that we want to
 %           | calibrate (also integrated in calibrationTool).
 %           | 
 %           |
-% ARGUMENTS | INPUTS: - calibrationTool: structure containing all
+% ARGUMENTS | INPUTS:  calibrationTool: structure containing all
 %           | information about the calibration we want to perform.
 %           | Documentation about this structure can be found in external
 %           | document.
 %           |
+%           | OUTPUTS: calibrationTool with some additional fields.
+%           |          
 %           |
-%           | OUTPUTS: - level1a netCDF file and plots
-%           |          - calibrationTool
+% SAVE      | level1a netCDF file and plots
 %           |
 % CALLS     | Some depends on instruments, all are stored in calibrationTool:
-%           | %%%%%%%%%%%%%%%%%%%%% Level0 -> Level1a
-%           | read_level0(calibrationTool)
-%           | harmonize_log(logFile)
-%           | check_level0
-%           | reformat_spectra
-%           | flip_spectra
-%           | plot_raw_spectra
-%           | calibrate
-%           | check_calibrated
-%           | plot_calibrated_spectra
-%           | save_level1a
+%           | - read_level0
+%           | - harmonize_log
+%           | - check_level0
+%           | - reformat_spectra
+%           | - flip_spectra
+%           | - plot_raw_spectra
+%           | - read_meteo_data
+%           | - run_tipping_curve
+%           | - calibrate
+%           | - check_calibrated
+%           | - plot_calibrated_spectra
+%           | - save_level1a
 %           |
+% COMMENTS  | External documentation can be found for this function on the
+%           | git server of IAP.
 %==========================================================================
 % Just checking that dateStr is a str...
 assert(ischar(calibrationTool.dateStr),'Please enter the date in the right format')

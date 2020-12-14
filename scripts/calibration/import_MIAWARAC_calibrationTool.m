@@ -1,13 +1,18 @@
 function calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool)
 %==========================================================================
-% NAME      | import_MIAWARAC_calibrationTool(calibrationTool)
+% NAME      | import_MIAWARAC_calibrationTool.m
 % TYPE      | Function
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 12.2020
 %           |
-% ARGUMENTS | INPUTS: - calibrationTool: the default toolbox
+% ABSTRACT  | Complete the calibrationTool structure for MIAWARAC
 %           |
-%           | OUTPUTS: - calibrationTool: the default toolbox for MIAWARA-C
+% ARGUMENTS | INPUTS: 	1. calibrationTool: the default toolbox
+%           |
+%           | OUTPUTS: 	2. calibrationTool: the default toolbox completer for MIAWARAC
+%           |
+% COMMENTS  | External documentation for this structure is available on the
+%           | git server of IAP
 %           |
 %==========================================================================
 

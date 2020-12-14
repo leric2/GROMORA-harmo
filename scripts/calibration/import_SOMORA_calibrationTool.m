@@ -1,14 +1,19 @@
 function calibrationTool = import_SOMORA_calibrationTool(calibrationTool)
 %==========================================================================
-% NAME      | import_SOMORA_calibrationTool(calibrationTool)
+% NAME      | import_SOMORA_calibrationTool.m
 % TYPE      | Function
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 12.2020
 %           |
-% ARGUMENTS | INPUTS: - calibrationTool: the default toolbox
+% ABSTRACT  | Complete the calibrationTool structure for SOMORA
 %           |
-%           | OUTPUTS: - calibrationTool: the default toolbox for SOMORA
-%           | 
+% ARGUMENTS | INPUTS: 	1. calibrationTool: the default toolbox
+%           |
+%           | OUTPUTS: 	2. calibrationTool: the default toolbox completer for SOMORA
+%           |
+% COMMENTS  | External documentation for this structure is available on the
+%           | git server of IAP
+%           |
 %==========================================================================
 
 % Check that instrument name corresponds to this function
@@ -75,14 +80,14 @@ calibrationTool.logFileDataExtension = '.txt';
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
-%calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
-calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
+%calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
-calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
 calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-%calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -176,7 +181,7 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
 calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
 
 % Function specific to this instrument
 % meteo Data
@@ -243,7 +248,7 @@ calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibration
 %calibrationTool.read_level1a = @(calibrationTool,sublevel) read_level1_GROSOM(calibrationTool,sublevel);
 
 % Check of the channels quality on the calibrated spectra:
-calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
+calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) check_channel_quality_generic(calibratedSpectra,calibrationTool,filterN);
 
 % Integration of level1a data
 calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);

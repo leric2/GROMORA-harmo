@@ -1,23 +1,20 @@
 function plot_raw_spectra_generic(Spectra,lowerLim,upperLim,N)
 %==========================================================================
-% NAME          | 
-% TYPE          |
-% AUTHOR(S)     |
-% CREATION      |
+% NAME          | plot_raw_spectra_generic.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | Very quick plotting for raw data for the GROSOM project.
 %               | 
+%               | 
+% ARGUMENTS     | INPUTS:   1. Spectra: raw spectra to plot
+%               |           2. lowerLim
+%               |           3. upperLim
+%               |           4. N: number of raw spectra to plot
 %               |
+%               | OUTPUTS: -
 %               |
-% ARGUMENTS     | INPUTS:
-%               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
 %==========================================================================
 try
     % plotting a spectra every N measurements

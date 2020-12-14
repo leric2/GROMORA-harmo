@@ -1,13 +1,18 @@
 function calibrationTool = import_MOPI5_calibrationTool(calibrationTool)
 %==========================================================================
-% NAME      | import_MOPI5_calibrationTool(calibrationTool)
+% NAME      | import_MOPI5_calibrationTool.m
 % TYPE      | Function
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 12.2020
 %           |
-% ARGUMENTS | INPUTS: - calibrationTool: the default toolbox
+% ABSTRACT  | Complete the calibrationTool structure for MOPI5
 %           |
-%           | OUTPUTS: - calibrationTool: the default toolbox for GROMOS
+% ARGUMENTS | INPUTS: 	1. calibrationTool: the default toolbox
+%           |
+%           | OUTPUTS: 	2. calibrationTool: the default toolbox completer for MOPI5
+%           |
+% COMMENTS  | External documentation for this structure is available on the
+%           | git server of IAP
 %           |
 %==========================================================================
 
@@ -212,7 +217,7 @@ calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) calibrate_ge
 
 % Plot some calibrated spectra:
 %calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_mopi(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
-calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,lowerLim,upperLim,N);
+calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,N);
 
 % Function for quality check of the calibrated spectra
 %calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
@@ -229,7 +234,7 @@ calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLeve
 calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
 
 % Check of the channels quality on the calibrated spectra:
-calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) checking_channel_quality_gromos(calibratedSpectra,calibrationTool,filterN);
+calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) check_channel_quality_generic(calibratedSpectra,calibrationTool,filterN);
 
 % Integration of level1a data
 calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);

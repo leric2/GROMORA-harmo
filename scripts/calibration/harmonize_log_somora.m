@@ -1,24 +1,24 @@
 function logFile = harmonize_log_somora(calibrationTool, logFile)
 %==========================================================================
-% NAME          | 
-% TYPE          |
-% AUTHOR(S)     |
-% CREATION      |
+% NAME          | harmonize_log_somora(calibrationTool,log)
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | harmonizing log of SOMORA to get standard log structure
+%               | for the calibration.
+%               |
+%               |
+% ARGUMENTS     | INPUTS: 1. calibrationTool:
+%               |           - timeZone
+%               |           - elevationAngleCold
+
+%               |         2. logFile: original raw log file read
+%               |
+%               | OUTPUTS: - logFile: harmonized log file for this
+%               |           instrument.
 %               | 
 %               |
-%               |
-% ARGUMENTS     | INPUTS:
-%               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
-%==========================================================================
 %
 % As standardized output variables, we want (all temperature in Kelvin):
 %   T_Room
@@ -35,6 +35,8 @@ function logFile = harmonize_log_somora(calibrationTool, logFile)
 %   FFT_adc_range	FFT_adc_overload	FFT_T_FPGA	FFT_Mode	FFT_Nr_of_acq	
 %   Spectr_left_wing_start	Spectr_left_wing_width	Spectr_line_center	Spectr_line_width	Spectr_T_Line_Amp	Spectr_T_Peak	Spectr_T_Wing	
 %   Data_file_size	SW_version	IWV
+%   
+%==========================================================================
 %   
 % SOMORA
 % Add variable time

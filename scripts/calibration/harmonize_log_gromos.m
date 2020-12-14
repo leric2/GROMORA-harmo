@@ -1,24 +1,25 @@
-function log = harmonize_log_gromos(calibrationTool,log)
+function logFile = harmonize_log_gromos(calibrationTool,logFile)
 %==========================================================================
-% NAME          | 
-% TYPE          |
-% AUTHOR(S)     |
-% CREATION      |
+% NAME          | harmonize_log_gromos(calibrationTool,log)
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | harmonizing log of GROMOS to get standard log structure
+%               | for the calibration.
+%               |
+% ARGUMENTS     | INPUTS: 1. calibrationTool:
+%               |           - timeZone
+%               |           - elevationAngleCold
+%               |           - goodFlagLN2Below
+%               |           - goodFlagLN2Above
+%               |           
+%               |         2. logFile: original raw log file read
+%               |
+%               | OUTPUTS: - logFile: harmonized log file for this
+%               |           instrument.
 %               | 
 %               |
-%               |
-% ARGUMENTS     | INPUTS:
-%               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
-%==========================================================================
 %
 % As standardized output variables, we want (all temperature in Kelvin):
 %   T_Room
@@ -36,41 +37,43 @@ function log = harmonize_log_gromos(calibrationTool,log)
 %   Spectr_left_wing_start	Spectr_left_wing_width	Spectr_line_center	Spectr_line_width	Spectr_T_Line_Amp	Spectr_T_Peak	Spectr_T_Wing	
 %   Data_file_size	SW_version	IWV
 %   
+%==========================================================================
+
 % For GROMOS
 % Add variable time
-log.time = datenum(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second);
-log.dateTime = datetime(log.Year,log.Month,log.Day,log.Hour,log.Minute,log.Second, 'TimeZone',calibrationTool.timeZone);
+logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
+logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone);
 
-if (~(mean(log.Elevation_Angle(log.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26))
+if (~(mean(logFile.Elevation_Angle(logFile.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26))
     error('angle for the cold load might be wrongly defined') 
 end
 
 % Hot temperature is in °C:
-log.T_Hot_Absorber=log.T_Hot + 273.15; % to replace with calibrationTool.zeroDegInKelvin ?
+logFile.T_Hot_Absorber=logFile.T_Hot + calibrationTool.zeroDegInKelvin; % to replace with  ?
 
-if isfield(log,'TExt0')
-    log.T_Ceiling=log.TExt0;
-    log.T_Floor=log.TExt1;
-    log.T_Aircon_Out=log.TExt2;
-    log.T_Window=log.TExt3;
-    log.T_Amp1=log.TExt4;
-    log.T_Amp2=log.TExt5;
-    log.T_Mirror_View=log.TExt6;
-    log.T_Reserved=log.TExt7;
+if isfield(logFile,'TExt0')
+    logFile.T_Ceiling=logFile.TExt0;
+    logFile.T_Floor=logFile.TExt1;
+    logFile.T_Aircon_Out=logFile.TExt2;
+    logFile.T_Window=logFile.TExt3;
+    logFile.T_Amp1=logFile.TExt4;
+    logFile.T_Amp2=logFile.TExt5;
+    logFile.T_Mirror_View=logFile.TExt6;
+    logFile.T_Reserved=logFile.TExt7;
 else
     %TODO
-    log.T_Ceiling=log.AI_0;
-    log.T_Floor=log.AI_0;
-    log.T_Aircon_Out=log.AI_0;
-    log.T_Window=log.AI_0;
-    log.T_Amp1=log.AI_0;
-    log.T_Amp2=log.AI_0;
-    log.T_Mirror_View=log.AI_0;
-    log.T_Reserved=log.AI_0;
+    logFile.T_Ceiling=logFile.AI_0;
+    logFile.T_Floor=logFile.AI_0;
+    logFile.T_Aircon_Out=logFile.AI_0;
+    logFile.T_Window=logFile.AI_0;
+    logFile.T_Amp1=logFile.AI_0;
+    logFile.T_Amp2=logFile.AI_0;
+    logFile.T_Mirror_View=logFile.AI_0;
+    logFile.T_Reserved=logFile.AI_0;
 end
-log.LN2_Sensors_OK = ~log.LN2_Relay;
+logFile.LN2_Sensors_OK = ~logFile.LN2_Relay;
 
-log.LN2_Level_OK = (log.LN2_above_High == calibrationTool.goodFlagLN2Above) & (log.LN2_above_Low == calibrationTool.goodFlagLN2Below);
+logFile.LN2_Level_OK = (logFile.LN2_above_High == calibrationTool.goodFlagLN2Above) & (logFile.LN2_above_Low == calibrationTool.goodFlagLN2Below);
     
 % log.T_Room;
 

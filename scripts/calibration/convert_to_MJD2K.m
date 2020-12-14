@@ -10,9 +10,11 @@ function mjd2k_date = convert_to_MJD2K(YYYY, MM, DD, hh, mm, ss)
 %           |
 %           |
 %           |
-% ARGUMENTS | INPUTS: YYYY,MM, DD, hh, mm, ss --> UTC !
+% ARGUMENTS | INPUTS: YYYY,MM, DD, hh, mm, ss in UTC time.
 %           |
-%           | OUTPUTS: - mjd2k_date: a 
+%           | OUTPUTS: - mjd2k_date: a double number corresponding to the
+%           | Modified Julian Datetime 2000. It corresponds to the number
+%           | of day from 01.01.2000. 
 %           | 
 %==========================================================================
 

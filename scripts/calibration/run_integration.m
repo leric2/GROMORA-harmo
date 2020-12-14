@@ -8,29 +8,33 @@ function [calibrationTool, level1] = run_integration(calibrationTool)
 % ABSTRACT  | The main function executing the integration part for the
 %           | instrument defined in calibrationTool. Some parts and
 %           | functions are dependent on the instrument that we want to
-%           | calibrate. 
+%           | integrate and are stored in calibrationTool. 
 %           | 
 %           |
-% ARGUMENTS | INPUTS: - calibrationTool: structure containing all
+% ARGUMENTS | INPUTS: 1. calibrationTool: structure containing all
 %           | information about the integration we want to perform.
 %           | Documentation about this structure can be found in external
 %           | document.
 %           |
-%           |
-%           | OUTPUTS: - Level1b
+%           | OUTPUTS: 1. calibrationTool
+%           |          2. level1: structure containing both level 1a and 1b
 %           |           
-%           |
+% SAVE      | level1b netCDF file and plots
 %           |
 % CALLS     | Some depends on instruments, all are stored in calibrationTool:
-%           | %%%%%%%%%%%%%%%%%%%%% Level1a -> Level1b
 %           | read_level1a
-%           | get_meteo_data
-%           | checking_channel_quality
-%           | tropospheric_correction_generic
-%           | window_correction
+%           | add_meteo_data
+%           | checking_channel_quality (2x)
+%           | window_correction (2x)
+%           | tropospheric_correction_generic (2x)
+%           | integrate_calibrated_spectra
+%           | check_integrated
 %           | plot_integrated_spectra
 %           | save_level1b
+
 %           |
+% COMMENTS  | External documentation can be found for this function on the
+%           | git server of IAP.
 %==========================================================================
 % Check that the calibration file (level1a) exist for this day
 if ~exist(calibrationTool.filenameLevel1a,'file')

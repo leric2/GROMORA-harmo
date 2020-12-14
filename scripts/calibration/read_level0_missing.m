@@ -1,24 +1,23 @@
 function [logFile_out, rawSpectra_out] = read_level0_missing(calibrationTool,logFile1,rawSpectra1,file)
 %==========================================================================
-% NAME          | read_level0_generic.m
+% NAME          | read_level0_missing.m
 % TYPE          | function
-% AUTHOR(S)     | Axel Murk (adapted to GROSOM by E.S.)
+% AUTHOR(S)     | Axel Murk (adapted to GROSOM by E.S. and by Franzisca).
 % CREATION      | 2011-03-04 (adapted 01.2020)
 %               |
 % ABSTRACT      | Reads houskeeping and binary data of the universal IAP 
-%               | data format
+%               | data format for missing days
 %               | 
+%               |   TODO
 %               |
-%               |
-% ARGUMENTS     | INPUTS: Filename without extension
+% ARGUMENTS     | INPUTS: 
 %               |
 %               | OUTPUTS:  1. Housekeeping structure with field names for each parameter
 %               |           2. [length(file)*#channels] line vector of binary file
 %               |             
-% CALLED by     | run_retrieval(calibrationTool);
+% CALLED by     | 
 %               |
-% CALLS         | readtext([file '.txt'], calibrationTool.delimiter_logfile, '', '"');
-%               |
+% CALLS         | 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DATA FORMAT:
 %

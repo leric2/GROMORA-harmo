@@ -6,21 +6,28 @@ function meteoData = read_meteo_data_payerne(calibrationTool)
 % CREATION      | 09.2014 // modified 03.2020
 %               |
 % ABSTRACT      | Function to read temperature and humidity values measured
-%               | by the ASTA station from MCH in Payerne
+%               | by the ASTA station from MCH in Payerne. It is then saved
+%               | in the form of a standard meteoData structure (see
+%               | outputs).
 %               | 
 %               |
+% ARGUMENTS     | INPUTS:   1. calibrationTool:
+%               |               - dateStr
+%               |               - meteoFolder
+%               |               - referenceTime
+%               |               - timeZone
+%               |               - zeroDegInKelvin
 %               |
-% ARGUMENTS     | INPUTS:
+%               | OUTPUTS:  1. meteoData: standard structure containing:
+%               |               - dateTime
+%               |               - dateNum
+%               |               - air_temperature
+%               |               - rel_humidity
+%               |               - air_pressure
+%               |               - precipitation
+%               |               - tod
 %               |
-%               | OUTPUTS:
-%               |
-% CALLS         |
-%               |
-%               |
-%               |
-
 %==========================================================================
-
 %%% CHECK FOR LEAP YEARS ?
 try
     % fileName for meteo file in Payerne: yyyyjjj.002
@@ -33,8 +40,6 @@ try
     %dateStringMeteo='2020065.002';
     
     meteoDataFile=[calibrationTool.meteoFolder dateStringMeteo];
-    
-    %opts = detectImportOptions(meteoDataFile)
     
     % Transforming it into matlab structure
     fid=fopen(meteoDataFile,'r');

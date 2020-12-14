@@ -1,23 +1,28 @@
 function spectra = window_correction_generic(calibrationTool,spectra)
 %==========================================================================
-% NAME          | 
-% TYPE          |
+% NAME          | window_correction_generic.m
+% TYPE          | function
 % AUTHOR(S)     | Susana Fernandez (adapted to GROSOM by ES)
-% CREATION      | 09.2014
+% CREATION      | 09.2014, adapted 2020
 %               |
-% ABSTRACT      |
+% ABSTRACT      | Perform window correction for MWR
 %               | 
 %               |
 %               |
-% ARGUMENTS     | INPUTS:
+% ARGUMENTS     | INPUTS:   1. calibrationTool:
+%               |               - numberOfChannels
+%               |               - h, lightSpeed, kb
+%               |               - tWindow
+%               |           2. spectra: a standard spectra (calibrated or
+%               |               integrated) structure conatining at least a
+%               |               set of frequencies and TB and ideally a
+%               |               window temperature (otherwise, take the
+%               |               air temperature.
 %               |
-%               | OUTPUTS:
+%               | OUTPUTS:  1. spectra: including an extra field for the
+%               |               corrected window corrected spectra
+%               |               (TbWinCorr)
 %               |
-% CALLS         |
-%               |
-%               |
-%               |
-
 %==========================================================================
 
 % Window correction

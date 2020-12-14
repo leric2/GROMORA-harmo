@@ -1,12 +1,13 @@
 function [log, data] = read_level0_mopi5(calibrationTool, rawFileReading)
 %==========================================================================
-% NAME          | read_level0_generic.m
+% NAME          | read_level0_mopi5.m
 % TYPE          | function
 % AUTHOR(S)     | Axel Murk (adapted to GROSOM by E.S.)
 % CREATION      | 2011-03-04 (adapted 01.2020)
 %               |
 % ABSTRACT      | Reads houskeeping and binary data of the universal IAP 
-%               | data format
+%               | data format for MOPI5 case. Special case because the
+%               | files are too big for reading it in one go.
 %               | 
 %               |
 %               |
@@ -15,7 +16,6 @@ function [log, data] = read_level0_mopi5(calibrationTool, rawFileReading)
 %               | OUTPUTS:  1. Housekeeping structure with field names for each parameter
 %               |           2. [length(file)*#channels] line vector of binary file
 %               |             
-% CALLED by     | run_retrieval(calibrationTool);
 %               |
 % CALLS         | readtext([file '.txt'], calibrationTool.delimiter_logfile, '', '"');
 %               |

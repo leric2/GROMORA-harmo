@@ -1,5 +1,23 @@
-% Nested function in calibrate_generic (copied here for convenience)
 function [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(logFile,calibrationTool)
+%==========================================================================
+% NAME          | find_up_down_cycle.m
+% TYPE          | Nested function in calibrate_generic
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 01.2020
+%               |
+% ABSTRACT      | Find up and down cycle in a standard log file for debug
+%               | mode
+%               | 
+% ARGUMENTS     | INPUTS: 1. logFile: standardized log file 
+%               |         2. calibrationTool:
+%               |               - indiceCold
+%               |               - indiceHot
+%               |               - indiceAntenna
+%               |
+%               | OUTPUTS: 1. firstIndHalfUp
+%               |          2. firstIndHalfDown
+%               |
+%==========================================================================
 indCold=calibrationTool.indiceCold;
 indHot=calibrationTool.indiceHot;
 indAntenna=calibrationTool.indiceAntenna;

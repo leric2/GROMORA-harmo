@@ -1,35 +1,44 @@
 function calibrationTool = save_level1b_daily(calibrationTool,level1)
 %==========================================================================
-% NAME          | save_level1a_daily.m
-% TYPE          | function
-% AUTHOR(S)     | Eric Sauvageat
-% CREATION      | 01.2020
-%               |
-% ABSTRACT      | Function saving the integrated spectra for a complete day
-%               | in the form of netCDF4 file. 
-%               | The file contains one entry
-%               | per integration cylce (typically 1 hour) on a time 
-%               | coordinate as well as all necessery metadata to identify
-%               | and re-use the data.
-%               |
-%               |
-% ARGUMENTS     | INPUTS: - calibrationTool
-%               |         - logFile
-%               |         - calibratedSpectra
-%               |         - warningLevel0
-%               |         
-%               | OUTPUTS: - calibrationTool with added field
-%               |          
-%               |
-% SAVE          | Level1b netCDF4 containing the following groups:
-%               |   - '/' for global attributes
-%               |   - '/spectrometer1/' for integration
-%               |   - '/flags/' for
-%               |   - '/meteo/' 
-%               |
-%               |
+% NAME      | save_level1b_daily.m
+% TYPE      | function
+% AUTHOR(S) | Eric Sauvageat
+% CREATION  | 01.2020
+%           |
+% ABSTRACT  | Function saving the integrated spectra for a complete day
+%           | in the form of netCDF4 file. The file contains one entry 
+%           | per integration cylce (typically 1 hour) on a time 
+%           | coordinate as well as all necessery metadata to identify
+%           | and re-use the data.
+%           |
+%           |
+% ARGUMENTS | INPUTS: 1. calibrationTool:
+%           |           - level1Folder
+%           |           - instrumentName
+%           |           - spectrometer
+%           |           - dateStr
+%           |           - integrationTime
+%           |           - numberOfChannels
+%           |           - meanDatetimeUnit
+%           |           - calendar
+%           |           - lat, lon, altitude, azimuthAngle
+%           |           - dataLocation, dataSource
+%           |           - PI_NAME, PI_AFFILIATION, PI_ADDRESS, PI_EMAIL
+%           |           - numberOfSpectrometer
+%           |           - logFile: substructure containing metadata
+%           |           - labviewLog, Day, Month, Year  (optional)
+%           |         2. level1: structure containing both level 1a and
+%           |            level 1b for this day.
+%           | 
+%           | OUTPUTS: - calibrationTool with added field filenameLevel1b
+%           |      
+% SAVE      | Level1b netCDF4 containing the following groups:
+%           |   - '/' for global attributes
+%           |   - '/spectrometer1/' for spectrometer dataset
+%           |   - '/flags/'
+%           |   - '/meteo/'
+%           |  
 %==========================================================================
-
 % Filename and location for DAILY netCDF file
 locationLevel1b=calibrationTool.level1Folder;
 integratedSpectra=level1.integratedSpectra;
@@ -296,8 +305,8 @@ ncwriteatt(filename,'/','featureType','timeSeries');
 
 if ~isempty(fieldnames(calibrationTool.labviewLog))
     if sum(isbetween([calibrationTool.labviewLog.dateTime],...
-            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day),...
-            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1))) > 0
+            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day, 'TimeZone',calibrationTool.timeZone),...
+            datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1, 'TimeZone',calibrationTool.timeZone))) > 0
         ncwriteatt(filename,'/','labview_logfile_warning','check labview log !');
     else
         ncwriteatt(filename,'/','labview_logfile_warning','clean');
@@ -525,46 +534,6 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/tropospheric_opacity',attrName{i},attrVal.tropospheric_opacity{i});
     
 end
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % Adding debug (optionnal)
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% if calibrationTool.calType=="debug"
-%     % initialize matrices
-%     nClean=0;
-%     for t = 1:length(integratedSpectra)
-%         nClean=nClean+integratedSpectra(t).numberOfCleanAntennaAngle;
-%     end
-%     
-%     channel_idx=int64(ones(nClean,calibrationTool.numberOfChannels)*NaN);
-%     TbAll=single(ones(nClean,calibrationTool.numberOfChannels)*NaN);
-%     cycleNumber=int64(ones(nClean,1)*NaN);
-%     cycleId=int64(1:nClean);
-%     
-%     counter=1;
-%     for t = 1:length(integratedSpectra)
-%         for i =1:integratedSpectra(t).numberOfCleanAntennaAngle
-%             TbAll(counter,:)=integratedSpectra(t).TbAll(i,:);
-%             channel_idx(counter,:)=1:calibrationTool.numberOfChannels;
-%             cycleNumber(counter)=t;
-%             counter=counter+1;
-%         end
-%     end
-%     
-%     % Group for debugging variables:
-%     nccreate(filename,'/debug/cycle_id','Dimensions',{'cycle_id',Inf},'Datatype','int64')
-%     nccreate(filename,'/debug/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
-%     
-%     nccreate(filename,'/debug/calibration_cycle_number','Dimensions',{'cycle_id',Inf},'Datatype','int64','FillValue',-9999)
-%     nccreate(filename,'/debug/Tb_all','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'cycle_id',Inf},'Datatype','single','FillValue',-9999)
-%     
-%     % Writing the debug variables
-%     ncwrite(filename,'/debug/cycle_id',cycleId);
-%     
-%     ncwrite(filename,'/debug/channel_idx',1:calibrationTool.numberOfChannels);
-%     ncwrite(filename,'/debug/calibration_cycle_number',cycleNumber');
-%     ncwrite(filename,'/debug/Tb_all',TbAll');
-% end
 
 disp(['File saved as: ' filename])
 end

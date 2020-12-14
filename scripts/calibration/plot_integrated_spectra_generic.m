@@ -1,5 +1,31 @@
 function plot_integrated_spectra_generic(calibrationTool,integratedSpectra)
-% Just for a first look
+%==========================================================================
+% NAME          | plot_integrated_spectra_generic.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 12.2020
+%               |
+% ABSTRACT      | Complete plotting of level1b data for the GROSOM project.
+%               | It saves a summary if integrated data into a single .pdf 
+%               | file.
+%               | 
+% ARGUMENTS     | INPUTS:   1. calibrationTool:
+%               |               - dateTime
+%               |               - TSysCenterTh
+%               |               - THotTh
+%               |               - calibrationTime
+%               |               - integrationTime
+%               |               - level1Folder
+%               |               - instrumentName
+%               |               - spectrometer
+%               |               - dateStr
+%               |           2. integratedSpectra
+%               |
+%               | OUTPUTS: -
+%               |
+% SAVE          | Prints a standard pdf file containing all the plots. 
+%               |
+%==========================================================================
 try   
     % plotting a spectra every numberOfSpectraToGroup measurements
     %TOD={};

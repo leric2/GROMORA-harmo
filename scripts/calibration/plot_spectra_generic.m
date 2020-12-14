@@ -1,6 +1,34 @@
 function plot_spectra_generic(calibrationTool, drift, meteoData, calibratedSpectra, N)
-% Just for a first look
-% plotting a spectra every N measurements 
+%==========================================================================
+% NAME          | plot_spectra_generic.m
+% TYPE          | function
+% AUTHOR(S)     | Eric Sauvageat
+% CREATION      | 12.2020
+%               |
+% ABSTRACT      | Complete plotting of level1a data for the GROSOM project.
+%               | Depending on the provided argument, it will save 2
+%               | separate .pdf files containing plots of the drift, meteo
+%               | and spectra variables for N timestamps.
+%               | 
+% ARGUMENTS     | INPUTS:   1. calibrationTool:
+%               |               - dateTime
+%               |               - TSysCenterTh
+%               |               - level1Folder
+%               |               - instrumentName
+%               |               - spectrometer
+%               |               - dateStr
+%               |               - calibratedSpectraSpectralPlot
+%               |           2. drift
+%               |           3. meteoData
+%               |           4. calibratedSpectra
+%               |           5. N: number of calibrated spectra to plot
+%               |               (spectral)
+%               |
+%               | OUTPUTS: -
+%               |
+% SAVE          | Prints 2 standard pdf files containing all the plots. 
+%               |
+%==========================================================================
 % lowerLim = 60
 % upperLim = 280
 try 

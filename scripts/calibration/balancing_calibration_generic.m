@@ -1,9 +1,28 @@
 function [calibratedSpectra] = balancing_calibration_generic(rawSpectra,logFile,calibrationTool,calType)
-
+%==========================================================================
+% NAME          | balancing_calibration_generic
+% TYPE          | function
+% AUTHOR(S)     | Franzisca Schranz
+% CREATION      | 06.2020
+%               |
+% ABSTRACT      | ...
+%               |
+%               |
+% ARGUMENTS     | INPUTS:  1. rawSpectra
+%               |          2. logFile
+%               |          3. calibrationTool
+%               |            - calibrationVersion
+%               |            - ...
+%               |          4. calType
+%               |
+%               | OUTPUTS: 1. calibratedSpectra
+%               |
+% COMMENTS      |
+%               |
+%==========================================================================
 
 % Calibration version
-calibVersion='1.0.0';
-
+calibVersion = calibrationTool.calibrationVersion ;
 
 % observation direction
 
