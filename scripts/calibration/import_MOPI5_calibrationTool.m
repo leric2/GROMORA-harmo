@@ -72,6 +72,10 @@ calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentNa
 calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
+% Defining level1a filename to read (to be adapted for other users)
+calibrationTool.filenameLevel1a = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+
+
 % Log
 calibrationTool.delimiter_logfile = ';';
 calibrationTool.harmonize_log=@(calibrationTool, log) harmonize_log_mopi5(calibrationTool, log);
@@ -231,9 +235,9 @@ calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,fi
 calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);
 
 % Function for plotting the integrated spectra (when hourly)
-calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
+calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra) plot_integrated_spectra_generic(calibrationTool,rawSpectra);
 
-calibrationTool.tropospheric_correction = @(integration,calibrationTool,TtropCorr) tropospheric_correction_generic(integration,calibrationTool,TtropCorr);
+calibrationTool.tropospheric_correction = @(integration,calibrationTool) tropospheric_correction_generic(integration,calibrationTool);
 
 % Window correction for the calibrated spectra
 calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);
