@@ -1,4 +1,15 @@
 # Main script
+
+### Main scripts description
+| name | type | Description |
+|---|------|------|:-----------:|
+| 1 | read_labview_log_generic | Optional |  | 
+| 2 | import_default_calibration_tool | Required |  | 
+| 3 | import_Instrument_calibrationTool | Required |  | 
+| 4 | run_calibration | Required |  | 
+| 5 | [run_integration](run_integration.md) | Required |  | 
+
+<!---
 ## Level0 - level1a (Calibration)
 ### Summary
 Here are some basic information about the routine I have written for GROMOS and SOMORA calibration.
@@ -44,7 +55,7 @@ For the calibration (level0 - level1a), this is executing the following steps:
 Standard way of dealing with error with is to use warnings and/or flags for "unexpected conditions" and errors for "fatal problems" which will stop the scripts.
 
 This part is opened to discussion but what I did until now is:
-1. Get some warnings about the raw data, for instance if the size of the binary does not correspond to its log file. --> Those are stored in the netCDF as attributes for each daily files.
+1. Get some warnings about the raw data, for instance if the size of the binary does not correspond to its log file. - Those are stored in the netCDF as attributes for each daily files.
 2. Some errors, for instance if there is problem when reading the raw data, that completely stops the retrieval for the day.
 3. Some flags, linked with every calibration cycle, that are stored along the level1a file in a "vector of flags" with each element corresponding to a specific type of flag (ex: large TSys,...).
 
@@ -68,13 +79,13 @@ In my opinion, there are different ways we can take for the following steps of t
 2. Prepare for the calibration of the whole time series for both instrument
 3. Go to level 1b data
     * Select good calibrated spectra ? Based on what ? flags ? Tb values ?
-    * Channel outliers: boxcar filter, absolute value of Tb, value of transmittance ? --> replaced with interpolation ?
+    * Channel outliers: boxcar filter, absolute value of Tb, value of transmittance ? -- replaced with interpolation ?
     * Windows corrections, others ?
     * Integration of the calibrated spectra on 1h (mean ?)
     * save it in netCDF (at least for debug purposes)
     * continue with Matlab until level 1b (see ARTS mailing list)
 
-<!---
+
 ### Suggestion (old)
 Take a sort of "object oriented" approach for launching the retrievals. 
 
