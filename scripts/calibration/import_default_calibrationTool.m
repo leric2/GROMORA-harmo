@@ -47,5 +47,5 @@ calibrationTool.zeroDegInKelvin = 273.15;
 %calibrationTool.deltaTCorr = 10.4;
 
 % MW background radiation at TOA
-calibrationTool.backgroundMWTb = 2.7;e
+calibrationTool.backgroundMWTb = 2.7;
 end

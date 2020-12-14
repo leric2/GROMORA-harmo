@@ -185,7 +185,7 @@ calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
 calibrationTool.troposphericCorrection.useWings = 'both';
 calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 100;
 calibrationTool.troposphericCorrection.skipFraction = 0.05;
-
+calibrationTool.troposphericCorrection.deltaT = 10.4;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Level0 -> Level1a functions

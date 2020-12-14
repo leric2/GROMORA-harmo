@@ -38,7 +38,7 @@ tropCorrType = calibrationTool.troposphericCorrection.type;
 
 Tbg = calibrationTool.backgroundMWTb; % Microwave background
 
-deltaT = calibrationTool.deltaTCorr;
+deltaT = calibrationTool.troposphericCorrection.deltaT;
 
 for t = 1:length(spectra)
     spectra(t).troposphericCorrType = tropCorrType;
