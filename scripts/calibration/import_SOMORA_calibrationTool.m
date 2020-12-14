@@ -75,7 +75,8 @@ calibrationTool.logFileDataExtension = '.txt';
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
-calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
+%calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
+calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
 %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
 %calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
@@ -264,11 +265,11 @@ if calibrationTool.timeNumber>datenum(2016,01,01) && calibrationTool.timeNumber<
     calibrationTool.THotTh = 297.4;
 end
 
-if calibrationTool.timeNumber<datenum(2019,01,01)
-    calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
-    calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
-    calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
-end
+% if calibrationTool.timeNumber<datenum(2019,01,01)
+%     calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+%     calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
+%     calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
+% end
 % window transmission
 if calibrationTool.timeNumber<datenum(2007,07,03) %attn anciennement  733957 cad 3 juillet 2009 mais FAUX
     calibrationTool.tWindow = 0.987; %value from 2002 to 3/7/2007 (att. window has been changed 8/2/2006 but new t not measured) nb: ema 9/11/2007
