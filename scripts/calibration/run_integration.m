@@ -1,4 +1,4 @@
-function [calibrationTool, level1b] = run_integration(calibrationTool)
+function [calibrationTool, level1] = run_integration(calibrationTool)
 %==========================================================================
 % NAME      | run_integration.m
 % TYPE      | function
@@ -32,93 +32,90 @@ function [calibrationTool, level1b] = run_integration(calibrationTool)
 %           | save_level1b
 %           |
 %==========================================================================
-% Defining level1a filename to read (to be adapted for other users)
-filename = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
-calibrationTool.filenameLevel1a = filename;
-
 % Check that the calibration file (level1a) exist for this day
 if ~exist(calibrationTool.filenameLevel1a,'file')
     error('No calibration data found for this day')
  end
 
-
 % Start integration
-disp(['Starting the integration process for ' calibrationTool.instrumentName ': ' calibrationTool.dateStr])
+disp(['Starting the integration process for ' calibrationTool.instrumentName ' ' calibrationTool.spectrometer ': ' calibrationTool.dateStr])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Level 1a to level 1b
+% Reading the level1a data and adding the meteo data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % We create level1b structure which will contain both the calibrated
 % spectra read from the level1a data (level1b.calibratedSpectra and the 
 % integrated spectra that will be added later (level1b.integration) 
-level1b = struct();
-tic
-[level1b.calibratedSpectra, meteoData, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
-toc 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For now because no Payerne dataset
-% calibrationTool.meteoFolder = '/mnt/instrumentdata/meteo/exwi/meteo/';
-% calibrationTool.get_meteo_data  =  @(calibrationTool,correctedSpectra) get_meteo_data_unibe(calibrationTool,correctedSpectra);
+level1 = struct();
+
+[level1.calibratedSpectra, meteoData, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
 
 if isempty(meteoData)
     %TODO
     disp('no meteo data for this day...')
 else
-    level1b.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1b.calibratedSpectra);
+    level1.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1.calibratedSpectra);
 end
 
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Correction and integration of the calibrated spectra
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checking the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
-level1b.calibratedSpectra = calibrationTool.checking_channel_quality(level1b.calibratedSpectra,calibrationTool,calibrationTool.filterTypeChannelQualityCal);
+filterType = calibrationTool.filterTypeChannelQualityCal;
+level1.calibratedSpectra = calibrationTool.checking_channel_quality(level1.calibratedSpectra,calibrationTool,filterType);
 
 % Performing window correction
-level1b.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1b.calibratedSpectra );
+level1.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1.calibratedSpectra);
 
 % Compute tropospheric transmittance and correction for every calibrated
 % spectra.
-level1b.calibratedSpectra = calibrationTool.tropospheric_correction(level1b.calibratedSpectra, calibrationTool,10.4);
+level1.calibratedSpectra = calibrationTool.tropospheric_correction(level1.calibratedSpectra, calibrationTool);
 
 % Integrating the "good spectra" based on tropospheric transmittance and
 % calibration flags. --> To improve. Maybe introduce weighted mean of
 % spectra based on tropospheric transmittance ?
-level1b.integration = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1b.calibratedSpectra);
+level1.integratedSpectra = calibrationTool.integrate_calibrated_spectra(calibrationTool,level1.calibratedSpectra);
 
-%% Correction and checks
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Correction and check of the integrated spectra
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Now on the integrated spectra; checking the quality of the channels and 
 % flagging the potential bad ones (we do not remove any).
-level1b.integration = calibrationTool.checking_channel_quality(level1b.integration,calibrationTool,calibrationTool.filterTypeChannelQualityInt);
+filterType = calibrationTool.filterTypeChannelQualityInt;
+level1.integratedSpectra = calibrationTool.checking_channel_quality(level1.integratedSpectra,calibrationTool,filterType);
 
 % Performing window correction
-level1b.integration = calibrationTool.window_correction(calibrationTool,level1b.integration);
+level1.integratedSpectra = calibrationTool.window_correction(calibrationTool,level1.integratedSpectra);
 
 % Compute tropospheric transmittance and correction for every integrated
 % spectra.
-level1b.integration = calibrationTool.tropospheric_correction(level1b.integration, calibrationTool,10.4);
+level1.integratedSpectra = calibrationTool.tropospheric_correction(level1.integratedSpectra, calibrationTool);
 
 % Check integrated spectra and define the flags for level1b
-level1b.integration = calibrationTool.check_integrated(calibrationTool, level1b.integration);
+level1.integratedSpectra = calibrationTool.check_integrated(calibrationTool, level1.integratedSpectra);
 
 % sideband correction ?
 % TODO
 
-% Plotting and saving calibrated and corrected spectra
-if calibrationTool.integratedSpectraPlot && nansum([level1b.integration.outlierCalib])<length(level1b.integration)
-    calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
-elseif calibrationTool.integratedSpectraPlot && length(level1b.integration)==1
-    calibrationTool.plot_integrated_spectra(calibrationTool,level1b.integration,40,260)
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plotting and saving level 1b
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plotting integrated and corrected spectra
+if calibrationTool.integratedSpectraPlot && nansum([level1.integratedSpectra.outlierCalib])<length(level1.integratedSpectra)
+    calibrationTool.plot_integrated_spectra(calibrationTool,level1.integratedSpectra)
+elseif calibrationTool.integratedSpectraPlot && length(level1.integratedSpectra)==1
+    calibrationTool.plot_integrated_spectra(calibrationTool,level1.integratedSpectra)
 end
 
-%%
 % Saving integrated spectra (level1b) into NetCDF-4 file
 disp('Saving Level 1b...')
-if calibrationTool.numberOfSpectrometer > 1
-    calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
-else
-    calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1b);
-end
+calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1);
 
 disp('Integration successful')
-calibrationTool.successfulIntegration = true;
 
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 disp('')

@@ -63,12 +63,12 @@ logFile = calibrationTool.harmonize_log(calibrationTool, logFile);
 
 % Reformat the raw spectra from vector to matrix
 if size(rawSpectra,1) == 1
-    rawSpectra = calibrationTool.reformat_spectra(rawSpectra,logFile,calibrationTool);
+    rawSpectra = calibrationTool.reformat_spectra(rawSpectra, logFile, calibrationTool);
 end
 
 % Quality check of the raw data:
 if calibrationTool.checkLevel0
-    warningLevel0 = calibrationTool.check_level0(logFile,rawSpectra,calibrationTool);
+    warningLevel0 = calibrationTool.check_level0(logFile, rawSpectra, calibrationTool);
 else
     warningLevel0 = '';
 end
@@ -132,8 +132,8 @@ end
 
 % Saving calibrated spectra (level 1a) into NetCDF-4 file
 disp('Saving Level 1a...')
-calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,...
-    calibratedSpectra,warningLevel0);
+calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
+    calibratedSpectra, warningLevel0);
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)

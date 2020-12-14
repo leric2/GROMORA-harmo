@@ -78,16 +78,20 @@ calibrationTool.binaryType='ieee-be';
 %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
 calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
-%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
-%calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+%calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
 % calibrationTool.rawFile = [calibrationTool.rawFileFolder, calibrationTool.filename, calibrationTool.binaryDataExtension];
 % calibrationTool.logFile = [calibrationTool.rawFileFolder, calibrationTool.filename, calibrationTool.logFileDataExtension];
+
+
+% Defining level1a filename to read (to be adapted for other users)
+calibrationTool.filenameLevel1a = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 
 % Log
 calibrationTool.delimiter_logfile = '\t';
@@ -172,7 +176,7 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
 calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
-%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
 
 % Function specific to this instrument
 % meteo Data
@@ -245,9 +249,9 @@ calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,fi
 calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);
 
 % Function for plotting the integrated spectra (when hourly)
-calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra,lowerLim,upperLim) plot_integrated_spectra_generic(calibrationTool,rawSpectra,lowerLim,upperLim);
+calibrationTool.plot_integrated_spectra = @(calibrationTool,rawSpectra) plot_integrated_spectra_generic(calibrationTool,rawSpectra);
 
-calibrationTool.tropospheric_correction = @(integration,calibrationTool,TtropCorr) tropospheric_correction_generic(integration,calibrationTool,TtropCorr);
+calibrationTool.tropospheric_correction = @(integration,calibrationTool) tropospheric_correction_generic(integration,calibrationTool);
 
 % Window correction for the calibrated spectra
 calibrationTool.window_correction= @(calibrationTool,level1b) window_correction_generic(calibrationTool,level1b);

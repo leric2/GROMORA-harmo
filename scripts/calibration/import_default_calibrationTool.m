@@ -44,6 +44,7 @@ calibrationTool.h=6.62606876e-34; % [J/s]
 calibrationTool.kb=1.38065e-23;    % [J/K]
 
 calibrationTool.zeroDegInKelvin = 273.15;
+calibrationTool.deltaTCorr = 10.4;
 
 calibrationTool.backgroundMWTb = 2.7;
 

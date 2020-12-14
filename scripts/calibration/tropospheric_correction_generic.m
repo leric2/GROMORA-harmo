@@ -1,4 +1,4 @@
-function spectra = tropospheric_correction_generic(spectra,calibrationTool,deltaT)
+function spectra = tropospheric_correction_generic(spectra,calibrationTool)
 %==========================================================================
 % NAME          | tropospheric_correction_generic.m
 % TYPE          | function
@@ -21,6 +21,8 @@ function spectra = tropospheric_correction_generic(spectra,calibrationTool,delta
 tropCorrType = calibrationTool.troposphericCorrection.type;
 
 Tbg = calibrationTool.backgroundMWTb; % Microwave background
+
+deltaT = calibrationTool.deltaTCorr;
 
 for t = 1:length(spectra)
     spectra(t).troposphericCorrType = tropCorrType;

@@ -1,4 +1,4 @@
-function plot_integrated_spectra_generic(calibrationTool,integratedSpectra,lowerLim,upperLim)
+function plot_integrated_spectra_generic(calibrationTool,integratedSpectra)
 % Just for a first look
 try   
     % plotting a spectra every numberOfSpectraToGroup measurements

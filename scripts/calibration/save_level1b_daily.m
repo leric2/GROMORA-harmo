@@ -1,4 +1,4 @@
-function calibrationTool = save_level1b_daily(calibrationTool,level1b)
+function calibrationTool = save_level1b_daily(calibrationTool,level1)
 %==========================================================================
 % NAME          | save_level1a_daily.m
 % TYPE          | function
@@ -32,7 +32,7 @@ function calibrationTool = save_level1b_daily(calibrationTool,level1b)
 
 % Filename and location for DAILY netCDF file
 locationLevel1b=calibrationTool.level1Folder;
-integratedSpectra=level1b.integration;
+integratedSpectra=level1.integratedSpectra;
 
 if calibrationTool.integrationTime == 60
     filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
