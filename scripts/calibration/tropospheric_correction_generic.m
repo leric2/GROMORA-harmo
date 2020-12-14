@@ -1,9 +1,9 @@
 function spectra = tropospheric_correction_generic(spectra,calibrationTool,deltaT)
 %==========================================================================
-% NAME          | 
-% TYPE          |
+% NAME          | tropospheric_correction_generic.m
+% TYPE          | function
 % AUTHOR(S)     | Susana Fernandez (adapted to GROSOM by ES)
-% CREATION      | 09.2014
+% CREATION      | 09.2014, adapted 2020
 %               |
 % ABSTRACT      |
 %               | 
