@@ -261,7 +261,7 @@ calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLeve
 calibrationTool.read_level1a = @(calibrationTool) read_level1a_daily(calibrationTool);
 
 % Check of the channels quality on the calibrated spectra:
-calibrationTool.checking_channel_quality= @(calibratedSpectra,calibrationTool,filterN) check_channel_quality_generic(calibratedSpectra,calibrationTool,filterN);
+calibrationTool.check_channel_quality= @(calibratedSpectra,calibrationTool,filterN) check_channel_quality_generic(calibratedSpectra,calibrationTool,filterN);
 
 % Integration of level1a data
 calibrationTool.integrate_calibrated_spectra= @(calibrationTool,calibratedSpectra) integrate_calibrated_spectra_generic(calibrationTool,calibratedSpectra);

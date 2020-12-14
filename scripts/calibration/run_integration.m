@@ -24,7 +24,7 @@ function [calibrationTool, level1] = run_integration(calibrationTool)
 % CALLS     | Some depends on instruments, all are stored in calibrationTool:
 %           | read_level1a
 %           | add_meteo_data
-%           | checking_channel_quality (2x)
+%           | check_channel_quality (2x)
 %           | window_correction (2x)
 %           | tropospheric_correction_generic (2x)
 %           | integrate_calibrated_spectra
@@ -65,10 +65,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Correction and integration of the calibrated spectra
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% checking the quality of the channels and flagging the potential bad ones
+% check the quality of the channels and flagging the potential bad ones
 % (we do not remove any)
 filterType = calibrationTool.filterTypeChannelQualityCal;
-level1.calibratedSpectra = calibrationTool.checking_channel_quality(level1.calibratedSpectra,calibrationTool,filterType);
+level1.calibratedSpectra = calibrationTool.check_channel_quality(level1.calibratedSpectra,calibrationTool,filterType);
 
 % Performing window correction
 level1.calibratedSpectra = calibrationTool.window_correction(calibrationTool,level1.calibratedSpectra);
@@ -86,10 +86,10 @@ level1.integratedSpectra = calibrationTool.integrate_calibrated_spectra(calibrat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Correction and check of the integrated spectra
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Now on the integrated spectra; checking the quality of the channels and 
+% Now on the integrated spectra; check the quality of the channels and 
 % flagging the potential bad ones (we do not remove any).
 filterType = calibrationTool.filterTypeChannelQualityInt;
-level1.integratedSpectra = calibrationTool.checking_channel_quality(level1.integratedSpectra,calibrationTool,filterType);
+level1.integratedSpectra = calibrationTool.check_channel_quality(level1.integratedSpectra,calibrationTool,filterType);
 
 % Performing window correction
 level1.integratedSpectra = calibrationTool.window_correction(calibrationTool,level1.integratedSpectra);
