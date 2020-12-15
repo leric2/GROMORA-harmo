@@ -84,7 +84,7 @@ for i = 1:size(calibratedSpectra,2)
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % System Temperature
+    % Noise Receiver Temperature
     % Computing TN around the line center (approximately +- 200 MHz)
     centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTNoise & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTNoise);
     
@@ -100,19 +100,19 @@ for i = 1:size(calibratedSpectra,2)
     
     %TSysCenter2=(calibratedSpectra(i).THot-mean(Ycenter)*retrievalTool.TCold)./(mean(Ycenter)-1);
     
-    calibratedSpectra(i).TSys=nanmean(TNoiseCenter);
+    calibratedSpectra(i).TNoise=nanmean(TNoiseCenter);
     
     %%%%%%%%%%% Flag 2 %%%%%%%%%%%
-    % stdTSys defined on drift !!!!???
-    if (abs(calibratedSpectra(i).TSys-calibrationTool.TNoiseCenterTh)>calibrationTool.TNoiseThresh | calibratedSpectra(i).stdTSys > calibrationTool.stdTNoiseThresh)
+    % stdTNoise defined on drift !!!!???
+    if (abs(calibratedSpectra(i).TNoise-calibrationTool.TNoiseCenterTh)>calibrationTool.TNoiseThresh | calibratedSpectra(i).stdTNoise > calibrationTool.stdTNoiseThresh)
         noiseTemperatureOK=0;
     else
         noiseTemperatureOK=1;
     end
     
     % TNoise from the log file
-    calibratedSpectra(i).TSysLog=nanmean(logFile.FE_T_Sys(ind));
-    calibratedSpectra(i).stdTSysLog=nanstd(logFile.FE_T_Sys(ind));
+    calibratedSpectra(i).TNoiseLog=nanmean(logFile.FE_T_Sys(ind));
+    calibratedSpectra(i).stdTNoiseLog=nanstd(logFile.FE_T_Sys(ind));
     
     % Mean standard deviation of calibrated sky measurement during the
     % cycle

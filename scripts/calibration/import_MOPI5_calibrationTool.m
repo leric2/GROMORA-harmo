@@ -65,8 +65,8 @@ calibrationTool.DCChannel=1; %=Nchannel/2 ??
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Folder, Raw and log file data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/mopi5/' dateStr(1:4) '/'];
-%calibrationTool.rawFileFolder=['smb://resstore.unibe.ch/iap_mwlake/instrumentdata/mopi5/' dateStr(1:4) '/'];
+calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
+%calibrationTool.rawFileFolder=['smb://resstore.unibe.ch/iap_mwlake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
 
 calibrationTool.level1Folder='/scratch/MOPI5/Level1/';
 calibrationTool.extraFileFolder='/scratch/MOPI5/ExtraRawFiles/'; % no write permission on the IAP lake
@@ -76,9 +76,6 @@ calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentNa
 
 calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
-
-% Defining level1a filename to read (to be adapted for other users)
-calibrationTool.filenameLevel1a = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 
 
 % Log

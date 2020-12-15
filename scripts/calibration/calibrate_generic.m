@@ -77,7 +77,7 @@ end
 % --> mainly for visualization
 % 
 % From Axel
-% Variations of mean amplitude and Tsys with time
+% Variations of mean amplitude and TNoise with time
 % need equal number of cycles !
 
 
@@ -100,7 +100,7 @@ drift.a(2,:) = mean(rawSpectra(initialIndices{2},:),2,'omitnan');
 drift.a(3,:) = mean(rawSpectra(initialIndices{3},:),2,'omitnan');
 drift.Y    = drift.a(1,:) ./  drift.a(3,:);
 drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.TCold)./ (drift.Y-1);
-drift.TSysLog=logFile.FE_T_Sys(initialIndices{1});
+drift.TNoiseLog=logFile.FE_T_Sys(initialIndices{1});
 drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.TCold) + calibrationTool.TCold;
 
 drift.dailyMedianHotSpectra=median(rawSpectra(initialIndices{1},:),1,'omitnan');
@@ -268,7 +268,7 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).spuriousColdSpectra=initSizeCold-length(ic); 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % additionnal check with the drift structure (computing stdTSys for
+    % additionnal check with the drift structure (computing stdTNoise for
     % flagging later). 
     if ~isempty(ih)
         % Use drift structure for additionnal quality check
@@ -300,14 +300,14 @@ for i=1:nCalibrationCycles
         %ih(outlierDrift | outlierDetectHot') = [];
         
 
-        % Also used for stddev TSYS
-        calibratedSpectra(i).TSysDrift=drift.Tn(k);
-        calibratedSpectra(i).meanTSysDrift=nanmean(drift.Tn(k));
-        calibratedSpectra(i).stdTSys=nanstd(drift.Tn(k));
+        % Also used for stddev TNoise
+        calibratedSpectra(i).TNoiseDrift=drift.Tn(k);
+        calibratedSpectra(i).meanTNoiseDrift=nanmean(drift.Tn(k));
+        calibratedSpectra(i).stdTNoise=nanstd(drift.Tn(k));
     else
-        calibratedSpectra(i).TSysDrift=NaN;
-        calibratedSpectra(i).meanTSysDrift=NaN;
-        calibratedSpectra(i).stdTSys=NaN;
+        calibratedSpectra(i).TNoiseDrift=NaN;
+        calibratedSpectra(i).meanTNoiseDrift=NaN;
+        calibratedSpectra(i).stdTNoise=NaN;
     end 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,7 +337,7 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).THot=nanmean(logFile.T_Hot_Absorber([ih,ic]));
     calibratedSpectra(i).stdTHot=nanstd(logFile.T_Hot_Absorber([ih,ic]));
     
-    % Computation of Final (clean) Tsys and its std deviation for this
+    % Computation of Final (clean) TNoise and its std deviation for this
     % cycle
     calibratedSpectra(i).Yspectral=calibratedSpectra(i).meanHotSpectra./calibratedSpectra(i).meanColdSpectra;
     

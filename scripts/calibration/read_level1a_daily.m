@@ -66,8 +66,8 @@ correctedSpectra.freq=ncread(filename,'/spectrometer1/frequencies')';
 correctedSpectra.if=ncread(filename,'/spectrometer1/intermediate_freq')';
 correctedSpectra.THot=ncread(filename,'/spectrometer1/THot')';
 correctedSpectra.stdTHot=ncread(filename,'/spectrometer1/stdTHot')';
-correctedSpectra.TSys=ncread(filename,'/spectrometer1/TSys')';
-correctedSpectra.stdTSys=ncread(filename,'/spectrometer1/stdTSys')';
+correctedSpectra.TNoise=ncread(filename,'/spectrometer1/TNoise')';
+correctedSpectra.stdTNoise=ncread(filename,'/spectrometer1/stdTNoise')';
 correctedSpectra.meanStdTb=ncread(filename,'/spectrometer1/mean_std_Tb')';
 correctedSpectra.meanAngleAntenna=ncread(filename,'/spectrometer1/mean_sky_elevation_angle')';
 correctedSpectra.numHotSpectra=ncread(filename,'/spectrometer1/number_of_hot_spectra')';
@@ -84,8 +84,8 @@ end
 %correctedSpectra.effectiveCalibrationTime=ncread(filename,'/spectrometer1/effectiveCalibrationTime')';
 
 % ncread(filename,'/spectrometer1/stdTHot',[calibratedSpectra.stdTHot]);
-% ncread(filename,'/spectrometer1/TSys',[calibratedSpectra.Tsys]);
-% ncread(filename,'/spectrometer1/stdTSys',[calibratedSpectra.stdTSys]);
+% ncread(filename,'/spectrometer1/TNoise',[calibratedSpectra.TNoise]);
+% ncread(filename,'/spectrometer1/stdTNoise',[calibratedSpectra.stdTNoise]);
 % ncread(filename,'/spectrometer1/calibrationTime',[calibratedSpectra.calibrationTime]);
 % ncread(filename,'/spectrometer1/meanAngleAntenna',[calibratedSpectra.meanAngleAntenna]);
 %
@@ -148,14 +148,14 @@ for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).day = correctedSpectra.day(i);
     calibratedSpectra(i).THot = correctedSpectra.THot(i);
     calibratedSpectra(i).stdTHot = correctedSpectra.stdTHot(i);
-    calibratedSpectra(i).TSys = correctedSpectra.TSys(i);
+    calibratedSpectra(i).TNoise = correctedSpectra.TNoise(i);
     calibratedSpectra(i).TWindow = correctedSpectra.TWindow(i);
     calibratedSpectra(i).meanStdTb = correctedSpectra.meanStdTb(i);
     calibratedSpectra(i).mean_sky_elevation_angle  =  correctedSpectra.meanAngleAntenna(i);
     calibratedSpectra(i).number_of_hot_spectra  =  correctedSpectra.numHotSpectra(i);
     calibratedSpectra(i).number_of_cold_spectra  =  correctedSpectra.numColdSpectra(i);
     calibratedSpectra(i).number_of_sky_spectra  =  correctedSpectra.numAntSpectra(i);
-    calibratedSpectra(i).stdTSys = correctedSpectra.stdTSys(i);
+    calibratedSpectra(i).stdTNoise = correctedSpectra.stdTNoise(i);
     calibratedSpectra(i).calibration_time = correctedSpectra.calibrationTime(i);
     calibratedSpectra(i).first_sky_time = correctedSpectra.firstSkyTime(i);
     calibratedSpectra(i).last_sky_time = correctedSpectra.lastSkyTime(i);

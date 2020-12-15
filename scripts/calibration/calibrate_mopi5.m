@@ -43,7 +43,7 @@ coldIndices=find(logFile.Position==calibrationTool.indiceCold & logFile.Measurem
 % 	};
 
 % Checking the mean values to find the bug... From Axel
-% Variations of mean amplitude and Tsys with time
+% Variations of mean amplitude and TNoise with time
 TH=mean(logFile.T_Hot_Absorber);
 % drift.t  = log.t(hotIndices);
 % drift.T  = log.T_Hot_Absorber(hotIndices,:);
@@ -263,9 +263,9 @@ switch calType
 %                 calibratedSpectra(i).globalTa = (gac(1:sizeToConsider) - gcc(1:sizeToConsider)) ./ (ghc(1:sizeToConsider) - gcc(1:sizeToConsider)) *(TH-TCold) + TCold;
 %             end
 
-            % === T_sys calculation : ==
+            % === T_Noise calculation : ==
             calibratedSpectra(i).Yfactor = (calibratedSpectra(i).meanHotSpectra)./( calibratedSpectra(i).meanColdSpectra);
-            calibratedSpectra(i).TSys    = (calibratedSpectra(i).THot - calibratedSpectra(i).Yfactor*TCold)./(calibratedSpectra(i).Yfactor-1);
+            calibratedSpectra(i).TNoise    = (calibratedSpectra(i).THot - calibratedSpectra(i).Yfactor*TCold)./(calibratedSpectra(i).Yfactor-1);
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Doing the calibration globally for this calibration cycle:

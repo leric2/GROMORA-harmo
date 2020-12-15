@@ -94,8 +94,8 @@ nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx'
 
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/TSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTSys','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/TNoise','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/stdTNoise','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/integration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -196,8 +196,8 @@ ncwrite(filename,'/spectrometer1/frequencies',vertcat(integratedSpectra.frequenc
 ncwrite(filename,'/spectrometer1/intermediate_freq',vertcat(integratedSpectra.intermediate_freq)');
 ncwrite(filename,'/spectrometer1/THot',[integratedSpectra.THot]);
 %ncwrite(filename,'/spectrometer1/stdTHot',[integratedSpectra.stdTHot]);
-ncwrite(filename,'/spectrometer1/TSys',[integratedSpectra.TSys]);
-%ncwrite(filename,'/spectrometer1/stdTSys',[integratedSpectra.stdTSys]);
+ncwrite(filename,'/spectrometer1/TNoise',[integratedSpectra.TNoise]);
+%ncwrite(filename,'/spectrometer1/stdTNoise',[integratedSpectra.stdTNoise]);
 ncwrite(filename,'/spectrometer1/calibration_time',[integratedSpectra.calibration_time]);
 ncwrite(filename,'/spectrometer1/integration_time',[integratedSpectra.integration_time]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[integratedSpectra.mean_sky_elevation_angle]);
@@ -410,13 +410,13 @@ attrVal.stdTHot = {'stdTHot',...
     'K',...
     'standard deviation of the hot load temperature'};
 
-attrVal.TSys = {'TSys',...
+attrVal.TNoise = {'TNoise',...
     '',...
     'K',...
-    'mean system temperature'};
+    'mean noise receiver temperature'};
 
-attrVal.stdTSys = {'stdTSys',...
-    'standard deviation of the system temperature',...
+attrVal.stdTNoise = {'stdTNoise',...
+    'standard deviation of the noise receiver temperature',...
     'K',...
     ''};
 
@@ -513,7 +513,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
     %ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
-    ncwriteatt(filename,'/spectrometer1/TSys',attrName{i},attrVal.TSys{i});
+    ncwriteatt(filename,'/spectrometer1/TNoise',attrName{i},attrVal.TNoise{i});
     ncwriteatt(filename,'/spectrometer1/mean_std_Tb',attrName{i},attrVal.meanStdTb{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/integration_time',attrName{i},attrVal.integrationTime{i});

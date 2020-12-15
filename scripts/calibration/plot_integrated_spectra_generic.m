@@ -11,7 +11,7 @@ function plot_integrated_spectra_generic(calibrationTool,integratedSpectra)
 %               | 
 % ARGUMENTS     | INPUTS:   1. calibrationTool:
 %               |               - dateTime
-%               |               - TSysCenterTh
+%               |               - TNoiseCenterTh
 %               |               - THotTh
 %               |               - calibrationTime
 %               |               - integrationTime
@@ -39,20 +39,20 @@ try
     cm = colormap(parula(N));
     %TOD{1}=[num2str(0) ' h'];
     
-    if ~(nanmedian([integratedSpectra.TSys])==-9999)
-        yLowTN = nanmedian([integratedSpectra.TSys])-100;
-        yUpTN = nanmedian([integratedSpectra.TSys])+100;
+    if ~(nanmedian([integratedSpectra.TNoise])==-9999)
+        yLowTN = nanmedian([integratedSpectra.TNoise])-100;
+        yUpTN = nanmedian([integratedSpectra.TNoise])+100;
     else
-        yLowTN = calibrationTool.TSysCenterTh - 1000;
-        yUpTN = calibrationTool.TSysCenterTh + 1000;
+        yLowTN = calibrationTool.TNoiseCenterTh - 1000;
+        yUpTN = calibrationTool.TNoiseCenterTh + 1000;
     end
     
     ax = subplot(3,2,1);
     grid on
     yyaxis(ax(1),'left')
-    plot([integratedSpectra.dateTime],[integratedSpectra.TSys],'k-x');
+    plot([integratedSpectra.dateTime],[integratedSpectra.TNoise],'k-x');
     hold on
-    plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.TSys])*[integratedSpectra.outlierCalib],'mp','MarkerSize',10);
+    plot([integratedSpectra.dateTime], nanmedian([integratedSpectra.TNoise])*[integratedSpectra.outlierCalib],'mp','MarkerSize',10);
     set(ax(1),'ylim',[yLowTN,yUpTN])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','k');
@@ -140,7 +140,7 @@ try
 
 %     for i=1:N
 %         %plot(integratedSpectra(i).if,integratedSpectra(i).TbWinCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
-%         plot(integratedSpectra(i).dateTime,integratedSpectra(i).TSys);
+%         plot(integratedSpectra(i).dateTime,integratedSpectra(i).TNoise);
 %         %xlabel('IF [MHz]')
 %         %ylabel('T_B [K]')
 %         

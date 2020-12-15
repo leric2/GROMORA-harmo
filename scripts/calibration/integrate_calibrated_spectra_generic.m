@@ -93,9 +93,9 @@ for h = 1:length(timeThresh)-1
         dateTime=nanmean([calibratedSpectra(goodSpectra).dateTime]);
     end
     
-    integratedSpectra(h).TSys=nanmean([calibratedSpectra(goodSpectra).TSys]);
-    if isnan(integratedSpectra(h).TSys)
-        integratedSpectra(h).TSys=-9999;
+    integratedSpectra(h).TNoise=nanmean([calibratedSpectra(goodSpectra).TNoise]);
+    if isnan(integratedSpectra(h).TNoise)
+        integratedSpectra(h).TNoise=-9999;
     end
     
     integratedSpectra(h).THot=nanmean([calibratedSpectra(goodSpectra).THot]);
@@ -104,7 +104,7 @@ for h = 1:length(timeThresh)-1
     end
     
     %stdTHot
-    %StdTSYS...
+    %StdTNoise...
     
     integratedSpectra(h).TWindow=nanmean([calibratedSpectra(indSpectra).TWindow]);
     if isfield(calibratedSpectra,'TOut')

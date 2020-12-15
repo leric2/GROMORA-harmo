@@ -12,7 +12,7 @@ function plot_spectra_generic(calibrationTool, drift, meteoData, calibratedSpect
 %               | 
 % ARGUMENTS     | INPUTS:   1. calibrationTool:
 %               |               - dateTime
-%               |               - TSysCenterTh
+%               |               - TNoiseCenterTh
 %               |               - level1Folder
 %               |               - instrumentName
 %               |               - spectrometer
@@ -56,13 +56,13 @@ try
             upperLim = 280;
             medianTa = 120;
         end
-        if ~isnan(nanmedian([calibratedSpectra.TSys]))
-            limTNPlot = nanmedian([calibratedSpectra.TSys]);
+        if ~isnan(nanmedian([calibratedSpectra.TNoise]))
+            limTNPlot = nanmedian([calibratedSpectra.TNoise]);
         else
-            limTNPlot = calibrationTool.TSysCenterTh;
+            limTNPlot = calibrationTool.TNoiseCenterTh;
         end
         
-        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TSys],'r'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
+        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TNoise],'r'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
         plot(ax, [calibratedSpectra.meanAntTime], limTNPlot*[calibratedSpectra.outlierCalib]-100,'mx'), xlim([xstart,xstop]);
         
         ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'), xlim([xstart,xstop]), ylim([0,medianTa+120])
