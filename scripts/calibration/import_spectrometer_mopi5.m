@@ -50,18 +50,16 @@ calibrationTool.spectrometer=spectrometerTypes{modelFFTS};
 calibrationTool.samplingRateFFTS=samplingRateFFTS(modelFFTS);
 calibrationTool.filenameLevel1a=['/scratch/MOPI5/Level1/mopi5_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 
-% Tsys threshold:
-TSysCenter = [550 0 550 500];
-TSysThresh = [25 0 25 25];
-stdTSysThresh = [20 0 15 15];
+% TNoise threshold:
+TNoiseCenter = [550 0 550 500];
+TNoiseThresh = [25 0 25 25];
+stdTNoiseThresh = [20 0 15 15];
 
-frequencyBandAroundCenterTSys = 1e6*[20 10 200 200];
-calibrationTool.frequencyBandAroundCenterTSys = frequencyBandAroundCenterTSys(modelFFTS);
+frequencyBandAroundCenterTNoise = 1e6*[20 10 200 200];
+calibrationTool.frequencyBandAroundCenterTNoise = frequencyBandAroundCenterTNoise(modelFFTS);
 
-calibrationTool.TSysCenterTh = TSysCenter(modelFFTS);
-calibrationTool.TSysThresh = TSysThresh(modelFFTS);
-calibrationTool.stdTSysThresh=stdTSysThresh(modelFFTS);
-
-
+calibrationTool.TNoiseCenterTh = TNoiseCenter(modelFFTS);
+calibrationTool.TNoiseThresh = TNoiseThresh(modelFFTS);
+calibrationTool.stdTNoiseThresh=stdTNoiseThresh(modelFFTS);
 
 end

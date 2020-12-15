@@ -68,9 +68,9 @@ calibrationTool.numberOfChannels=32768;
 %
 %         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %         % Parameters for flagging
-%         calibrationTool.TSysCenterTh=%2750;
-%         calibrationTool.TSysThresh=%100;
-%         calibrationTool.stdTSysThresh=%8;
+%         calibrationTool.TNoiseCenterTh=%2750;
+%         calibrationTool.TNoiseThresh=%100;
+%         calibrationTool.stdTNoiseThresh=%8;
 %
 %         calibrationTool.THotTh=%313.9;
 %         calibrationTool.THotAbsThresh=%2;

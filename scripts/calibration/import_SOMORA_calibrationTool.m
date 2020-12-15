@@ -129,9 +129,9 @@ calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpecte
 calibrationTool.tippingSize=5;
 
 %Temperature
-calibrationTool.TSysCenterTh=2750;
-calibrationTool.TSysThresh=300;
-calibrationTool.stdTSysThresh=8;
+calibrationTool.TNoiseCenterTh=2750;
+calibrationTool.TNoiseThresh=300;
+calibrationTool.stdTNoiseThresh=8;
 
 calibrationTool.THotTh=311.1;
 calibrationTool.THotAbsThresh=5;
@@ -152,7 +152,7 @@ calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
 calibrationTool.threshNumRawSpectraCold=0.05*calibrationTool.numberOfChannels;
 calibrationTool.threshNumRawSpectraAnt = 0.05*calibrationTool.numberOfChannels;
 
-calibrationTool.frequencyBandAroundCenterTSys = 200e6;
+calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
 calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.3;
 calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;

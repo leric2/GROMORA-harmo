@@ -21,12 +21,12 @@ function calibratedSpectra = check_calibrated_generic(logFile,calibrationTool,ca
 %           |               - numberOfChannels
 %           |               - observationFreq
 %           |               - LOFreqTot
-%           |               - frequencyBandAroundCenterTSys
+%           |               - frequencyBandAroundCenterTNoise
 %           |               - TCold
-%           |               - TSysCenterTh
-%           |               - TSysThresh
-%           |               - stdTSys
-%           |               - stdTSysThresh
+%           |               - TNoiseCenterTh
+%           |               - TNoiseThresh
+%           |               - stdTNoise
+%           |               - stdTNoiseThresh
 %           |               - maxStdDevTbCal
 %           |               - maxProportionOfIndLN2SensorOutlier
 %           |               - maxProportionOfIndLN2LevelOutlier
@@ -86,7 +86,7 @@ for i = 1:size(calibratedSpectra,2)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % System Temperature
     % Computing TN around the line center (approximately +- 200 MHz)
-    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTSys & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTSys);
+    centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTNoise & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTNoise);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
     
@@ -96,21 +96,21 @@ for i = 1:size(calibratedSpectra,2)
     
     YcenterSmoothed=Ycenter(abs(Ycenter-Yfiltered)<2*nanstd(Ycenter));
     
-    TSysCenter=(calibratedSpectra(i).THot-YcenterSmoothed*calibrationTool.TCold)./(YcenterSmoothed-1);
+    TNoiseCenter=(calibratedSpectra(i).THot-YcenterSmoothed*calibrationTool.TCold)./(YcenterSmoothed-1);
     
     %TSysCenter2=(calibratedSpectra(i).THot-mean(Ycenter)*retrievalTool.TCold)./(mean(Ycenter)-1);
     
-    calibratedSpectra(i).TSys=nanmean(TSysCenter);
+    calibratedSpectra(i).TSys=nanmean(TNoiseCenter);
     
     %%%%%%%%%%% Flag 2 %%%%%%%%%%%
     % stdTSys defined on drift !!!!???
-    if (abs(calibratedSpectra(i).TSys-calibrationTool.TSysCenterTh)>calibrationTool.TSysThresh | calibratedSpectra(i).stdTSys > calibrationTool.stdTSysThresh)
-        systemTemperatureOK=0;
+    if (abs(calibratedSpectra(i).TSys-calibrationTool.TNoiseCenterTh)>calibrationTool.TNoiseThresh | calibratedSpectra(i).stdTSys > calibrationTool.stdTNoiseThresh)
+        noiseTemperatureOK=0;
     else
-        systemTemperatureOK=1;
+        noiseTemperatureOK=1;
     end
     
-    % Tsys from the log file
+    % TNoise from the log file
     calibratedSpectra(i).TSysLog=nanmean(logFile.FE_T_Sys(ind));
     calibratedSpectra(i).stdTSysLog=nanstd(logFile.FE_T_Sys(ind));
     
@@ -304,7 +304,7 @@ for i = 1:size(calibratedSpectra,2)
     % Error vector for this calibration cycle
     calibratedSpectra(i).errorVector=[
         sufficientNumberOfIndices,...
-        systemTemperatureOK,...
+        noiseTemperatureOK,...
         LN2SensorsOK,...
         LN2LevelOK,...
         hotLoadOK,...

@@ -143,9 +143,9 @@ calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpecte
 calibrationTool.tippingSize=27;
 
 % Temperatures
-calibrationTool.TSysCenterTh=2750;
-calibrationTool.TSysThresh=300;
-calibrationTool.stdTSysThresh=8;
+calibrationTool.TNoiseCenterTh=2750;
+calibrationTool.TNoiseThresh=300;
+calibrationTool.stdTNoiseThresh=8;
 
 calibrationTool.THotTh=313.9;
 calibrationTool.THotAbsThresh=2;
@@ -165,7 +165,7 @@ calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
 calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
 calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
 
-calibrationTool.frequencyBandAroundCenterTSys = 200e6;
+calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25; %TODO
@@ -299,7 +299,7 @@ if calibrationTool.timeNumber < datenum(2012,01,01) %TOCHECK
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 1;
     
-    calibrationTool.stdTSysThresh = 15;
+    calibrationTool.stdTNoiseThresh = 15;
 end
 % window transmission
 if calibrationTool.timeNumber < datenum(2018,11,12)
