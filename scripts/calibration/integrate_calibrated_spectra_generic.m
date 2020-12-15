@@ -20,6 +20,7 @@ function integratedSpectra = integrate_calibrated_spectra_generic(calibrationToo
 %               |           - timeZone
 %               |           - integrationTime
 %               |           - filterByTransmittance
+%               |           - transmittanceThreshold
 %               |           - filterByFlags
 %               |           - flagVectorLength
 %               |           - numberOfChannels
@@ -42,7 +43,7 @@ for h = 1:length(timeThresh)-1
     
     % transmission > 0.2 in the integration:
     if calibrationTool.filterByTransmittance
-        goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] >= 0.2);
+        goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] >= calibrationTool.transmittanceThreshold);
     else
         goodSpectra = indSpectra;
     end
