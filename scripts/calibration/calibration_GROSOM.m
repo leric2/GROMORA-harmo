@@ -31,14 +31,14 @@
 clear; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
 calibrate = true;
 integrate = true;
-readLabviewLog = false;
+readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
@@ -102,6 +102,8 @@ for d = 1:numel(dates)
     calibrationTool=import_default_calibrationTool(dateStr);
     
     calibrationTool.instrumentName=instrumentName;
+    calibrationTool.calibrationVersion = '1.0';
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
@@ -142,6 +144,7 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
+        calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = true;
         
         % Minimum number of averaged spectra needed for the level 1b
@@ -162,6 +165,7 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
+        calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = true;
         
         % Minimum number of averaged spectra needed for the level 1b
@@ -183,6 +187,7 @@ for d = 1:numel(dates)
         calibrationTool.minNumberOfAvgSpectra = 6;
         
         calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
+        calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = false;
         
         % Temperature of the cold load
@@ -244,6 +249,6 @@ for d = 1:numel(dates)
         end
     end
     %clearvars level1b; 
-    clear functions
+    clear functions   
 end
 
