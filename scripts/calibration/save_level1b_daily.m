@@ -148,12 +148,12 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,
 ncwrite(filename,'/spectrometer1/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/time','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
+ncwriteatt(filename,'/spectrometer1/time','description','mean time recorded at the beginning of all sky measurements during this calibration cycle');
 if isfield(integratedSpectra, 'MJD2K')
     ncwrite(filename,'/spectrometer1/MJD2K',[integratedSpectra.MJD2K]);
     ncwriteatt(filename,'/spectrometer1/MJD2K','units','MJD2K');
     ncwriteatt(filename,'/spectrometer1/MJD2K','calendar','Julian');
-    ncwriteatt(filename,'/spectrometer1/MJD2K','description','mean time of THE BEGINNING of all antenna measurements for this cycle');
+    ncwriteatt(filename,'/spectrometer1/MJD2K','description','mean time recorded at the beginning of all sky measurements during this calibration cycle');
 end
 ncwrite(filename,'/spectrometer1/channel_idx',1:calibrationTool.numberOfChannels);
 
@@ -174,17 +174,17 @@ ncwrite(filename,'/spectrometer1/time_of_day',[integratedSpectra.time_of_day]);
 ncwrite(filename,'/spectrometer1/first_sky_time',[integratedSpectra.first_sky_time]);  
 ncwriteatt(filename,'/spectrometer1/first_sky_time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/first_sky_time','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/first_sky_time','description','start time of the first sky measurements in this cycle');
+ncwriteatt(filename,'/spectrometer1/first_sky_time','description','time of the first sky measurements in this calibration cycle');
 
 ncwrite(filename,'/spectrometer1/last_sky_time',[integratedSpectra.last_sky_time]);
 ncwriteatt(filename,'/spectrometer1/last_sky_time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/last_sky_time','description','stop time of the first sky measurements in this cycle');
+ncwriteatt(filename,'/spectrometer1/last_sky_time','description','time of the last sky measurements in this calibration cycle');
 
 ncwrite(filename,'/spectrometer1/time_min',[integratedSpectra.time_min]);
-ncwriteatt(filename,'/spectrometer1/last_sky_time','units',calibrationTool.meanDatetimeUnit);
-ncwriteatt(filename,'/spectrometer1/last_sky_time','calendar',calibrationTool.calendar);
-ncwriteatt(filename,'/spectrometer1/last_sky_time','description','minimum theoretical start time for this calibration cycle');
+ncwriteatt(filename,'/spectrometer1/time_min','units',calibrationTool.meanDatetimeUnit);
+ncwriteatt(filename,'/spectrometer1/time_min','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/time_min','description','minimum theoretical start time for this calibration cycle');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main set of variables

@@ -139,7 +139,7 @@ for t = 1:length(spectra)
             a = (rightWingMeanTb-leftWingMeanTb)/(rightWingMeanFreq - leftWingMeanFreq);
             b = rightWingMeanTb - a*rightWingMeanFreq;
             
-            TbApprox = a * spectra(t).freq + b;
+            TbApprox = a * spectra(t).frequencies + b;
             transmittanceVector = (Tmean - TbApprox)./(Tmean - Tbg);
             
             if nanmean(transmittanceVector) > 0

@@ -228,18 +228,18 @@ for i =1:size(calibratedSpectra,2)
     calibratedSpectra(i).timeMin = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
     calibratedSpectra(i).timeMax = datestr(calibratedSpectra(i).theoreticalStartTime + minutes(calibratedSpectra(i).calibrationTime),'YYYY_mm_dd_HH:MM:SS');
     
-    calibratedSpectra(i).timeMin=datenum(calibratedSpectra(i).timeMin,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    calibratedSpectra(i).timeMax=datenum(calibratedSpectra(i).timeMax,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
+    calibratedSpectra(i).timeMin=datenum(calibratedSpectra(i).timeMin,'YYYY_mm_dd_HH:MM:SS')-calibrationTool.referenceTime;
+    calibratedSpectra(i).timeMax=datenum(calibratedSpectra(i).timeMax,'YYYY_mm_dd_HH:MM:SS')-calibrationTool.referenceTime;
     
     if ~isempty(ia)
         
         %only possible if ia is not empty !
-        calibratedSpectra(i).firstSkyTime=logFile.time(ia(1))-datenum(1970,1,1);
-        calibratedSpectra(i).lastSkyTime=logFile.time(ia(end))-datenum(1970,1,1);
+        calibratedSpectra(i).firstSkyTime=logFile.time(ia(1))-calibrationTool.referenceTime;
+        calibratedSpectra(i).lastSkyTime=logFile.time(ia(end))-calibrationTool.referenceTime;
         
         % "mean time" of the calibration cycle (mean of all antenna measurements)
         calibratedSpectra(i).meanAntTime = nanmean(logFile.dateTime(ia));
-        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
+        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-calibrationTool.referenceTime;
         
         calibratedSpectra(i).timeOfDay = 24*(datenum(calibratedSpectra(i).meanAntTime) -datenum(calibratedSpectra(i).year,calibratedSpectra(i).month,calibratedSpectra(i).day));
 
@@ -265,7 +265,7 @@ for i =1:size(calibratedSpectra,2)
         calibratedSpectra(i).timeOfDay = -9999;
         
         calibratedSpectra(i).meanAntTime = calibratedSpectra(i).theoreticalStartTime + 0.5*minutes(calibratedSpectra(i).calibrationTime);
-        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-datenum(1970,1,1);
+        calibratedSpectra(i).meanDatetime = datenum(calibratedSpectra(i).meanAntTime)-calibrationTool.referenceTime;
     end
       
     %calibratedSpectra(i).effectiveCalibrationTimeHot=length(ih)*retrievalTool.calibTimeHot;

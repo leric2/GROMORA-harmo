@@ -38,9 +38,9 @@ function logFile = harmonize_log_mopi5(calibrationTool, logFile)
 %   y.T = [y.HousingParameters_Temp_0, y.HousingParameters_Temp_7]; 
 
 if logFile.Month > 3
-    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second) + hours(2);
+    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone) + hours(2);
 else
-    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second) + hours(1);
+    logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone) + hours(1);
 end 
 
 % For MOPI5
