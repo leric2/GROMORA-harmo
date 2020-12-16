@@ -224,15 +224,12 @@ for i=1:nCalibrationCycles
           
     % Using the daily median and stddev to check for spurious hot and cold
     % spectra during this cycle:   
-    medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>3*drift.dailyStdHotSpectra;
-    medStdDevThreshCold=abs((rawSpectra(ic,:)-drift.dailyMedianColdSpectra))>3*drift.dailyStdColdSpectra;
+    medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>calibrationTool.hotSpectraNumberOfStdDev*drift.dailyStdHotSpectra;
+    medStdDevThreshCold=abs((rawSpectra(ic,:)-drift.dailyMedianColdSpectra))>calibrationTool.coldSpectraNumberOfStdDev*drift.dailyStdColdSpectra;
     
     % short scale move:    
-    medStdDevThreshHotShort = abs((rawSpectra(ih,:)-nanmedian(rawSpectra(ih,:))))>3*nanstd(rawSpectra(ih,:));
-    medStdDevThreshColdShort = abs((rawSpectra(ic,:)-nanmedian(rawSpectra(ic,:))))>3*nanstd(rawSpectra(ic,:));
-    
-    %medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>calibrationTool.hotSpectraNumberOfStdDev*drift.dailyStdHotSpectra;
-    %medStdDevThreshCold=abs((rawSpectra(ic,:)-medianRawCountsCold))>calibrationTool.coldSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:),1);
+    medStdDevThreshHotShort = abs((rawSpectra(ih,:)-nanmedian(rawSpectra(ih,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:));
+    medStdDevThreshColdShort = abs((rawSpectra(ic,:)-nanmedian(rawSpectra(ic,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:));
     
     outlierDetectHot = reshape(sum(medStdDevThreshHot,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectCold = reshape(sum(medStdDevThreshCold,2)>calibrationTool.threshNumRawSpectraCold,[],1);
@@ -389,7 +386,7 @@ switch calType
             medianSpectra = nanmedian(rawSpectra(ia,:));
             stdAntSpectra = nanstd(rawSpectra(ia,:));
             
-            medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>6*stdAntSpectra;
+            medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
             outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
@@ -480,7 +477,7 @@ switch calType
             medianSpectra = nanmedian(rawSpectra(ia,:));
             stdAntSpectra = nanstd(rawSpectra(ia,:));
             
-            medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>6*stdAntSpectra;
+            medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
             outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
