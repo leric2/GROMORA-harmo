@@ -1,4 +1,4 @@
-netcdf GROMOS_level1a_AC240_2019_01_04 {
+netcdf GROMOS_level1b_AC240_2019_01_04 {
 
 // global attributes:
 		:title = "Brightness temperature measured by ground-based radiometer" ;
@@ -8,27 +8,28 @@ netcdf GROMOS_level1a_AC240_2019_01_04 {
 		:institution = "Universtiy of Bern;UBERN" ;
 		:contact = "Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland" ;
 		:mail = "axel.murk@iap.unibe.ch" ;
-		:instrument = "GROMOS" ;
-		:number_of_spectrometer = 1. ;
 		:history = "" ;
 		:references = "" ;
 		:comment = "" ;
-		:raw_data = "/mnt/datalake/instrumentdata/gromos/FFTS/2019/GROMOS09_2019_01_04" ;
+		:instrument = "GROMOS" ;
+		:number_of_spectrometer = 1. ;
+		:raw_data_filename = "" ;
 		:raw_data_software_version = "20180220" ;
 		:calibration_version = "1.0" ;
 		:raw_file_comment = "" ;
+		:filename_level1a = "/scratch/GROSOM/Level1/GROMOS/GROMOS_level1a_AC240_2019_01_04.nc" ;
+		:creation_date_level1a = "20201216T084647Z" ;
 		:raw_file_warning = "consistency:unconsistentBinarySize_extra_timestamp" ;
+		:filename = "/scratch/GROSOM/Level1/GROMOS/GROMOS_level1b_AC240_2019_01_04.nc" ;
+		:creation_date = "20201216T084654Z" ;
+		:featureType = "timeSeries" ;
 		:labview_logfile_warning = "clean" ;
 		:data_start_date = 6943.00019675924 ;
 		:data_stop_date = 6943.99967592594 ;
-		:filename = "/scratch/GROSOM/Level1/GROMOS/GROMOS_level1a_AC240_2019_01_04.nc" ;
-		:creation_date = "20201216T084647Z" ;
-		:raw_filename = "" ;
-		:featureType = "timeSeries" ;
 
 group: spectrometer1 {
   dimensions:
-  	time = UNLIMITED ; // (144 currently)
+  	time = UNLIMITED ; // (24 currently)
   	channel_idx = 32768 ;
   variables:
   	double time(time) ;
@@ -98,31 +99,37 @@ group: spectrometer1 {
   		Tb:long_name = "Tb" ;
   		Tb:standard_name = "brightness_temperature" ;
   		Tb:units = "K" ;
-  		Tb:description = "calibrated brightness temperature for this cycle" ;
+  		Tb:description = "integrated brightness temperature for this cycle" ;
+  	double Tb_corr(time, channel_idx) ;
+  		Tb_corr:_FillValue = -9999. ;
+  		Tb_corr:long_name = "Tb_corr" ;
+  		Tb_corr:standard_name = "corrected brightness_temperature" ;
+  		Tb_corr:units = "K" ;
+  		Tb_corr:description = "integrated brightness temperature for this cycle, corrected for window and troposphere" ;
   	double stdTb(time, channel_idx) ;
   		stdTb:_FillValue = -9999. ;
   		stdTb:long_name = "stdTb" ;
   		stdTb:standard_name = "spectra of stdTb" ;
   		stdTb:units = "K" ;
   		stdTb:description = "standard deviation of brightness temperature for this cycle per channel" ;
-  	double frequencies(channel_idx) ;
+  	double good_channels(time, channel_idx) ;
+  		good_channels:_FillValue = -9999. ;
+  		good_channels:long_name = "good_channels" ;
+  		good_channels:standard_name = "good_channels" ;
+  		good_channels:units = "1" ;
+  		good_channels:description = "Flags for the quality of the channels performed during the integration" ;
+  	double frequencies(time, channel_idx) ;
   		frequencies:_FillValue = -9999. ;
   		frequencies:long_name = "f" ;
   		frequencies:standard_name = "frequency vector" ;
   		frequencies:units = "Hz" ;
   		frequencies:description = "frequency vector for the spectrometer" ;
-  	double intermediate_freq(channel_idx) ;
+  	double intermediate_freq(time, channel_idx) ;
   		intermediate_freq:_FillValue = -9999. ;
   		intermediate_freq:long_name = "if" ;
   		intermediate_freq:standard_name = "intermediate frequency vector" ;
   		intermediate_freq:units = "Hz" ;
   		intermediate_freq:description = "intermediate frequency vector for the spectrometer" ;
-  	double mean_std_Tb(time) ;
-  		mean_std_Tb:_FillValue = -9999. ;
-  		mean_std_Tb:long_name = "mean_std_Tb" ;
-  		mean_std_Tb:standard_name = "mean stdTb" ;
-  		mean_std_Tb:units = "K" ;
-  		mean_std_Tb:description = "mean standard deviation of brightness temperature for this cycle (without bad channel)" ;
   	double THot(time) ;
   		THot:_FillValue = -9999. ;
   		THot:long_name = "THot" ;
@@ -131,10 +138,6 @@ group: spectrometer1 {
   		THot:description = "Mean temperature of the hot load" ;
   	double stdTHot(time) ;
   		stdTHot:_FillValue = -9999. ;
-  		stdTHot:long_name = "stdTHot" ;
-  		stdTHot:standard_name = "" ;
-  		stdTHot:units = "K" ;
-  		stdTHot:description = "standard deviation of the hot load temperature" ;
   	double TNoise(time) ;
   		TNoise:_FillValue = -9999. ;
   		TNoise:long_name = "TNoise" ;
@@ -143,22 +146,36 @@ group: spectrometer1 {
   		TNoise:description = "mean noise receiver temperature" ;
   	double stdTNoise(time) ;
   		stdTNoise:_FillValue = -9999. ;
-  		stdTNoise:long_name = "stdTNoise" ;
-  		stdTNoise:standard_name = "standard deviation of the noise receiver temperature" ;
-  		stdTNoise:units = "K" ;
-  		stdTNoise:description = "" ;
   	double calibration_time(time) ;
   		calibration_time:_FillValue = -9999. ;
   		calibration_time:long_name = "calibrationTime" ;
   		calibration_time:standard_name = "" ;
   		calibration_time:units = "second" ;
   		calibration_time:description = "Time used for calibrating the spectra" ;
+  	double integration_time(time) ;
+  		integration_time:_FillValue = -9999. ;
+  		integration_time:long_name = "integrationTime" ;
+  		integration_time:standard_name = "" ;
+  		integration_time:units = "second" ;
+  		integration_time:description = "Time used for integrating the spectra" ;
   	double mean_sky_elevation_angle(time) ;
   		mean_sky_elevation_angle:_FillValue = -9999. ;
   		mean_sky_elevation_angle:long_name = "meanAngleAntenna" ;
   		mean_sky_elevation_angle:standard_name = "elevation_angle" ;
   		mean_sky_elevation_angle:units = "degree" ;
   		mean_sky_elevation_angle:description = "mean elevation angle of the antenna during this cycle" ;
+  	double mean_std_Tb(time) ;
+  		mean_std_Tb:_FillValue = -9999. ;
+  		mean_std_Tb:long_name = "mean_std_Tb" ;
+  		mean_std_Tb:standard_name = "mean stdTb" ;
+  		mean_std_Tb:units = "K" ;
+  		mean_std_Tb:description = "mean standard deviation of brightness temperature for this integration cycle (without bad channel)" ;
+  	double noise_level(time) ;
+  		noise_level:_FillValue = -9999. ;
+  		noise_level:long_name = "noise_level" ;
+  		noise_level:standard_name = "std(diff(Tb))" ;
+  		noise_level:units = "Tb" ;
+  		noise_level:description = "describes how noisy is the spectra" ;
   	double TRoom(time) ;
   		TRoom:_FillValue = -9999. ;
   		TRoom:long_name = "TRoom" ;
@@ -183,29 +200,69 @@ group: spectrometer1 {
   		TOut:standard_name = "" ;
   		TOut:units = "K" ;
   		TOut:description = "mean outside temperature" ;
-  	double noise_level(time) ;
-  		noise_level:_FillValue = -9999. ;
-  		noise_level:long_name = "noise_level" ;
-  		noise_level:standard_name = "std(diff(Tb))" ;
-  		noise_level:units = "Tb" ;
-  		noise_level:description = "describes how noisy is the spectra" ;
+  	double number_calibrated_spectra(time) ;
+  		number_calibrated_spectra:_FillValue = -9999. ;
   	int64 number_of_hot_spectra(time) ;
   		number_of_hot_spectra:_FillValue = -9999LL ;
   	int64 number_of_cold_spectra(time) ;
   		number_of_cold_spectra:_FillValue = -9999LL ;
   	int64 number_of_sky_spectra(time) ;
   		number_of_sky_spectra:_FillValue = -9999LL ;
-  	double mean_hot_counts(time) ;
-  		mean_hot_counts:_FillValue = -9999. ;
-
-  // group attributes:
-  		:spectrometer_type = "AC240" ;
+  	double tropospheric_transmittance(time) ;
+  		tropospheric_transmittance:_FillValue = -9999. ;
+  		tropospheric_transmittance:method = "Ingold_v1" ;
+  		tropospheric_transmittance:long_name = "tropospheric transmittance" ;
+  		tropospheric_transmittance:standard_name = "" ;
+  		tropospheric_transmittance:units = "1" ;
+  		tropospheric_transmittance:description = "" ;
+  	double tropospheric_opacity(time) ;
+  		tropospheric_opacity:_FillValue = -9999. ;
+  		tropospheric_opacity:method = "Ingold_v1" ;
+  		tropospheric_opacity:long_name = "tropospheric opacity" ;
+  		tropospheric_opacity:standard_name = "" ;
+  		tropospheric_opacity:units = "1" ;
+  		tropospheric_opacity:description = "" ;
   } // group spectrometer1
+
+group: meteo {
+  dimensions:
+  	time = UNLIMITED ; // (24 currently)
+  variables:
+  	double time(time) ;
+  		time:_FillValue = -9999. ;
+  		time:units = "days since 2000-01-01 00:00:00" ;
+  		time:calendar = "standard" ;
+  		time:description = "mean time of THE BEGINNING of all antenna measurements for this cycle" ;
+  	double air_pressure(time) ;
+  		air_pressure:_FillValue = -9999. ;
+  		air_pressure:long_name = "air pressure" ;
+  		air_pressure:standard_name = "air_pressure" ;
+  		air_pressure:units = "hPa" ;
+  		air_pressure:description = "Pressure at the station" ;
+  	double air_temperature(time) ;
+  		air_temperature:_FillValue = -9999. ;
+  		air_temperature:long_name = "air temperature" ;
+  		air_temperature:standard_name = "air_temperature" ;
+  		air_temperature:units = "K" ;
+  		air_temperature:description = "" ;
+  	double relative_humidity(time) ;
+  		relative_humidity:_FillValue = -9999. ;
+  		relative_humidity:long_name = "relative humidity" ;
+  		relative_humidity:standard_name = "relative_humidity" ;
+  		relative_humidity:units = "1" ;
+  		relative_humidity:description = "" ;
+  	double precipitation(time) ;
+  		precipitation:_FillValue = -9999. ;
+  		precipitation:long_name = "rain accumulation" ;
+  		precipitation:standard_name = "" ;
+  		precipitation:units = "mm" ;
+  		precipitation:description = "" ;
+  } // group meteo
 
 group: flags {
   dimensions:
-  	time = UNLIMITED ; // (144 currently)
-  	flags = 6 ;
+  	time = UNLIMITED ; // (24 currently)
+  	flags = 2 ;
   variables:
   	double time(time) ;
   		time:units = "days since 2000-01-01 00:00:00" ;
@@ -214,50 +271,10 @@ group: flags {
   	int64 flags(flags) ;
   	int64 calibration_flags(time, flags) ;
   		calibration_flags:_FillValue = -9999LL ;
-  		calibration_flags:errorCode_1 = "sufficientNumberOfIndices" ;
-  		calibration_flags:errorCode_2 = "noiseTemperatureOK" ;
-  		calibration_flags:errorCode_3 = "LN2SensorsOK" ;
-  		calibration_flags:errorCode_4 = "LN2LevelOK" ;
-  		calibration_flags:errorCode_5 = "hotLoadOK" ;
-  		calibration_flags:errorCode_6 = "pointingAngleOK" ;
+  		calibration_flags:errorCode_1 = "sufficientNumberOfAvgSpectra" ;
+  		calibration_flags:errorCode_2 = "tropospheric_transmittance_OK" ;
 
   // group attributes:
   		:description = "Each spectra is associated with a flag vector. The order and meaning of the flags are described in its attributes" ;
-  		:number_of_flags = 6. ;
   } // group flags
-
-group: meteo {
-  dimensions:
-  	time = UNLIMITED ; // (1440 currently)
-  variables:
-  	double time(time) ;
-  		time:_FillValue = -9999. ;
-  		time:units = "days since 2000-01-01 00:00:00" ;
-  		time:calendar = "standard" ;
-  		time:description = "time from the meteo stations" ;
-  	double air_pressure(time) ;
-  		air_pressure:_FillValue = -9999. ;
-  		air_pressure:long_name = "air_pressure" ;
-  		air_pressure:standard_name = "" ;
-  		air_pressure:units = "hPa" ;
-  		air_pressure:description = "air pressure at the station" ;
-  	double air_temperature(time) ;
-  		air_temperature:_FillValue = -9999. ;
-  		air_temperature:long_name = "air_temperature" ;
-  		air_temperature:standard_name = "" ;
-  		air_temperature:units = "K" ;
-  		air_temperature:description = "air temperature at the station" ;
-  	double relative_humidity(time) ;
-  		relative_humidity:_FillValue = -9999. ;
-  		relative_humidity:long_name = "relative_humidity" ;
-  		relative_humidity:standard_name = "" ;
-  		relative_humidity:units = "1" ;
-  		relative_humidity:description = "relative humidity of the air at the station" ;
-  	double precipitation(time) ;
-  		precipitation:_FillValue = -9999. ;
-  		precipitation:long_name = "precipitation" ;
-  		precipitation:standard_name = "" ;
-  		precipitation:units = "..." ;
-  		precipitation:description = "precipitation" ;
-  } // group meteo
 }
