@@ -15,18 +15,18 @@ All parameters must contain: type, units, where it is defined
 ### Time variable (11)
 
 |variable | type  | Description |
-|------|------|:-----------:|
+|------|------|:-----------|
 | dateStr | str  | 'YYYY_MM_HH' |
 | Year | double  | YYYY |
 | Month | double  | MM |
 | Day | double | DD |
-| [dateTime](dateTime) | datetime |  |  
+| [dateTime](dateTime) | datetime | Matlab datetime object |  
 | timeNumber | datenum |  |  
-| meanDatetimeUnit |  |  |  
+| meanDatetimeUnit | str | the unit used for the time |  
 | referenceTime |  |  |  
 | calendar |  |  |  
-| timeZone |  |  |  
-| calendar |  |  |  
+| timeZone | str | Matlab TimeZone |  
+| calendar | str | type of calendar used for the time |  
 
 #### dateTime
 
@@ -36,26 +36,26 @@ A matlab structure datetime. Defined with timeZone
 
 ### Metadata (7)
 |variable | type | Description |
-|-------|------|:-----------:|
-| instrumentName | str |  |  
-| dataLocation |  |  | 
-| PI_NAME |  |  | 
-| PI_AFFILIATION |  |  | 
-| PI_ADDRESS |  |  | 
-| PI_EMAIL |  |  | 
-| dataSource |  |  | 
+|-------|------|:-----------|
+| instrumentName | str | name of the instrument |  
+| dataLocation | str | location of the instrument | 
+| PI_NAME | str | name of the PI | 
+| PI_AFFILIATION | str | affiliation of the PI | 
+| PI_ADDRESS | str | address of the PI | 
+| PI_EMAIL | str | email of PI | 
+| dataSource | str | MWR.O3_UBERN (NDACC) | 
 
 
 ---
 
 
 ### Geolocation data (4)
-|variable | type | Description |
-|------|------|:-----------:|
-| lon |  |  | 
-| lat |  |  | 
-| altitude |  |  | 
-| azimuthAngle |  |  | 
+|variable | type | unit | description | 
+|------|------|------|:-----------|
+| lon | double | degree_north | latitude defined according to WGS84
+| lat | double | degree_east | longitude defined according to WGS84
+| altitude | double | meter | altitude above see level
+| azimuthAngle | double | degree measured clockwise positive, 0 deg is northwise | azimuth observation angle 
 
 
 ---
@@ -64,119 +64,142 @@ A matlab structure datetime. Defined with timeZone
 ### Physical constant / parameters (6)
 
 | variable | type | unit | Description |
-|------|------|------|:-----------:|
-| lightSpeed | double | m/s |  |
-| h | double |  |  |
-| kb | double |  |  |
-| zeroDegInKelvin | double |  |  |
-| backgroundMWTb | double |  | MW background radiation |
+|------|------|------|:-----------|
+| lightSpeed | double | m/s | speed of light |
+| h | double | J*s | Planck constant |
+| kb | double | J/K | Boltzmann constant  |
+| zeroDegInKelvin | double | degree | conversion between degreeC and Kelvin |
+| backgroundMWTb | double | K | MW background radiation |
 
 ---
 
 ### Spectrometer variables (15-16)
 | variable | type | Description |
-|------|------|:-----------:|
-| observationFreq | double |  |  
-| numberOfSpectrometer | double |  |  
- | spectrometer |  |  |  
- | samplingRateFFTS | double |  |  
- | numberOfChannels | double |  |  
- | IQProcessing |  |  |  
- | fLO1, fLO2, ... | double |  |  
- | LOFreqTot | double |  |  
- | instrumentBandwidth | double | bandwidth \[Hz\] |  
- | badChannels |  |  |  
- | numberOfAquisitionSpectraHot |  |  |  
- | numberOfAquisitionSpectraAntenna |  |  |  
- | numberOfAquisitionSpectraCold |  |  |  
- | flipped_spectra | boolean  |  |  
+|------|------|:-----------|
+| observationFreq | double | observation frequency in \[Hz\] |  
+| numberOfSpectrometer | double | number of spectro in this instrument |  
+| spectro | str | name of the spectro |  
+| samplingRateFFTS | double | temporal sampling rate of the spectro in \[MHz\] |  
+| numberOfChannels | double | number of spectro channels |  
+| IQProcessing | boolean | 1 for IQ processing spectro |  
+| fLO1, fLO2, ... | double | value of the local oscillator frequencies in \[Hz\] |  
+| LOFreqTot | double | total value of the local oscillator frequencies in \[Hz\] |  
+| instrumentBandwidth | double | bandwidth of the spectro in \[Hz\] |  
+| badChannels | double vector | containing individual channels of spectro known to work badly |  
+| numberOfAquisitionSpectraHot | double | # of spectra aquired during a single hot measurement cycle |  
+| numberOfAquisitionSpectraAntenna | double | # of spectra aquired during a single sky measurement cycle |  
+| numberOfAquisitionSpectraCold | double | # of spectra aquired during a single cold measurement cycle  |  
+| flipped_spectra | boolean | indicates if the spectra is flipped compared to normal |  
 
 ---
 
 ### Raw files check (6)
 
 | variable | type | Description |
-|------|------|:-----------:|
-| checkLevel0 | boolean |  | 
-| tippingSize | double |  |  
-| numberOfTippingCurveExpected | double |  | 
-| toleranceTippingCurves | double |  | 
-| numberOfCyclesExpected | double |  | 
-| toleranceNumberCycles | double |  | 
+|------|------|:-----------|
+| checkLevel0 | boolean | 1 if we want to perform a check on the raw files | 
+| tippingSize | double | expected size of the tipping curve (tc) cycle |  
+| numberOfTippingCurveExpected | double | expected number of tc done in the day| 
+| toleranceTippingCurves | double | tolerance for the # of tc during this day | 
+| numberOfCyclesExpected | double | total number of cycle expected during this day | 
+| toleranceNumberCycles | double | tolerance for the # cycle expected during this day  | 
 
 ---
 
 ### Files and folder variables (14)
-| variable | type  | Description |
-|------|------|:-----------:|
-| binaryDataExtension | str |  | 
-| logFileDataExtension |  |  |  
-| bytesPerValue |  |  |  
-| binaryType |  |  |  
-| rawFileFolder |  |  |  
-| extraFileFolder |  |  |  
-| level1Folder |  |  |  
-| meteoFolder | str |  | 
-| filename |  |  |  
-| [file](#112) |  |  |  
-| delimiter_logfile |  |  |  
-| labviewLog | boolean |  |  
-| filenameLevel1a |  |  |  
-| filenameLevel1b |  |  |  
 
-#### 112
+Note: all folders needs to be given with their full paths.
+
+| variable | type  | Description |
+|------|------|:-----------|
+| binaryDataExtension | str | extension of the binary raw file (usually  .bin) | 
+| logFileDataExtension | str | extension of the binary log file (usually  .txt) | 
+| bytesPerValue | double | number of bytes used by a single value in the binary files |  
+| binaryType | str | ordering byte type of the binary file (often 'ieee-be') |  
+| rawFileFolder | str | folder containing the raw and log files |  
+| extraFileFolder | str | folder to use for storing extra time stamps |  
+| level1Folder | str | folder to use for storing the outputs files (plots + level 1) |  
+| meteoFolder | str | folder containing the meteo files | 
+| filename | str | name of the raw file (often GROMOS09_dateStr) |  
+| file | str |  rawFileFolder + filename|  
+| delimiter_logfile | str  | delimiter symbol used in the log file (for instance '\t') |  
+| labviewLog | boolean | 1 for trying to read the log book from the labview -> filename to specify |  
+| filenameLevel1a | str | full name of level 1a netCDF output file |  
+| filenameLevel1b | str | full name of level 1b netCDF output file |  
 
 
 ---
 
-### Log variables (14)
+### Log variables 
+
+These variables are used to understand the log file for this day. 
 
 | variable | type  | Description |
-|------|------|:-----------:|
-| THotUnit | str |  |  
-| positionIndAsName | boolean |  |  
-| indiceCold | double |  |  
-| indiceAntenna | double |  |  
-| indiceHot | double |  |  
-| elevationAngleCold | double |  |  
-| elevationAngleAntenna | double |  |  
-| elevationAngleHot | double |  |  
-| elevationAngleColdTol | double |  | 
-| elevationAngleTolerance | double |  | 
-| elevationAngleHotTol | double |  | 
-| cycleDurationCold | double |  | 
-| cycleDurationSky | double |  | 
-| cycleDurationHot | double |  | 
+|------|------|:-----------|
+| THotUnit | str | unit of the recorded hot load temperature |  
+| positionIndAsName | boolean | 1 if the position are stored as string (e.g. 'cold') instead of integer (0) in the log |  
+| indiceCold | double | integer corresponding to position of the cold load |  
+| indiceAntenna | double | integer corresponding to position of the sky observation |  
+| indiceHot | double | integer corresponding to position of the hot load |  
+| cycleDurationCold | double | approximate value of the cold measurement cycle time \[s\] | 
+| cycleDurationSky | double | approximate value of the sky measurement cycle time \[s\] |  | 
+| cycleDurationHot | double | approximate value of the hot measurement cycle time \[s\] |  | 
 
 ---
 
-### Calibration variables + outlier detection ? (22)
+### Calibration variables, flags and outlier detection
+
+The following variable are used mostly for the flagging of the calibrated spectra. 
+
 | variable | type  | Description |
-|------|------|:-----------:|
-| calType | str |  | 
-| calibrationTime |  | s |  
-| TSysCenterTh |  |  |  
-| TSysThresh |  |  |  
-| stdTSysThresh |  |  |  
-| frequencyBandAroundCenterTSys |  |  |  
-| THotTh |  |  |  
-| THotAbsThresh |  |  |  
-| hotTemperatureStdThreshold |  |  |  
-| stdAntAngleThresh |  |  |  
-| minNumberOfIndicePerCycle |  |  |  
-| hotSpectraNumberOfStdDev |  |  |  
-| coldSpectraNumberOfStdDev |  |  |  
-| threshNumRawSpectraHot |  |  |  
-| threshNumRawSpectraCold |  |  |  
-| threshNumRawSpectraAnt |  |  | 
-| maxProportionOfIndLN2LevelOutlier |  |  | 
-| maxProportionOfIndLN2SensorOutlier |  |  | 
-| threshNumRawSpectraAnt |  |  |
-| maxStdDevTbCal |  |  |  
-| goodFlagLN2Above |  |  |  
-| goodFlagLN2Below |  |  |  
+|------|------|:-----------|
+| calType | str | type of the calibration to perform ('standard' or 'debug') | 
+| calibrationTime | double | time interval for the calibration \[min\] |  
+| TSysCenterTh | double |  |  
+| TSysThresh | double |  |  
+| stdTSysThresh | double |  |  
+| frequencyBandAroundCenterTSys | double |  |  
+| THotTh | double |  |  
+| THotAbsThresh | double |  |  
+| hotTemperatureStdThreshold | double |  |  
+| stdAntAngleThresh | double  |  |  
+| minNumberOfIndicePerCycle | double |  |  
+| maxProportionOfIndLN2LevelOutlier | double |  | 
+| maxProportionOfIndLN2SensorOutlier | double |  | 
+| maxStdDevTbCal | double |  |  
+| goodFlagLN2Above | double |  |  
+| goodFlagLN2Below | double |  |  
+
+Used for outliers detection: 
+| variable | type  | Description |
+|------|------|:-----------|
+| elevationAngleCold | double | expected elevation during cold measurement cycle |  
+| elevationAngleAntenna | double | expected elevation during sky measurement cycle |  
+| elevationAngleHot | double | expected elevation during hot measurement cycle |  
+| elevationAngleColdTol | double | tolerance for outlier detection of single cold spectra based on elevation angle | 
+| elevationAngleTolerance | double | tolerance for outlier detection of single sky spectra based on elevation angle | 
+| elevationAngleHotTol | double | tolerance for outlier detection of single hot spectra based on elevation angle | 
+| hotSpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection)|  
+| coldSpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection) |  
+| skySpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection) |  
+| threshNumRawSpectraHot | double | see [outlierDetection](#outlierDetection) |  
+| threshNumRawSpectraCold | double | see [outlierDetection](#outlierDetection) |  
+| threshNumRawSpectraAnt | double | see [outlierDetection](#outlierDetection) | 
+
+Note that all angles are in degree.
+
+#### outlierDetection
+
+During calibration process, one outlier detection technique consists at checking how consistent are the spectrometer counts on hot, cold and sky position within a day (or a calibration cycle in the case of sky observation). To do that, we check that every indidivual spectrum measured on the cold and hot position have a least a certain amount of channels (= threshNumRawSpectraHot, threshNumRawSpectraCold) that are comprised within:
+
+Daily median +/- hotSpectraNumberOfStdDev * daily stdDev
+
+In the case of the sky observation, we take into account a bigger variability of the atmosphere by using the median and stdDev of the calibration cycle (usually 10 minutes) to detect the potential outliers.
+
+Note that in addition to this techniques, individual spectra can also be removed by a check on the elevation angle or if the ADC of the spectro was overloaded during recording.
 
 ---
+
 
 ### Meteo variables (3)
 | variable | type  | Description |
@@ -192,17 +215,17 @@ A matlab structure datetime. Defined with timeZone
 
 | variable | type  | Description |
 |---|------|------|:-----------:|
-| rawSpectraPlot | boolean |  | 
-| calibratedSpectraPlot | boolean |  | 
-| calibratedSpectraSpectralPlot | boolean |  | 
-| integratedSpectraPlot | boolean |  | 
+| rawSpectraPlot | boolean | 1 to plot the raw counts (to be improved) | 
+| calibratedSpectraPlot | boolean | 1 to plot the calibrated spectra | 
+| calibratedSpectraSpectralPlot | boolean | 1 to plot the spectral variable for the calibrated spectra | 
+| integratedSpectraPlot | boolean | 1 to plot the integrated spectra | 
 
 ---
 
 ### Integration variables (9)
 | variable | type  | Description |
 |---|------|------|:-----------:|
-| integrationTime |  | s |  
+| integrationTime | double | min |  
 | minNumberOfAvgSpectra | double |  |  
 | filterByTransmittance | boolean |  |  
 | filterByFlags | boolean |  |  

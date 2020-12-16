@@ -1,5 +1,14 @@
 # Level 1 files
 
+## Table of Contents
+1. [Format](#Format)
+1. [Tools and Conventions](#Tools-and-Conventions)
+2. [Global attributes](#Global-attributes)
+2. [Group 1: spectrometer](#spectrometer1-group)
+2. [Group 2: flags](#Flags-group)
+2. [Group 3: meteo](#Meteo-group)
+
+
 For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html
 ## Format
 It was agreed to use the netCDF format for storing all levels of our data. There are 4 different types of base format for netCDF which can be divided between the ***netCDF classic base format*** and the enhanced ***netCDF-4/HDF5***.
@@ -32,7 +41,7 @@ These are the metadata and store information about the data. They can be either 
 * Global attributes are identified by its name and a special "global variable"
 * Local attributes are identified by its name and the name (or ID) of the specific variable
 
-## Conventions
+## Tools and Conventions
 There are multiple conventions and good practice for writing netCDF files. For the sake of compatibility, we will start from existing conventions to write our netCDF file (see http://cfconventions.org/) and we will adapt it if needed.
 
 ## Global attributes
