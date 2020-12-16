@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
+dates=datenum('2019_01_04','yyyy_mm_dd'):datenum('2019_01_04','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -115,6 +115,7 @@ for d = 1:numel(dates)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     calibrationTool.hotSpectraNumberOfStdDev=3;
     calibrationTool.coldSpectraNumberOfStdDev=3;
+    calibrationTool.skySpectraNumberOfStdDev=6;
     
     calibrationTool.labviewLog = labviewLog;
     
@@ -197,7 +198,7 @@ for d = 1:numel(dates)
         % see order in calibrationTool.spectrometerTypes
         modelFFTS=[1 3 4];
         
-        calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
+        calibrationTool = import_MOPI5_calibrationTool(calibrationTool);
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
         calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);

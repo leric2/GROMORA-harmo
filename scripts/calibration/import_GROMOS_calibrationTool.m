@@ -46,7 +46,7 @@ calibrationTool.observationFreq=1.4217504e11;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calibrationTool.numberOfSpectrometer=1;
 calibrationTool.spectrometer='AC240';
-calibrationTool.samplingRateFFTS=2000;
+calibrationTool.samplingRateFFTS=2000; % sampling rates in MHz 
 
 calibrationTool.numberOfChannels=32768;
 

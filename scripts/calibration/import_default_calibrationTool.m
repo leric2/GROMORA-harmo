@@ -38,7 +38,7 @@ calibrationTool.dateStr=dateStr;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Physical constant
 calibrationTool.lightSpeed=299792458;   % [m/s] 
-calibrationTool.h=6.62606876e-34;       % [J/s]
+calibrationTool.h = 6.62606876e-34;       % [Js]
 calibrationTool.kb=1.38065e-23;         % [J/K]
 
 % Conversion between degree C and Kelvin.
