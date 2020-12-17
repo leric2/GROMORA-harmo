@@ -4,12 +4,12 @@ Summary of the quality control applied during the GROSOM calibration routine (le
 
 It can be divided into 2 main categories: the removing of "outlier" and the flagging of the data.
 
-## Flags
+
 I have tried to prefer the flagging of data instead of the removal of data whenever possible. During the calibration routine, I have set up the following flags to help understand why some data are missing (on a later stage) or showing some weird profiles after retrieval. 
 
 There are different flags applied between the lvl0 to lvl1b routine.
 
-#### Level0 flags:
+## Level0 flags:
 When reading the raw data, we perform a few checks on the quality of it in the function *check_level0_generic()*:
 a. size of log and raw data
 b. check number of tipping curves done
@@ -19,17 +19,13 @@ It writes a "warningLevel0" structure in the form of a string which is later sav
 
 Additionaly, the "comment" variable present in the log file is also saved as a global attribues to the lvl1a file.
 
-#### Calibration Level1a flags
-These flags are defined into the "check_calibrated()" function after the effective calibration is done. The following is implemented:
-a. "sufficientNumberOfIndices": checks that each calibration cycle averaged enough individual cycle of each type (hot, cold and antenna).
-b. "systemTemperatureOK": check that the mean Tsys was in a certain interval during the calibration cycle and that its standard deviation was under a certain threshold during the cycle. 
-c. "LN2SensorsOK": checks if there are some averaged individual cycles that had this flags in their log file. 
-d. "LN2LevelOK": same as above but for the level of LN2 in the cold load.
-e. "hotLoadOK": check that the hot load was in a certain interval during the calibration cycle and that the standard deviation of Thot was under a certain threshold during the cycle. 
-f. "FFT_adc_overload_OK": checks that no overload of the FFT adc occured on any of the individual cycle averaged in this calibration cycle (flags in the log file already).
+Saves extra timestamps in extra raw and log files.
 
- 
-#### Level0-1a
+## Outlier detection during the calibration
+At some point of the routine, we are forced to remove some outliers data sothat they do not pollute the rest of the data for the day, the cycle, etc.. 
+
+This is the case when performing the calibration with hot and cold load to avoid that spurious spectra takes too much power in the averaging on a cycle. 
+
 1. During effective calibration, we check individual spectra for:
 
     1. Elevation angle check for hot, cold and sky position. Absolute for hot and cold (might change for some period) and with a threshold (5deg) for sky measurement.
@@ -42,10 +38,12 @@ All individual cycle removal is recorded and plotted (if not too many) but not s
 
 At that point, we also use the indiviual (cleaned) cycle to compute the standard deviation of TSys and Tb, using the global mean of all channel for Tsys and keeping a value for each channel in Tb.
 
+## Calibration Level1a flags
+
 2. After the calibration, we have a set of checks that are runned on the calibration cycle and are setting the following flags:
 
   		calibration_flags:errorCode_1 = "sufficientNumberOfIndices" ;
-  		calibration_flags:errorCode_2 = "systemTemperatureOK" ;
+  		calibration_flags:errorCode_2 = "noiseTemperatureOK" ;
   		calibration_flags:errorCode_3 = "LN2SensorsOK" ;
   		calibration_flags:errorCode_4 = "LN2LevelOK" ;
   		calibration_flags:errorCode_5 = "hotLoadOK" ;
@@ -60,7 +58,7 @@ At that point, we also use the indiviual (cleaned) cycle to compute the standard
     5. Check that the std dev of the hot load temperature is below a certain threshold during the calibration cycle
     6. Check that the std dev of the pointing angle of sky measurement is below a certain threshold during the calibration cycle
 
-#### Level1a-1b
+## Level1a-1b
 During the second step of the routine, the following quality control is performed:
 1. We check the channel quality on calibration cycle before doing a window and a generic tropospheric correction on each calibration cycle (not taking into accound the bad channels in the wings averaging for instance) --> this is then used for the integration.
 
@@ -81,13 +79,7 @@ This point is opened to discussion...
 #### Additional warnings as attributes of the level1a-b file
 1. labview log warning: check if an entry is present in the labview log file for the day
 2. raw_file_comment: if a comment is found in the raw file
-3. raw_file_warning: 3 tyoes of warning can be found here (as string):
+3. raw_file_warning: 3 types of warning can be found here (as string):
     1. consistency:unconsistentBinarySize
     2. consistency:numberCycles
     3. extra_timestamp
-
-
-## Outlier detection
-At some point of the routine, we are forced to remove some outliers data sothat they do not pollute the rest of the data for the day, the cycle, etc.. 
-
-This is the case when performing the calibration with hot and cold load to avoid that spurious spectra takes too much power in the averaging on a cycle. 
