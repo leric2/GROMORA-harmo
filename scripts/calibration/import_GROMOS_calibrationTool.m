@@ -125,6 +125,7 @@ calibrationTool.cycleDurationSky = 7;
 calibrationTool.cycleDurationHot = 10;
 
 calibrationTool.flipped_spectra=true;
+calibration.flipAroundChannel = 16384
 calibrationTool.flip_spectra=@(rawSpectra) flip_spectra_gromos(rawSpectra);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
