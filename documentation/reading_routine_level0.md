@@ -60,18 +60,3 @@ Same as GROMOS
 
 #### Binary 
 Also goes line by line and calibrate it direclty
-
-## Questions remaining
-Is it possible to keep the full day for both instruments before going to the next step ? 
-
-It is done so by Axel so it might by possible to apply this ? --> to test on both instruments
-Maybe this is also faster if we read it in a vector instead of an array and then separate it using the fact that each floating point value is 4 bytes ?
-
-```Matlab
-% read complete binary data in one array (huge!)
-if nargout>1
-    fid = fopen( [file '.bin'], 'r', 'b');
-    data = fread(fid, [channels,M], 'float32');
-    fclose(fid);
-end
-```

@@ -1,23 +1,40 @@
-# Level 1 files
+# Level 1
 
 ## Table of Contents
-1. [Format](#Format)
+1. [Format](#NetCDF-Format)
 1. [Tools and Conventions](#Tools-and-Conventions)
-2. [Global attributes](#Global-attributes)
-2. [Group 1: spectrometer](#spectrometer1-group)
-2. [Group 2: flags](#Flags-group)
-2. [Group 3: meteo](#Meteo-group)
+3. [File structure](#GROSOM-file-structure)
+
+    1. [Global attributes](#Global-attributes)
+    2. [Group 1: spectrometer](#spectrometer1-group)
+    2. [Group 2: flags](#Flags-group)
+    2. [Group 3: meteo](#Meteo-group)
+
+## NetCDF Format
+
+The Network Common Data Form (netCDF) is a data format that allows creation,
+access and sharing of scientific datasets. It is a standard within the
+scientific communit for the storage and exchange of array-oriented data which
+means that there are multiple tools to deal with this format (Panoply, ncdump,
+...) and conventions on how to write netCDF files.
+
+There are multiple conventions and good practice for writing netCDF files. For
+the sake of compatibility, we will start from existing conventions to write our
+netCDF file (see \href{http://cfconventions.org/}{CF conventions}) and we will
+adapt it if needed.
+
+The advantages of the netCDF format is that it enables to store and access data
+in an efficient way and which is machine-independant. Moreover, many API exist
+for writing and reading netCDF files and it is especially 
 
 
-For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html
-## Format
 It was agreed to use the netCDF format for storing all levels of our data. There are 4 different types of base format for netCDF which can be divided between the ***netCDF classic base format*** and the enhanced ***netCDF-4/HDF5***.
 
 The ***netCDF classic base format*** include CDF-1, CDF-2 and CDF-5. From version 4.0, the ***netCDF-4/HDF5*** is using HDF5 format as a storage layer (which make it readable by HDF5) and offers different advantages compared to the older classical format in terms of dimensions, group definitions, etc... This is the base format that we will use for storing the level1a and the rest of the relevant data. 
 
 GEOMS standards used by the NDACC : https://gs614-avdc1-pz.gsfc.nasa.gov/index.php?site=2024100160. I think that those are not so nice and that we shoud better stick with the cf conventions (see later).
 
-## Data Model
+### Data Model
 netCDF classic dataset is stored as a single file containing 2 parts:
 * header: information about dimensions, attributes and variables which all have both a name and an ID by which they are identified.
 * data: fixe- or variable-size data for variables that have (un)limited dimension
@@ -41,12 +58,31 @@ These are the metadata and store information about the data. They can be either 
 * Global attributes are identified by its name and a special "global variable"
 * Local attributes are identified by its name and the name (or ID) of the specific variable
 
+For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html
+
 ## Tools and Conventions
 There are multiple conventions and good practice for writing netCDF files. For the sake of compatibility, we will start from existing conventions to write our netCDF file (see http://cfconventions.org/) and we will adapt it if needed.
 
-## Global attributes
+In terms of tools, they are plenty of possibilities to deal with netCDF data files. Some worth mentionning are the excellent [Panoply](https://www.giss.nasa.gov/tools/panoply/) and the netCDF utilities from Unidata. The latter enable to have a very quick look at the data or to manipulate (copy, append, extract subset) netCDF files very easily.
 
-### Level 1a
+## GROSOM file structure
+
+GROSOM level 1 files are stored in netCDF-4 format.
+
+Data are stored in daily files with time interval corresponding to the calibration (level 1a) or intergation (level 1b) time. Both levels have the same structure and more less the same variables. All files contains the following elements:
+* Global attributes: some meta information about the file content
+* Three 3 groups of variables:
+    * spectrometer1: contains all outputs from the calibration/integration from the main spectrometer in the instrument.
+    * flags: contains a set of flags to assess the quality of the data stored in spectrometer1
+    * meteo: contains all meteorological variables at the location of the instrument.
+
+Note that each groups and variables within have in addition its own set of attributes. 
+
+The details of the level 1 for the GROSOM project is presented below:
+
+### Global attributes
+
+#### Level 1a
 | Attributes | type  | Description |
 |------|------|:-----------|
 | title | str  | Content of the file |
@@ -73,7 +109,7 @@ There are multiple conventions and good practice for writing netCDF files. For t
 | creation_date | str  | creation date of this file |
 | featureType | str | [CF conventions](http://cfconventions.org/) |
 
-### Level 1b
+#### Level 1b
 
 For level 1b, the global attributes are moreless the same only with the following additions:
 
@@ -82,7 +118,7 @@ For level 1b, the global attributes are moreless the same only with the followin
 | filename_level1a | str  | name of the level 1a file |
 | creation_date_level1a | str  | creation date of the level 1a file |
 
-## spectrometer1 group
+### spectrometer1 group
 
 The main group for both level 1 files is named spectrometer1. It is where we store all variables extracted during the calibration process. 
 
@@ -146,7 +182,7 @@ The same variables are used in the level 1b file with some additions:
 | tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | method |
 | tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | method |
 
-## Flags group
+### Flags group
 
 The flags groups contains the set of flags for the calibrated and integrated spectra contained in the spectrometer1 group. It has the same main dimension and coordinate as the spectrometer1 group and has a secondary dimension corresponding to the number of flags defined.
 
@@ -182,7 +218,7 @@ For the level 1b, we have 2 flags(6 element vector per time stamp):
 
 For more details on the meaning of these flags, see the [quality control](quality_control_calibration.md) specific documentation. 
 
-## Meteo group
+### Meteo group
 
 It contains all the meteorological data read during the calibration. In the case of level 1a, we keep the original time stamps from the meteo files and therefore, we get a different time coordinates compared to the spectrometer1 group. For the level 1b, this is not the case as we only consider averaged meteo data.
 

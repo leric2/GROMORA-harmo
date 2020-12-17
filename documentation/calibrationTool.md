@@ -30,7 +30,7 @@ All parameters must contain: type, units, where it is defined
 
 #### dateTime
 
-A matlab structure datetime. Defined with timeZone
+A matlab structure datetime. Defined with timeZone ! Mandatory
 
 ---
 
@@ -90,6 +90,7 @@ A matlab structure datetime. Defined with timeZone
 | numberOfAquisitionSpectraAntenna | double | # of spectra aquired during a single sky measurement cycle |  
 | numberOfAquisitionSpectraCold | double | # of spectra aquired during a single cold measurement cycle  |  
 | flipped_spectra | boolean | indicates if the spectra is flipped compared to normal |  
+| flipAroundChannel | double | channel number where to split the spectra (usually mid-channel) |  
 
 ---
 
@@ -155,6 +156,7 @@ The following variable are used mostly for the flagging of the calibrated spectr
 |------|------|:-----------|
 | calType | str | type of the calibration to perform ('standard' or 'debug') | 
 | calibrationTime | double | time interval for the calibration \[min\] |  
+| TCold | double | |  
 | TSysCenterTh | double |  |  
 | TSysThresh | double |  |  
 | stdTSysThresh | double |  |  
@@ -169,6 +171,19 @@ The following variable are used mostly for the flagging of the calibrated spectr
 | maxStdDevTbCal | double |  |  
 | goodFlagLN2Above | double |  |  
 | goodFlagLN2Below | double |  |  
+
+
+Note on THot and TCold:
+
+We have to make a decision regarding the Temperatures to be used for the calibration T_hot and T_cold. 
+
+For T_hot, there is apparently 2 different measurements:
+* AI_0 : in/near the absorber --> real temperature ?
+* T_hot : near the heater, used for the stabilisation ?
+
+There is also the following question: should we use T_hot only when the hot spectra are measured or should we use the average ot T_hot from all the measurements in the given calibration cycle. 
+
+For T_cold, we use the temperature of liquid nitrogen but we should also take into account some effect from the edge of the containter, reflections on the liquid surface, ...?. For
 
 Used for outliers detection: 
 | variable | type  | Description |
@@ -256,19 +271,19 @@ Functions stored in calibrationTool only.
 All functions here are used in [run_calibration](run_calibration.md) and are detailed there.
 
 | name | inputs | outputs | type | Description |
-|------|------|------|------|:-----------:|
+|------|------|------|------|:-----------|
 | read_level0 | calibrationTool, readingRawFile | logFile, rawSpectra | Required | import raw files |
-| harmonize_log | calibrationTool, logFile | logFile | Required |
-| reformat_spectra | rawSpectra, logFile, calibrationTool| rawSpectra | Conditional |
-| check_level0 | logFile, rawSpectra, calibrationTool | warningLevel0 | Optional |
-| flip_spectra | rawSpectra | rawSpectra | Conditional |
-| plot_raw_spectra | rawSpectra, plot parameters | - | Optional |
-| read_meteo_data | calibrationTool | logFile.meteo | Optional ?|
-| run_tipping_curve | rawSpectra, logFile, calibrationTool | logFile.TC | Conditional |
-| calibrate | rawSpectra, logFile, calibrationTool, calibrationTool.calType | drift, calibratedSpectra | Required |
-| check_calibrated | logFile, calibrationTool,calibratedSpectra | calibratedSpectra | Conditional |
-| plot_calibrated_spectra | calibrationTool, drift, logFile.meteo, calibratedSpectra, N | - | Conditional |
-| save_level1a | calibrationTool,logFile, calibratedSpectra, warningLevel0 | calibrationTool | Conditional |
+| harmonize_log | calibrationTool, logFile | logFile | Required | harmonize log structure
+| reformat_spectra | rawSpectra, logFile, calibrationTool| rawSpectra | Conditional | format raw spectra into a matrix
+| check_level0 | logFile, rawSpectra, calibrationTool | warningLevel0 | Optional | check raw files
+| flip_spectra | rawSpectra | rawSpectra | Conditional | flip the raw spectra along the channels axis
+| plot_raw_spectra | rawSpectra, plot parameters | - | Optional | basic plots of the raw counts
+| read_meteo_data | calibrationTool | logFile.meteo | Required | read meteo data
+| run_tipping_curve | rawSpectra, logFile, calibrationTool | logFile\. TC | Conditional | perform tipping curve calibration
+| calibrate | rawSpectra, logFile, calibrationTool, calibrationTool.calType | drift, calibratedSpectra | Required | perform a hot-cold calibration
+| check_calibrated | logFile, calibrationTool,calibratedSpectra | calibratedSpectra | Conditional | check calibrated spectra and add some metadata
+| plot_calibrated_spectra | calibrationTool, drift, logFile.meteo, calibratedSpectra, N | - | Conditional | save standard plots for level 1a
+| save_level1a | calibrationTool,logFile, calibratedSpectra, warningLevel0 | calibrationTool | Conditional | save level 1a in netCDF file
 
 ---
 
@@ -277,12 +292,13 @@ All functions here are used in [run_calibration](run_calibration.md) and are det
 All functions here are used in [run_integration](run_integration.md) and are detailed there.
 
 | name | inputs | outputs | type | Description |
-|------|------|------|------|:-----------:|
-| read_level1a |calibrationTool |calibratedSpectra, meteoData, calibrationTool | Required |
-| add_meteo_data | calibrationTool, meteoData, calibratedSpectra | calibratedSpectra | Required |
-| check_channel_quality | calibratedSpectra,calibrationTool,filterType | calibratedSpectra | Required |
-| tropospheric_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required |
-| integrate_calibrated_spectra | calibrationTool,calibratedSpectra | integratedSpectra | Required |
-| check_integrated | calibrationTool, integratedSpectra | integratedSpectra | Required |
-| plot_integrated_spectra | calibrationTool, integratedSpectra | - | Required |
-| save_level1b | calibrationTool, level1 | calibrationTool | Required |
+|------|------|------|------|:-----------|
+| read_level1a |calibrationTool |calibratedSpectra, meteoData, calibrationTool | Required | import calibrated data (must exist)
+| add_meteo_data | calibrationTool, meteoData, calibratedSpectra | calibratedSpectra | Required | add meteo data to the calibrated spectra structure
+| check_channel_quality | calibratedSpectra,calibrationTool,filterType | calibratedSpectra | Required | check the channel quality of the spectra within a structure array
+| window_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | window correction for a spectrum
+| tropospheric_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | tropospheric correction for a spectrum
+| integrate_calibrated_spectra | calibrationTool,calibratedSpectra | integratedSpectra | Required | integration of the calibrated spectra
+| check_integrated | calibrationTool, integratedSpectra | integratedSpectra | Required | check of the integrated spectra and addition of some meta data
+| plot_integrated_spectra | calibrationTool, integratedSpectra | - | Required | standard plot for level 1b
+| save_level1b | calibrationTool, level1 | calibrationTool | Required | saves level 1b into netCDF file
