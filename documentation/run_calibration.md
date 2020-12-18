@@ -6,7 +6,7 @@ This is the main function that executes sequentially all steps required to calib
 
 ### Called from
 
-The main script 
+[Main script](main.md)
 
 ### Calling
 

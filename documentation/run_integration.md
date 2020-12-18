@@ -6,7 +6,7 @@ This is the main function that executes sequentially all steps required to calib
 
 ### Called from
 
-The main script.
+[Main script](main.md)
 
 ### Calling
 
@@ -54,6 +54,8 @@ saved from [*run_calibration*](run_calibration.md)
 check the channel quality of the spectra within a structure array 
 
 Both for calibrated and integrated spectra
+
+HERE describe the different filters
 
 
 ### 4. ... (window_correction)

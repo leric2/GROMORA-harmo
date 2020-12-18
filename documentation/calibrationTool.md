@@ -7,8 +7,8 @@ but also the functions that will be used to performed the calibration.
 All parameters must contain: type, units, where it is defined
 
 ## Table of Contents
-1. [Parameters](#Parameters)
-2. [Functions](#Functions)
+1. [Parameters](#parameters)
+2. [Functions](#functions)
 
 ## Parameters
 
@@ -20,7 +20,7 @@ All parameters must contain: type, units, where it is defined
 | Year | double  | YYYY |
 | Month | double  | MM |
 | Day | double | DD |
-| [dateTime](dateTime) | datetime | Matlab datetime object |  
+| [dateTime](datetime) | datetime | Matlab datetime object |  
 | timeNumber | datenum |  |  
 | meanDatetimeUnit | str | the unit used for the time |  
 | referenceTime |  |  |  
@@ -243,6 +243,7 @@ Note that in addition to this techniques, individual spectra can also be removed
 | integrationTime | double | min |  
 | minNumberOfAvgSpectra | double |  |  
 | filterByTransmittance | boolean |  |  
+| transmittanceThreshold | double |  |  
 | filterByFlags | boolean |  |  
 | filterTypeChannelQualityCal | int |  |  
 | filterTypeChannelQualityInt | int |  |  
