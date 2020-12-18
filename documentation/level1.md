@@ -1,14 +1,14 @@
 # Level 1
 
 ## Table of Contents
-1. [Format](#NetCDF-Format)
-1. [Tools and Conventions](#Tools-and-Conventions)
-3. [File structure](#GROSOM-file-structure)
+1. [Format](#netCDF-Format)
+1. [Tools and Conventions](#tools-and-Conventions)
+3. [File structure](#grosom-file-structure)
 
-    1. [Global attributes](#Global-attributes)
+    1. [Global attributes](#global-attributes)
     2. [Group 1: spectrometer](#spectrometer1-group)
     2. [Group 2: flags](#flags-group)
-    2. [Group 3: meteo](#Meteo-group)
+    2. [Group 3: meteo](#meteo-group)
 
 ## NetCDF Format
 
