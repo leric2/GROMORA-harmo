@@ -1,8 +1,8 @@
 # Level 1
 
 ## Table of Contents
-1. [Format](#netCDF-Format)
-1. [Tools and Conventions](#tools-and-Conventions)
+1. [Format](#netcdf-format)
+1. [Tools and Conventions](#tools-and-conventions)
 3. [File structure](#grosom-file-structure)
 
     1. [Global attributes](#global-attributes)
