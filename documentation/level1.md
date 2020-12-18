@@ -182,7 +182,7 @@ The same variables are used in the level 1b file with some additions:
 | tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | method |
 | tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | method |
 
-### Flags group
+## flags group
 
 The flags groups contains the set of flags for the calibrated and integrated spectra contained in the spectrometer1 group. It has the same main dimension and coordinate as the spectrometer1 group and has a secondary dimension corresponding to the number of flags defined.
 
