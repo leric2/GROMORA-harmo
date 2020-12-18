@@ -1,4 +1,4 @@
-function labviewLog = read_labview_log_generic(instrumentName)
+function labviewLog = read_labview_log_generic(instrumentName,labviewLogFolder)
 %==========================================================================
 % NAME          | read_labview_log_generic.m
 % TYPE          | function
@@ -13,7 +13,7 @@ function labviewLog = read_labview_log_generic(instrumentName)
 %               |
 %==========================================================================
 % TODO: define that somewhere else !
-labviewLogFolder = '/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/';
+
 labviewLogFile=[labviewLogFolder instrumentName '_Labview_Log.txt'];
     
 % Transforming it into matlab structure

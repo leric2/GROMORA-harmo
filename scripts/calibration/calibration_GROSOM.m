@@ -80,7 +80,8 @@ dates=datenum('2019_01_04','yyyy_mm_dd'):datenum('2019_01_04','yyyy_mm_dd');
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
-    labviewLog = read_labview_log_generic(instrumentName);
+    labviewLogFolder = '/home/esauvageat/Documents/GROSOM/Analysis/InputsCalibration/';
+    labviewLog = read_labview_log_generic(instrumentName, labviewLogFolder);
 else
     labviewLog = struct();
 end
