@@ -1,98 +1,84 @@
 # Main script
 
-### Main scripts description
+## Objective and role of this function
+
+In the main script, we define all necessary parameters for the calibration and the integration.
+
+While the main script is a good tool for research purposes, it will be adapted for an operational use.
+
+### Called from
+
+### Calling 
 | name | type | Description |
 |---|------|------|:-----------:|
-| 1 | read_labview_log_generic | Optional |  | 
-| 2 | import_default_calibration_tool | Required |  | 
-| 3 | import_Instrument_calibrationTool | Required |  | 
-| 4 | run_calibration | Required |  | 
-| 5 | [run_integration](run_integration.md) | Required |  | 
+| read_labview_log_generic | Optional |  | 
+| import_default_calibration_tool | Required |  | 
+| import_Instrument_calibrationTool | Required |  | 
+| [run_calibration](run_calibration.md) | Required |  | 
+| [run_integration](run_integration.md) | Required |  | 
 
-<!---
-## Level0 - level1a (Calibration)
-### Summary
-Here are some basic information about the routine I have written for GROMOS and SOMORA calibration.
+## Inputs
 
-In fact, there are 2 main objects to understand the way I designed this routine:
+| name | type | Description |
+|---|------|------|:-----------|
+| instrumentName | str | Name of the instrument to calibrate or integrate (case sensitive). 
+| calibrationType | str | type of calibration to perform (standard or debug) 
+| calibrate | boolean | defines if a calibration (level 0 to level 1a) is performed
+| integrate | boolean | defines if an integration (level 1a to level 1b) is performed.
+| readLabviewLog | boolean | defines if the labview log file should be read automatically
+| labviewLogFolder | str | full path to locate the folder where is stored the labview log
+| dates | datenum vector  | set of dates on which to perform the calibration.
 
-#### retrievalTool: 
-Matlab structure containing every information about the calibration (and then retrieval ??) that we want to run. In the main script (retrieval.m), we are building this structure with 2 types of informations: 
+Current options for the instrument names are:
+* GROMOS
+* SOMORA
+* mopi5
+* MIAWARA-C (to be checked)
 
-Default or basic parameters: 
+Current status:
 
-The parameters of functions that are inherent to each instrument, for instance the indice that indicates a hot spectra in the log file (ind=2), the number of channel, the localisation of the instruments, ... All those are defined into a function (import_default_retrievalTool.m) that is called in the main script and is building the retrievalTool structure taking as input the instrument name (GROMOS or SOMORA)
+MIAWARA-C not working.
 
-"Specific":
+Note that for research purposes, some additional parameters can be modified,
+either in the main script directly (see [Additional parameter](#define-some-additional-parameter-for-the-calibration)) or in
+the import_Instrument_calibrationTool function.
 
-Parameters dependant from the type of operation we want to perform, for instance if we want to do the calibration, only the retrieval or if we want to plot some calibrated spectra, ... These have to be defined manually in the main script. 
+## Structure
 
-The idea behind this retrievalTool is that it contains every piece of information for running a successfull retrieval, whatever the instrument. This is idealistic but it enables then to have a standard script following for doing effectively the calibration and the retrieval. Indeed, the process for doing the calibration and the retrieval are then "sequential" and always the same steps if all needed parameters are given. 
+After setting the parameters, if a labview log file exist, the main script
+begins by reading it and stores it into a *labviewLog* Matlab strucutre. This
+will be further integrated within the *calibrationTool* structure.
 
-This also reduces the number of place where there are instuments dependant properties to only one: the retrievalTool structure. 
+After that, the main scripts begins to loop into the set of defined *dates* and
+executes the following:
 
-Matlab also enables to store functions inside a structure and this enables for instance to use different functions for the same step done on different instruments when it is needed (typically the harmonization of the log information). It enables to avoid the use of ***switch case*** inside a specific functions which would calls for a modification of every ***switch case*** the day we want to integrate new instruments to this routine.
+### 1. Import default *calibrationTool*
 
-#### run_retrieval.m:
-The second main object of this routine is the function doing effectively the calibration. It has only 1 input; the retrivalTool structure and is called from the main script for a given day.
+The main script is creates a generic *calibrationTool* structure containing
+some common parameters for all instruments (mostly physical constants and time parameter for this day)
 
-In this function, all steps necessary for a calibration (and then a retrieval) are defined and done sequentially depending on the parameters or functions defined in retrievalTool. 
+### 2. Define some additional parameter for the calibration
 
-For the calibration (level0 - level1a), this is executing the following steps:
-1. checking the retrievalTool structure
-2. reading the raw data
-3. harmonizing the log file
-4. checking the raw data
-5. reformating the spectra
-6. flipping the spectra
-7. plotting the raw spectra
-8. calibrating
-9. check and add meta-information to the calibrated spectra
-10. plot the calibrated spectra
-11. save the calibrated spectra in netCDF daily file
+Mostly some boolean to decide for plotting or not some variables or some time related variables.
 
-### Error and warning management
-Standard way of dealing with error with is to use warnings and/or flags for "unexpected conditions" and errors for "fatal problems" which will stop the scripts.
+### 3. Import instrument specific instrument parameters
 
-This part is opened to discussion but what I did until now is:
-1. Get some warnings about the raw data, for instance if the size of the binary does not correspond to its log file. - Those are stored in the netCDF as attributes for each daily files.
-2. Some errors, for instance if there is problem when reading the raw data, that completely stops the retrieval for the day.
-3. Some flags, linked with every calibration cycle, that are stored along the level1a file in a "vector of flags" with each element corresponding to a specific type of flag (ex: large TSys,...).
+Depending on *instrumentName*, some more parameters are defined which are
+instrument specific. The rest of the parameters and functions to use for this
+specific day and instrument are then read from a special import function which
+is unique for each instrument. These are named
+import\_instrumentName\_calibrationTool.m and contain all necessary parameters
+for the rest of the processing. 
 
-### Questions about calibration (to discuss tomorrow)
-1. Is calibration routine OK (method) ? Is there a way to check it ?
+### 4. Execute calibration and integration
 
-2. Is the outlier detection OK ? For now, we remove all kind of spectra that have a wrong pointing angle (thresholds ?). For hot and cold spectra, we also check that these are not containing too many channels beyond the median +- n*sigma for each calibration cycle. 
+The last part of the main script is just calling the generic [run_calibration.m](run_calibration.md)
+and [run_integration.m](run_integration.md) functions. Both functions only have a single input; the
+*calibrationTool* structure and are the same for all instruments.
 
-2. Possible improvements: Include tipping curve calibration (approx. every 30 minutes) as additionnal information ? Make some proper error propagation in the calibration formula ? Others ?
+Note that if multiple spectrometers are present in a single instrument, we also
+loop on the set of spectrometers for calibrating or integration all of them.
 
-3. Thot and Tcold to decide ? (see level1a.md)
+When the calibration and integration is over for this day, the next date starts.
+Because the raw files are saved daily, we decided to keep daily reference.
 
-4. What other quality flags do we want to add for the calibration cycle ?
-
-5. Output parameters to save as netCDF for the level1a ? See an example of netCDF structure [here](/example_netCDF/GROSOM_level1a_daily_example.txt).
-
-### Future perspectives
-
-In my opinion, there are different ways we can take for the following steps of the projects:
-1. Improve the calibration routine, for instance by including the tipping curves calibration.
-2. Prepare for the calibration of the whole time series for both instrument
-3. Go to level 1b data
-    * Select good calibrated spectra ? Based on what ? flags ? Tb values ?
-    * Channel outliers: boxcar filter, absolute value of Tb, value of transmittance ? -- replaced with interpolation ?
-    * Windows corrections, others ?
-    * Integration of the calibrated spectra on 1h (mean ?)
-    * save it in netCDF (at least for debug purposes)
-    * continue with Matlab until level 1b (see ARTS mailing list)
-
-
-### Suggestion (old)
-Take a sort of "object oriented" approach for launching the retrievals. 
-
-We have an object (let's call it retrievalTool) that will contain all the relevant information for the retrieval we want to perform (date, name of the instruments, etc...). We manually define this object for the operation we want to perform (for instance, for running a retrieval between 2 given dates in Payerne, without quality checking anything) and then launch the retrieval through a "run" function.
-
-As launching a retrieval is a step-by-step "linear" operation, we do not need to edit the script effectively doing the step-by-step operation but we only need to edit the retrievalTool object. 
-
-On of the nice thing is that we can store function in this retrievalTool object, so that the retrievals can use different functions for different instruments in the case where it would be needed. This would be defined and documented in the retrievalTool structure and implemented in the main "run" function.
-
-CAUTION: switch cases inside functions should be avoided because it would be painfull to edit them all when a new instruments is added (or a new spectrometers for instance).-->
