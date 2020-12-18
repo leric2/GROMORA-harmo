@@ -7,7 +7,7 @@
 
     1. [Global attributes](#Global-attributes)
     2. [Group 1: spectrometer](#spectrometer1-group)
-    2. [Group 2: flags](#Flags-group)
+    2. [Group 2: flags](#flags-group)
     2. [Group 3: meteo](#Meteo-group)
 
 ## NetCDF Format
