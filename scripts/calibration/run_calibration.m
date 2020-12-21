@@ -79,7 +79,7 @@ end
 
 % this function should be integrated to reformat_spectra()
 if calibrationTool.flipped_spectra
-    rawSpectra = calibrationTool.flip_spectra(rawSpectra);
+    rawSpectra = calibrationTool.flip_spectra(rawSpectra, calibrationTool);
 end
 
 % Option for plotting spectra (to be improved...)

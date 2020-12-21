@@ -1,4 +1,4 @@
-function rawSpectra = flip_spectra_gromos(rawSpectra)
+function rawSpectra = flip_spectra_gromos(rawSpectra, calibrationTool)
 %==========================================================================
 % NAME          | flip_spectra_gromos.m
 % TYPE          | function
@@ -15,7 +15,7 @@ function rawSpectra = flip_spectra_gromos(rawSpectra)
 %==========================================================================
 % flip the negative frequencies (the first 16384 channels) to obtain -500:500MHz
 
-midChannel= calibration.flipAroundChannel;
+midChannel= calibrationTool.flipAroundChannel;
 rawSpectra = [fliplr(rawSpectra(:,1:midChannel)) rawSpectra(:,midChannel+1:end)];
 end
 
