@@ -4,6 +4,7 @@
 
 This is the main function that executes sequentially all steps required to calibrate (level 0 -> level 1a) a passive microwave radiometer. It has been designed for instruments using the hot/cold calibration scheme and primarly to GROMOS and SOMORA but has been adapted to MOPI 5 successfully and partly to MIAWARA-C which uses the tipping curve calibration scheme. 
 
+
 ### Called from
 
 [Main script](main.md)
@@ -155,6 +156,8 @@ calibration formula to the data within a given time interval
 t_cal. It is a key function of the routine and where the actual calibration is made. 
 
 See what is needed
+
+Matlab structure array
 
 ### 10. Perform a hot-cold calibratin (check_calibrated)
 

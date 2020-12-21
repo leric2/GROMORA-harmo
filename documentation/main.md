@@ -2,22 +2,33 @@
 
 ## Objective and role of this function
 
-In the main script, we define all necessary parameters for the calibration and the integration.
+In the main script, we define all required parameters for the calibration and
+the integration of a given instrument. 
 
-While the main script is a good tool for research purposes, it will be adapted for an operational use.
+The main script is a good tool for developement, especially to select some
+dates and modify quickly some key variables. It also enable to use multiple
+instrument which is not needed for an operationnal use. 
 
-### Called from
+This is a good starting point to understand the functionning of the routine and
+for running some specific dates.
 
 ### Calling 
+
+Functions called directly from the main script: 
+
 | name | type | Description |
 |---|------|------|:-----------:|
-| read_labview_log_generic | Optional |  | 
-| import_default_calibration_tool | Required |  | 
-| import_Instrument_calibrationTool | Required |  | 
-| [run_calibration](run_calibration.md) | Required |  | 
-| [run_integration](run_integration.md) | Required |  | 
+| read_labview_log_generic | Optional | reads the labview text file (called once) | 
+| import_default_calibration_tool | Required | import the default *calibrationTool* structure |
+| import_Instrument_calibrationTool | Required | complete the instrument specific *calibrationTool* structure| 
+| [run_calibration](run_calibration.md) | Required | launch the calibration process | 
+| [run_integration](run_integration.md) | Required | launch the integration process | 
 
-## Inputs
+
+## Parameters
+
+The main parameters to launch the calibration and/or integration process within
+the GROSOM project:
 
 | name | type | Description |
 |---|------|------|:-----------|
@@ -37,7 +48,7 @@ Current options for the instrument names are:
 
 Current status:
 
-MIAWARA-C not working.
+GROMOS, SOMORA and mopi5 works fine, MIAWARA-C needs someone to implement Franzisca's work. 
 
 Note that for research purposes, some additional parameters can be modified,
 either in the main script directly (see [Additional parameter](#define-some-additional-parameter-for-the-calibration)) or in
@@ -46,20 +57,25 @@ the import_Instrument_calibrationTool function.
 ## Structure
 
 After setting the parameters, if a labview log file exist, the main script
-begins by reading it and stores it into a *labviewLog* Matlab strucutre. This
+begins by reading it and stores it into a *labviewLog* Matlab structure. This
 will be further integrated within the *calibrationTool* structure.
 
-After that, the main scripts begins to loop into the set of defined *dates* and
+After that, the main script begins to loop into the set of defined *dates* and
 executes the following:
 
 ### 1. Import default *calibrationTool*
 
-The main script is creates a generic *calibrationTool* structure containing
+The main script creates a generic *calibrationTool* structure containing
 some common parameters for all instruments (mostly physical constants and time parameter for this day)
 
 ### 2. Define some additional parameter for the calibration
 
-Mostly some boolean to decide for plotting or not some variables or some time related variables.
+Mostly some boolean to decide for plotting or not some variables or some time
+related variables. In addition to these, we have kept some of the instrument
+dependend parameters inside the main script to enable some quick access and
+changes to a few key variables like the calibration and integration time (in
+minutes) or the filtering options for the integration of the calibrated spectra
+(see [calibrationTool](calibrationTool.md)).
 
 ### 3. Import instrument specific instrument parameters
 
@@ -81,4 +97,15 @@ loop on the set of spectrometers for calibrating or integration all of them.
 
 When the calibration and integration is over for this day, the next date starts.
 Because the raw files are saved daily, we decided to keep daily reference.
+
+## Some potential improvements
+
+### Multi spectrometer capabilities 
+
+Now saving specific level 1a and 1b files for each of the spectrometer. That is ok but could be even better if include all spectrometers data in 1 file at each level.
+
+### Error messages
+
+The transfer of error messages from the sub-routine *run_calibration* and *run_integration* is to be improved.
+
 
