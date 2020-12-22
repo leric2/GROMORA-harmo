@@ -12,6 +12,8 @@
 
 ## NetCDF Format
 
+[netCDF best practice](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html)
+
 The Network Common Data Form (netCDF) is a data format that allows creation,
 access and sharing of scientific datasets. It is a standard within the
 scientific communit for the storage and exchange of array-oriented data which

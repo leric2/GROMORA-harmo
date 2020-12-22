@@ -98,3 +98,7 @@ different option
 ## Potential improvements
 
 ### Reading netCDF files in Matlab
+
+### Flag filtering of the calibrated spectra during integration 
+
+Implement option to select which flags should be taken into account for the integration.

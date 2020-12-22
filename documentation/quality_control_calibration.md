@@ -76,6 +76,8 @@ This point is opened to discussion...
     2. We check that the amount of rain was not too hight during this integration cycle. UNIT ??
 
 
+## How to add flags or variables ?
+
 #### Additional warnings as attributes of the level1a-b file
 1. labview log warning: check if an entry is present in the labview log file for the day
 2. raw_file_comment: if a comment is found in the raw file
@@ -83,3 +85,4 @@ This point is opened to discussion...
     1. consistency:unconsistentBinarySize
     2. consistency:numberCycles
     3. extra_timestamp
+
