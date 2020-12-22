@@ -56,14 +56,14 @@ try
     set(ax(1),'ylim',[yLowTN,yUpTN])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','k');
-    ylabel(ax(1),({'TN [K]'}))
+    ylabel(ax(1),({'T_N [K]'}))
     
     yyaxis(ax(1),'right')
     plot([integratedSpectra.dateTime],[integratedSpectra.THot],'r-x');
     set(ax(1),'ylim', [calibrationTool.THotTh-2,calibrationTool.THotTh+2])
     %set(ax(1),'xlim', [0,24])
     set(ax(1),'YColor','r');
-    ylabel(ax(1),({'THot [K]'}))
+    ylabel(ax(1),({'T_{Hot} [K]'}))
     
     if ~(nanmedian([integratedSpectra.meanTb])==-9999)
         yLow = nanmedian([integratedSpectra.meanTb])-40;
@@ -80,14 +80,14 @@ try
     plot(ax2, [integratedSpectra.dateTime], 0.9*yUp*[integratedSpectra.outlierCalib],'mp','MarkerSize',10);
    % set(ax(1),'ylim', [0,300])
     set(ax2,'YColor','g');
-    ylabel(ax2(1),({'Tb [K]'}))
+    ylabel(ax2(1),({'T_a [K]'}))
     set(ax2,'ylim', [yLow,yUp])
     yyaxis(ax2(1),'right')
     plot([integratedSpectra.dateTime],[integratedSpectra.mean_air_temperature ],'r-x');
    % set(ax(1),'ylim', [0,300])
     %set(ax(1),'xlim', [0,24])
     set(ax2(1),'YColor','r');
-    ylabel(ax2(1),({'airT [K]'}))
+    ylabel(ax2(1),({'T_{air} [K]'}))
     grid on
 %     yyaxis(ax2(1),'right')
 %     plot([integratedSpectra.dateTime],[integratedSpectra.THot],'r');
@@ -170,7 +170,7 @@ try
         plot(integratedSpectra(i).intermediate_freq,integratedSpectra(i).TbTroposphericWindowCorr.*integratedSpectra(i).channelsQuality,'Color',cm(i,:));
         
         xlabel('IF [MHz]')
-        ylabel('T_B [K]')
+        ylabel('T_{B, corr} [K]')
 
         ylim([-5,35])
         

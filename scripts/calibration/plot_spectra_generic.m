@@ -62,10 +62,10 @@ try
             limTNPlot = calibrationTool.TNoiseCenterTh;
         end
         
-        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TNoise],'r'), ylabel('Tn [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
+        ax = subplot(3,2,1); plot(ax,drift.dateTime, drift.Tn, 'k'), hold on, plot([calibratedSpectra.meanAntTime],[calibratedSpectra.TNoise],'r'), ylabel('T_N [K]') , xlim([xstart,xstop]), ylim([limTNPlot-200,limTNPlot+200])
         plot(ax, [calibratedSpectra.meanAntTime], limTNPlot*[calibratedSpectra.outlierCalib]-100,'mx'), xlim([xstart,xstop]);
         
-        ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('Ta [K]'), xlim([xstart,xstop]), ylim([0,medianTa+120])
+        ax2 = subplot(3,2,2); plot(ax2, drift.dateTime, drift.Ta ,'g'), hold on,ylabel('T_a [K]'), xlim([xstart,xstop]), ylim([0,medianTa+120])
         plot(ax2, [calibratedSpectra.meanAntTime], medianTa*[calibratedSpectra.outlierCalib],'mx'), xlim([xstart,xstop]);
         if ~isempty(drift.outlierCold) && length(drift.outlierCold) < 100
             plot(ax, drift.outlierCold,nanmedian(drift.Tn)-40,'bx'), xlim([xstart,xstop])
@@ -108,13 +108,13 @@ try
         set(ax(1),'xlim',[xstart,xstop])
         set(ax(1),'ylim',[mean(drift.T)-0.5 mean(drift.T)+0.5])
         set(ax(1),'YColor','r');
-        ylabel(ax(1),({'T Hot  [K]'}))
+        ylabel(ax(1),({'T_{hot}  [K]'}))
         
         yyaxis(ax(1),'right')
         plot(ax(1),drift.allDateTime(1:end-1), drift.cycleTime ,'b.')
         set(ax(1),'xlim',[xstart,xstop])
         set(ax(1),'YColor','b');
-        ylabel(ax(1),({'cycle duration'}))    
+        ylabel(ax(1),({'cycle duration [hh:mm:ss]'}))    
     end
     if ~isempty(fieldnames(meteoData))
         ax = subplot(3,2,5);
@@ -123,13 +123,13 @@ try
         % set(ax(1),'ylim', [0,300])
         set(ax(1),'xlim',[xstart,xstop])
         set(ax(1),'YColor','r');
-        ylabel(ax(1),({'airT [K]'}))
+        ylabel(ax(1),({'T_{air} [K]'}))
         
         yyaxis(ax(1),'right')
         plot(ax(1),[meteoData.dateTime], [meteoData.air_pressure] ,'k')
         set(ax(1),'xlim',[xstart,xstop])
         set(ax(1),'YColor','k');
-        ylabel(ax(1),({'airP [hPa]'}))
+        ylabel(ax(1),({'P_{air} [hPa]'}))
         
         ax2 = subplot(3,2,6);
         yyaxis(ax2(1),'left')
@@ -144,7 +144,7 @@ try
         set(ax2(1),'ylim', [0,100])
         set(ax2(1),'xlim',[xstart,xstop])
         set(ax2(1),'YColor','b');
-        ylabel(ax2(1),({'relH [%]'}))
+        ylabel(ax2(1),({'RH [%]'}))
     end
     
     %subplot(4,2,7); plot([calibratedSpectra.meanAntTime], [calibratedSpectra.flagged]);
@@ -211,7 +211,7 @@ try
             if ~(calibratedSpectra(l(i)).outlierCalib == 1)
                 plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
                 %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-                ylabel('stdTb [K]')
+                ylabel('\sigma_{T_B} [K]')
                 ylim([yInfstd,ySupStd])
             end
             hold on
@@ -222,7 +222,7 @@ try
             if ~(calibratedSpectra(l(i)).outlierCalib == 1)
                 plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
                 %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-                ylabel('TN [K]')
+                ylabel('T_N [K]')
                 ylim([limTNPlot-1000,limTNPlot+1000])
             end
             hold on
