@@ -1,14 +1,50 @@
 # calibrationTool structure
 
 ## Summary
-This is the structure containing all the information to launch a calibration of GROSOM intrument. It contains not only all parameters required for calibrating a given instrument or a given day
-but also the functions that will be used to performed the calibration.
+This is the Matlab structure containing all the information to launch a calibration for
+a MWR intrument. It contains not only all parameters required for calibrating a
+specific instrument or day but also the functions that will be used to
+perform the calibration.
 
-All parameters must contain: type, units, where it is defined
+---
 
 ## Table of Contents
-1. [Parameters](#parameters)
+1. [Building calibrationTool](#building-calibrationtool)
+2. [Parameters](#parameters)
 2. [Functions](#functions)
+
+---
+
+## Building calibrationTool
+
+The *calibrationTool* structure is unique for each instrument and each date of processing. 
+
+The building of the *calibrationTool* structure is done at different places
+within the GROSOM routine:
+
+### 1. *import_default_calibrationTool*
+
+The creation of the *calibrationTool* is done within the *import_default_calibrationTool* function called from the [main script](main.md). After creation of the structure, *import_default_calibrationTool* also adds the variables that are not instrument specific, like the date and time variables and the physical constants. 
+
+### 2. Main script
+
+After *calibrationTool* has been initialized, some important parameters are defined directly within the [main script](main.md) of the GROSOM calibration. These are generally key parameters that are defined there because they are changing frequently. Most of them should be moved to the specific import functions when the routine will be ready for operationnal use.
+
+### 3. *import_InstrumentName_calibrationTool*
+
+This is where most of the fields from calibration Tool get filled. In this function, you have to setup all required parameters to perform the calibration and integration of this MWR. 
+
+It is also there that are defined all the generic or specific functions that will be used in the [calibration](run_calibration.md) and [integration](run_integration.md) sub-routine. Remember that the both the calibration and integration routine only have *calibrationTool* as single input. 
+
+At the end of *import_InstrumentName_calibrationTool*, there is also a place where we setup all the time dependent variables. 
+
+### 4. During the execution
+
+After the first 3 steps, the building of the *calibrationTool* structure is finished.
+
+Only a few specific parameters will be created during the processing of the routine. 
+
+---
 
 ## Parameters
 
@@ -23,8 +59,8 @@ All parameters must contain: type, units, where it is defined
 | [dateTime](datetime) | datetime | Matlab datetime object |  
 | timeNumber | datenum |  |  
 | meanDatetimeUnit | str | the unit used for the time |  
-| referenceTime |  |  |  
-| calendar |  |  |  
+| referenceTime | datenum | the time to take as reference for the level 1 time vector |  
+| calendar | str |  |  
 | timeZone | str | Matlab TimeZone |  
 | calendar | str | type of calendar used for the time |  
 
@@ -156,21 +192,25 @@ The following variable are used mostly for the flagging of the calibrated spectr
 |------|------|:-----------|
 | calType | str | type of the calibration to perform ('standard' or 'debug') | 
 | calibrationTime | double | time interval for the calibration \[min\] |  
-| TCold | double | |  
-| TSysCenterTh | double |  |  
-| TSysThresh | double |  |  
-| stdTSysThresh | double |  |  
+| TCold | double | cold load temperature to use for the calibration |  
+| TSysCenterTh | double | expected value of the noise receiver temperature |  
+| TSysThresh | double | threshold value of the noise receiver temperature |  
+| stdTSysThresh | double | threshold value of the standard deviation of the noise receiver temperature |  
 | frequencyBandAroundCenterTSys | double |  |  
-| THotTh | double |  |  
-| THotAbsThresh | double |  |  
-| hotTemperatureStdThreshold | double |  |  
-| stdAntAngleThresh | double  |  |  
-| minNumberOfIndicePerCycle | double |  |  
+| THotTh | double | expected value of the hot load temperature |  
+| THotAbsThresh | double | threshold value of the hot load temperature |  
+| hotTemperatureStdThreshold | double | threshold value of the standard deviation of the hot load temperature |  
+| stdAntAngleThresh | double  | threshold value of the standard deviation of the sky observation angle within a calibration cycle |  
+| minNumberOfIndicePerCycle | double | minimum number of individual cycles to be averaged together for a valid calibration cycle |  
 | maxProportionOfIndLN2LevelOutlier | double |  | 
 | maxProportionOfIndLN2SensorOutlier | double |  | 
 | maxStdDevTbCal | double |  |  
-| goodFlagLN2Above | double |  |  
+| goodFlagLN2Above | double | see [flags](#flags) |  
 | goodFlagLN2Below | double |  |  
+
+#### flags
+
+Description of flags here ?
 
 
 Note on THot and TCold:
@@ -194,12 +234,12 @@ Used for outliers detection:
 | elevationAngleColdTol | double | tolerance for outlier detection of single cold spectra based on elevation angle | 
 | elevationAngleTolerance | double | tolerance for outlier detection of single sky spectra based on elevation angle | 
 | elevationAngleHotTol | double | tolerance for outlier detection of single hot spectra based on elevation angle | 
-| hotSpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection)|  
-| coldSpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection) |  
-| skySpectraNumberOfStdDev | double | see [outlierDetection](#outlierDetection) |  
-| threshNumRawSpectraHot | double | see [outlierDetection](#outlierDetection) |  
-| threshNumRawSpectraCold | double | see [outlierDetection](#outlierDetection) |  
-| threshNumRawSpectraAnt | double | see [outlierDetection](#outlierDetection) | 
+| hotSpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection)|  
+| coldSpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection) |  
+| skySpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection) |  
+| threshNumRawSpectraHot | double | see [outlierDetection](#outlierdetection) |  
+| threshNumRawSpectraCold | double | see [outlierDetection](#outlierdetection) |  
+| threshNumRawSpectraAnt | double | see [outlierDetection](#outlierdetection) | 
 
 Note that all angles are in degree.
 
@@ -240,20 +280,24 @@ Note that in addition to this techniques, individual spectra can also be removed
 ### Integration variables (9)
 | variable | type  | Description |
 |---|------|------|:-----------:|
-| integrationTime | double | min |  
-| minNumberOfAvgSpectra | double |  |  
-| filterByTransmittance | boolean |  |  
-| transmittanceThreshold | double |  |  
-| filterByFlags | boolean |  |  
-| filterTypeChannelQualityCal | int |  |  
-| filterTypeChannelQualityInt | int |  |  
-| filter1 | struct |  |  
-| filter2 | struct |  |  
-| maxStdDevTbInt | boolean |  | 
+| integrationTime | double | time interval for the integration \[min\] |  
+| minNumberOfAvgSpectra | double | minimum number of calibrated spectra to get a valid integrated spectrum |  
+| filterByTransmittance | boolean | decides if the calibrated spectra are filtered based on their atmospheric transmittance before integration |  
+| transmittanceThreshold | double | transmittance threshold value for a "good" calibrated spectrum |  
+| filterByFlags | boolean | decides if the calibrated spectra are filtered based on the level 1a flags before integration |  
+| filterTypeChannelQualityCal | int | type of filtering use to identify spurious channels on the calibrated spectra |  
+| filterTypeChannelQualityInt | int | type of filtering use to identify spurious channels on the integrated spectra |  
+| filter1 | struct | see [filters](#filters) |  
+| filter2 | struct | see [filters](#filters) |  
+| maxStdDevTbInt | boolean | threshold for the standard deviation of individual channel on an integration cycle | 
+
+
+#### filter
+defines 4 parameters to perform a boxcal filtering to identify spurious channels on a spectrum
 
 ---
 
-### Variable list
+### Variable created during the run
 * successfulCalibration
 * flagVectorLength
 * logFile

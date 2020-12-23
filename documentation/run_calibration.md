@@ -159,9 +159,11 @@ See what is needed
 
 Matlab structure array
 
-### 10. Perform a hot-cold calibratin (check_calibrated)
+### 10. check the calibration (check_calibrated)
 
 I am then doing some other quality checks and adding flags in the function following the calibration before saving the calibrated spectra. 
+
+Quite a lot of meta data are also added during the checks
 
 
 ### 11. Plots calibrated spectra (plot_calibrated_spectra)
