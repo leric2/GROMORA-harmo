@@ -135,9 +135,11 @@ if calibrationTool.calibratedSpectraPlot
 end
 
 % Saving calibrated spectra (level 1a) into NetCDF-4 file
-disp('Saving Level 1a...')
-calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
-    calibratedSpectra, warningLevel0);
+if calibrationTool.saveLevel1a
+    disp('Saving Level 1a...')
+    calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
+        calibratedSpectra, warningLevel0);
+end
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)

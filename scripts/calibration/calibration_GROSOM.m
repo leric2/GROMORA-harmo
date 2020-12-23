@@ -36,9 +36,9 @@ instrumentName='GROMOS';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
-integrate = true;
-readLabviewLog = true;
+calibrate = false;
+integrate = false;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
@@ -127,8 +127,9 @@ for d = 1:numel(dates)
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;
     calibrationTool.calibratedSpectraSpectralPlot = true;
-    calibrationTool.calibratedSpectraStdTbPlot = false;
+    calibrationTool.saveLevel1a = true;
     calibrationTool.integratedSpectraPlot = true;
+    calibrationTool.saveLevel1b = true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
@@ -250,7 +251,7 @@ for d = 1:numel(dates)
             end 
         end
     end
-    %clearvars level1b; 
+    % clearvars level1b, calibrationTool
     clear functions   
 end
 

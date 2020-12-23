@@ -115,9 +115,11 @@ elseif calibrationTool.integratedSpectraPlot && length(level1.integratedSpectra)
     calibrationTool.plot_integrated_spectra(calibrationTool,level1.integratedSpectra)
 end
 
-% Saving integrated spectra (level1b) into NetCDF-4 file
-disp('Saving Level 1b...')
-calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1);
+if calibrationTool.saveLevel1b
+    % Saving integrated spectra (level1b) into NetCDF-4 file
+    disp('Saving Level 1b...')
+    calibrationTool  =  calibrationTool.save_level1b(calibrationTool,level1);
+end
 
 disp('Integration successful')
 
