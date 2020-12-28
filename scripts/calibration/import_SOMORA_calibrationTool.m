@@ -80,8 +80,8 @@ calibrationTool.logFileDataExtension = '.txt';
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
-calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
-%calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+%calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
+calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
 %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
 calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
