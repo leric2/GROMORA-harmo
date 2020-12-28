@@ -85,6 +85,7 @@ nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype'
 % Integration variables   
 %nccreate(filename,'/spectrometer1/effectiveCalibrationTime','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/Tb_win_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/good_channels','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
@@ -189,6 +190,7 @@ ncwriteatt(filename,'/spectrometer1/time_min','description','minimum theoretical
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main set of variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(integratedSpectra.Tb)');
+ncwrite(filename,'/spectrometer1/Tb_win_corr',vertcat(integratedSpectra.TbWinCorr)');
 ncwrite(filename,'/spectrometer1/Tb_corr',vertcat(integratedSpectra.TbTroposphericWindowCorr)');
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(integratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/good_channels',~vertcat(integratedSpectra.potentialBadChannels)');
