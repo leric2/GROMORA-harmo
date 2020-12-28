@@ -2,7 +2,7 @@
 
 ## Objective and role of this function
 
-This is the main function that executes sequentially all steps required to integrate (level 1a -> level 1b) a passive microwave radiometer. It has been designed for instruments using the hot/cold calibration scheme and primarly to GROMOS and SOMORA but has been adapted to MOPI 5 successfully and partly to MIAWARA-C which uses the tipping curve calibration scheme. 
+This is the main function that executes sequentially all steps required to **integrate** (level 1a -> level 1b) a passive microwave radiometer. It has been designed for instruments using the hot/cold calibration scheme and primarly to GROMOS and SOMORA but has been adapted to MOPI 5 successfully and partly to MIAWARA-C which uses the tipping curve calibration scheme. 
 
 Prior to the integration, a calibration step
 ([run_calibration](run_calibration.md)) must have been performed and saved for
@@ -30,7 +30,7 @@ The following functions are called within the calibration functions.
 
 All functions are stored within the *calibrationTool* structure which is the single input for the *run_calibration* function.
 
-## Inputs
+## Input
 
 *calibrationTool* with all required fields for performing an integration (see [*calibrationTool*](calibrationTool.md))
 
@@ -57,7 +57,7 @@ The imported calibrated spectra are then stored into a Matlab structure array, s
 
 The meteo data contained in the level 1a are also read and stored within a standardized meteo structure as outputed by read_meteo_data during the calibration sub-routine.
 
-### 2. Merge meteo data not *calibratedSpectra* (add_meteo_data)
+### 2. Merge meteo data in *calibratedSpectra* (add_meteo_data)
 
 As the meteo data are usually saved with their original time stamps into the level 1a, we need to merge them with the *calibratedSpectra* structure. For this, we use a generic function *add_meteo_data* which is simply integrating a classical *meteoData* structure into the *calibratedSpecta*. For most of the variables, this is a simple averaging on the defined *integrationTime*, except for the precipitation where we make a sum. 
 
@@ -77,9 +77,39 @@ As a general rule, we use filter n.3 on the calibrated spectra and a boxcar filt
 
 ### 4. Perform a window correction on calibrated spectra (window_correction)
 
+The window correction accounts for the absorption of a potential window placed
+between the instrument and the atmosphere (often the case for IAP radiometers at
+least).
+
+It computes the window (usually of styrofoam) brightness temperature with the
+Planck law and considers that it absorb and re-emit part of the radiation coming
+from outside at its own temperature.
+
+In order to account for this effect, we need the transmission coefficient of the
+window *calibrationTool.tWindow* (which should be re-computed regularly) as well
+as its temperature (*TWindow*).
+
 ### 5. Perform a tropospheric correction on calibrated spectra (tropospheric_correction)
 
-different option
+This function performs a tropospheric correction on the calibrated spectra. All
+required parameters to define the correction are stored in
+*calibrationTool.troposphericCorrection*, a sub-structure containing the
+following the following parameters:
+* *type*: type of tropospheric correction to apply ("Ingold_v1", "Ingold_v1_fit"
+  or "Ingold_v2"). "Ingold_v1" and "Ingold_v2" use a mean tropospheric
+  temperature computed from the *mean_air_temperature* (v1) or the *mean_air_temperature*
+  and *mean_relative_humidity* (v2). "Ingold_v1_fit" uses 
+* *useWings*: a string which specify which wing(s) are used to compute the mean
+  wing brightness temperature ("both","left" or "right")
+* *numberOfChannelsTropCorr*: number of channel to average together to compute a
+  wing temperature.
+* *skipFraction*: fraction of channel to keep at the end of the spectrum before
+  computing the wing temperature.
+* *deltaT*: constant temperature to remove rom the air_temperature to compute
+  the mean tropospheric temperature (see Ingold et al.)
+
+Note that if a window correction has been applied beforehand (which should be
+the case), the tropospheric correction is made on the window corrected spectra.
 
 ### 6. Integrate the calibrated spectra (integrate_calibrated_spectra)
 
@@ -101,4 +131,7 @@ different option
 
 ### Flag filtering of the calibrated spectra during integration 
 
-Implement option to select which flags should be taken into account for the integration.
+Implement option to select which flags should be taken into account for the
+integration.
+
+### Check the window correction
