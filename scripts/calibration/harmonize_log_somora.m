@@ -45,7 +45,7 @@ logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,
 
 logFile.Tipping_Curve_active=(logFile.Position==6);
 logFile.T_Hot_Absorber=logFile.AI_0*100;
-logFile.T_Window=logFile.AI_1*100;
+logFile.T_Window=logFile.AI_3*100;
 logFile.T_Out=logFile.AI_7*100;
 logFile.T_Room=logFile.AI_1*100;
 end
