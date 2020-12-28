@@ -18,9 +18,9 @@ Functions called directly from the main script:
 
 | name | type | Description |
 |---|------|------|:-----------:|
-| read_labview_log_generic | Optional | reads the labview text file (called once) | 
+| read_labview_log_generic | Conditional | reads the labview text file (called once) | 
 | import_default_calibration_tool | Required | import the default *calibrationTool* structure |
-| import_Instrument_calibrationTool | Required | complete the instrument specific *calibrationTool* structure| 
+| import_InstrumentName_calibrationTool | Required | build and complete the instrument specific *calibrationTool* structure| 
 | [run_calibration](run_calibration.md) | Required | launch the calibration process | 
 | [run_integration](run_integration.md) | Required | launch the integration process | 
 
@@ -40,39 +40,37 @@ the GROSOM project:
 | labviewLogFolder | str | full path to locate the folder where is stored the labview log
 | dates | datenum vector  | set of dates on which to perform the calibration.
 
-Current options for the instrument names are:
-* GROMOS
-* SOMORA
-* mopi5
-* MIAWARA-C (to be checked)
+Current available options for the instrument names are:
+* GROMOS: back to 10.03.2010 (meteo only back to 12.05.2010)
+* SOMORA: in principle back to 2011 (at least) but in practice, lots of periods tried before 2015 have too much FFT overloads detected and deleted
+* mopi5: 01.2019 - 06.2019
+* MIAWARA-C: needs some additional work to implement Franzisca's work
 
-Current status:
-
-GROMOS, SOMORA and mopi5 works fine, MIAWARA-C needs someone to implement Franzisca's work. 
+Among the above mentioned, some periods might need some adjustements of the outlier detection to work properly.
 
 Note that for research purposes, some additional parameters can be modified,
-either in the main script directly (see [Additional parameter](#define-some-additional-parameter-for-the-calibration)) or in
-the import_Instrument_calibrationTool function.
+either in the main script directly (see the additional parameters below) or in
+the *import_Instrument_calibrationTool function*.
 
 ## Structure
 
-After setting the parameters, if a labview log file exist, the main script
+After setting the main parameters, if a labview log file exist, the main script
 begins by reading it and stores it into a *labviewLog* Matlab structure. This
-will be further integrated within the *calibrationTool* structure.
+will be further integrated within the *calibrationTool* structure. Doing it first avoid reading it multiple times in the loop of dates.
 
 After that, the main script begins to loop into the set of defined *dates* and
-executes the following:
+executes the following for each day:
 
 ### 1. Import default *calibrationTool*
 
 The main script creates a generic *calibrationTool* structure containing
-some common parameters for all instruments (mostly physical constants and time parameter for this day)
+some common parameters (mostly physical constants and time parameter for this day which do not depend on the instrument)
 
-### 2. Define some additional parameter for the calibration
+### 2. Define some additional parameters for the calibration
 
 Mostly some boolean to decide for plotting or not some variables or some time
 related variables. In addition to these, we have kept some of the instrument
-dependend parameters inside the main script to enable some quick access and
+dependent parameters inside the main script to enable some quick access and
 changes to a few key variables like the calibration and integration time (in
 minutes) or the filtering options for the integration of the calibrated spectra
 (see [calibrationTool](calibrationTool.md)).
@@ -106,6 +104,12 @@ Now saving specific level 1a and 1b files for each of the spectrometer. That is 
 
 ### Error messages
 
-The transfer of error messages from the sub-routine *run_calibration* and *run_integration* is to be improved.
+The transfer of error messages from the sub-routine *run_calibration* and *run_integration* can be improved.
 
+### Operational script
+
+Think about the operationnal implementation of this script including:
+* files and folder path definition
+* filtering and outliers removal
+* ...
 
