@@ -29,6 +29,8 @@ function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,logFile,calibr
 %               |               - elevationAngleTolerance
 %               |               - threshNumRawSpectraAnt
 %               |               - numberOfChannels
+%               |               - outlierDectectionType
+%               |              
 %               |         4. calType: Calibration type to do
 %               |               1. standard: mean antenna vs mean hot/cold 
 %               |                  spectra
