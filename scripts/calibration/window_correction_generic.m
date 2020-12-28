@@ -32,15 +32,14 @@ for t = 1:length(spectra)
         spectra(t).TbWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
     else
         if ~isnan(spectra(t).TWindow) 
-            TWindow=spectra(t).TWindow;
-        elseif ~isnan(spectra(t).mean_air_temperature)
-            TWindow = spectra(t).mean_air_temperature;
+            TWindow = spectra(t).TWindow;
         else
-            error('no temperature found')
+            TWindow = calibrationTool.zeroDegInKelvin + 20;
+            warning('no temperature found, correcting using standard window temperature (20°C)')
         end
-            
+        
         % Planck:
-        TbWindowP= (2*calibrationTool.h*frequencies.^2)/(calibrationTool.lightSpeed^2)*(1)./(exp((t*frequencies)./(calibrationTool.kb*TWindow))-1);
+        TbWindowP = (2*calibrationTool.h*frequencies.^2)/(calibrationTool.lightSpeed^2)*(1)./(exp((t*frequencies)./(calibrationTool.kb*TWindow))-1);
     
         % Railey-Jeans ??
         % TbWindowRJ = (retrievalTool.lightSpeed^2 ./ (2*retrievalTool.kb*freq.^2) ) .* TbWindowP; 
