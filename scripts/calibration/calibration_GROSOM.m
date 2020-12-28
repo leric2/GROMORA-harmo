@@ -36,15 +36,15 @@ instrumentName='SOMORA';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
-readLabviewLog = true;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2011_11_30','yyyy_mm_dd'):datenum('2011_11_30','yyyy_mm_dd');
+dates=datenum('2012_04_02','yyyy_mm_dd'):datenum('2012_04_02','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -123,6 +123,11 @@ for d = 1:numel(dates)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Debug mode and plot options
     calibrationTool.calType=calibrationType;
+    
+    % Option for outlier detection during calibration (only with standard
+    % calibration type):
+    % 'standard', 'noFFT', 'none'
+    calibrationTool.outlierDectectionType = 'standard';
     
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;

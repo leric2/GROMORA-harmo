@@ -237,9 +237,17 @@ for i=1:nCalibrationCycles
     % Not used effectively
     outlierDetectHotShort = reshape(sum(medStdDevThreshHotShort,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectColdShort = reshape(sum(medStdDevThreshColdShort,2)>calibrationTool.threshNumRawSpectraCold,[],1);
-    
-    outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
-    outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
+    switch calibrationTool.outlierDectectionType
+        case 'standard'
+            outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
+            outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
+        case 'noFFT'
+            outlierHot = (outlierDetectHot | hotAngleOutlier);
+            outlierCold = (outlierDetectCold | coldAngleOutlier);
+        case 'none'
+            outlierHot = zeros(size(ih));
+            outlierCold = zeros(size(ic));
+    end
     
     calibratedSpectra(i).outlierDetectHot = sum(outlierDetectHot);
     calibratedSpectra(i).outlierDetectCold = sum(outlierDetectCold);
@@ -389,7 +397,16 @@ switch calType
             medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
-            outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+            % outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+            
+            switch calibrationTool.outlierDectectionType
+                case 'standard'
+                    outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+                case 'noFFT'
+                    outlierSky = (outlierDetectSky | skyAngleCheck);
+                case 'none'
+                    outlierSky = zeros(size(ia));
+            end
             
             calibratedSpectra(i).outlierDetectSky=sum(outlierDetectSky);
             calibratedSpectra(i).skyAngleCheck=sum(skyAngleCheck);
