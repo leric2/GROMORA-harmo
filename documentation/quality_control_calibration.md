@@ -22,6 +22,22 @@ Additionaly, the "comment" variable present in the log file is also saved as a g
 Saves extra timestamps in extra raw and log files.
 
 ## Outlier detection during the calibration
+
+ADDED OPTION FOR FFT overload !
+
+As mentionned briefly already, we need to remove some spurious individual spectra when performing the hot-cold
+calibration to avoid them impacting too much the resulting calibrated spectra. During the calibration process, we
+therefore apply some outliers detection and removal to identify spurious individual hot, cold and sky spectra. More
+specifically, we introduce the following outliers detection techniques or variables to identify spurious spectra:
+
+\begin{enumerate}
+  \item Elevation angle for each spectrum within a certain range of values.
+  \item State of the analog-to-digital converter when a the spectrum was recorded.
+  \item Check that enough individual channels are comprised within a certain interval from the daily median (for hot and
+        cold spectra). For sky spectra, as the atmosphere has a natural variation, we use the median of the calibration
+        cycle instead of a daily median.
+\end{enumerate}
+
 At some point of the routine, we are forced to remove some outliers data sothat they do not pollute the rest of the data for the day, the cycle, etc.. 
 
 This is the case when performing the calibration with hot and cold load to avoid that spurious spectra takes too much power in the averaging on a cycle. 
@@ -38,7 +54,18 @@ All individual cycle removal is recorded and plotted (if not too many) but not s
 
 At that point, we also use the indiviual (cleaned) cycle to compute the standard deviation of TSys and Tb, using the global mean of all channel for Tsys and keeping a value for each channel in Tb.
 
+### Improvements
+
+Add threshold on the number of ADC overloads per cycle ?
+
 ## Calibration Level1a flags
+
+In addition to the outliers removal during the calibration, there are some further checks done on the calibrated data.
+These checks are done within the \textit{\textbf{check\_calibrated}} function and result in the creation of a set of
+flags that are saved in the level 1a. Contrary to the outliers detection, the flags are indicative of the data quality
+and do not lead to any data removal before level1a. Depending on the final use of the data, the user is then free to
+take these flags into account of not. Also the flags are determined for each calibration cycle (and not on individual
+spectrum) and are concerned with the followings parameters:
 
 2. After the calibration, we have a set of checks that are runned on the calibration cycle and are setting the following flags:
 

@@ -230,11 +230,11 @@ completed we can begin the plotting and saving phase.
 
 ### 11. Plots calibrated spectra (plot_calibrated_spectra)
 
-Standard page plots for level 1a saved in 2 PDF files. See the User Guide for a
+Standard plots for level 1a saved in 2 PDF files. See the User Guide for a
 detailed description of the plots. 
 
 ### 12. Save calibrated spectra (save_level1a)
 
 Saves the important variables into a single netCDF level 1a file (see [level
-1](level1.md)). We keep a daily format and save all calibration cycle of the
+1](level1.md)). We keep a daily format and save all calibration cycles of the
 same day together. 

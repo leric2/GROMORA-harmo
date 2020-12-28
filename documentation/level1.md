@@ -10,6 +10,8 @@
     2. [Group 2: flags](#flags-group)
     2. [Group 3: meteo](#meteo-group)
 
+---
+---
 ## NetCDF Format
 
 [netCDF best practice](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html)
@@ -62,10 +64,16 @@ These are the metadata and store information about the data. They can be either 
 
 For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html
 
+---
+---
+
 ## Tools and Conventions
 There are multiple conventions and good practice for writing netCDF files. For the sake of compatibility, we will start from existing conventions to write our netCDF file (see http://cfconventions.org/) and we will adapt it if needed.
 
 In terms of tools, they are plenty of possibilities to deal with netCDF data files. Some worth mentionning are the excellent [Panoply](https://www.giss.nasa.gov/tools/panoply/) and the netCDF utilities from Unidata. The latter enable to have a very quick look at the data or to manipulate (copy, append, extract subset) netCDF files very easily.
+
+---
+---
 
 ## GROSOM file structure
 
@@ -96,20 +104,20 @@ The details of the level 1 for the GROSOM project is presented below:
 | mail | str  | email address of the PI |
 | instrument | str  | name of the instrument |
 | number_of_spectrometer | double  | number of spectrometer saved in this file |
-| history | str  |  |
-| references | str  |  |
+| history | str  | TODO: the history of the file |
+| references | str  | some references regarding the content of the file -> instrument paper |
 | comment | str  | miscellaneous comments |
 | raw_filename | str  | file name of the raw data |
-| raw_data_software_version | str  |  |
-| calibration_version | str  |  |
-| raw_file_comment | double  |  |
+| raw_data_software_version | str  | the raw file software version (*SW_version* in log file) |
+| calibration_version | str  | the version of the calibration routine |
+| raw_file_comment | double  | potential comments found in the log file |
 | raw_file_warning | str  | warning on the raw files |
 | labview_logfile_warning | str  | check if a log entry was present for this day in the labview log |
 | data_start_date | double  | first datetime in MJD2K of this file |
 | data_stop_date | double  | last datetime in MJD2K of this file |
 | filename | str  | complete filename of this file |
 | creation_date | str  | creation date of this file |
-| featureType | str | [CF conventions](http://cfconventions.org/) |
+| featureType | str | see [CF conventions](http://cfconventions.org/) |
 
 #### Level 1b
 
@@ -147,9 +155,9 @@ All variables should contains the following attributes ([CF conventions](http://
 | alt | float | time | meter | atitude | station atitude | above see level |
 | azimuth_angle | float | time | degree | sensor_azimuth_angle | azimuth angle | angle measured clockwise positive, 0 deg is northwise |
 | MJD2K | double | time | MJD2K | - | -| mean time recorded at the beginning of all sky measurements during this calibration cycle |
-| year | long | time | - | - | - | - |
-| month | long | time | - | - | - | - |
-| day | long | time | - | - | - | - |
+| year | long | time | - | - | - | year as integer (e.g. 2020) |
+| month | long | time | - | - | - | month as integer (e.g. 12) |
+| day | long | time | - | - | - | day as integer (e.g. 8) |
 | time_of_day  | double | time | hour | TOD | time of day | Time of the day |
 | first_sky_time  | double | time | days since 2000-01-01 00:00:00 | - | - | time of the first sky measurements in this calibration cycle |
 | last_sky_time  | double | time | days since 2000-01-01 00:00:00 | - | - | time of the last sky measurements in this calibration cycle|
@@ -170,19 +178,24 @@ All variables should contains the following attributes ([CF conventions](http://
 | TWindow  | double | time | Kelvin | window_temperature | TWindow | mean window temperature |
 | TOut  | double | time | Kelvin | outside_temperature | TOut | mean outside temperature |
 | noise_level  | double | time | Kelvin | noise_level | std(diff(Tb)) | describes how noisy is the spectra |
-| number_of_hot_spectra  | long | time | - | - | - | ... |
-| number_of_cold_spectra  | long | time | - | - | - | ... |
-| number_of_sky_spectra  | long | time | - | - | - | ... |
-| mean_hot_counts  | double | time | - | - | - | ... |
+| number_of_hot_spectra  | long | time | - | - | - | number of individual hot cycle averaged together |
+| number_of_cold_spectra  | long | time | - | - | - | number of individual cold cycle averaged together |
+| number_of_sky_spectra  | long | time | - | - | - | number of individual sky cycle averaged together |
+| mean_hot_counts  | double | time | - | - | - | averaged FFT counts during an individual hot cycle |
 
 The same variables are used in the level 1b file with some additions:
 
 | variables | type | dimension | units | standard_name | long_name | description |
 |------|------|------|------|------|------|:-----------|
 | integration_time  | double | time | second | integration_time | integrationTime | Time interval used for integrating the spectra |
-| number_calibrated_spectra  | double | time | - | - | - | ... |
-| tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | method |
-| tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | method |
+| number_calibrated_spectra  | double | time | - | - | - | number of calibrated spectra averaged together in this integration cycle |
+| tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | mean tropospheric transmittance during t_int |
+| tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | mean tropospheric opacity during t_int  |
+| Tb  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle |
+| Tb_win_corr  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle, corrected for the window|
+| Tb_corr  | double | time, channel_idx | Kelvin | brightness_temperature | Tb |integrated brightness temperature for this cycle, corrected for window and troposphere |
+
+---
 
 ## flags group
 
@@ -242,3 +255,9 @@ It has 4 main variables with the same attributes as for the spectrometer1 group.
 | air_temperature | double | time | Kelvin | air_temperature | air temperature | air temperature at the station |
 | relative_humidity | double | time | - | relative_humidity | relative humidity | relative humidity of the air at the station |
 | precipitation | double | time | mm | precipitation | precipitation | Accumulation of precipitation during the cycle (from gauge ?) |
+
+## Some potential improvements
+
+### Level 1 file naming
+
+Implement specific names depending on the calibration outlier detection or calibration/integration time for level 1a/b.

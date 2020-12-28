@@ -20,13 +20,16 @@ The following functions are called within the calibration functions.
 |------|------|------|------|:-----------|
 | read_level1a |calibrationTool |calibratedSpectra, meteoData, calibrationTool | Required | import calibrated data (must exist)
 | add_meteo_data | calibrationTool, meteoData, calibratedSpectra | calibratedSpectra | Required | add meteo data to the calibrated spectra structure
-| check_channel_quality | calibratedSpectra,calibrationTool,filterType | calibratedSpectra | Required | check the channel quality of the spectra within a structure array
-| window_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | window correction for a spectrum
-| tropospheric_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | tropospheric correction for a spectrum
+| check_channel_quality | calibratedSpectra,calibrationTool,filterType | calibratedSpectra | Required | check the channel quality of the spectra within a structure array*
+| window_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | window correction for a spectrum*
+| tropospheric_correction | calibratedSpectra, calibrationTool | calibratedSpectra | Required | tropospheric correction for a spectrum*
 | integrate_calibrated_spectra | calibrationTool,calibratedSpectra | integratedSpectra | Required | integration of the calibrated spectra
 | check_integrated | calibrationTool, integratedSpectra | integratedSpectra | Required | check of the integrated spectra and addition of some meta data
 | plot_integrated_spectra | calibrationTool, integratedSpectra | - | Required | standard plot for level 1b
 | save_level1b | calibrationTool, level1 | calibrationTool | Required | saves level 1b into netCDF file
+
+\* these functions apply to both *calibratedSprectra* and *integratedSpectra*
+structure array 
 
 All functions are stored within the *calibrationTool* structure which is the single input for the *run_calibration* function.
 
@@ -41,6 +44,9 @@ Also this function requires that a calibration was performed before for this day
 Level 1b and more specifically:
 * Standard plots in 1 PDF file
 * Integrated spectra into a daily netCDF file (see [level 1](level1.md))
+
+---
+---
 
 ## Structure
 
@@ -60,6 +66,8 @@ The meteo data contained in the level 1a are also read and stored within a stand
 ### 2. Merge meteo data in *calibratedSpectra* (add_meteo_data)
 
 As the meteo data are usually saved with their original time stamps into the level 1a, we need to merge them with the *calibratedSpectra* structure. For this, we use a generic function *add_meteo_data* which is simply integrating a classical *meteoData* structure into the *calibratedSpecta*. For most of the variables, this is a simple averaging on the defined *integrationTime*, except for the precipitation where we make a sum. 
+
+---
 
 ### 3. Checking the spectrometer channels quality on the calibrated spectra (check_channel_quality)
 
@@ -111,23 +119,72 @@ following the following parameters:
 Note that if a window correction has been applied beforehand (which should be
 the case), the tropospheric correction is made on the window corrected spectra.
 
+At this stage, the goal here is not really to use the corrected spectra for the
+integration but more to add some more knowledge (e.g. the opacity of the
+atmosphere) before averaging the spectra together. In fact, depending on the
+analysis that we want to do, this knowledge be used to select the calibrated
+spectra that we integrate together.
+
 ### 6. Integrate the calibrated spectra (integrate_calibrated_spectra)
+
+Function performing the integration of the calibrated spectra with different
+options can be setup depending on the desired analysis. These options are listed
+below and are set by two booleans into *calibrationTool*.
+* Transmittance filtering of the calibrated spectra: only the spectra with an atmospheric transmittance higher
+        than a threshold are kept for the integration.
+* Flag filtering of the calibrated spectra: removing all flagged calibrated spectra before integration.
+
+Once the required filtering of the spectra is done, a time averaging of the remaining
+calibrated spectra contained within t_int is done. Note however that for some
+variables, a sum is actually applied instead of a mean because more appropriate. This it
+typically the case for the number of individual cycles or the amount of precipitation
+recorded during t_int. The results of the integration are saved into a Matlab
+structure array *integratedSpectra* within the global *level1* structure.
+
+---
 
 ### 7. Checking the spectrometer channels quality on the integrated spectra (check_channel_quality)
 
+Same as step 3 but applied on *integratedSpectra*.
+
 ### 8. Perform a window correction on integrated spectra (window_correction)
+
+Same as step 4 but applied on *integratedSpectra*.
 
 ### 9. Perform a tropospheric correction on integrated spectra (tropospheric_correction)
 
+Same as step 5 but applied on *integratedSpectra*.
+
 ### 10. Check the integrated spectra (check_integrated)
+
+Similarly as during the calibration, this function checks the
+*integratedSpectra* and adds some flags to the level 1b (see [quality
+control](quality_control_calibration.md)). It also adds all required meta data
+before the plotting and saving the data.
+
+---
 
 ### 11. Plots integrated spectra (plot_integrated_spectra)
 
+Standard plots for level 1b saved in PDF format. See the User Guide for a
+detailed description of the plots. 
+
 ### 12. Save integrated spectra (save_level1b)
+
+Saves the important variables into a single netCDF level 1b file (see [level
+1](level1.md)). We keep a daily format and save all integration cycles of the
+same day together. 
+
+---
+---
 
 ## Potential improvements
 
 ### Reading netCDF files in Matlab
+
+Until now, quite ugly script for reading the level 1a during the integration
+sub-routine. There is an automatic script existing (*read_level1_GROSOM.m*) but
+it takes much longer to run (however, it reads all variables within level 1a/1b)
 
 ### Flag filtering of the calibrated spectra during integration 
 
@@ -135,3 +192,5 @@ Implement option to select which flags should be taken into account for the
 integration.
 
 ### Check the window correction
+
+TODO

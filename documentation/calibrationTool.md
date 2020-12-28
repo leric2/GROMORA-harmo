@@ -191,6 +191,7 @@ The following variable are used mostly for the flagging of the calibrated spectr
 | variable | type  | Description |
 |------|------|:-----------|
 | calType | str | type of the calibration to perform ('standard' or 'debug') | 
+| outlierDectectionType | str | type of outlier detection to perform ('standard', 'noFFT' or 'none) |
 | calibrationTime | double | time interval for the calibration \[min\] |  
 | TCold | double | cold load temperature to use for the calibration |  
 | TSysCenterTh | double | expected value of the noise receiver temperature |  
