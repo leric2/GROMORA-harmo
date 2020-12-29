@@ -44,7 +44,7 @@ function logFile = harmonize_log_gromos(calibrationTool,logFile)
 logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
 logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone);
 
-if (~(mean(logFile.Elevation_Angle(logFile.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26))
+if (~(mean(logFile.Elevation_Angle(logFile.Position == 0)) == calibrationTool.elevationAngleCold) && calibrationTool.dateTime>datetime(2012,04,26, 'TimeZone',calibrationTool.timeZone))
     error('angle for the cold load might be wrongly defined') 
 end
 

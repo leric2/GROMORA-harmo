@@ -59,10 +59,10 @@ try
     else
         dateStringMeteo=[calibrationTool.dateStr(3:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
         dateStringMeteoPrec=[calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
-        baseName = [calibrationTool.meteoFolder calibrationTool.dateStr(1:4) '/' dateStringMeteo];
+        baseName = [calibrationTool.meteoFolder dateStringMeteo];
         meteoDataFileLog=[baseName '.log'];
         meteoDataFilePressure=[baseName 'pressure.log'];
-        meteoDataFilePrecipitation=[calibrationTool.meteoFolder calibrationTool.dateStr(1:4) '/' dateStringMeteoPrec '_rainsensor.txt'];
+        meteoDataFilePrecipitation=[calibrationTool.meteoFolder dateStringMeteoPrec '_rainsensor.txt'];
         
         % Transforming it into matlab structure
         precipitation=readtable(meteoDataFilePrecipitation,'FileType','text','TreatAsEmpty',{'//////'});
@@ -71,6 +71,7 @@ try
         
         pressure=readtable(meteoDataFilePressure,'FileType','text','TreatAsEmpty',{'//','///','////','/////','//////','//////'});
         pressure.Properties.VariableNames = {'dateTime' 'inst' 'mean' 'max','min'};
+        pressure.dateTime.TimeZone = calibrationTool.timeZone;
         %pressure=table2struct(p);
         %     %fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s %*[^\n]';
         %fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f %*[^\n]';
@@ -91,6 +92,7 @@ try
         for i = 1:height(meteoFile)
             meteoRow = meteoFile(i,:);
             meteoData(i).dateTime=meteoRow.Var1;
+            meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
             meteoData(i).dateNum=datenum(meteoData(i).dateTime)-calibrationTool.referenceTime;
             meteoData(i).air_temperature=meteoRow.Var4 + calibrationTool.zeroDegInKelvin;
             meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
