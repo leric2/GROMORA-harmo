@@ -14,23 +14,15 @@
 ---
 ## NetCDF Format
 
-[netCDF best practice](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html)
-
 The Network Common Data Form (netCDF) is a data format that allows creation,
 access and sharing of scientific datasets. It is a standard within the
 scientific communit for the storage and exchange of array-oriented data which
 means that there are multiple tools to deal with this format (Panoply, ncdump,
 ...) and conventions on how to write netCDF files.
 
-There are multiple conventions and good practice for writing netCDF files. For
-the sake of compatibility, we will start from existing conventions to write our
-netCDF file (see \href{http://cfconventions.org/}{CF conventions}) and we will
-adapt it if needed.
-
 The advantages of the netCDF format is that it enables to store and access data
 in an efficient way and which is machine-independant. Moreover, many API exist
-for writing and reading netCDF files and it is especially 
-
+for writing and reading netCDF files.
 
 It was agreed to use the netCDF format for storing all levels of our data. There are 4 different types of base format for netCDF which can be divided between the ***netCDF classic base format*** and the enhanced ***netCDF-4/HDF5***.
 
@@ -68,9 +60,22 @@ For detailed information, see https://www.unidata.ucar.edu/software/netcdf/docs/
 ---
 
 ## Tools and Conventions
-There are multiple conventions and good practice for writing netCDF files. For the sake of compatibility, we will start from existing conventions to write our netCDF file (see http://cfconventions.org/) and we will adapt it if needed.
 
-In terms of tools, they are plenty of possibilities to deal with netCDF data files. Some worth mentionning are the excellent [Panoply](https://www.giss.nasa.gov/tools/panoply/) and the netCDF utilities from Unidata. The latter enable to have a very quick look at the data or to manipulate (copy, append, extract subset) netCDF files very easily.
+There are multiple conventions and good practice for writing netCDF files. For
+the sake of compatibility, we will start from existing conventions to write our
+netCDF file (see \href{http://cfconventions.org/}{CF conventions}) and we will
+adapt it if needed. We should also try to stick to the [netCDF best
+practice](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html),
+which for now, is not a entire success.
+
+In terms of tools, they are plenty of possibilities to deal with netCDF data
+files. Some worth mentionning are the excellent
+[Panoply](https://www.giss.nasa.gov/tools/panoply/) and the netCDF utilities
+from Unidata. The latter enable to have a very quick look at the data or to
+manipulate (copy, append, extract subset) netCDF files very easily. 
+
+For more detailed data analysis, the
+[xarray](http://xarray.pydata.org/en/stable/) Python package makes an excellent job at reading and dealing with netCDF files.
 
 ---
 ---
@@ -112,12 +117,13 @@ The details of the level 1 for the GROSOM project is presented below:
 | calibration_version | str  | the version of the calibration routine |
 | raw_file_comment | double  | potential comments found in the log file |
 | raw_file_warning | str  | warning on the raw files |
+| outlier_detection | str  | type of outlier detection was used during the calibration (see [quality control](quality_control_calibration.md)) |
 | labview_logfile_warning | str  | check if a log entry was present for this day in the labview log |
-| data_start_date | double  | first datetime in MJD2K of this file |
-| data_stop_date | double  | last datetime in MJD2K of this file |
+| data_start_date | str  | first datetime in this file (YYYYMMDDTHHmmSSZ) |
+| data_stop_date | str  | last datetime in this file (YYYYMMDDTHHmmSSZ) |
 | filename | str  | complete filename of this file |
 | creation_date | str  | creation date of this file |
-| featureType | str | see [CF conventions](http://cfconventions.org/) |
+| featureType | str | type of data contained in the file see [CF conventions](http://cfconventions.org/) |
 
 #### Level 1b
 
@@ -125,12 +131,14 @@ For level 1b, the global attributes are moreless the same only with the followin
 
 | Attributes | type  | Description |
 |------|------|:-----------|
+| filtering_of_calibrated_spectra | str  | type of filtering applied on calibratedSpectra during the integration (see [quality control](quality_control_calibration.md)) |
 | filename_level1a | str  | name of the level 1a file |
 | creation_date_level1a | str  | creation date of the level 1a file |
 
 ### spectrometer1 group
 
-The main group for both level 1 files is named spectrometer1. It is where we store all variables extracted during the calibration process. 
+The main group for both level 1 files is named spectrometer1. It is where we
+store all variables computed during the calibration process. 
 
 As attribute for this group : spectrometer_type
 
@@ -142,7 +150,7 @@ As attribute for this group : spectrometer_type
 | Coordinates | type | units | other attributes | Description |
 |------|------|------|------|:-----------|
 | time | double | days since 2000-01-01 00:00:00 | calendar | mean time recorded at the beginning of all sky measurements during this calibration cycle |
-| channel_idx | long |- | - | indices of the channels for this spectrometer|
+| channel_idx | long |- | - | index of the spectrometer channels, from 1 to N (number of channels)|
 
 ### Variables:
 
@@ -155,10 +163,10 @@ All variables should contains the following attributes ([CF conventions](http://
 | alt | float | time | meter | atitude | station atitude | above see level |
 | azimuth_angle | float | time | degree | sensor_azimuth_angle | azimuth angle | angle measured clockwise positive, 0 deg is northwise |
 | MJD2K | double | time | MJD2K | - | -| mean time recorded at the beginning of all sky measurements during this calibration cycle |
-| year | long | time | - | - | - | year as integer (e.g. 2020) |
-| month | long | time | - | - | - | month as integer (e.g. 12) |
-| day | long | time | - | - | - | day as integer (e.g. 8) |
-| time_of_day  | double | time | hour | TOD | time of day | Time of the day |
+| year | long | time | - | - | - | year of the measurement as integer (e.g. 2020) |
+| month | long | time | - | - | - | month of the measurement as integer (e.g. 12) |
+| day | long | time | - | - | - | day of the month as integer (e.g. 8) |
+| time_of_day  | double | time | hour | time_of_day | time of day | Time of the day |
 | first_sky_time  | double | time | days since 2000-01-01 00:00:00 | - | - | time of the first sky measurements in this calibration cycle |
 | last_sky_time  | double | time | days since 2000-01-01 00:00:00 | - | - | time of the last sky measurements in this calibration cycle|
 | time_min  | double | time | days since 2000-01-01 00:00:00 | - | - | minimum theoretical start time for this calibration cycle" |
@@ -169,31 +177,31 @@ All variables should contains the following attributes ([CF conventions](http://
 | mean_std_Tb  | double | time | Kelvin | mean_stdTb | mean standard variation of Tb | mean standard deviation of brightness temperature for this cycle (without bad channel) |
 | THot  | double | time | Kelvin | hot_load_temperature | THot | Mean temperature of the hot load |
 | stdTHot  | double | time | Kelvin | std_hot_load_temperature | stdTHot | standard deviation of the hot load temperature |
-| TNoise  | double | time | Kelvin | noise_temperature | mean noise temperature | mean noise receiver temperature |
-| stdTNoise  | double | time | Kelvin | std_noise_temperature | stdTNoise | standard deviation of the noise receiver temperature |
+| noise_temperature  | double | time | Kelvin | noise_temperature | mean noise temperature | mean noise receiver temperature |
+| std_dev_noise_temperature  | double | time | Kelvin | std_noise_temperature | standard deviation of noise receiver temperature | standard deviation of the noise receiver temperature |
 | calibration_time  | double | time | second | calibration_time | calibrationTime | Time interval used for calibrating the spectra |
 | mean_sky_elevation_angle  | double | time | degree | elevation_angle | mean sky angle |mean elevation angle of the sky observation during this cycle |
 | TRoom  | double | time | Kelvin | room_temperature | TRoom | mean room temperature |
 | stdTRoom  | double | time | Kelvin | standard_room_temperature | stdTRoom | standard deviation of room temperature |
 | TWindow  | double | time | Kelvin | window_temperature | TWindow | mean window temperature |
 | TOut  | double | time | Kelvin | outside_temperature | TOut | mean outside temperature |
-| noise_level  | double | time | Kelvin | noise_level | std(diff(Tb)) | describes how noisy is the spectra |
-| number_of_hot_spectra  | long | time | - | - | - | number of individual hot cycle averaged together |
-| number_of_cold_spectra  | long | time | - | - | - | number of individual cold cycle averaged together |
-| number_of_sky_spectra  | long | time | - | - | - | number of individual sky cycle averaged together |
-| mean_hot_counts  | double | time | - | - | - | averaged FFT counts during an individual hot cycle |
+| noise_level  | double | time | Kelvin | noise_level | std(diff(Tb))/sqrt(2) | describes how noisy is the spectra |
+| number_of_hot_spectra  | long | time | - | number_of_hot_spectra | number of hot spectra | number of hot spectra averaged together in this cycle |
+| number_of_cold_spectra  | long | time | - | number_of_cold_spectra | number of cold spectra |number of cold spectra averaged together in this cycle |
+| number_of_sky_spectra  | long | time | - | number_of_sky_spectra | number of sky spectra | number of sky spectra averaged together in this cycle |
+| mean_hot_counts  | double | time | - | mean_hot_counts | mean FFTS hot counts | mean raw FFTS counts on hot load during this cycle |
 
-The same variables are used in the level 1b file with some additions:
+The same variables are used in the level 1b file with some additions or adaptations:
 
 | variables | type | dimension | units | standard_name | long_name | description |
 |------|------|------|------|------|------|:-----------|
 | integration_time  | double | time | second | integration_time | integrationTime | Time interval used for integrating the spectra |
-| number_calibrated_spectra  | double | time | - | - | - | number of calibrated spectra averaged together in this integration cycle |
+| number_of_calibrated_spectra  | double | time | - | number_of_calibrated_spectra |  number of calibrated spectra | number of calibrated spectra integrated during this cycle |
 | tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | mean tropospheric transmittance during t_int |
 | tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | mean tropospheric opacity during t_int  |
 | Tb  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle |
-| Tb_win_corr  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle, corrected for the window|
-| Tb_corr  | double | time, channel_idx | Kelvin | brightness_temperature | Tb |integrated brightness temperature for this cycle, corrected for window and troposphere |
+| Tb_win_corr  | double | time, channel_idx | Kelvin | window_corrected_brightness_temperature | Tb_win_corr | integrated brightness temperature for this cycle, corrected for the window|
+| Tb_corr  | double | time, channel_idx | Kelvin | corrected_brightness_temperature | corrected_brightness_temperature |integrated brightness temperature for this cycle, corrected for window and troposphere |
 
 ---
 
@@ -261,3 +269,9 @@ It has 4 main variables with the same attributes as for the spectrometer1 group.
 ### Level 1 file naming
 
 Implement specific names depending on the calibration outlier detection or calibration/integration time for level 1a/b.
+
+### Simplify dimensions on some variables
+
+Some variables are actually not depending on the time (like *altitude*, *latitude*, ...) but still have a time dimension. On the contrary, some variables like *frequencies* have a time dimension for the level 1b but not on the level 1a (historical reasons...).
+
+This is not a key point but could be harmonized and critical when appending different days ?
