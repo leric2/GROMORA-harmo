@@ -83,8 +83,10 @@ try
         %set(gca, 'ColorOrder', [1 0.5 0.5; 0.2 0.2 0.2, 0 0 1],'NextPlot', 'replacechildren');
         colors = {'r','g','b'};
         subplot(3,2,4);
-        for i=1:3
-            plot(drift.dateTime, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),ylim([prctile(drift.a(3,:),2)-200,prctile(drift.a(1,:),98)+200]), xlim([xstart,xstop])
+        if ~isnan(nanmedian(drift.a))
+            for i=1:3
+                plot(drift.dateTime, drift.a(i,:),colors{i}), hold on, ylabel('Counts [-]'),ylim([prctile(drift.a(3,:),2)-200,prctile(drift.a(1,:),98)+200]), xlim([xstart,xstop])
+            end
         end
         %     if ~isempty(drift.outlierCold)
         %         for out = 1:length(drift.outlierCold)
@@ -165,24 +167,24 @@ try
         subplot(2,2,[1 2]);
         count=1;
         for i=1:N
-            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
-                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
-                
-                %plot(calibratedSpectra(l(i)).Tb)
-                
-                
-                %plot(calibratedSpectra(i).meanFromTbDownAll)
-                %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
-                %xlabel('f [GHz]')
-                %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
-                ylabel('T_B [K]')
-                
-                ylim([lowerLim,upperLim])
-                TOD{count}=num2str(round(calibratedSpectra(l(i)).timeOfDay,1));
-                count = count + 1;
+            %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
+            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
+            
+            %plot(calibratedSpectra(l(i)).Tb)
+            
+            
+            %plot(calibratedSpectra(i).meanFromTbDownAll)
+            %plot(calibratedSpectra(l(i)).Tb-calibratedSpectra2(l(i)).Tb)
+            %xlabel('f [GHz]')
+            %xlim(1e-9*[calibratedSpectra(l(i)).freq(1),calibratedSpectra(l(i)).freq(end)])
+            ylabel('T_B [K]')
+            
+            ylim([lowerLim,upperLim])
+            TOD{count}=num2str(round(calibratedSpectra(l(i)).timeOfDay,1));
+            count = count + 1;
                 %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
-            end
+            %end
             hold on
         end
         
@@ -208,23 +210,23 @@ try
         %cm = colormap(parula(N));
         subplot(2,2,3);
         for i=1:N
-            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
-                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-                ylabel('\sigma_{T_B} [K]')
-                ylim([yInfstd,ySupStd])
-            end
+            %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
+            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+            ylabel('\sigma_{T_B} [K]')
+            ylim([yInfstd,ySupStd])
+            %end
             hold on
         end
         
         subplot(2,2,4);
         for i=1:N
-            if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-                plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
-                %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
-                ylabel('T_N [K]')
-                ylim([limTNPlot-1000,limTNPlot+1000])
-            end
+            %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
+            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
+            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).T_rec);
+            ylabel('T_N [K]')
+            ylim([limTNPlot-1000,limTNPlot+1000])
+            %end
             hold on
         end
         for i=3:4; subplot(2,2,i); grid on, xlabel('IF [MHz]'); end
