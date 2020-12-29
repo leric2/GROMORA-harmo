@@ -75,42 +75,57 @@ if strcmp(calType,'debug')
     [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(logFile,calibrationTool);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Building the drift structure
-% --> mainly for visualization
-% 
-% From Axel
+% Building the drift structure, from Axel
 % Variations of mean amplitude and TNoise with time
 % need equal number of cycles !
-
 
 for i=1:length(initialIndices)
     initialIndices{i}(initialIndices{i}>size(rawSpectra,1))=[];
     cn(i) = length(initialIndices{i}); 
 end
-for i=1:length(initialIndices); 	initialIndices{i}=initialIndices{i}(1:min(cn)); end; 
 
+% TODO in case the order of the cycle changes ! (for instance, if we have 2
+% times more sky observations than cold or hot spectra, the following
+% removal of indices fails !
+driftIndices = initialIndices;
+standardOrder = cn(1)/cn(2)>0.9 && cn(3)/cn(2)>0.9;
+if ~standardOrder
+    warning('order of the cycle is not standard, no drift structure !')
+else
+    % we remove extra indices to keep only the smallest number of indices
+    %between hot, cold and sky
+    for i=1:length(initialIndices); 	driftIndices{i}=initialIndices{i}(1:min(cn)); end; 
+end
 dailyMeanTHot=mean(logFile.T_Hot_Absorber);
 drift=struct();
 % Drift always defined with hot indices
-drift.t  = logFile.t(initialIndices{1});
+drift.t  = logFile.t(driftIndices{1});
 drift.allDateTime = logFile.dateTime;
 drift.cycleTime = diff(logFile.dateTime);
-drift.dateTime  = logFile.dateTime(initialIndices{1});
-drift.T  = logFile.T_Hot_Absorber(initialIndices{1});
-drift.a(1,:) = mean(rawSpectra(initialIndices{1},:),2,'omitnan');
-drift.a(2,:) = mean(rawSpectra(initialIndices{2},:),2,'omitnan');
-drift.a(3,:) = mean(rawSpectra(initialIndices{3},:),2,'omitnan');
-drift.Y    = drift.a(1,:) ./  drift.a(3,:);
-drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.TCold)./ (drift.Y-1);
-drift.TNoiseLog=logFile.FE_T_Sys(initialIndices{1});
-drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.TCold) + calibrationTool.TCold;
-
-drift.dailyMedianHotSpectra=median(rawSpectra(initialIndices{1},:),1,'omitnan');
-drift.dailyStdHotSpectra=nanstd(rawSpectra(initialIndices{1},:));
-drift.dailyMedianColdSpectra=median(rawSpectra(initialIndices{3},:),1,'omitnan');
-drift.dailyStdColdSpectra=nanstd(rawSpectra(initialIndices{3},:));
-drift.dailyMedianAntSpectra=median(rawSpectra(initialIndices{2},:),1,'omitnan');
-drift.dailyStdAntSpectra=nanstd(rawSpectra(initialIndices{2},:));
+drift.dateTime  = logFile.dateTime(driftIndices{1});
+drift.T  = logFile.T_Hot_Absorber(driftIndices{1});
+if standardOrder
+    drift.a(1,:) = mean(rawSpectra(driftIndices{1},:),2,'omitnan');
+    drift.a(2,:) = mean(rawSpectra(driftIndices{2},:),2,'omitnan');
+    drift.a(3,:) = mean(rawSpectra(driftIndices{3},:),2,'omitnan');
+    drift.Y    = drift.a(1,:) ./  drift.a(3,:);
+    drift.Tn   = (dailyMeanTHot - drift.Y*calibrationTool.TCold)./ (drift.Y-1);
+    drift.Ta   = (drift.a(2,:) - drift.a(3,:)) ./ (drift.a(1,:) - drift.a(3,:)) *(dailyMeanTHot-calibrationTool.TCold) + calibrationTool.TCold;
+else
+    drift.a(1,:) = nan*ones(size(driftIndices{1}));
+    drift.a(2,:) = nan*ones(size(driftIndices{1}));
+    drift.a(3,:) = nan*ones(size(driftIndices{1}));
+    drift.Y    = nan*ones(size(driftIndices{1}));
+    drift.Tn   = nan*ones(size(driftIndices{1}));
+    drift.Ta   = nan*ones(size(driftIndices{1}));
+end
+drift.TNoiseLog=logFile.FE_T_Sys(driftIndices{1});
+drift.dailyMedianHotSpectra=median(rawSpectra(driftIndices{1},:),1,'omitnan');
+drift.dailyStdHotSpectra=nanstd(rawSpectra(driftIndices{1},:));
+drift.dailyMedianColdSpectra=median(rawSpectra(driftIndices{3},:),1,'omitnan');
+drift.dailyStdColdSpectra=nanstd(rawSpectra(driftIndices{3},:));
+drift.dailyMedianAntSpectra=median(rawSpectra(driftIndices{2},:),1,'omitnan');
+drift.dailyStdAntSpectra=nanstd(rawSpectra(driftIndices{2},:));
 
 drift.outlierCold = [];
 drift.outlierHot = [];
