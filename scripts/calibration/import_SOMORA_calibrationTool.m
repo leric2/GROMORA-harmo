@@ -83,11 +83,10 @@ calibrationTool.binaryType='ieee-be';
 %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
 calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
-calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/rawData/';
-calibrationTool.level1Folder='/home/esauvageat/Documents/GROSOM/Analysis/Level1/SOMORA/';
+%calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
-%calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -181,7 +180,7 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
 calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
 
 % Function specific to this instrument
 % meteo Data
