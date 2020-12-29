@@ -91,8 +91,8 @@ nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx'
 nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/TNoise','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/spectrometer1/stdTNoise','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/noise_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/std_dev_noise_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
@@ -151,6 +151,7 @@ if isfield(calibratedSpectra, 'meanDatetimeMJD2K')
     ncwriteatt(filename,'/spectrometer1/MJD2K','description','mean time recorded at the beginning of all sky measurements during this calibration cycle');
 end
 ncwrite(filename,'/spectrometer1/channel_idx',1:calibrationTool.numberOfChannels);
+ncwriteatt(filename,'/spectrometer1/channel_idx','description','index of the spectrometer channels, from 1 to N (number of channels)');
 
 %%%%%%%%%%%%%%%%%
 % Geolocation variables
@@ -161,8 +162,14 @@ ncwrite(filename,'/spectrometer1/azimuth_angle',ones(length(calibratedSpectra),1
 
 % Time variables
 ncwrite(filename,'/spectrometer1/year',int64([calibratedSpectra.year]));
+ncwriteatt(filename,'/spectrometer1/year','description','year of the measurement as integer');
+
 ncwrite(filename,'/spectrometer1/month',int64([calibratedSpectra.month]));
+ncwriteatt(filename,'/spectrometer1/month','description','month of the measurement as integer');
+
 ncwrite(filename,'/spectrometer1/day',int64([calibratedSpectra.day]));
+ncwriteatt(filename,'/spectrometer1/day','description','day of the month as integer');
+
 ncwrite(filename,'/spectrometer1/time_of_day',[calibratedSpectra.timeOfDay]);
 
 ncwrite(filename,'/spectrometer1/first_sky_time',[calibratedSpectra.firstSkyTime]);  
@@ -188,8 +195,8 @@ ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
-ncwrite(filename,'/spectrometer1/TNoise',[calibratedSpectra.TNoise]);
-ncwrite(filename,'/spectrometer1/stdTNoise',[calibratedSpectra.stdTNoise]);
+ncwrite(filename,'/spectrometer1/noise_temperature',[calibratedSpectra.TNoise]);
+ncwrite(filename,'/spectrometer1/std_dev_noise_temperature',[calibratedSpectra.stdTNoise]);
 ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[calibratedSpectra.meanAngleAntenna]);
 
@@ -302,6 +309,8 @@ ncwriteatt(filename,'/','raw_file_comment',logFile.comment);
 
 ncwriteatt(filename,'/','raw_file_warning',warningLevel0);
 
+ncwriteatt(filename,'/','outlier_detection',calibrationTool.outlierDectectionType);
+
 if ~isempty(fieldnames(calibrationTool.labviewLog))
     if sum(isbetween([calibrationTool.labviewLog.dateTime], calibratedSpectra(1).theoreticalStartTime, calibratedSpectra(end).theoreticalStartTime + minutes(10))) > 0
         ncwriteatt(filename,'/','labview_logfile_warning','check labview log !');
@@ -313,8 +322,14 @@ else
 end
 
 % Geolocation attributes
-ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).firstSkyTime);
-ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).lastSkyTime);
+%ncwriteatt(filename,'/','data_start_date',calibratedSpectra(1).firstSkyTime);
+%ncwriteatt(filename,'/','data_stop_date',calibratedSpectra(end).lastSkyTime);
+if ~isnan(calibratedSpectra(1).firstSkyTime)
+    ncwriteatt(filename,'/','data_start_date', datestr(datetime(calibratedSpectra(1).firstSkyTime + calibrationTool.referenceTime,'ConvertFrom','datenum','TimeZone','Z'),'yyyymmddTHHMMSSZ'));
+end
+if ~isnan(calibratedSpectra(end).lastSkyTime)
+    ncwriteatt(filename,'/','data_stop_date', datestr(datetime(calibratedSpectra(end).lastSkyTime + calibrationTool.referenceTime,'ConvertFrom','datenum','TimeZone','Z'),'yyyymmddTHHMMSSZ'));
+end
 
 ncwriteatt(filename,'/','filename',filename);
 ncwriteatt(filename,'/','creation_date',datestr(datetime('now','TimeZone','Z'),'yyyymmddTHHMMSSZ'));
@@ -415,12 +430,12 @@ attrVal.stdTHot = {'stdTHot',...
     'K',...
     'standard deviation of the hot load temperature'};
 
-attrVal.TNoise = {'mean noise temperature',...
+attrVal.TNoise = {'noise receiver temperature',...
     'noise_temperature',...
     'K',...
     'mean noise receiver temperature'};
 
-attrVal.stdTNoise = {'stdTNoise',...
+attrVal.stdTNoise = {'standard deviation of noise receiver temperature',...
     'std_noise_temperature',...
     'K',...
     'standard deviation of the noise receiver temperature'};
@@ -430,7 +445,7 @@ attrVal.calibrationTime = {'calibrationTime',...
     'second',...
     'Time interval used for calibrating the spectra'};
 
-attrVal.noiseLevel = {'std(diff(Tb))',...
+attrVal.noiseLevel = {'std(diff(Tb))/sqrt(2)',...
     'noise_level',...
     'K',...
     'describes how noisy is the spectra'};
@@ -481,6 +496,25 @@ attrVal.precipitation = {'precipitation',...
     'mm',...
     'Accumulation of precipitation during the cycle (from gauge ?)'};
 
+attrVal.numHSpectra = {'number of hot spectra',...
+    'number_of_hot_spectra',...
+    '1',...
+    'number of hot spectra averaged together in this cycle'};
+
+attrVal.numCSpectra = {'number of cold spectra',...
+    'number_of_cold_spectra',...
+    '1',...
+    'number of cold spectra averaged together in this cycle'};
+
+attrVal.numSSpectra = {'number of sky spectra',...
+    'number_of_sky_spectra',...
+    '1',...
+    'number of sky spectra averaged together in this cycle'};
+
+attrVal.meanHotCounts = {'mean FFTS hot counts',...
+    'mean_hot_counts',...
+    '1',...
+    'raw FFTS counts averaged during this cycle'};
 
 % Ugly and open to suggestion
 for i=1:length(attrName)
@@ -497,8 +531,8 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
     ncwriteatt(filename,'/spectrometer1/stdTHot',attrName{i},attrVal.stdTHot{i});
-    ncwriteatt(filename,'/spectrometer1/TNoise',attrName{i},attrVal.TNoise{i});
-    ncwriteatt(filename,'/spectrometer1/stdTNoise',attrName{i},attrVal.stdTNoise{i});
+    ncwriteatt(filename,'/spectrometer1/noise_temperature',attrName{i},attrVal.TNoise{i});
+    ncwriteatt(filename,'/spectrometer1/std_dev_noise_temperature',attrName{i},attrVal.stdTNoise{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
@@ -506,6 +540,10 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
     ncwriteatt(filename,'/spectrometer1/noise_level',attrName{i},attrVal.noiseLevel{i});
+    ncwriteatt(filename,'/spectrometer1/number_of_hot_spectra',attrName{i},attrVal.numHSpectra{i});
+    ncwriteatt(filename,'/spectrometer1/number_of_cold_spectra',attrName{i},attrVal.numCSpectra{i});
+    ncwriteatt(filename,'/spectrometer1/number_of_sky_spectra',attrName{i},attrVal.numSSpectra{i});
+    ncwriteatt(filename,'/spectrometer1/mean_hot_counts',attrName{i},attrVal.meanHotCounts{i});
     
     % Meteo attr
     ncwriteatt(filename,'/meteo/air_pressure',attrName{i},attrVal.airP{i});
