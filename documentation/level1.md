@@ -104,7 +104,7 @@ The details of the level 1 for the GROSOM project is presented below:
 | location | str  | location of the instrument |
 | source | str  | type of data (see [NDACC](https://gs614-avdc1-pz.gsfc.nasa.gov/index.php?site=1925698559)) |
 | name | str  | name of the PI |
-| institution | str  | instituion responsible for this instrument |
+| institution | str  | institution responsible for this instrument |
 | contact | str  | address of the institution |
 | mail | str  | email address of the PI |
 | instrument | str  | name of the instrument |
@@ -115,7 +115,7 @@ The details of the level 1 for the GROSOM project is presented below:
 | raw_filename | str  | file name of the raw data |
 | raw_data_software_version | str  | the raw file software version (*SW_version* in log file) |
 | calibration_version | str  | the version of the calibration routine |
-| raw_file_comment | double  | potential comments found in the log file |
+| raw_file_comment | str  | potential comments found in the log file |
 | raw_file_warning | str  | warning on the raw files |
 | outlier_detection | str  | type of outlier detection was used during the calibration (see [quality control](quality_control_calibration.md)) |
 | labview_logfile_warning | str  | check if a log entry was present for this day in the labview log |

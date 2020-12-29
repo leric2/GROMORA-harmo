@@ -1,16 +1,27 @@
 # Quality control calibration
 
-Summary of the quality control applied during the GROSOM calibration routine (level0 to level1b).
+## Summary
 
-It can be divided into 2 main categories: the removing of "outlier" and the flagging of the data.
+Technical documentation concerning the quality control applied during the GROSOM
+calibration routine (level 0 to level 1b). The general principles of flags and
+outlier detection is presented in the GROSOM user guide (UG) that can be found in the [User Guide](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROSOM) repository. 
 
+In general, the quality control of the calibration can be divided into 2 main
+categories: the removing of "outlier" and the flagging of the potential spurious
+data. The flagging of data is always preferred however, it is sometimes
+necessary to remove some strong outliers that would otherwise "pollute" some good data (for instance when averaging).
 
-I have tried to prefer the flagging of data instead of the removal of data whenever possible. During the calibration routine, I have set up the following flags to help understand why some data are missing (on a later stage) or showing some weird profiles after retrieval. 
+The flags are indicative of the supposed quality of some data and can be used mainly in 2 ways:
+1. To filter the "good" or "bad" time periods (e.g. during integration) to keep only good quality data in an operational retrieval for instance.
+2. To understand the origin of some weird results arising in some time periods. 
 
-There are different flags applied between the lvl0 to lvl1b routine.
+There are different flags and outlier detection steps applied between the level 0 to level 1b routine.
 
 ## Level0 flags:
-When reading the raw data, we perform a few checks on the quality of it in the function *check_level0_generic()*:
+
+The first flags with a completely indicative nature, are the level 0 warnings.
+
+When reading the raw data, we perform a few checks on their quality in the function *check_level0*:
 a. size of log and raw data
 b. check number of tipping curves done
 c. check if the number of cycle is realistic
@@ -21,53 +32,53 @@ Additionaly, the "comment" variable present in the log file is also saved as a g
 
 Saves extra timestamps in extra raw and log files.
 
-## Outlier detection during the calibration
+## Calibration sub-routine
 
-ADDED OPTION FOR FFT overload !
+### Outlier detection during the calibration
 
-As mentionned briefly already, we need to remove some spurious individual spectra when performing the hot-cold
-calibration to avoid them impacting too much the resulting calibrated spectra. During the calibration process, we
-therefore apply some outliers detection and removal to identify spurious individual hot, cold and sky spectra. More
-specifically, we introduce the following outliers detection techniques or variables to identify spurious spectra:
+At some point of the routine, we are forced to remove some outliers data sothat
+they do not pollute the rest of the data for the day, the cycle, etc.. This is
+the case when performing the calibration with hot and cold load to avoid that
+spurious spectra takes too much power in the averaging on a calibration cycle. 
 
-\begin{enumerate}
-  \item Elevation angle for each spectrum within a certain range of values.
-  \item State of the analog-to-digital converter when a the spectrum was recorded.
-  \item Check that enough individual channels are comprised within a certain interval from the daily median (for hot and
+During the calibration process (in the *calibrate* function), we therefore apply some outliers detection to
+identify and remove spurious individual hot, cold and sky spectra. More
+specifically, we introduce the following outliers detection techniques or
+variables to identify spurious spectra:
+
+During effective calibration, we check individual spectra for:
+
+1. Elevation angle check for hot, cold and sky position with an expected value and a certain threshold.
+    
+2. State of the analog-to-digital converter when a the spectrum was recorded (*FFT_adc_overload* in the log file)
+
+3. Check that enough individual channels are comprised within a certain interval from the daily median (for hot and
         cold spectra). For sky spectra, as the atmosphere has a natural variation, we use the median of the calibration
         cycle instead of a daily median.
-\end{enumerate}
 
-At some point of the routine, we are forced to remove some outliers data sothat they do not pollute the rest of the data for the day, the cycle, etc.. 
+All the parameters controllings the outlier detecion are defined within the calibrationTool structure and can be adapted easily if needed. There is also a possibility to change the outlier detection techniques applied during a certain calibration by using the *outlierDectectionType* option in *calibrationTool*. It takes the following values:
+* standard: all 3 detection techniques are applied
+* noFFT: only 1. and 2. above, no check of the analog-to-digital converter applied (we realise that some time periods actually have constantly the *FFT_adc_overload* flag on).
+* none: no outlier detection during the calibration
 
-This is the case when performing the calibration with hot and cold load to avoid that spurious spectra takes too much power in the averaging on a cycle. 
+Note that individual cycle removal is recorded and plotted (except if this there are too many) but not saved. These are the red, blue or green crosses on the level 1a plots (see UG) to represents respectively hot, cold or sky outliers detected during a calibration cycle.
 
-1. During effective calibration, we check individual spectra for:
+At that point, we also use the indiviual (cleaned) cycle to compute the standard deviation of the noise receiver temperature (stdTNoise) and of the brightness temperature (stdTb), using the channel averaged value of TNoise.
 
-    1. Elevation angle check for hot, cold and sky position. Absolute for hot and cold (might change for some period) and with a threshold (5deg) for sky measurement.
-    
-    2. FFTC_adc_ovedrload in log file (was done globally and might be too much for some days where overload was constant, but then should we keep these days ?)
-
-    3. For hot and cold counts, we check that every cycle has at least 5% of its channels counts within the daily median counts +- 3 std deviation. (could be made on the 10 minutes averages but works quite good like that) We do the same for sky measurementt with +- 6 std deviation around the 10 minutes median.
-
-All individual cycle removal is recorded and plotted (if not too many) but not saved. 
-
-At that point, we also use the indiviual (cleaned) cycle to compute the standard deviation of TSys and Tb, using the global mean of all channel for Tsys and keeping a value for each channel in Tb.
-
-### Improvements
+### Some possible Improvements
 
 Add threshold on the number of ADC overloads per cycle ?
 
-## Calibration Level1a flags
+### Level 1a flags
 
 In addition to the outliers removal during the calibration, there are some further checks done on the calibrated data.
-These checks are done within the \textit{\textbf{check\_calibrated}} function and result in the creation of a set of
+These checks are done within the *check_calibrated* function and result in the creation of a set of
 flags that are saved in the level 1a. Contrary to the outliers detection, the flags are indicative of the data quality
 and do not lead to any data removal before level1a. Depending on the final use of the data, the user is then free to
 take these flags into account of not. Also the flags are determined for each calibration cycle (and not on individual
 spectrum) and are concerned with the followings parameters:
 
-2. After the calibration, we have a set of checks that are runned on the calibration cycle and are setting the following flags:
+After the calibration, we have a set of checks that are runned on the calibration cycle and are setting the following flags:
 
   		calibration_flags:errorCode_1 = "sufficientNumberOfIndices" ;
   		calibration_flags:errorCode_2 = "noiseTemperatureOK" ;
@@ -76,16 +87,16 @@ spectrum) and are concerned with the followings parameters:
   		calibration_flags:errorCode_5 = "hotLoadOK" ;
   		calibration_flags:errorCode_6 = "PointingAngleOK" ;
 
-    1. check that a minimum of indices has been averaged for each position within the calibration.
-    2. For checking Tsys, it is open for discussion but I am doing the following:
-        * Computing Tsys at the center channels (+- 200MHz) while removing some potential bad channels and comparing this value to a threshold.
-        * Using the std dev of Tsys computer during the calibration against a threshold.
-    3. Check that 30% of the LN2 Sensors flags in the log are OK
-    4. Check that 30% of the LN2 Level flags in the log are OK
-    5. Check that the std dev of the hot load temperature is below a certain threshold during the calibration cycle
-    6. Check that the std dev of the pointing angle of sky measurement is below a certain threshold during the calibration cycle
+1. check that a minimum of indices has been averaged for each position within the calibration.
+2. For checking Tsys, it is open for discussion but I am doing the following:
+    * Computing Tsys at the center channels (+- 200MHz) while removing some potential bad channels and comparingthis value to a threshold.
+    * Using the std dev of Tsys computer during the calibration against a threshold.
+3. Check that 30% of the LN2 Sensors flags in the log are OK
+4. Check that 30% of the LN2 Level flags in the log are OK
+5. Check that the std dev of the hot load temperature is below a certain threshold during the calibration cycle
+6. Check that the std dev of the pointing angle of sky measurement is below a certain threshold during thecalibration cycle
 
-## Level1a-1b
+## Integration sub-routine
 During the second step of the routine, the following quality control is performed:
 1. We check the channel quality on calibration cycle before doing a window and a generic tropospheric correction on each calibration cycle (not taking into accound the bad channels in the wings averaging for instance) --> this is then used for the integration.
 
@@ -102,6 +113,12 @@ This point is opened to discussion...
     1. We check that the number of averaged spectra was at least 3 (30 minutes) which means it also contains a minimum of each individual cycles. 
     2. We check that the amount of rain was not too hight during this integration cycle. UNIT ??
 
+
+        calibrationTool.filterByTransmittance = true;
+        calibrationTool.transmittanceThreshold = 0.2;
+        calibrationTool.filterByFlags = true;
+        
+        filtering_of_calibrated_spectra
 
 ## How to add flags or variables ?
 
