@@ -6,6 +6,11 @@ function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,logFile,calibr
 % CREATION      | 01.2020
 %               |
 % ABSTRACT      | Doing a hot-cold calibration for MW radiometer.
+%               | This function has different modes to perform the
+%               | calibration: 'standard' and 'debug' (see below) and
+%               | different options to remove (or not) outliers
+%               | (individual spurious spectrum) before averaging them
+%               | together on the calibration time.
 %               | 
 %               |
 %               |
@@ -37,9 +42,12 @@ function [drift,calibratedSpectra] = calibrate_generic(rawSpectra,logFile,calibr
 %               |               2. debug: perform the standard one and:
 %               |                  - Mean Up/Down: mean AT up, mean AT Down
 %               |                  vs mean hot/cold
-%               |                  - all cycles, mean hc: all individual 
-%               |                  cycle vs mean hot/cold, uncleaned for 
-%               |                  pointing angle problems.
+%               |                  - all cycles: all individual
+%               |                  hot-cold-sky cycle BUT uncleaned for 
+%               |                  potential spurious spectra ! Caution
+%               |                  when comparing it to 'standard' mode if
+%               |                  outliers in hot-cold are identified.
+%               |                  
 %               |
 %               | OUTPUTS: 1. drift: structure containing mean values of all
 %               |               channels for this day
@@ -56,6 +64,8 @@ calibVersion = calibrationTool.calibrationVersion;
 % CalibrationTime in Minute
 calibTime=calibrationTool.calibrationTime;
 
+% Extract all indices corresponding to hot, cold and sky observations in
+% the log file.
 if strcmp(calibrationTool.instrumentName,'mopi5')
     initialIndices={
         find(logFile.Position==calibrationTool.indiceHot & logFile.Measurement_NoiseDiode'==0);     % Hot
@@ -75,7 +85,7 @@ if strcmp(calType,'debug')
     [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(logFile,calibrationTool);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Building the drift structure, from Axel
+% Building the drift structure, inspired from Axel
 % Variations of mean amplitude and TNoise with time
 % need equal number of cycles !
 
@@ -90,7 +100,7 @@ end
 driftIndices = initialIndices;
 standardOrder = cn(1)/cn(2)>0.9 && cn(3)/cn(2)>0.9;
 if ~standardOrder
-    warning('order of the cycle is not standard, no drift structure !')
+    warning('order of the cycle is not standard, no drift quantities !')
 else
     % we remove extra indices to keep only the smallest number of indices
     %between hot, cold and sky
@@ -134,14 +144,9 @@ drift.outlierDrift = [];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time interval for the calibration, splitting the indices for this day
-% into the different calibration cycle
+% into the different calibration cycles
 
 % Threshold for the separation, calibTime has to be in [min]
-%dt=calibTime/60; % in [h]
-%timeInter=0:dt:24;
-%timeThresh2 = [datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day) : dt : datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day +1)]
-%timeThresh = datenum(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day) + timeInter;
-
 dt = hours(calibTime/60);
 
 timeThresh = datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day, 'TimeZone', calibrationTool.timeZone):dt:datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1, 'TimeZone', calibrationTool.timeZone);
@@ -181,16 +186,20 @@ for i = 1:length(timeThresh)-1
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beginning of the actual calibration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Structure containing all the information about the calibrated spectra
 calibratedSpectra=struct();
-
-% Hot and Cold spectra
-% Outlier detection for hot and cold raw spectra as well as for their pointing
-% angle
 
 % Number of calibration cycles for this day
 nCalibrationCycles=length(indices);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Hot and Cold averaged spectra
 for i=1:nCalibrationCycles
 
     calibratedSpectra(i).theoreticalStartTime=timeThresh(i);
@@ -200,60 +209,41 @@ for i=1:nCalibrationCycles
     ih=reshape(indices(i).validHot,1,[]);
     ic=reshape(indices(i).validCold,1,[]);
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Checking and removing any spurious angle for hot and cold
-    %hotAngleOutlier=reshape(~(logFile.Elevation_Angle(ih)==calibrationTool.elevationAngleHot),[],1);
-    %coldAngleOutlier=reshape(~(logFile.Elevation_Angle(ic)==calibrationTool.elevationAngleCold),[],1);
-    
-    hotAngleOutlier=reshape((abs(logFile.Elevation_Angle(ih)-calibrationTool.elevationAngleHot) > calibrationTool.elevationAngleHotTol),[],1);
-    coldAngleOutlier=reshape((abs(logFile.Elevation_Angle(ic)-calibrationTool.elevationAngleCold) > calibrationTool.elevationAngleColdTol),[],1);
-   
     initSizeHot=length(ih);
     initSizeCold=length(ic);
-    
-    %if sum(hotAngleCheck)>0
-    %    ih=ih(~hotAngleCheck);
-        %calibratedSpectra(i).hotAngleRemoved=sum(hotAngleCheck);
-%     else
-%         calibratedSpectra(i).hotAngleRemoved=0;
-    %end
-    
-    %if sum(coldAngleCheck)>0
-    %    ic=ic(~coldAngleCheck);
-    %    %calibratedSpectra(i).coldAngleRemoved=sum(coldAngleCheck);
-%     else
-%         calibratedSpectra(i).coldAngleRemoved=0;
-    %end
-    
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % TODO outlier detection for hot and cold spectra
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % removing spectrometer error 
+    % Outlier detection for hot and cold spectra
+    % Checking and removing any spurious angle for hot and cold   
+    hotAngleOutlier=reshape((abs(logFile.Elevation_Angle(ih)-calibrationTool.elevationAngleHot) > calibrationTool.elevationAngleHotTol),[],1);
+    coldAngleOutlier=reshape((abs(logFile.Elevation_Angle(ic)-calibrationTool.elevationAngleCold) > calibrationTool.elevationAngleColdTol),[],1);
+       
+    % identifying FFT spectrometer overloads 
     FFT_adc_overload_hot = reshape(~(logFile.FFT_adc_overload(ih) == 0),[],1);
     FFT_adc_overload_cold = reshape(~(logFile.FFT_adc_overload(ic) == 0),[],1);  
     
     % We compute the median of the calibration spectra as well as its std
     % deviation. We then remove the spectra which contains too many
     % channels that are beyond the (median +- n*stdDev)
-          
+    
     % Using the daily median and stddev to check for spurious hot and cold
     % spectra during this cycle:   
     medStdDevThreshHot=abs((rawSpectra(ih,:)-drift.dailyMedianHotSpectra))>calibrationTool.hotSpectraNumberOfStdDev*drift.dailyStdHotSpectra;
     medStdDevThreshCold=abs((rawSpectra(ic,:)-drift.dailyMedianColdSpectra))>calibrationTool.coldSpectraNumberOfStdDev*drift.dailyStdColdSpectra;
     
-    % short scale move:    
-    medStdDevThreshHotShort = abs((rawSpectra(ih,:)-nanmedian(rawSpectra(ih,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:));
-    medStdDevThreshColdShort = abs((rawSpectra(ic,:)-nanmedian(rawSpectra(ic,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:));
-    
     outlierDetectHot = reshape(sum(medStdDevThreshHot,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectCold = reshape(sum(medStdDevThreshCold,2)>calibrationTool.threshNumRawSpectraCold,[],1);
     
-    % Not used effectively
+    % on a short scale, taking the median of the calibration cycle instead 
+    % of daily (not used effectively):    
+    medStdDevThreshHotShort = abs((rawSpectra(ih,:)-nanmedian(rawSpectra(ih,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ih,:));
+    medStdDevThreshColdShort = abs((rawSpectra(ic,:)-nanmedian(rawSpectra(ic,:))))>calibrationTool.hotSpectraNumberOfStdDev*nanstd(rawSpectra(ic,:));    
+    
     outlierDetectHotShort = reshape(sum(medStdDevThreshHotShort,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectColdShort = reshape(sum(medStdDevThreshColdShort,2)>calibrationTool.threshNumRawSpectraCold,[],1);
+    
+    % Depending on the defined outlier detection technique for this
+    % calibration, we use the identified outliers to remove the spurious
+    % hot and cold individual spectra 
     switch calibrationTool.outlierDectectionType
         case 'standard'
             outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
@@ -275,6 +265,7 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).FFT_adc_overload_hot = sum(FFT_adc_overload_hot);
     calibratedSpectra(i).FFT_adc_overload_cold =sum(FFT_adc_overload_cold);
     
+    % And save the outliers dates for plotting them later
     if sum(outlierHot)>0
         drift.outlierHot = [drift.outlierHot; reshape(logFile.dateTime(ih(outlierHot)),[],1)];
     end
@@ -291,10 +282,15 @@ for i=1:nCalibrationCycles
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % additionnal check with the drift structure (computing stdTNoise for
-    % flagging later). 
+    % flagging later).
+    % NOT USED NOW !
+    % 
+    % Here we only use the cleaned hot indices (that's the ones used in
+    % drift datetime) to extract the drift noise receiver temperature,
+    % its mean and its std dev during this calibration cycle.
+    % TODO: simplify this if...end and remove unused stuff
     if ~isempty(ih)
         % Use drift structure for additionnal quality check
-        %logFile.dateTime(ih)
         k=zeros(1,length(ih));
         for a = 1:length(ih)
             k(a) = find(drift.dateTime == logFile.dateTime(ih(a)));
@@ -307,21 +303,20 @@ for i=1:nCalibrationCycles
     
         outlierDrift = (abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>4*std(Ta_drift_i))';
         
-        if sum(outlierDrift)>0
-            %k(outlierDrift) = [];
-            %drift.outlierDrift = [drift.outlierDrift; reshape(drift.dateTime(k(outlierDrift)),[],1)];
-            %indHot=ih(outlierDrift);
-            %indCold = ih(outlierDrift)-3;
+%         if sum(outlierDrift)>0
+%             k(outlierDrift) = [];
+%             drift.outlierDrift = [drift.outlierDrift; reshape(drift.dateTime(k(outlierDrift)),[],1)];
+%             indHot=ih(outlierDrift);
+%             indCold = ih(outlierDrift)-3;
 %             for out = 1:length(indHot)
 %                 ih(ih == indHot(out)) = [];
 %                 ic(ic == indCold(out)) = [];
 %             end
-        end
+%         end
 
         %ic(ih(outlierDrift)-3) =[];
         %ih(outlierDrift | outlierDetectHot') = [];
         
-
         % Also used for stddev TNoise
         calibratedSpectra(i).TNoiseDrift=drift.Tn(k);
         calibratedSpectra(i).meanTNoiseDrift=nanmean(drift.Tn(k));
@@ -332,16 +327,8 @@ for i=1:nCalibrationCycles
         calibratedSpectra(i).stdTNoise=NaN;
     end 
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % TODO outlier detection for hot and cold spectra
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Number of spectra left:
-    %calibratedSpectra(i).hotSpectraRemaining=length(ih);
-    %calibratedSpectra(i).coldSpectraRemaining=length(ic);
+    % Computing additional data from hot and cold spectra
     
     % Saving clean hot and cold indices for this cycle
     calibratedSpectra(i).hotInd=ih;
@@ -355,12 +342,12 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).stdHotSpectra=nanstd(rawSpectra(ih,:),1);
     calibratedSpectra(i).stdColdSpectra=nanstd(rawSpectra(ic,:),1);
     
-    % Hot temperature corresponding to the hot spectra (to all spectra ?)
+    % Hot temperature recorded during hot and cold spectra observations
+    % (but always on the hot load of course)
     calibratedSpectra(i).THot=nanmean(logFile.T_Hot_Absorber([ih,ic]));
     calibratedSpectra(i).stdTHot=nanstd(logFile.T_Hot_Absorber([ih,ic]));
     
-    % Computation of Final (clean) TNoise and its std deviation for this
-    % cycle
+    % Computation of spectral Y-factor and noise receiver temperature for this cycle
     calibratedSpectra(i).Yspectral=calibratedSpectra(i).meanHotSpectra./calibratedSpectra(i).meanColdSpectra;
     
     % Noise Temperature Spectra (uncleaned for outliers in Y)
@@ -368,15 +355,21 @@ for i=1:nCalibrationCycles
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Calibration of the antenna measurement with hot-cold load
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calibration of the sky (antenna) measurement with hot-cold calibration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Select calibration type ('standard' or 'debug')
 switch calType
     case 'standard'
         % Averaging hot and cold FFTS counts on the time interval. 
         for i=1:nCalibrationCycles
-            calibratedSpectra(i).calibrationVersion=calibVersion;
+            calibratedSpectra(i).calibrationType=calType;
             calibratedSpectra(i).calibrationTime=calibTime;
-            
-            % All antenna measurements
+            calibratedSpectra(i).calibrationVersion=calibVersion;
+                        
+            % All antenna measurements during this cycle
             ia=reshape(indices(i).validAntenna,1,[]);
             
             % Antenna measurements inside a half cycle
@@ -384,7 +377,7 @@ switch calType
             %iaDown=reshape(indices(i).validHotStartDown(2,:),1,[]);
             
             % Checking for NaN in the antenna spectra and keeping only complete
-            % spectra for the calibration:
+            % spectra for the calibration (rare ?):
             ia=ia(sum(isnan(rawSpectra(ia,:)),2)<1);
             %iaUp=iaUp(sum(isnan(rawSpectra(iaUp,:)),2)<1);
             %iaDown=iaDown(sum(isnan(rawSpectra(iaDown,:)),2)<1);
@@ -395,27 +388,25 @@ switch calType
             %calibratedSpectra(i).antennaIndDown=iaDown;
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Flaging and removing (from the mean spectra only) bad angles for the antenna
+            % Outlier detection for the antenna individual spectra
+            % Pointing angles:
             skyAngleCheck=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             skyAngleCheck=reshape(skyAngleCheck,[],1);
-            %if sum(skyAngleCheck)>0
-             %   ia=ia(~skyAngleCheck);
-                %calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
-            %else
-                %calibratedSpectra(i).antennaAngleRemoved=0;
-            %end
-            FFT_adc_overload_sky = reshape(~(logFile.FFT_adc_overload(ia) == 0),[],1);
-            %calibratedSpectra(i).antennaIndCleanAngle=ia;
             
-            % Introduce here Outlier detection on sky counts ?
+            % FFT overload check:
+            FFT_adc_overload_sky = reshape(~(logFile.FFT_adc_overload(ia) == 0),[],1);
+            
+            % Using the cycle median and stddev to check for spurious sky
+            % spectra during this cycle:   
             medianSpectra = nanmedian(rawSpectra(ia,:));
             stdAntSpectra = nanstd(rawSpectra(ia,:));
             
             medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
-            % outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
-            
+            % Depending on the defined outlier detection technique for this
+            % calibration, we use the identified outliers to remove the spurious
+            % sky individual spectra
             switch calibrationTool.outlierDectectionType
                 case 'standard'
                     outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
@@ -432,22 +423,22 @@ switch calType
             calibratedSpectra(i).antennaIndCleanAngle=ia(~outlierSky);
             calibratedSpectra(i).spuriousSkySpectra=sum(outlierSky);
             
+            % save sky spurious spectra for later plotting
             if sum(outlierSky)>0
                 drift.outlierSky = [drift.outlierSky; reshape(logFile.dateTime(ia(outlierSky)),[],1)];
             end
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Doing the calibration globally for this calibration cycle:
-            calibratedSpectra(i).calibrationType=calType;
+            % Applying the calibration formula for this calibration cycle:
 
-            % Antenna counts on this cycle:
+            % Clean sky FFT counts on this cycle:
             rsAntennaAll=rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:);
             
-            % Mean Antenna counts for this cycle
+            % Mean clean sky FFT counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
 
             % Calibration
-            % For every antenna measurement (to get the stddev of Tb on the
+            % For all antenna measurement (to get the stddev of Tb on the
             % calibration cycle) against the mean of hot and cold spectra
             % for this calibration cycle.
             TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
@@ -457,6 +448,8 @@ switch calType
                 calibratedSpectra(i).stdTb = -9999*ones(1,calibrationTool.numberOfChannels);
             end
             
+            % And with the mean sky spectrum of the cycle (it should be the
+            % same as just taking the average of TbAll).
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
         end
     case 'debug'
@@ -495,26 +488,33 @@ switch calType
             calibratedSpectra(i).antennaIndDown=iaDown;
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Flaging and removing 
+            % Outlier detection for the antenna individual spectra
+            % Pointing angles:
             skyAngleCheck=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaInd)-calibrationTool.elevationAngleAntenna)>calibrationTool.elevationAngleTolerance;
             skyAngleCheck=reshape(skyAngleCheck,[],1);
-            %if sum(skyAngleCheck)>0
-             %   ia=ia(~skyAngleCheck);
-                %calibratedSpectra(i).antennaAngleRemoved=sum(antennaAngleCheck); 
-            %else
-                %calibratedSpectra(i).antennaAngleRemoved=0;
-            %end
+
+            % FFT overload check:
             FFT_adc_overload_sky = reshape(~(logFile.FFT_adc_overload(ia) == 0),[],1);
-            %calibratedSpectra(i).antennaIndCleanAngle=ia;
             
-            % Introduce here Outlier detection on sky counts ?
+            % Using the cycle median and stddev to check for spurious sky
+            % spectra during this cycle:   
             medianSpectra = nanmedian(rawSpectra(ia,:));
             stdAntSpectra = nanstd(rawSpectra(ia,:));
             
             medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
-            outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+            % Depending on the defined outlier detection technique for this
+            % calibration, we use the identified outliers to remove the spurious
+            % sky individual spectra
+            switch calibrationTool.outlierDectectionType
+                case 'standard'
+                    outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+                case 'noFFT'
+                    outlierSky = (outlierDetectSky | skyAngleCheck);
+                case 'none'
+                    outlierSky = zeros(size(ia));
+            end
             
             calibratedSpectra(i).antennaIndCleanAngle=ia(~outlierSky);
             calibratedSpectra(i).spuriousSkySpectra=sum(outlierSky);
@@ -530,7 +530,6 @@ switch calType
                 iaDown(iaDown == ind2remove(l)) = [];
             end
             
-            % TODO filtering for Up Down ?
             calibratedSpectra(i).antennaIndCleanUpAngle=iaUp;
             calibratedSpectra(i).antennaIndCleanDownAngle=iaDown;
 
@@ -544,7 +543,6 @@ switch calType
             TbAllCleanAngle = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAllClean-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             calibratedSpectra(i).stdTb=std(TbAllCleanAngle);
             
-            
             % Mean Antenna counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
             
@@ -552,28 +550,7 @@ switch calType
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             % Doing the calibration separately (Mean Up and Down) for this calibration cycle:
-%             angleCheckUp=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaIndUp)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
-%             angleCheckDown=abs(logFile.Elevation_Angle(calibratedSpectra(i).antennaIndDown)-calibrationTool.elevationAngleAntenna)<calibrationTool.elevationAngleTolerance;
-%             
-%             % Cleaning the angle for "Mean Up/Down" calibration
-%             if any(angleCheckUp)
-%                 calibratedSpectra(i).antennaUpAngleRemoved=sum(angleCheckUp); 
-%             else
-%                 calibratedSpectra(i).antennaUpAngleRemoved=0;
-%             end
-%             calibratedSpectra(i).antennaIndCleanUpAngle=calibratedSpectra(i).antennaIndUp(~angleCheckUp)';
-%             calibratedSpectra(i).numberOfCleanAntennaUpAngle=length(calibratedSpectra(i).antennaIndCleanUpAngle);
-%             
-%             % Cleaning the angle for "Mean Up/Down" calibration
-%             if any(angleCheckDown)
-%                 calibratedSpectra(i).antennaDownAngleRemoved=sum(angleCheckDown); 
-%             else
-%                 calibratedSpectra(i).antennaDownAngleRemoved=0;
-%             end
-%             calibratedSpectra(i).antennaIndCleanDownAngle=calibratedSpectra(i).antennaIndDown(~angleCheckDown)';
-%             calibratedSpectra(i).numberOfCleanAntennaDownAngle=length(calibratedSpectra(i).antennaIndCleanDownAngle);
-            
+            % Doing the calibration separately (Mean Up and Down) for this calibration cycle:
             % Mean Antenna Up/Down for this cycle
             rsAntennaUp=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanUpAngle,:),1);
             rsAntennaDown=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanDownAngle,:),1);
@@ -583,7 +560,7 @@ switch calType
             calibratedSpectra(i).TbDown = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDown-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Calibration of all cycle separately. 
+            % Calibration of all individual cycles separately. 
             % Saving the cycle by cycle calibration (separated for clarity)
             
             % For now, we do not keep the difference between up/dow cycle.
@@ -591,6 +568,9 @@ switch calType
             % of calibration (assuming Up/Down do not influence the mean
             % hot and cold spectra
             
+            % Collecting all individual cycles around the clean sky
+            % spectra. !! We do not recheck for cold and hot spectra
+            % quality at that point !!
             rsAntennaUp = rawSpectra(calibratedSpectra(i).antennaIndCleanUpAngle,:);
             rsColdUp = rawSpectra(calibratedSpectra(i).antennaIndCleanUpAngle-1,:);
             rsHotUp = rawSpectra(calibratedSpectra(i).antennaIndCleanUpAngle+1,:);
@@ -604,23 +584,16 @@ switch calType
             calibratedSpectra(i).TbAllDown = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDown-rsColdDown)./(rsHotDown-rsColdDown);
             calibratedSpectra(i).TbAll = [calibratedSpectra(i).TbAllUp ; calibratedSpectra(i).TbAllDown];
             
+            % TODO:            
             % To check the difference if we do the averaging after the
             % calibration of individual cycle:
-            calibratedSpectra(i).meanFromTbAll=nanmean(calibratedSpectra(i).TbAll);
+            % Compute mean cold and hot spectra from ALL individual cycles
+            % (also the uncleaned ones) and compare it to the avg TbAll 
+            % from above --> Use the 'none' outliers removal techniques ?!
+            calibratedSpectra(i).TbFromAllAvgAfter=nanmean(calibratedSpectra(i).TbAll);
             
-            % Angle flag all
+            % Sky outliers
             calibratedSpectra(i).skyFlag=outlierSky;
-            
-            %calibratedSpectra(i).TbUpAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaUpAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            % Angle flag up
-            %calibratedSpectra(i).antennaAngleFlagUp=angleCheckUp';
-            
-            %calibratedSpectra(i).TbDownAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaDownAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-            % Angle flag down
-            %calibratedSpectra(i).antennaAngleFlagDown=angleCheckDown';
-            
-            % For the future: propagate the initial uncertainties into the
-            % calibration formula.
         end
 end
 end
