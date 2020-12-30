@@ -570,7 +570,7 @@ if calibrationTool.calType=="debug"
     % initialize matrices
     nClean=0;
     for t = 1:length(calibratedSpectra)
-        nClean=nClean+calibratedSpectra(t).numberOfCleanAntennaAngle;
+        nClean=nClean+size(calibratedSpectra(t).TbAll,1);
     end
     
     channel_idx=int64(ones(nClean,calibrationTool.numberOfChannels)*NaN);
@@ -580,7 +580,7 @@ if calibrationTool.calType=="debug"
     
     counter=1;
     for t = 1:length(calibratedSpectra)
-        for i = 1:calibratedSpectra(t).numberOfCleanAntennaAngle
+        for i = 1:size(calibratedSpectra(t).TbAll,1)
             TbAll(counter,:)=calibratedSpectra(t).TbAll(i,:);
             channel_idx(counter,:)=1:calibrationTool.numberOfChannels;
             cycleNumber(counter)=t;

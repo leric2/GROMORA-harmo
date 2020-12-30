@@ -291,17 +291,15 @@ for i=1:nCalibrationCycles
     % TODO: simplify this if...end and remove unused stuff
     if ~isempty(ih)
         % Use drift structure for additionnal quality check
-        k=zeros(1,length(ih));
-        for a = 1:length(ih)
-            k(a) = find(drift.dateTime == logFile.dateTime(ih(a)));
-        end
-
-        %k=find(drift.dateTime >= logFile.dateTime(ih(1)) & drift.dateTime <= logFile.dateTime(ih(end)));
+%         k=zeros(1,length(ih));
+%         for a = 1:length(ih)
+%             k(a) = find(drift.dateTime == logFile.dateTime(ih(a)));
+%         end
     
-        Tn_drift_i=drift.Tn(k);
-        Ta_drift_i=drift.Ta(k);
+        %Tn_drift_i=drift.Tn(k);
+        %Ta_drift_i=drift.Ta(k);
     
-        outlierDrift = (abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>4*std(Ta_drift_i))';
+        %outlierDrift = (abs(Tn_drift_i-median(Tn_drift_i))>3*std(Tn_drift_i) | abs(Ta_drift_i-median(Ta_drift_i))>4*std(Ta_drift_i))';
         
 %         if sum(outlierDrift)>0
 %             k(outlierDrift) = [];
@@ -314,13 +312,19 @@ for i=1:nCalibrationCycles
 %             end
 %         end
 
-        %ic(ih(outlierDrift)-3) =[];
-        %ih(outlierDrift | outlierDetectHot') = [];
-        
+        % Find corresponding time stamps in the drift structure for this
+        % cycle. 
+        k = find((drift.dateTime > logFile.dateTime(ih(1)) & drift.dateTime < logFile.dateTime(ih(end))));
+        if ~isempty(k)
         % Also used for stddev TNoise
         calibratedSpectra(i).TNoiseDrift=drift.Tn(k);
         calibratedSpectra(i).meanTNoiseDrift=nanmean(drift.Tn(k));
         calibratedSpectra(i).stdTNoise=nanstd(drift.Tn(k));
+        else
+           	calibratedSpectra(i).TNoiseDrift=NaN;
+            calibratedSpectra(i).meanTNoiseDrift=NaN;
+            calibratedSpectra(i).stdTNoise=NaN;
+        end
     else
         calibratedSpectra(i).TNoiseDrift=NaN;
         calibratedSpectra(i).meanTNoiseDrift=NaN;
