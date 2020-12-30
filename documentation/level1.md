@@ -117,7 +117,7 @@ The details of the level 1 for the GROSOM project is presented below:
 | calibration_version | str  | the version of the calibration routine |
 | raw_file_comment | str  | potential comments found in the log file |
 | raw_file_warning | str  | warning on the raw files |
-| outlier_detection | str  | type of outlier detection was used during the calibration (see [quality control](quality_control_calibration.md)) |
+| outlier_detection | str  | type of outlier detection used during the calibration (see [quality control](quality_control_calibration.md)) |
 | labview_logfile_warning | str  | check if a log entry was present for this day in the labview log |
 | data_start_date | str  | first datetime in this file (YYYYMMDDTHHmmSSZ) |
 | data_stop_date | str  | last datetime in this file (YYYYMMDDTHHmmSSZ) |
@@ -216,8 +216,8 @@ The flags groups contains the set of flags for the calibrated and integrated spe
 ### Coordinate variables:
 | Coordinates | type | units | other attributes | Description |
 |------|------|------|------|:-----------|
-| time | double | days since 2000-01-01 00:00:00 | calendar |mean time of the measurements for this cycle |
-| flags | long |- | - | ... |
+| time | double | days since 2000-01-01 00:00:00 | calendar | mean time of the measurements for this cycle |
+| flags | long | - | - | the number of flags recorded (length of the flags vector) |
 
 ### Attributes:
 It contains 2 attributes, one being the description of the flag group organisation, the other being the number of flags. 

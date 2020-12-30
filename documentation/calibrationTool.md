@@ -42,13 +42,13 @@ At the end of *import_InstrumentName_calibrationTool*, there is also a place whe
 
 After the first 3 steps, the building of the *calibrationTool* structure is finished.
 
-Only a few specific parameters will be created during the processing of the routine. 
+Only a few specific parameters will be added during the processing of the routine. 
 
 ---
 
 ## Parameters
 
-### Time variable (11)
+### Time variables
 
 |variable | type  | Description |
 |------|------|:-----------|
@@ -56,21 +56,17 @@ Only a few specific parameters will be created during the processing of the rout
 | Year | double  | YYYY |
 | Month | double  | MM |
 | Day | double | DD |
-| [dateTime](datetime) | datetime | Matlab datetime object |  
-| timeNumber | datenum |  |  
+| dateTime | datetime | Matlab datetime object for the day |  
+| timeNumber | datenum | Matlab datenum of the day |  
 | meanDatetimeUnit | str | the unit used for the time |  
 | referenceTime | datenum | the time to take as reference for the level 1 time vector |  
-| calendar | str |  |  
+| calendar | str | calendar type used |  
 | timeZone | str | Matlab TimeZone |  
 | calendar | str | type of calendar used for the time |  
 
-#### dateTime
-
-A matlab structure datetime. Defined with timeZone ! Mandatory
-
 ---
 
-### Metadata (7)
+### Metadata 
 |variable | type | Description |
 |-------|------|:-----------|
 | instrumentName | str | name of the instrument |  
@@ -79,13 +75,13 @@ A matlab structure datetime. Defined with timeZone ! Mandatory
 | PI_AFFILIATION | str | affiliation of the PI | 
 | PI_ADDRESS | str | address of the PI | 
 | PI_EMAIL | str | email of PI | 
-| dataSource | str | MWR.O3_UBERN (NDACC) | 
+| dataSource | str | MWR.O3_UBERN (see NDACC) | 
 
 
 ---
 
 
-### Geolocation data (4)
+### Geolocation data 
 |variable | type | unit | description | 
 |------|------|------|:-----------|
 | lon | double | degree_north | latitude defined according to WGS84
@@ -97,7 +93,7 @@ A matlab structure datetime. Defined with timeZone ! Mandatory
 ---
 
 
-### Physical constant / parameters (6)
+### Physical constants
 
 | variable | type | unit | Description |
 |------|------|------|:-----------|
@@ -109,7 +105,7 @@ A matlab structure datetime. Defined with timeZone ! Mandatory
 
 ---
 
-### Spectrometer variables (15-16)
+### Spectrometer variables
 | variable | type | Description |
 |------|------|:-----------|
 | observationFreq | double | observation frequency in \[Hz\] |  
@@ -130,7 +126,7 @@ A matlab structure datetime. Defined with timeZone ! Mandatory
 
 ---
 
-### Raw files check (6)
+### Raw files check
 
 | variable | type | Description |
 |------|------|:-----------|
@@ -143,7 +139,7 @@ A matlab structure datetime. Defined with timeZone ! Mandatory
 
 ---
 
-### Files and folder variables (14)
+### Files and folder variables 
 
 Note: all folders needs to be given with their full paths.
 
@@ -186,7 +182,9 @@ These variables are used to understand the log file for this day.
 
 ### Calibration variables, flags and outlier detection
 
-The following variable are used mostly for the flagging of the calibrated spectra. 
+The following variable are used for the calibration and the flagging of the
+calibrated spectra. Most of the flagging variables and threshold are described
+in more details in [quality control](quality_control_calibration.md).
 
 | variable | type  | Description |
 |------|------|:-----------|
@@ -197,34 +195,16 @@ The following variable are used mostly for the flagging of the calibrated spectr
 | TSysCenterTh | double | expected value of the noise receiver temperature |  
 | TSysThresh | double | threshold value of the noise receiver temperature |  
 | stdTSysThresh | double | threshold value of the standard deviation of the noise receiver temperature |  
-| frequencyBandAroundCenterTSys | double |  |  
+| frequencyBandAroundCenterTSys | double | see [quality control](quality_control_calibration.md) |  
 | THotTh | double | expected value of the hot load temperature |  
 | THotAbsThresh | double | threshold value of the hot load temperature |  
 | hotTemperatureStdThreshold | double | threshold value of the standard deviation of the hot load temperature |  
 | stdAntAngleThresh | double  | threshold value of the standard deviation of the sky observation angle within a calibration cycle |  
 | minNumberOfIndicePerCycle | double | minimum number of individual cycles to be averaged together for a valid calibration cycle |  
-| maxProportionOfIndLN2LevelOutlier | double |  | 
-| maxProportionOfIndLN2SensorOutlier | double |  | 
-| maxStdDevTbCal | double |  |  
-| goodFlagLN2Above | double | see [flags](#flags) |  
-| goodFlagLN2Below | double |  |  
-
-#### flags
-
-Description of flags here ?
+| maxProportionOfIndLN2LevelOutlier | double | see [quality control](quality_control_calibration.md) | 
+| maxProportionOfIndLN2SensorOutlier | double | see [quality control](quality_control_calibration.md) | 
 
 
-Note on THot and TCold:
-
-We have to make a decision regarding the Temperatures to be used for the calibration T_hot and T_cold. 
-
-For T_hot, there is apparently 2 different measurements:
-* AI_0 : in/near the absorber --> real temperature ?
-* T_hot : near the heater, used for the stabilisation ?
-
-There is also the following question: should we use T_hot only when the hot spectra are measured or should we use the average ot T_hot from all the measurements in the given calibration cycle. 
-
-For T_cold, we use the temperature of liquid nitrogen but we should also take into account some effect from the edge of the containter, reflections on the liquid surface, ...?. For
 
 Used for outliers detection: 
 | variable | type  | Description |
@@ -252,22 +232,22 @@ Daily median +/- hotSpectraNumberOfStdDev * daily stdDev
 
 In the case of the sky observation, we take into account a bigger variability of the atmosphere by using the median and stdDev of the calibration cycle (usually 10 minutes) to detect the potential outliers.
 
-Note that in addition to this techniques, individual spectra can also be removed by a check on the elevation angle or if the ADC of the spectro was overloaded during recording.
+Note that in addition to this techniques, individual spectra can also be removed
+by a check on the elevation angle or if the ADC of the spectro was overloaded
+during recording. This is also explained in [quality control](quality_control_calibration.md).
 
 ---
 
 
-### Meteo variables (3)
+### Meteo variables
 | variable | type  | Description |
 |------|------|:-----------:|
-
-* doTippingCurve
-* tWindow
-* troposphericCorrection
+| doTippingCurve | boolean | 1 for instruments that performs a tipping curve calibration as main calibration scheme | 
+| troposphericCorrection | structure | a structure containing all required information to perform a tropospheric correction (see [run_integration](run_integration.md)) | 
 
 ---
 
-### Plot variables  (4)
+### Plotting variables
 
 | variable | type  | Description |
 |---|------|------|:-----------:|
@@ -278,7 +258,9 @@ Note that in addition to this techniques, individual spectra can also be removed
 
 ---
 
-### Integration variables (9)
+### Integration variables
+
+
 | variable | type  | Description |
 |---|------|------|:-----------:|
 | integrationTime | double | time interval for the integration \[min\] |  
@@ -288,22 +270,24 @@ Note that in addition to this techniques, individual spectra can also be removed
 | filterByFlags | boolean | decides if the calibrated spectra are filtered based on the level 1a flags before integration |  
 | filterTypeChannelQualityCal | int | type of filtering use to identify spurious channels on the calibrated spectra |  
 | filterTypeChannelQualityInt | int | type of filtering use to identify spurious channels on the integrated spectra |  
-| filter1 | struct | see [filters](#filters) |  
-| filter2 | struct | see [filters](#filters) |  
-| maxStdDevTbInt | boolean | threshold for the standard deviation of individual channel on an integration cycle | 
+| filter1 | struct | see [run_integration](run_integration.md) |  
+| filter2 | struct | see [run_integration](run_integration.md) |  
+| maxStdDevTbCal | double | threshold for the standard deviation of individual channel on an calibration cycle | 
+| maxStdDevTbInt | double | threshold for the standard deviation of individual channel on an integration cycle |  
+| tWindow | double | microwave window transmittance value|  
 
-
-#### filter
-defines 4 parameters to perform a boxcal filtering to identify spurious channels on a spectrum
+For more information on these variables, see [run_integration](run_integration.md)
 
 ---
 
-### Variable created during the run
-* successfulCalibration
-* flagVectorLength
-* logFile
-* 
-* successfulIntegration
+### Variable created during the calibration or integration
+
+| variable | type  | Description |
+|---|------|------|:-----------:|
+| successfulCalibration | boolean | indicates a successful calibration |  
+| flagVectorLength | double | number of level 1a flags (read from level 1a) |  
+| logFile | struct | an sub structure where we stores some interesting meta data read from level 1a (like the flags meanings, comments, ...) |  
+| successfulIntegration | boolean | indicates a successful integration |  
 
 ---
 ---

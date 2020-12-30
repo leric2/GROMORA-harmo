@@ -1,11 +1,11 @@
 # Main script
 
-## Objective and role of this function
+## Summary
 
 In the main script, we define all required parameters for the calibration and
 the integration of a given instrument. 
 
-The main script is a good tool for developement, especially to select some
+The main script is a tool for developement, especially to select some
 dates and modify quickly some key variables. It also enable to use multiple
 instrument which is not needed for an operationnal use. 
 

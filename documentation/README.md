@@ -18,3 +18,7 @@ The following documentation files are the most important:
 In [example_level1](example_level1), you can find some examples of level 1a and
 1b netCDF files as well as the standard plots for calibrated and integrated
 data. 
+
+This documentation tries to make a comprehensive description of the GROSOM
+routine which is constantly evolving. Therefore, it might sometimes contain
+error or lack updates. In this case, please refer to the author.

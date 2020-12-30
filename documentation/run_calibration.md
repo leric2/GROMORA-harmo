@@ -1,6 +1,6 @@
 # Calibration sub-routine
 
-## Objective and role of this function
+## Summary
 
 This is the main function that executes sequentially all steps required to **calibrate** (level 0 -> level 1a) a passive microwave radiometer. It has been designed for instruments using the hot/cold calibration scheme and primarly for GROMOS and SOMORA but has been adapted to MOPI 5 successfully and partly to MIAWARA-C which uses the tipping curve calibration scheme. 
 
@@ -172,14 +172,12 @@ and "debug". In both modes, the calibration begins with a simplified channel ave
 is stored into a *drift* Matlab structure. It contains the following quantities for each
 individual calibration cycle (h-a-c or c-a-h):
 
-
 * Some time identifiers for this individual cycle
 * Averaged raw counts on hot, cold and antenna positions
 * Y-factor and receiver noise temperature 
 * Calibrated brightness temperature (averaged on all channels)
 * Daily median and standard deviation of hot, cold and sky spectra
 * A list of outliers detected for this day (see [quality control](quality_control_calibration.md))
-
 
 This first calibration output is used as a gross indication of data quality and
 enable a good visual interpretation of the data for a given day. However, it
@@ -209,6 +207,16 @@ calibration function is a Matlab structure array with time interval t_{cal}
 containing all the interesting parameters computed during the calibration
 (Y-factor, T_hot, ...). Note that after this stage, we do not the raw data
 matrix anymore.
+
+#### Note on THot and TCold:
+
+For T_hot, there are often 2 different measurements recorded in the log file:
+* AI_0 : in/near the absorber 
+* T_hot : near the heater, used for the stabilisation.
+
+For T_cold, we use the temperature of liquid nitrogen and we take into account
+some effect from the edge of the containter, reflections on the liquid surface,
+... Therefore, we ended up using 80 K, which of course needs some references.
 
 ### 10. check the calibration (check_calibrated)
 

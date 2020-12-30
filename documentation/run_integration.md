@@ -1,6 +1,6 @@
 # Integration sub-routine
 
-## Objective and role of this function
+## Summary
 
 This is the main function that executes sequentially all steps required to **integrate** (level 1a -> level 1b) a passive microwave radiometer. It has been designed for instruments using the hot/cold calibration scheme and primarly to GROMOS and SOMORA but has been adapted to MOPI 5 successfully and partly to MIAWARA-C which uses the tipping curve calibration scheme. 
 
@@ -193,4 +193,4 @@ integration.
 
 ### Check the window correction
 
-TODO
+Correction formula was taken from the old routines and might need a little check.
