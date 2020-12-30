@@ -2,7 +2,9 @@
 
 This folder contains a specific documentation for the GROSOM project. 
 
-It completes the main user guide which is located at [UserGuideGROSOM](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROSOM.git) also on the IAP git server.
+It completes the main user guide which is located at
+[UserGuideGROSOM](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROSOM.git) also on
+the IAP git server.
 
 The following documentation files are the most important:
 
@@ -13,3 +15,6 @@ The following documentation files are the most important:
 * [level1](level1.md): describes the structure and content of the calibrated (level 1a) and integrated (level 1b) output files.
 * [quality_control_calibration](quality_control_calibration.md): describes the quality control done during the calibration. 
 
+In [example_level1](example_level1), you can find some examples of level 1a and
+1b netCDF files as well as the standard plots for calibrated and integrated
+data. 
