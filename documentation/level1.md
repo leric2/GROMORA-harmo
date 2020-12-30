@@ -178,17 +178,17 @@ All variables should contains the following attributes ([CF conventions](http://
 | THot  | double | time | Kelvin | hot_load_temperature | THot | Mean temperature of the hot load |
 | stdTHot  | double | time | Kelvin | std_hot_load_temperature | stdTHot | standard deviation of the hot load temperature |
 | noise_temperature  | double | time | Kelvin | noise_temperature | mean noise temperature | mean noise receiver temperature |
-| std_dev_noise_temperature  | double | time | Kelvin | std_noise_temperature | standard deviation of noise receiver temperature | standard deviation of the noise receiver temperature |
+| std_dev_ noise_temperature  | double | time | Kelvin | std_noise_temperature | standard deviation of noise receiver temperature | standard deviation of the noise receiver temperature |
 | calibration_time  | double | time | second | calibration_time | calibrationTime | Time interval used for calibrating the spectra |
-| mean_sky_elevation_angle  | double | time | degree | elevation_angle | mean sky angle |mean elevation angle of the sky observation during this cycle |
+| mean_sky_ elevation_angle  | double | time | degree | elevation_angle | mean sky angle |mean elevation angle of the sky observation during this cycle |
 | TRoom  | double | time | Kelvin | room_temperature | TRoom | mean room temperature |
 | stdTRoom  | double | time | Kelvin | standard_room_temperature | stdTRoom | standard deviation of room temperature |
 | TWindow  | double | time | Kelvin | window_temperature | TWindow | mean window temperature |
 | TOut  | double | time | Kelvin | outside_temperature | TOut | mean outside temperature |
 | noise_level  | double | time | Kelvin | noise_level | std(diff(Tb))/sqrt(2) | describes how noisy is the spectra |
-| number_of_hot_spectra  | long | time | - | number_of_hot_spectra | number of hot spectra | number of hot spectra averaged together in this cycle |
-| number_of_cold_spectra  | long | time | - | number_of_cold_spectra | number of cold spectra |number of cold spectra averaged together in this cycle |
-| number_of_sky_spectra  | long | time | - | number_of_sky_spectra | number of sky spectra | number of sky spectra averaged together in this cycle |
+| number_of_ hot_spectra  | long | time | - | number_of_hot_spectra | number of hot spectra | number of hot spectra averaged together in this cycle |
+| number_of_ cold_spectra  | long | time | - | number_of_cold_spectra | number of cold spectra |number of cold spectra averaged together in this cycle |
+| number_of_ sky_spectra  | long | time | - | number_of_sky_spectra | number of sky spectra | number of sky spectra averaged together in this cycle |
 | mean_hot_counts  | double | time | - | mean_hot_counts | mean FFTS hot counts | mean raw FFTS counts on hot load during this cycle |
 
 The same variables are used in the level 1b file with some additions or adaptations:
@@ -196,7 +196,7 @@ The same variables are used in the level 1b file with some additions or adaptati
 | variables | type | dimension | units | standard_name | long_name | description |
 |------|------|------|------|------|------|:-----------|
 | integration_time  | double | time | second | integration_time | integrationTime | Time interval used for integrating the spectra |
-| number_of_calibrated_spectra  | double | time | - | number_of_calibrated_spectra |  number of calibrated spectra | number of calibrated spectra integrated during this cycle |
+| number_of_ calibrated_spectra  | double | time | - | number_of_calibrated_spectra |  number of calibrated spectra | number of calibrated spectra integrated during this cycle |
 | tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | mean tropospheric transmittance during t_int |
 | tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | mean tropospheric opacity during t_int  |
 | Tb  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle |
