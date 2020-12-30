@@ -23,6 +23,7 @@ function integratedSpectra = check_integrated_generic(calibrationTool,integrated
 %           |               - troposphericCorrection
 %           |               - minNumberOfAvgSpectra
 %           |               - rainAccumulationThreshold
+%           |               - troposphericTransmittanceThresh
 %           |
 %           | OUTPUTS:  1. integratedSpectra
 %           |
@@ -117,7 +118,7 @@ for i = 1:size(integratedSpectra,2)
     
     %%%%%%%%%%% flag  %%%%%%%%%%
     % Transmittance
-    if (integratedSpectra(i).troposphericTransmittance >= 0.2)
+    if (integratedSpectra(i).troposphericTransmittance >= calibrationTool.troposphericTransmittanceFlag)
         tropospheric_transmittance_OK=1;
     else
         tropospheric_transmittance_OK=0;
@@ -130,12 +131,8 @@ for i = 1:size(integratedSpectra,2)
     else
         rain_Accumulation_OK=0;
     end
-    
-    
-       
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Error vector for this calibration cycle
     integratedSpectra(i).errorVector=[
         sufficientNumberOfAvgSpectra,...

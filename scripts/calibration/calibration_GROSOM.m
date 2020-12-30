@@ -36,15 +36,15 @@ instrumentName='SOMORA';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
-readLabviewLog = true;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2010_03_02','yyyy_mm_dd'):datenum('2010_03_02','yyyy_mm_dd');
+dates=datenum('2019_02_21','yyyy_mm_dd'):datenum('2019_02_21','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -166,8 +166,11 @@ for d = 1:numel(dates)
         calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = true;
         
+        %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
+        % transmittance threshold for flagging level 1b:
+        calibrationTool.troposphericTransmittanceFlag = 0.2;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -187,8 +190,11 @@ for d = 1:numel(dates)
         calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = true;
         
+        %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
+        % transmittance threshold for flagging level 1b:
+        calibrationTool.troposphericTransmittanceFlag = 0.2;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -203,11 +209,13 @@ for d = 1:numel(dates)
     
         % Total integration time
         calibrationTool.integrationTime=6*60;
-        calibrationTool.minNumberOfAvgSpectra = 6;
         
         calibrationTool.filterByTransmittance = false; % Best to keep false for MOPI5 studies
         calibrationTool.transmittanceThreshold = 0.2;
         calibrationTool.filterByFlags = false;
+        
+        calibrationTool.minNumberOfAvgSpectra = 6;
+        calibrationTool.troposphericTransmittanceFlag = 0.2;
         
         % Temperature of the cold load
         calibrationTool.TCold=80;
