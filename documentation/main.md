@@ -17,12 +17,12 @@ for running some specific dates.
 Functions called directly from the main script: 
 
 | name | type | Description |
-|---|------|------|:-----------:|
-| read_labview_log_generic | Conditional | reads the labview text file (called once) | 
-| import_default_calibration_tool | Required | import the default *calibrationTool* structure |
-| import_InstrumentName_calibrationTool | Required | build and complete the instrument specific *calibrationTool* structure| 
-| [run_calibration](run_calibration.md) | Required | launch the calibration process | 
-| [run_integration](run_integration.md) | Required | launch the integration process | 
+|---|------|:-----------|
+| read_labview_log_generic | Conditional | reads the labview text file (called once) 
+| import_default_calibration_tool | Required | import the default *calibrationTool* structure 
+| import_InstrumentName_calibrationTool | Required | build and complete the instrument specific *calibrationTool* structure
+| [run_calibration](run_calibration.md) | Required | launch the calibration process 
+| [run_integration](run_integration.md) | Required | launch the integration process 
 
 
 ## Parameters
@@ -31,7 +31,7 @@ The main parameters to launch the calibration and/or integration process within
 the GROSOM project:
 
 | name | type | Description |
-|---|------|------|:-----------|
+|---|------|:-----------|
 | instrumentName | str | Name of the instrument to calibrate or integrate (case sensitive). 
 | calibrationType | str | type of calibration to perform (standard or debug) 
 | calibrate | boolean | defines if a calibration (level 0 to level 1a) is performed
