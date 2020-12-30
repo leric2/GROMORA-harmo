@@ -5,7 +5,7 @@ Routines for the calibration and integration of GROMOS and SOMORA data.
 
 It includes the reading of raw (level0) data, its calibration to level 1a (calibrated spectra) and its integration to level 1b (integrated spectra). 
 
-Documentation can be found in the dedicated [documentation](GROSOM-harmo/documentation) folder.
+Documentation can be found in the dedicated documentation folder at the top level of this repository.
 
 Author: 
 Eric Sauvageat, IAP, 2020
