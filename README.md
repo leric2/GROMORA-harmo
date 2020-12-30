@@ -20,7 +20,8 @@ Containing all scripts in 2 separated folders:
 Each folder contains additional specific documentation. 
 
 #### sketch
-outdated for now, but might be useful for the final report time will come
+
+Some sketch trying to explain the GROSOM routine on a graphical level
 
 ## Requirements
 
@@ -34,7 +35,7 @@ With a few adaptations (?), it should work with Matlab 2019 as well
 * Python 3.8
 * pyretrievals
 
-see environement file in ...
+When the time comes, we will add some more information here.
 
 ## Contributions
 Contributions from anyone are more than welcome according to the rules defined in the **contributions.md** documents.
