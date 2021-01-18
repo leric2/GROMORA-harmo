@@ -58,18 +58,18 @@ instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-# date = pd.date_range(start='2019-01-30', end='2019-02-22')
-# meanTb_chunks = [80, 85, 90, 95, 100, 105,
-#                  110, 115, 120, 130, 140, 150, 170, 190]
-# lowerBound = [0, 80, 85, 90, 95, 100, 105,
-#               110, 115, 120, 130, 140, 150, 170, 190]
+date = pd.date_range(start='2019-01-30', end='2019-02-22')
+meanTb_chunks = [80, 85, 90, 95, 100, 105,
+                 110, 115, 120, 130, 140, 150, 170, 190]
+lowerBound = [0, 80, 85, 90, 95, 100, 105,
+              110, 115, 120, 130, 140, 150, 170, 190]
 
 # date = pd.date_range(start='2019-05-01', end='2019-05-04')
 # No U5303
 
-date = pd.date_range(start='2019-04-25', end='2019-04-27')
-meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
-lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
+# date = pd.date_range(start='2019-04-25', end='2019-04-27')
+# meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
+# lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
 
 # date = pd.date_range(start='2019-06-11', end='2019-06-15')
 # meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
@@ -77,7 +77,6 @@ lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
 # date = pd.date_range(start='2019-03-12', end='2019-03-12')
 # date = pd.date_range(start='2019-02-22', end='2019-02-22')
 # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
-
 integration_strategy = 'meanTb_harmo'
 int_time = 1
 
@@ -86,9 +85,9 @@ df_bins = 200e3
 date1b = pd.to_datetime(date[-1])
 
 plot_comparison = False
-plot_fancy1 = False
+plot_fancy1 = True
 plot_fancy2 = True
-plot_interp_facny3 = False
+plot_interp_facny3 = True
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
@@ -107,8 +106,8 @@ classic = np.arange(1, 24)
 
 basename_lvl1 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/scratch/MOPI5/Level2/"
-basename_lvl1 = "/home/eric/Documents/PhD/DATA/MOPI5/"
-basename_lvl2 = "/home/eric/Documents/PhD/DATA/MOPI5/Level2/"
+basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
+basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
 # calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
 integration = mc.MOPI5_LvL2(date1b, basename_lvl1, basename_lvl2,
                             integration_strategy, integration_time=int_time)

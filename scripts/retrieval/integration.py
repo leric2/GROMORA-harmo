@@ -62,7 +62,6 @@ def integrate(date, integration_strategy):
     #date = pd.date_range(start='2019-06-11', end='2019-06-15')
     #meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
 
-
     #date = pd.date_range(start='2019-01-30', end='2019-06-30')
     #date = pd.date_range(start='2019-06-13', end='2019-06-13')
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
@@ -88,7 +87,7 @@ def integrate(date, integration_strategy):
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
-        basename_lvl1 = "/home/eric/Documents/PhD/DATA/MOPI5/"
+        basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
         basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
         #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
@@ -261,7 +260,6 @@ def integrate(date, integration_strategy):
             extra='')
 
 # %%
-
 def plot_integrated(date, integration_strategy):
     #date1b = pd.to_datetime(date[-1])
     date1b = pd.to_datetime(date[-1])
@@ -337,7 +335,7 @@ if __name__ == "__main__":
     #dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
     dateR = pd.date_range(start='2019-01-30', end='2019-02-22')
     #dateR = pd.date_range(start='2019-01-03', end='2019-06-30')
-    integrate(dateR, 'meanTb_harmo')
+    #integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     # integration_strategy = 'TOD_harmo'
