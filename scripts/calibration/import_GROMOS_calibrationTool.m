@@ -85,10 +85,10 @@ calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
 calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
-%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
+calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
 calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
-%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Level1/';
+calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -111,6 +111,7 @@ calibrationTool.positionIndAsName = false;
 calibrationTool.indiceCold=0;
 calibrationTool.indiceAntenna=1;
 calibrationTool.indiceHot=2;
+calibrationTool.indiceTC = 5;
 
 calibrationTool.elevationAngleAntenna=40;
 calibrationTool.elevationAngleCold=-84;
@@ -191,7 +192,7 @@ calibrationTool.filter2.boxCarThresh=2;
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
-%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
+calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
 
 % Read meteo data
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
@@ -204,9 +205,15 @@ calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra)
 % Tipping curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO
-calibrationTool.doTippingCurve = false;
-%calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
-%calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_gromos(rawSpectra,log, calibrationTool);
+calibrationTool.doTippingCurve = true;
+calibrationTool.TC_type = 'SkyLoads';
+
+% channels to use for TC
+calibrationTool.tippingCurveChannels = [500:5500];
+% tipping curve
+calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
+calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_generic(rawSpectra,log, calibrationTool);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Corrections
@@ -215,7 +222,7 @@ calibrationTool.tWindow=0.99;
 % Corrections
 calibrationTool.troposphericCorrection.type = 'Ingold_v1';
 calibrationTool.troposphericCorrection.useWings = 'both';
-calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 50;
+calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 500;
 calibrationTool.troposphericCorrection.skipFraction = 0.05;
 calibrationTool.troposphericCorrection.deltaT = 10.4;
 

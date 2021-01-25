@@ -5,7 +5,7 @@ function TC = run_tipping_curve_generic(rawSpectra, logFile, calibrationTool)
 
 TC_data = calibrationTool.get_tipping_curve_data(rawSpectra,logFile, calibrationTool);
 
-
+if strcmp(calibrationTool.instrumentName,'MIAWARA-C')
 
 %% find opacity (tau)
 
@@ -36,3 +36,22 @@ else
     writetable(T,[calibrationTool.level1Folder calibrationTool.instrumentName '_tau_and_Teff_' calibrationTool.dateStr '_2']);
 end
 
+else 
+    if strcmp(calibrationTool.TC_type, 'SkyLoads')
+        c1 = 0.69;
+        c0 = 266.3;
+        Teff = c1 * (mean([logFile.meteo.air_temperature])-calibrationTool.zeroDegInKelvin )+ c0;
+        for i =1:length(TC_data)
+            TC_data(i).Tb_fromTCLoads = calibrationTool.TCold + (TC_data(i).THot - calibrationTool.TCold) .* (TC_data(i).sky - TC_data(i).cold)./(TC_data(i).hot - TC_data(i).cold);
+            tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-TC_data(i).Tb_fromTCLoads));
+            am = 1./sind(TC_data(i).skyAngle);
+  
+            % fit the airmass-slant opacity data pairs
+            [p,s] = polyfit (am, tau_slant, 1);
+            TC_data(i).tauEstimate = p(1);
+
+        end
+    end
+    TC = TC_data;
+
+end

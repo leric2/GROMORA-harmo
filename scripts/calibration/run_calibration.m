@@ -117,7 +117,7 @@ disp('Calibrating...')
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file and storing
 % everything in calibrated spectra
-calibratedSpectra = calibrationTool.check_calibrated(logFile, ...
+[calibratedSpectra, logFile] = calibrationTool.check_calibrated(logFile, ...
     calibrationTool, calibratedSpectra);
 
 %%

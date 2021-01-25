@@ -1,4 +1,4 @@
-function calibratedSpectra = check_calibrated_generic(logFile,calibrationTool,calibratedSpectra)
+function [calibratedSpectra, logFile] = check_calibrated_generic(logFile,calibrationTool,calibratedSpectra)
 %==========================================================================
 % NAME      | check_calibrated_generic.m
 % TYPE      | function
@@ -41,6 +41,7 @@ function calibratedSpectra = check_calibrated_generic(logFile,calibrationTool,ca
 %           | OUTPUTS:  1. calibratedSpectra
 %           |
 %==========================================================================
+counterTC=1;
 % Checking all calibration cycle
 for i = 1:size(calibratedSpectra,2)
     ia=calibratedSpectra(i).antennaIndCleanAngle;
@@ -276,6 +277,34 @@ for i = 1:size(calibratedSpectra,2)
             calibratedSpectra(i).meanAntTimeUTC.Second);
     end
     
+    
+    if isfield(logFile,'TC')
+       isTC = isbetween([logFile.TC.skyMeanDatetime],calibratedSpectra(i).theoreticalStartTime,calibratedSpectra(i).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
+       % isTC = ([logFile.TC.meanDateNum] >= calibratedSpectra(i).firstSkyTime & [logFile.TC.meanDateNum] < calibratedSpectra(i).lastSkyTime);
+       % check if there was a tc done during this cycle (only mean
+       % datetime)
+       if sum(isTC) > 0
+           logFile.TC(counterTC).coldCalib = mean(calibratedSpectra(i).meanColdSpectra(calibrationTool.tippingCurveChannels));
+           logFile.TC(counterTC).hotCalib = mean(calibratedSpectra(i).meanHotSpectra(calibrationTool.tippingCurveChannels));
+           logFile.TC(counterTC).THotCalib = calibratedSpectra(i).THot;
+           logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(calibrationTool.tippingCurveChannels));
+           
+           air_temp = [logFile.meteo.air_temperature];
+           meteoInd = [logFile.meteo.dateNum]>=calibratedSpectra(i).firstSkyTime & [logFile.meteo.dateNum]<calibratedSpectra(i).lastSkyTime;
+           % just for estimation
+           Teff = mean(air_temp(meteoInd))-calibrationTool.troposphericCorrection.deltaT;
+           
+           logFile.TC(counterTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(counterTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(counterTC).sky - logFile.TC(counterTC).coldCalib)./(logFile.TC(counterTC).hotCalib - logFile.TC(counterTC).coldCalib);
+           tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-logFile.TC(counterTC).Tb_Calib));
+           am = 1./sind(logFile.TC(counterTC).skyAngle);
+           
+           % fit the airmass-slant opacity data pairs
+           [p,s] = polyfit (am, tau_slant, 1);
+           logFile.TC(counterTC).tauCalib = p(1);
+           counterTC = counterTC + 1;
+       end
+       
+    end
 %     % Effective calibration time for this cycle (TO CHECK IF NEEDED ?)
 %     effectiveTime=0;
 %     %if i<size(calibratedSpectra,2)
