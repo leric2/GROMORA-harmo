@@ -206,10 +206,15 @@ calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO
 calibrationTool.doTippingCurve = true;
-calibrationTool.TC_type = 'SkyLoads';
+calibrationTool.TC.type = 'SkyLoads';
+calibrationTool.TC.numberOfChannelsTropCorr = 500;
+calibrationTool.TC.skipFraction = 0.05;
+calibrationTool.TC.useWings = 'both';
+calibrationTool.TC.deltaT = 10.4;
 
-% channels to use for TC
-calibrationTool.tippingCurveChannels = [500:5500];
+% channels to use for TC if not specified before
+calibrationTool.TC.tippingCurveChannels = 500:5500;
+
 % tipping curve
 calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
 calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_generic(rawSpectra,log, calibrationTool);
@@ -339,4 +344,12 @@ end
 
 if (calibrationTool.timeNumber>= datenum(2019,01,14) && calibrationTool.timeNumber<datenum(2019,03,12))
     calibrationTool.elevationAngleBias = 5;
+end
+
+% TC
+
+if (calibrationTool.timeNumber>= datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,04,26))
+    calibrationTool.indiceTC = 1;
+end
+
 end

@@ -284,15 +284,15 @@ for i = 1:size(calibratedSpectra,2)
        % check if there was a tc done during this cycle (only mean
        % datetime)
        if sum(isTC) > 0
-           logFile.TC(counterTC).coldCalib = mean(calibratedSpectra(i).meanColdSpectra(calibrationTool.tippingCurveChannels));
-           logFile.TC(counterTC).hotCalib = mean(calibratedSpectra(i).meanHotSpectra(calibrationTool.tippingCurveChannels));
+           logFile.TC(counterTC).coldCalib = mean(calibratedSpectra(i).meanColdSpectra(logFile.TC(counterTC).channels));
+           logFile.TC(counterTC).hotCalib = mean(calibratedSpectra(i).meanHotSpectra(logFile.TC(counterTC).channels));
            logFile.TC(counterTC).THotCalib = calibratedSpectra(i).THot;
-           logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(calibrationTool.tippingCurveChannels));
+           logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(counterTC).channels));
            
            air_temp = [logFile.meteo.air_temperature];
            meteoInd = [logFile.meteo.dateNum]>=calibratedSpectra(i).firstSkyTime & [logFile.meteo.dateNum]<calibratedSpectra(i).lastSkyTime;
            % just for estimation
-           Teff = mean(air_temp(meteoInd))-calibrationTool.troposphericCorrection.deltaT;
+           Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            
            logFile.TC(counterTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(counterTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(counterTC).sky - logFile.TC(counterTC).coldCalib)./(logFile.TC(counterTC).hotCalib - logFile.TC(counterTC).coldCalib);
            tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-logFile.TC(counterTC).Tb_Calib));
