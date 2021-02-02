@@ -85,10 +85,10 @@ calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
 calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
+%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
 calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
+%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -192,7 +192,7 @@ calibrationTool.filter2.boxCarThresh=2;
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
 
 % Read meteo data
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
