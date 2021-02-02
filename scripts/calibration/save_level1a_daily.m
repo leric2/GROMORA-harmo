@@ -131,13 +131,16 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,
 % Coordinates time and flags
 nccreate(filename,'/tipping_curve/time','Dimensions',{'time',Inf},'Datatype','double')
 
-% if the error vector does not exist, we replace it with a scalar NaN
+
+% if the vector does not exist, we replace it with a scalar NaN
 if isfield(logFile,'TC')
     lenTipping=length(logFile.TC(1).sky);
+    lenFreqTC=length(logFile.TC(1).tippingCurveRawCounts);
 else
     lenTipping=1;
 end
 nccreate(filename,'/tipping_curve/tipping_angle','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','int64')
+nccreate(filename,'/tipping_curve/frequency_tc','Dimensions',{'frequency_tc',lenFreqTC},'Datatype','double')
 
 % We input a (1xtipping_angle) int vector to save the tipping curve
 % variables
@@ -149,11 +152,12 @@ nccreate(filename,'/tipping_curve/hot_calib','Dimensions',{'time',Inf},'Datatype
 nccreate(filename,'/tipping_curve/THot_calib','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/tipping_curve/sky','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/mean_frequency_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/tipping_curve/tau_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/tipping_curve/Tb_tc','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/tipping_curve/frequency_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/sky_spectra','Dimensions',{'tipping_angle',lenTipping,'frequency_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
@@ -299,6 +303,7 @@ ncwriteatt(filename,'/tipping_curve/time','description','mean time of the sky ob
 
 if isfield(logFile,'TC')
     ncwrite(filename,'/tipping_curve/tipping_angle',vertcat(logFile.TC.skyAngle)');
+    
     ncwrite(filename,'/tipping_curve/sky',vertcat(logFile.TC.sky)');
     ncwrite(filename,'/tipping_curve/Tb_tc',vertcat(logFile.TC.Tb_Calib)');
     ncwrite(filename,'/tipping_curve/hot_calib', [logFile.TC.hotCalib]);
@@ -306,7 +311,11 @@ if isfield(logFile,'TC')
     ncwrite(filename,'/tipping_curve/cold_calib', [logFile.TC.coldCalib]);
     ncwrite(filename,'/tipping_curve/hot_calib', [logFile.TC.hotCalib]);
     ncwrite(filename,'/tipping_curve/tau_tc', [logFile.TC.tauCalib]);
-    ncwrite(filename,'/tipping_curve/frequency_tc', [logFile.TC.meanFreq]);
+    ncwrite(filename,'/tipping_curve/mean_frequency_tc', [logFile.TC.meanFreq]);
+    ncwrite(filename,'/tipping_curve/frequency_tc', logFile.TC(1).frequency);   
+    for j=1:length(logFile.TC)
+    ncwrite(filename,'/tipping_curve/sky_spectra',logFile.TC(j).sky_spectra,[1,1,j]);
+    end
 else
     ncwrite(filename,'/tipping_curve/tipping_angle',-9999);
     ncwrite(filename,'/tipping_curve/sky',-9999);
@@ -321,7 +330,6 @@ else
 %     ncwrite(filename,'/tipping_curve/hot_tc', -9999);
 %     ncwrite(filename,'/tipping_curve/hot_tc', -9999);
 end
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -602,6 +610,11 @@ attrVal.sky = {'mean FFTS sky counts for tipping curve',...
     '1',...
     'mean raw FFTS counts on sky during TC'};
 
+attrVal.sky_spectra = {'FFTS sky counts for tipping curve',...
+    'sky_counts_tc',...
+    '1',...
+    'raw FFTS counts on sky during TC'};
+
 attrVal.tau_tc = {'tau TC',...
     'tau_tc',...
     '1',...
@@ -612,7 +625,12 @@ attrVal.Tb_tc = {'Tb from TC',...
     'K',...
     'Calibrated brightness temperature for TC'};
 
-attrVal.frequency_tc = {'mean frequency tc',...
+attrVal.frequency_tc = {'frequency tc',...
+    'frequency_tc',...
+    'Hz',...
+    'frequency vector used for the tc calibration'};
+
+attrVal.mean_frequency_tc = {'mean frequency tc',...
     'frequency_tc',...
     'Hz',...
     'mean frequency used for the tc calibration'};
@@ -657,8 +675,10 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/tipping_curve/cold_calib',attrName{i},attrVal.cold_calib{i});
     ncwriteatt(filename,'/tipping_curve/hot_calib',attrName{i},attrVal.hot_calib{i});
     ncwriteatt(filename,'/tipping_curve/sky',attrName{i},attrVal.sky{i});
+    ncwriteatt(filename,'/tipping_curve/sky_spectra',attrName{i},attrVal.sky_spectra{i});
     ncwriteatt(filename,'/tipping_curve/tau_tc',attrName{i},attrVal.tau_tc{i});
     ncwriteatt(filename,'/tipping_curve/Tb_tc',attrName{i},attrVal.Tb_tc{i});
+    ncwriteatt(filename,'/tipping_curve/mean_frequency_tc',attrName{i},attrVal.mean_frequency_tc{i});
     ncwriteatt(filename,'/tipping_curve/frequency_tc',attrName{i},attrVal.frequency_tc{i});
 end
 

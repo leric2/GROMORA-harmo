@@ -37,7 +37,7 @@ else
 end
 
 else 
-    if strcmp(calibrationTool.TC.type, 'SkyLoads')
+    if length(find(logFile.Tipping_Curve_active)) ~= length(find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC))
         Teff = nanmean([logFile.meteo.air_temperature])-calibrationTool.TC.deltaT;
         for i =1:length(TC_data)
             TC_data(i).Tb_fromTCLoads = calibrationTool.TCold + (TC_data(i).THot - calibrationTool.TCold) .* (TC_data(i).sky - TC_data(i).cold)./(TC_data(i).hot - TC_data(i).cold);

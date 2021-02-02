@@ -288,6 +288,7 @@ for i = 1:size(calibratedSpectra,2)
            logFile.TC(counterTC).hotCalib = mean(calibratedSpectra(i).meanHotSpectra(logFile.TC(counterTC).channels));
            logFile.TC(counterTC).THotCalib = calibratedSpectra(i).THot;
            logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(counterTC).channels));
+           logFile.TC(counterTC).frequency = calibratedSpectra(i).freq(logFile.TC(counterTC).channels);
            
            air_temp = [logFile.meteo.air_temperature];
            meteoInd = [logFile.meteo.dateNum]>=calibratedSpectra(i).firstSkyTime & [logFile.meteo.dateNum]<calibratedSpectra(i).lastSkyTime;

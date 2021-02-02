@@ -42,6 +42,7 @@ function TC_data = get_tipping_curve_data_generic(rawSpectra, logFile, calibrati
 %idx_hot = find(logFile.Mirror_pos == 1);
 
 tippingCurveInd=find(logFile.Tipping_Curve_active);      % all TC
+tippingCurveSkyInd=find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC); 
 
 % the tipping curve is calculated for the average of a certain frequency
 % range
@@ -69,31 +70,51 @@ end
 %TC_data.tippingCurveMeanRawCounts=mean(rawSpectra(tippingCurveInd,idxFreqTC),2);
 %TC_data.datetime = logFile.dateTime(tippingCurveInd);
 
-TippingCounter = 1;
-for i = 1:length(tippingCurveInd)/calibrationTool.tippingSize
-    TC_data(i).position = logFile.Position(tippingCurveInd(calibrationTool.tippingSize*(i-1)+1:calibrationTool.tippingSize*i));
-    TC_data(i).angle = logFile.Elevation_Angle(tippingCurveInd(calibrationTool.tippingSize*(i-1)+1:calibrationTool.tippingSize*i));
-    TC_data(i).THot = logFile.T_Hot_Absorber(tippingCurveInd(calibrationTool.tippingSize*(i-1)+1:calibrationTool.tippingSize*i));
-    TC_data(i).tippingCurveMeanRawCounts = nanmean(rawSpectra(tippingCurveInd(calibrationTool.tippingSize*(i-1)+1:calibrationTool.tippingSize*i),idxFreqTC),2);
-    TC_data(i).datetime = logFile.dateTime(tippingCurveInd(calibrationTool.tippingSize*(i-1)+1:calibrationTool.tippingSize*i));
+%if length(tippingCurveInd) == length(tippingCurveSkyInd)
+%    lastTipAngle = find(diff( tippingCurveSkyInd) > 10);
+%    nTippingCurve = length(lastTipAngle);
+%    if all(diff(lastTipAngle) == calibrationTool.tippingSize)
+%        effTippingSize = calibrationTool.tippingSize;
+%    else
+%        effTippingSize = median(diff(lastTipAngle));
+%    end
+%    firstTipAngle=lastTipAngle-effTippingSize+1;
+%else
+    lastTipAngle = find(diff( tippingCurveInd) > 10);
+    nTippingCurve = length(lastTipAngle);
+    if all(diff(lastTipAngle) == calibrationTool.tippingSize)
+       effTippingSize = calibrationTool.tippingSize;
+    else
+       effTippingSize = median(diff(lastTipAngle));
+    end
+    firstTipAngle=lastTipAngle-effTippingSize+1;
+%end
+
+for i = 1:nTippingCurve
+    TC_data(i).position = logFile.Position(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
+    TC_data(i).angle = logFile.Elevation_Angle(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
+    TC_data(i).THot = logFile.T_Hot_Absorber(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
+    TC_data(i).tippingCurveRawCounts = rawSpectra(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)),idxFreqTC);
+    TC_data(i).tippingCurveMeanRawCounts = nanmean(rawSpectra(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)),idxFreqTC),2)';
+    TC_data(i).datetime = logFile.dateTime(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)));
     TC_data(i).channels = idxFreqTC;
     TC_data(i).datetime.TimeZone='Z';
       
-    if strcmp(calibrationTool.TC.type, 'SkyLoads')
+    if length(tippingCurveInd) ~= length(tippingCurveSkyInd)
         TC_data(i).cold = mean(TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceCold));
         TC_data(i).hot = mean(TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceHot));
         TC_data(i).THot = mean(TC_data(i).THot(TC_data(i).position == calibrationTool.indiceHot));
         TC_data(i).sky = TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceTC)';
+        TC_data(i).sky_spectra = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceTC)';
         TC_data(i).skyAngle = TC_data(i).angle(TC_data(i).position == calibrationTool.indiceTC)';
         TC_data(i).skyMeanDatetime = mean(TC_data(i).datetime(TC_data(i).position == calibrationTool.indiceTC));
         TC_data(i).meanDateNum = datenum(TC_data(i).skyMeanDatetime)-calibrationTool.referenceTime;
-    elseif strcmp(calibrationTool.TC.type, 'onlySkyObs')
+    else 
         TC_data(i).sky = TC_data(i).tippingCurveMeanRawCounts;
+        TC_data(i).sky_spectra = TC_data(i).tippingCurveRawCounts;
         TC_data(i).skyAngle = TC_data(i).angle;
         TC_data(i).skyMeanDatetime = mean(TC_data(i).datetime);
         TC_data(i).meanDateNum = datenum(TC_data(i).skyMeanDatetime)-calibrationTool.referenceTime;
-    else
-        error('TC type not recognized')
     end
 end
 end  
