@@ -218,8 +218,8 @@ for i=1:nCalibrationCycles
     coldAngleOutlier=reshape((abs(logFile.Elevation_Angle(ic)-calibrationTool.elevationAngleCold) > calibrationTool.elevationAngleColdTol),[],1);
        
     % identifying FFT spectrometer overloads 
-    FFT_adc_overload_hot = reshape(~(logFile.FFT_adc_overload(ih) == 0),[],1);
-    FFT_adc_overload_cold = reshape(~(logFile.FFT_adc_overload(ic) == 0),[],1);  
+    FFT_adc_overload_hot = reshape((logFile.FFT_adc_overload(ih) > calibrationTool.adcOverloadThresh),[],1);
+    FFT_adc_overload_cold = reshape((logFile.FFT_adc_overload(ic) > calibrationTool.adcOverloadThresh),[],1);  
     
     % We compute the median of the calibration spectra as well as its std
     % deviation. We then remove the spectra which contains too many
@@ -398,7 +398,7 @@ switch calType
             skyAngleCheck=reshape(skyAngleCheck,[],1);
             
             % FFT overload check:
-            FFT_adc_overload_sky = reshape(~(logFile.FFT_adc_overload(ia) == 0),[],1);
+            FFT_adc_overload_sky = reshape((logFile.FFT_adc_overload(ia) > calibrationTool.adcOverloadThresh),[],1);
             
             % Using the cycle median and stddev to check for spurious sky
             % spectra during this cycle:   

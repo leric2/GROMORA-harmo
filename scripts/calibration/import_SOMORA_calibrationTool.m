@@ -135,7 +135,7 @@ calibrationTool.stdTNoiseThresh=8;
 
 calibrationTool.THotTh=311.1;
 calibrationTool.THotAbsThresh=5;
-calibrationTool.hotTemperatureStdThreshold=0.05;
+calibrationTool.hotTemperatureStdThreshold=0.1;
 calibrationTool.checkLevel0=true;
 
 calibrationTool.numberOfTippingCurveExpected=4;
@@ -146,6 +146,10 @@ calibrationTool.toleranceTippingCurves=2;
 % to be valid
 
 calibrationTool.stdAntAngleThresh = 0.5;
+calibrationTool.adcOverloadThresh = 0;
+if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2010,12,01)
+    calibrationTool.adcOverloadThresh = 20;
+end
 
 calibrationTool.minNumberOfIndicePerCycle=40;
 calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
@@ -193,11 +197,14 @@ calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO
 calibrationTool.doTippingCurve = true;
-calibrationTool.TC.type = 'onlySkyObs';
+%calibrationTool.TC.type = 'onlySkyObs';
 calibrationTool.TC.numberOfChannelsTropCorr = 500;
 calibrationTool.TC.skipFraction = 0.05;
 calibrationTool.TC.useWings = 'both';
 calibrationTool.TC.deltaT = 10.4;
+calibrationTool.tauInitTC = 0.3;
+calibrationTool.maxIterTC = 100;
+calibrationTool.offsetTC = 1e-3;
 
 % channels to use for TC if not specified before
 calibrationTool.TC.tippingCurveChannels = 500:5500;
@@ -282,6 +289,7 @@ calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calib
 % Parameter varying with time for the instruments:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if calibrationTool.timeNumber>datenum(2016,01,01) && calibrationTool.timeNumber<datenum(2017,04,01)
+   
     calibrationTool.THotTh = 297.4;
 end
 
@@ -307,4 +315,22 @@ elseif (calibrationTool.timeNumber>= datenum(2017,05,31) && calibrationTool.time
     calibrationTool.tWindow = 0.9922; %value from 30/05/2017 to 20/08/2018
 else
     calibrationTool.tWindow = 0.9980; %value since 21/08/2018
+end
+
+if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
+    calibrationTool.elevationAngleAntenna=38;
+    calibrationTool.elevationAngleCold=-92;
+    calibrationTool.elevationAngleHot=180;
+    calibrationTool.elevationAngleHotTol = 1;
+    calibrationTool.elevationAngleColdTol = 1;
+
+end
+
+
+% TC
+
+if (calibrationTool.timeNumber>= datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2010,12,09))
+    calibrationTool.doTippingCurve = false;
+end
+
 end
