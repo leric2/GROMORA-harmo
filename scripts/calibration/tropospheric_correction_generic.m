@@ -173,7 +173,7 @@ for t = 1:length(spectra)
         if isfield(calibrationTool.logFile,'TC')
             TC = calibrationTool.logFile.TC;
             %isTC = isbetween([TC.dateTime],spectra(t).first_sky_time,spectra(t).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
-            isTC = ([TC.time] >= spectra(t).first_sky_time & [TC.time] < spectra(t).last_sky_time);
+            isTC = ([TC.time] >= spectra(t).time_min & [TC.time] < spectra(t).last_sky_time);
             % check if there was a tc done during this cycle (only mean
             % datetime)
             
