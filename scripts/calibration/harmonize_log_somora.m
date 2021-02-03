@@ -43,7 +43,7 @@ function logFile = harmonize_log_somora(calibrationTool, logFile)
 logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
 logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone);
 
-logFile.Tipping_Curve_active=(logFile.Position==6);
+logFile.Tipping_Curve_active=(logFile.Position==calibrationTool.indiceTC);
 logFile.T_Hot_Absorber=logFile.AI_0*100;
 logFile.T_Window=logFile.AI_3*100;
 logFile.T_Out=logFile.AI_7*100;
