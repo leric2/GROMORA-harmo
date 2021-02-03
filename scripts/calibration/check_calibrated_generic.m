@@ -304,7 +304,8 @@ for i = 1:size(calibratedSpectra,2)
            
            % fit the airmass-slant opacity data pairs
            [p,s] = polyfit (am, tau_slant, 1);
-           logFile.TC(isTC).tauCalib = p(1);
+           logFile.TC(isTC).tauCalibZenith = p(1);
+           logFile.TC(isTC).tauCalib = logFile.TC(isTC).tauCalibZenith * 1/sind(calibratedSpectra(i).meanAngleAntenna);
        end
        
     end

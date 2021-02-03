@@ -176,9 +176,24 @@ for t = 1:length(spectra)
             isTC = ([TC.time] >= spectra(t).time_min & [TC.time] < spectra(t).last_sky_time);
             % check if there was a tc done during this cycle (only mean
             % datetime)
-            
-            if sum(isTC) > 0
-                spectra(t).troposphericOpacityTC = TC(isTC).tau_tc;
+                
+            % For now, we compute the TC tau only if there is 1 TC per
+            % cycle. It means, that it computes tau only when the function
+            % is applied on the calibratedSpectra and not on the integrated
+            % Spectra. It can be changed...
+            if sum(isTC) == 1
+                TC(isTC).Tb = calibrationTool.TCold + (TC(isTC).THot_calib - calibrationTool.TCold) .* (TC(isTC).sky_spectra - TC(isTC).cold_spectra)./(TC(isTC).hot_spectra - TC(isTC).cold_spectra);
+                TC(isTC).Tb_mean = nanmean(TC(isTC).Tb,2);
+        
+                tau_slant = log((Tmean-calibrationTool.backgroundMWTb)./(Tmean-TC(isTC).Tb_mean));
+                am = 1./sind(TC(isTC).tipping_angle);
+        
+                % fit the airmass-slant opacity data pairs
+                [p,s] = polyfit (am, tau_slant, 1);
+                TC(isTC).tauCalibZenith = p(1);
+        
+                % In the beam direction:
+                spectra(t).troposphericOpacityTC = TC(isTC).tauCalibZenith * 1/sind(spectra(t).mean_sky_elevation_angle);
             else
                 spectra(t).troposphericOpacityTC = NaN;
             end

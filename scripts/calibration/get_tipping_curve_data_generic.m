@@ -105,7 +105,7 @@ for i = 1:nTippingCurve
         TC_data(i).hot = mean(TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceHot));
         TC_data(i).THot = mean(TC_data(i).THot(TC_data(i).position == calibrationTool.indiceHot));
         TC_data(i).sky = TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceTC);
-        TC_data(i).sky_spectra = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceTC)';
+        TC_data(i).sky_spectra = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceTC,:);
         TC_data(i).skyAngle = TC_data(i).angle(TC_data(i).position == calibrationTool.indiceTC);
         TC_data(i).skyMeanDatetime = mean(TC_data(i).datetime(TC_data(i).position == calibrationTool.indiceTC));
         TC_data(i).meanDateNum = datenum(TC_data(i).skyMeanDatetime)-calibrationTool.referenceTime;

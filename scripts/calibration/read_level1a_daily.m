@@ -160,7 +160,7 @@ if calibrationTool.doTippingCurve
         calibrationTool.logFile.TC(j).hot_spectra = reshape(TC.hot_spectra(j,:),1,[]);
         calibrationTool.logFile.TC(j).cold_spectra = reshape(TC.cold_spectra(j,:),1,[]);
         nTipAngle = length(calibrationTool.logFile.TC(j).tipping_angle);
-        calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.sky_spectra(:,:,j),nTipAngle,[]);
+        calibrationTool.logFile.TC(j).sky_spectra = reshape(TC.sky_spectra(:,:,j),nTipAngle,[]);
     end
 end
 
