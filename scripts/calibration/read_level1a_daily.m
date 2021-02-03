@@ -147,20 +147,21 @@ if calibrationTool.doTippingCurve
     TC.hot_spectra = ncread(filename,'/tipping_curve/hot_spectra')';
     TC.cold_spectra = ncread(filename,'/tipping_curve/cold_spectra')';
     TC.sky_spectra = ncread(filename,'/tipping_curve/sky_spectra');
-end
-
-for j = 1:length(TC.time)
-    calibrationTool.logFile.TC(j).time = TC.time(j);
-    calibrationTool.logFile.TC(j).dateTime = TC.dateTime(j);
-    calibrationTool.logFile.TC(j).frequency = reshape(TC.freq,1,[]);
-    calibrationTool.logFile.TC(j).channels_idx_tc = reshape(TC.channel_idx,1,[]);
-    calibrationTool.logFile.TC(j).THot_calib = TC.THotTC(j);
-    calibrationTool.logFile.TC(j).tau_tc = TC.tauCalib(j);
-    calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.tipping_angle(j,:),1,[]);
-    calibrationTool.logFile.TC(j).hot_spectra = reshape(TC.hot_spectra(j,:),1,[]);
-    calibrationTool.logFile.TC(j).cold_spectra = reshape(TC.cold_spectra(j,:),1,[]);
-    nTipAngle = length(calibrationTool.logFile.TC(j).tipping_angle);
-    calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.sky_spectra(:,:,j),nTipAngle,[]);
+    
+    
+    for j = 1:length(TC.time)
+        calibrationTool.logFile.TC(j).time = TC.time(j);
+        calibrationTool.logFile.TC(j).dateTime = TC.dateTime(j);
+        calibrationTool.logFile.TC(j).frequency = reshape(TC.freq,1,[]);
+        calibrationTool.logFile.TC(j).channels_idx_tc = reshape(TC.channel_idx,1,[]);
+        calibrationTool.logFile.TC(j).THot_calib = TC.THotTC(j);
+        calibrationTool.logFile.TC(j).tau_tc = TC.tauCalib(j);
+        calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.tipping_angle(j,:),1,[]);
+        calibrationTool.logFile.TC(j).hot_spectra = reshape(TC.hot_spectra(j,:),1,[]);
+        calibrationTool.logFile.TC(j).cold_spectra = reshape(TC.cold_spectra(j,:),1,[]);
+        nTipAngle = length(calibrationTool.logFile.TC(j).tipping_angle);
+        calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.sky_spectra(:,:,j),nTipAngle,[]);
+    end
 end
 
 for i = 1:length(correctedSpectra.meanTime)
