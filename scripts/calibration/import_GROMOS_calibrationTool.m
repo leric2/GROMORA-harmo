@@ -158,6 +158,7 @@ calibrationTool.hotTemperatureStdThreshold=0.05;
 % minimum number of indices (h-a-c) we want in a calibration cycle for it
 % to be valid
 calibrationTool.stdAntAngleThresh = 0.5;
+calibrationTool.adcOverloadThresh = 0;
 
 calibrationTool.minNumberOfIndicePerCycle=12;
 calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
