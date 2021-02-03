@@ -41,7 +41,7 @@ function [calibratedSpectra, logFile] = check_calibrated_generic(logFile,calibra
 %           | OUTPUTS:  1. calibratedSpectra
 %           |
 %==========================================================================
-counterTC=1;
+
 % Checking all calibration cycle
 for i = 1:size(calibratedSpectra,2)
     ia=calibratedSpectra(i).antennaIndCleanAngle;
@@ -277,34 +277,34 @@ for i = 1:size(calibratedSpectra,2)
             calibratedSpectra(i).meanAntTimeUTC.Second);
     end
     
-    
     if isfield(logFile,'TC')
        isTC = isbetween([logFile.TC.skyMeanDatetime],calibratedSpectra(i).theoreticalStartTime,calibratedSpectra(i).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
        % isTC = ([logFile.TC.meanDateNum] >= calibratedSpectra(i).firstSkyTime & [logFile.TC.meanDateNum] < calibratedSpectra(i).lastSkyTime);
        % check if there was a tc done during this cycle (only mean
        % datetime)
        if sum(isTC) > 0
-           logFile.TC(counterTC).coldSpectra = calibratedSpectra(i).meanColdSpectra(logFile.TC(counterTC).channels);
-           logFile.TC(counterTC).coldCalib = nanmean(logFile.TC(counterTC).coldSpectra);
-           logFile.TC(counterTC).hotSpectra = calibratedSpectra(i).meanHotSpectra(logFile.TC(counterTC).channels);
-           logFile.TC(counterTC).hotCalib = nanmean(logFile.TC(counterTC).hotSpectra);
-           logFile.TC(counterTC).THotCalib = calibratedSpectra(i).THot;
-           logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(counterTC).channels));
-           logFile.TC(counterTC).frequency = calibratedSpectra(i).freq(logFile.TC(counterTC).channels);
+           logFile.TC(isTC).coldSpectra = calibratedSpectra(i).meanColdSpectra(logFile.TC(isTC).channels);
+           logFile.TC(isTC).coldCalib = nanmean(logFile.TC(isTC).coldSpectra);
+           logFile.TC(isTC).hotSpectra = calibratedSpectra(i).meanHotSpectra(logFile.TC(isTC).channels);
+           logFile.TC(isTC).hotCalib = nanmean(logFile.TC(isTC).hotSpectra);
+           logFile.TC(isTC).THotCalib = calibratedSpectra(i).THot;
+           logFile.TC(isTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(isTC).channels));
+           logFile.TC(isTC).frequency = calibratedSpectra(i).freq(logFile.TC(isTC).channels);
            
            air_temp = [logFile.meteo.air_temperature];
-           meteoInd = [logFile.meteo.dateNum]>=calibratedSpectra(i).firstSkyTime & [logFile.meteo.dateNum]<calibratedSpectra(i).lastSkyTime;
+           % we take the 3 meteo data aroung this calibration cycle to have
+           % at least one value.
+           meteoInd = isbetween([logFile.meteo.dateTime], calibratedSpectra(i).theoreticalStartTime-minutes(calibrationTool.calibrationTime),calibratedSpectra(i).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
            % just for estimation
            Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            
-           logFile.TC(counterTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(counterTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(counterTC).sky - logFile.TC(counterTC).coldCalib)./(logFile.TC(counterTC).hotCalib - logFile.TC(counterTC).coldCalib);
-           tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-logFile.TC(counterTC).Tb_Calib));
-           am = 1./sind(logFile.TC(counterTC).skyAngle);
+           logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);
+           tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-logFile.TC(isTC).Tb_Calib));
+           am = 1./sind(logFile.TC(isTC).skyAngle);
            
            % fit the airmass-slant opacity data pairs
            [p,s] = polyfit (am, tau_slant, 1);
-           logFile.TC(counterTC).tauCalib = p(1);
-           counterTC = counterTC + 1;
+           logFile.TC(isTC).tauCalib = p(1);
        end
        
     end
