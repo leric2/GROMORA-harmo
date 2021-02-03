@@ -40,13 +40,44 @@ else
     if length(find(logFile.Tipping_Curve_active)) ~= length(find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC))
         Teff = nanmean([logFile.meteo.air_temperature])-calibrationTool.TC.deltaT;
         for i =1:length(TC_data)
-            TC_data(i).Tb_fromTCLoads = calibrationTool.TCold + (TC_data(i).THot - calibrationTool.TCold) .* (TC_data(i).sky - TC_data(i).cold)./(TC_data(i).hot - TC_data(i).cold);
-            tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-TC_data(i).Tb_fromTCLoads));
             am = 1./sind(TC_data(i).skyAngle);
-  
-            % fit the airmass-slant opacity data pairs
-            [p,s] = polyfit (am, tau_slant, 1);
-            TC_data(i).tauEstimate = p(1);
+            tau = calibrationTool.tauInitTC;
+            it_max = calibrationTool.maxIterTC;
+            N_it = 0;
+            off = 10;
+            TC_data(i).converged = 1;
+            while abs(off) > calibrationTool.offsetTC
+                % Computation of T_cold with this tau
+                TCold=calibrationTool.backgroundMWTb.*exp(-tau)+Teff.*(1-exp(-tau));
+                %disp(T_cold)
+                % Computation of Tb_theta for each angle with this T_cold
+                Tb_theta=TC_data(i).THot+(TC_data(i).THot-TCold).*(TC_data(i).sky-TC_data(i).hot)./(TC_data(i).hot-TC_data(i).cold);
+                %disp(Tb_theta)
+                
+                % For every angle, compute the corresponding tau_theta
+                tau_theta=log((Teff-calibrationTool.backgroundMWTb)./(Teff-Tb_theta));
+                %disp(tau_theta)
+                
+                % Linear fit for tau_theta vs airmass factor
+                fit=polyfit(am,tau_theta,1);
+                
+                % The new tau is the slope of the linear regression
+                off = fit(2);
+                tau = fit(1);
+                N_it=N_it+1;
+                
+                if N_it>it_max
+                    %tau=NaN;
+                    %disp('Failed to converge')
+                    TC_data(i).converged = 0;
+                    break
+                end
+            end
+            
+            %TC_data(i).Tb_fromTCLoads = calibrationTool.TCold + (TC_data(i).THot - calibrationTool.TCold) .* (TC_data(i).sky - TC_data(i).cold)./(TC_data(i).hot - TC_data(i).cold);
+            %tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-TC_data(i).Tb_fromTCLoads));
+           
+            TC_data(i).tauEstimate = real(tau);
         end
     end
     TC = TC_data;
