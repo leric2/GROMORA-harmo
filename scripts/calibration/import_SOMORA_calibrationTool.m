@@ -82,11 +82,12 @@ calibrationTool.binaryType='ieee-be';
 
 %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
 calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
-calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
+%calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
 calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
-%calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -147,9 +148,7 @@ calibrationTool.toleranceTippingCurves=2;
 
 calibrationTool.stdAntAngleThresh = 0.5;
 calibrationTool.adcOverloadThresh = 0;
-if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2010,12,01)
-    calibrationTool.adcOverloadThresh = 20;
-end
+
 
 calibrationTool.minNumberOfIndicePerCycle=40;
 calibrationTool.threshNumRawSpectraHot=0.05*calibrationTool.numberOfChannels;
@@ -185,7 +184,7 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
 calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
 
 % Function specific to this instrument
 % meteo Data
@@ -326,6 +325,10 @@ if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<
 
 end
 
+if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,12,28)
+    % 28.12.2012 08:47:15 Zij: Acq restarted after Windows Update
+    calibrationTool.adcOverloadThresh = 20;
+end
 
 % TC
 
