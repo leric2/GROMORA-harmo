@@ -284,8 +284,10 @@ for i = 1:size(calibratedSpectra,2)
        % check if there was a tc done during this cycle (only mean
        % datetime)
        if sum(isTC) > 0
-           logFile.TC(counterTC).coldCalib = mean(calibratedSpectra(i).meanColdSpectra(logFile.TC(counterTC).channels));
-           logFile.TC(counterTC).hotCalib = mean(calibratedSpectra(i).meanHotSpectra(logFile.TC(counterTC).channels));
+           logFile.TC(counterTC).coldSpectra = calibratedSpectra(i).meanColdSpectra(logFile.TC(counterTC).channels);
+           logFile.TC(counterTC).coldCalib = nanmean(logFile.TC(counterTC).coldSpectra);
+           logFile.TC(counterTC).hotSpectra = calibratedSpectra(i).meanHotSpectra(logFile.TC(counterTC).channels);
+           logFile.TC(counterTC).hotCalib = nanmean(logFile.TC(counterTC).hotSpectra);
            logFile.TC(counterTC).THotCalib = calibratedSpectra(i).THot;
            logFile.TC(counterTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(counterTC).channels));
            logFile.TC(counterTC).frequency = calibratedSpectra(i).freq(logFile.TC(counterTC).channels);

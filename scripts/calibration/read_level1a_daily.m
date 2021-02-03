@@ -134,7 +134,34 @@ calibrationTool.logFile.creation_date_level1a=ncreadatt(filename,'/','creation_d
 calibrationTool.logFile.raw_data_software_version=ncreadatt(filename,'/','raw_data_software_version');
 calibrationTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 
-disp(['File read : ' filename])
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reading the TC
+if calibrationTool.doTippingCurve
+    TC.time = ncread(filename,'/tipping_curve/time')';
+    TC.dateTime = datetime(TC.time + calibrationTool.referenceTime,'ConvertFrom','datenum');
+    TC.channel_idx = ncread(filename,'/tipping_curve/channel_idx_tc')';
+    TC.freq = ncread(filename,'/tipping_curve/frequency_tc')';
+    TC.tauCalib = ncread(filename,'/tipping_curve/tau_tc')';
+    TC.THotTC = ncread(filename,'/tipping_curve/THot_calib')';
+    TC.tipping_angle = ncread(filename,'/tipping_curve/tipping_angle')';
+    TC.hot_spectra = ncread(filename,'/tipping_curve/hot_spectra')';
+    TC.cold_spectra = ncread(filename,'/tipping_curve/cold_spectra')';
+    TC.sky_spectra = ncread(filename,'/tipping_curve/sky_spectra');
+end
+
+for j = 1:length(TC.time)
+    calibrationTool.logFile.TC(j).time = TC.time(j);
+    calibrationTool.logFile.TC(j).dateTime = TC.dateTime(j);
+    calibrationTool.logFile.TC(j).frequency = reshape(TC.freq,1,[]);
+    calibrationTool.logFile.TC(j).channels_idx_tc = reshape(TC.channel_idx,1,[]);
+    calibrationTool.logFile.TC(j).THot_calib = TC.THotTC(j);
+    calibrationTool.logFile.TC(j).tau_tc = TC.tauCalib(j);
+    calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.tipping_angle(j,:),1,[]);
+    calibrationTool.logFile.TC(j).hot_spectra = reshape(TC.hot_spectra(j,:),1,[]);
+    calibrationTool.logFile.TC(j).cold_spectra = reshape(TC.cold_spectra(j,:),1,[]);
+    nTipAngle = length(calibrationTool.logFile.TC(j).tipping_angle);
+    calibrationTool.logFile.TC(j).tipping_angle = reshape(TC.sky_spectra(:,:,j),nTipAngle,[]);
+end
 
 for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).Tb = correctedSpectra.Tb(i,:);
@@ -164,6 +191,8 @@ for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).noise_level = correctedSpectra.noiseLevel(i);
     calibratedSpectra(i).flags = correctedSpectra.flagVector(i,:);
 end
+
+disp(['File read : ' filename])
 
 end
 

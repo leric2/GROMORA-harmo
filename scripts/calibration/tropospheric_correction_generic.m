@@ -169,5 +169,21 @@ for t = 1:length(spectra)
                 %spectra(t).TbtropWinCorr = -9999;
             end
         end
+        
+        if isfield(calibrationTool.logFile,'TC')
+            TC = calibrationTool.logFile.TC;
+            %isTC = isbetween([TC.dateTime],spectra(t).first_sky_time,spectra(t).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
+            isTC = ([TC.time] >= spectra(t).first_sky_time & [TC.time] < spectra(t).last_sky_time);
+            % check if there was a tc done during this cycle (only mean
+            % datetime)
+            
+            if sum(isTC) > 0
+                spectra(t).troposphericOpacityTC = TC(isTC).tau_tc;
+            else
+                spectra(t).troposphericOpacityTC = NaN;
+            end
+        else
+            spectra(t).troposphericOpacityTC = NaN;
+        end
     end
 end

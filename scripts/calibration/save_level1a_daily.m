@@ -131,16 +131,18 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,
 % Coordinates time and flags
 nccreate(filename,'/tipping_curve/time','Dimensions',{'time',Inf},'Datatype','double')
 
-
 % if the vector does not exist, we replace it with a scalar NaN
 if isfield(logFile,'TC')
     lenTipping=length(logFile.TC(1).sky);
     lenFreqTC=length(logFile.TC(1).tippingCurveRawCounts);
 else
     lenTipping=1;
+    lenFreqTC = 1;
 end
-nccreate(filename,'/tipping_curve/tipping_angle','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','int64')
-nccreate(filename,'/tipping_curve/frequency_tc','Dimensions',{'frequency_tc',lenFreqTC},'Datatype','double')
+nccreate(filename,'/tipping_curve/tipping_angle','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double')
+nccreate(filename,'/tipping_curve/channel_idx_tc','Dimensions',{'channel_idx_tc',lenFreqTC},'Datatype','int64','FillValue',-9999)
+
+nccreate(filename,'/tipping_curve/frequency_tc','Dimensions',{'channel_idx_tc',lenFreqTC},'Datatype','double')
 
 % We input a (1xtipping_angle) int vector to save the tipping curve
 % variables
@@ -157,7 +159,9 @@ nccreate(filename,'/tipping_curve/mean_frequency_tc','Dimensions',{'time',Inf},'
 nccreate(filename,'/tipping_curve/tau_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/tipping_curve/Tb_tc','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/tipping_curve/sky_spectra','Dimensions',{'tipping_angle',lenTipping,'frequency_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/cold_spectra','Dimensions',{'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/hot_spectra','Dimensions',{'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/sky_spectra','Dimensions',{'tipping_angle',lenTipping,'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
@@ -296,16 +300,18 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the tipping curve variables 
-ncwrite(filename,'/tipping_curve/time',[logFile.TC.meanDateNum]);
 ncwriteatt(filename,'/tipping_curve/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/tipping_curve/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/tipping_curve/time','description','mean time of the sky observation for this tc');
 
 if isfield(logFile,'TC')
+    ncwrite(filename,'/tipping_curve/time',[logFile.TC.meanDateNum]);
+    ncwrite(filename,'/tipping_curve/channel_idx_tc',logFile.TC(1).channels);
     ncwrite(filename,'/tipping_curve/tipping_angle',vertcat(logFile.TC.skyAngle)');
-    
     ncwrite(filename,'/tipping_curve/sky',vertcat(logFile.TC.sky)');
     ncwrite(filename,'/tipping_curve/Tb_tc',vertcat(logFile.TC.Tb_Calib)');
+    ncwrite(filename,'/tipping_curve/hot_spectra',vertcat(logFile.TC.hotSpectra)');
+    ncwrite(filename,'/tipping_curve/cold_spectra',vertcat(logFile.TC.coldSpectra)');
     ncwrite(filename,'/tipping_curve/hot_calib', [logFile.TC.hotCalib]);
     ncwrite(filename,'/tipping_curve/THot_calib', [logFile.TC.THotCalib]);
     ncwrite(filename,'/tipping_curve/cold_calib', [logFile.TC.coldCalib]);
@@ -317,6 +323,8 @@ if isfield(logFile,'TC')
     ncwrite(filename,'/tipping_curve/sky_spectra',logFile.TC(j).sky_spectra,[1,1,j]);
     end
 else
+    ncwrite(filename,'/tipping_curve/time',calibratedSpectra(1).firstSkyTime);
+    ncwrite(filename,'/tipping_curve/channel_idx_tc',-9999);
     ncwrite(filename,'/tipping_curve/tipping_angle',-9999);
     ncwrite(filename,'/tipping_curve/sky',-9999);
     ncwrite(filename,'/tipping_curve/Tb_tc',-9999);
@@ -325,6 +333,7 @@ else
     ncwrite(filename,'/tipping_curve/cold_calib', -9999);
     ncwrite(filename,'/tipping_curve/hot_calib', -9999);
     ncwrite(filename,'/tipping_curve/tau_tc', -9999);
+    ncwrite(filename,'/tipping_curve/mean_frequency_tc', -9999);
     ncwrite(filename,'/tipping_curve/frequency_tc', -9999);
 %     ncwrite(filename,'/tipping_curve/cold_tc', -9999);
 %     ncwrite(filename,'/tipping_curve/hot_tc', -9999);
