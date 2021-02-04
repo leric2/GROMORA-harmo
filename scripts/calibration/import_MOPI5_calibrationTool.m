@@ -180,7 +180,7 @@ calibrationTool.doTippingCurve = false;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Corrections
-calibrationTool.tWindow=0.99;
+calibrationTool.transmittanceWindow=0.99;
 
 calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
 calibrationTool.troposphericCorrection.useWings = 'both';

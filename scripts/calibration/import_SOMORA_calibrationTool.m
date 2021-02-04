@@ -201,12 +201,9 @@ calibrationTool.TC.numberOfChannelsTropCorr = 500;
 calibrationTool.TC.skipFraction = 0.05;
 calibrationTool.TC.useWings = 'both';
 calibrationTool.TC.deltaT = 10.4;
-calibrationTool.tauInitTC = 0.3;
-calibrationTool.maxIterTC = 100;
-calibrationTool.offsetTC = 1e-3;
-
-% channels to use for TC if not specified before
-calibrationTool.TC.tippingCurveChannels = 500:5500;
+calibrationTool.TC.tauInitTC = 0.3;
+calibrationTool.TC.maxIterTC = 100;
+calibrationTool.TC.offsetTC = 1e-2;
 
 % tipping curve
 calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
@@ -299,30 +296,36 @@ end
 % end
 % window transmission
 if calibrationTool.timeNumber<datenum(2007,07,03) %attn anciennement  733957 cad 3 juillet 2009 mais FAUX
-    calibrationTool.tWindow = 0.987; %value from 2002 to 3/7/2007 (att. window has been changed 8/2/2006 but new t not measured) nb: ema 9/11/2007
+    calibrationTool.transmittanceWindow = 0.987; %value from 2002 to 3/7/2007 (att. window has been changed 8/2/2006 but new t not measured) nb: ema 9/11/2007
 elseif (calibrationTool.timeNumber>= datenum(2007,07,03) && calibrationTool.timeNumber<datenum(2010,6,26)) %ie 734315
-    calibrationTool.tWindow = 0.979; %value from 3/7/2007 to 25/6/2010   nb: ema 9/11/2007; calc sur la base de R-J
+    calibrationTool.transmittanceWindow = 0.979; %value from 3/7/2007 to 25/6/2010   nb: ema 9/11/2007; calc sur la base de R-J
 elseif (calibrationTool.timeNumber>= datenum(2010,06,25) && calibrationTool.timeNumber<datenum(2012,03,02)) %ie 734931 2/3/2012
-    calibrationTool.tWindow = 0.985; %value from 26/6/2010 to 2/3/2012 %attn anciennement 0.976 ???
+    calibrationTool.transmittanceWindow = 0.985; %value from 26/6/2010 to 2/3/2012 %attn anciennement 0.976 ???
 elseif (calibrationTool.timeNumber>= datenum(2012,03,02) && calibrationTool.timeNumber<datenum(2014,06,16)) %ie 16/06/2014
-    calibrationTool.tWindow = 0.999; %value from 3/3/2012 to 15/06/2014
+    calibrationTool.transmittanceWindow = 0.999; %value from 3/3/2012 to 15/06/2014
 elseif (calibrationTool.timeNumber>= datenum(2014,06,16) && calibrationTool.timeNumber<datenum(2015,09,08))
-    calibrationTool.tWindow = 1.0105; %value from 16/6/2014 to 07/09/2015
+    calibrationTool.transmittanceWindow = 1.0105; %value from 16/6/2014 to 07/09/2015
 elseif (calibrationTool.timeNumber>= datenum(2015,09,09) && calibrationTool.timeNumber<datenum(2017,05,30))
-    calibrationTool.tWindow = 1.009; %value from 8/09/2015 to 29/05/2017
+    calibrationTool.transmittanceWindow = 1.009; %value from 8/09/2015 to 29/05/2017
 elseif (calibrationTool.timeNumber>= datenum(2017,05,31) && calibrationTool.timeNumber<datenum(2018,08,21))
-    calibrationTool.tWindow = 0.9922; %value from 30/05/2017 to 20/08/2018
+    calibrationTool.transmittanceWindow = 0.9922; %value from 30/05/2017 to 20/08/2018
 else
-    calibrationTool.tWindow = 0.9980; %value since 21/08/2018
+    calibrationTool.transmittanceWindow = 0.9980; %value since 21/08/2018
 end
 
-if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
+if calibrationTool.timeNumber>datenum(2009,09,22) && calibrationTool.timeNumber<datenum(2010,12,14)
+    % Andres: changed Sky elevation from 40 to 39. from now on the angle in the ascii file in the column Elevation_Angle is correct
     calibrationTool.elevationAngleAntenna=38;
     calibrationTool.elevationAngleCold=-92;
     calibrationTool.elevationAngleHot=180;
     calibrationTool.elevationAngleHotTol = 1;
     calibrationTool.elevationAngleColdTol = 1;
-
+elseif calibrationTool.timeNumber>datenum(2012,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
+%     calibrationTool.elevationAngleAntenna=38;
+%     calibrationTool.elevationAngleCold=-92;
+%     calibrationTool.elevationAngleHot=180;
+%     calibrationTool.elevationAngleHotTol = 1;
+%     calibrationTool.elevationAngleColdTol = 1;
 end
 
 if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,12,28)

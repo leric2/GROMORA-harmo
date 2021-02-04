@@ -85,10 +85,10 @@ calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
 
 calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
+%calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
 calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
+%calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -193,7 +193,7 @@ calibrationTool.filter2.boxCarThresh=2;
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
+%calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
 
 % Read meteo data
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
@@ -212,21 +212,17 @@ calibrationTool.TC.numberOfChannelsTropCorr = 500;
 calibrationTool.TC.skipFraction = 0.05;
 calibrationTool.TC.useWings = 'both';
 calibrationTool.TC.deltaT = 10.4;
-calibrationTool.tauInitTC = 0.3;
-calibrationTool.maxIterTC = 500;
-calibrationTool.offsetTC = 5e-2;
-
-% channels to use for TC if not specified before
-calibrationTool.TC.tippingCurveChannels = 500:5500;
+calibrationTool.TC.tauInitTC = 0.3;
+calibrationTool.TC.maxIterTC = 500;
+calibrationTool.TC.offsetTC = 5e-2;
 
 % tipping curve
 calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
 calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_generic(rawSpectra,log, calibrationTool);
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Corrections
-calibrationTool.tWindow=0.99;
+calibrationTool.transmittanceWindow=0.99;
 
 % Corrections
 calibrationTool.troposphericCorrection.type = 'Ingold_v1';
@@ -320,9 +316,9 @@ if calibrationTool.timeNumber < datenum(2012,01,01) %TOCHECK
 end
 % window transmission
 if calibrationTool.timeNumber < datenum(2018,11,12)
-    calibrationTool.tWindow = 0.99; % has been changed at that time but no idea of the values ??????
+    calibrationTool.transmittanceWindow = 0.99; % has been changed at that time but no idea of the values ??????
 else
-    calibrationTool.tWindow = 0.99;
+    calibrationTool.transmittanceWindow = 0.99;
 end
 
 % Elevation angle of the cold load
