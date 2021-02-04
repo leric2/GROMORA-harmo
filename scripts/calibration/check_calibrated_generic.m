@@ -35,6 +35,8 @@ function [calibratedSpectra, logFile] = check_calibrated_generic(logFile,calibra
 %           |               - numberOfAquisitionSpectraAntenna
 %           |               - numberOfAquisitionSpectraHot
 %           |               - numberOfAquisitionSpectraCold
+%           |               - backgroundMWTb
+%           |               - TC
 %           |               - stdAntAngleThresh
 %           |               - referenceTime
 %           | 
@@ -60,30 +62,8 @@ for i = 1:size(calibratedSpectra,2)
         sufficientNumberOfIndices=0;
     end
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Frequency vector
-    if calibrationTool.IQProcessing
-        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [-1:2/calibrationTool.numberOfChannels:1-2/calibrationTool.numberOfChannels];
+    calibratedSpectra(i).TbPlanck =  (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck*calibrationTool.lightSpeed^2) + 1);
         
-        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
-        
-        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
-    
-        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
-    
-        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
-    else
-        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
-    
-        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
-        
-        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
-    
-        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
-    
-        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
-    end
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Noise Receiver Temperature
     % Computing TN around the line center (approximately +- 200 MHz)
