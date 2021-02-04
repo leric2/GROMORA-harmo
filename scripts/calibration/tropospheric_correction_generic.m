@@ -157,7 +157,11 @@ for t = 1:length(spectra)
         
             if transmittance > 0
                 spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittance) ) ./ transmittance;
-                
+                if calibrationTool.savePlanckIntensity
+                    % to check if that makes sense
+                    BT_PlanckMean = ((2*calibrationTool.h*spectra(t).frequencies.^3)/(calibrationTool.lightSpeed^2))./(exp((calibrationTool.h*spectra(t).frequencies)./(calibrationTool.kb*Tmean)) - 1);
+                    spectra(t).intensityPlanckTropWindowCorr = (spectra(t).intensityPlanckWinCorr - BT_PlanckMean*(1-transmittance) ) ./ transmittance;
+                end
                 spectra(t).troposphericTransmittance = transmittance;
                 spectra(t).troposphericOpacity=-log(transmittance);
                 %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
@@ -180,6 +184,7 @@ for t = 1:length(spectra)
             % cycle. It means, that it computes tau only when the function
             % is applied on the calibratedSpectra and not on the integrated
             % Spectra. It can be changed...
+            % Also, we do not account for the window yet !
             if sum(isTC) == 1
                 TC(isTC).Tb = calibrationTool.TCold + (TC(isTC).THot_calib - calibrationTool.TCold) .* (TC(isTC).sky_spectra - TC(isTC).cold_spectra)./(TC(isTC).hot_spectra - TC(isTC).cold_spectra);
                 TC(isTC).Tb_mean = nanmean(TC(isTC).Tb,2);

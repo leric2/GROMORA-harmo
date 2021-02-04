@@ -90,6 +90,11 @@ nccreate(filename,'/spectrometer1/Tb_corr','Dimensions',{'channel_idx',calibrati
 nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/good_channels','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 
+if calibrationTool.savePlanckIntensity
+    nccreate(filename,'/spectrometer1/intensity_planck','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+    nccreate(filename,'/spectrometer1/intensity_planck_win_corr','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+end
+
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999)
 
@@ -214,6 +219,11 @@ ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[integratedSpectra.me
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[integratedSpectra.meanStdTbFromCal]);
 
 ncwrite(filename,'/spectrometer1/number_of_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);
+
+if calibrationTool.savePlanckIntensity
+    ncwrite(filename,'/spectrometer1/intensity_planck',vertcat(integratedSpectra.intensity_planck)');
+    ncwrite(filename,'/spectrometer1/intensity_planck_win_corr',vertcat(integratedSpectra.intensityPlanckWinCorr)');
+end
 
 % Tropospheric correction data:
 ncwrite(filename,'/spectrometer1/tropospheric_transmittance',[integratedSpectra.troposphericTransmittance]);

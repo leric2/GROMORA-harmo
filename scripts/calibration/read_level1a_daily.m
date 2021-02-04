@@ -61,6 +61,9 @@ correctedSpectra.tod = ncread(filename,'/spectrometer1/time_of_day')';
 % % Scientific Dataset (spectrometer1,2,...)
 % Calibration variable
 correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
+if calibrationTool.savePlanckIntensity
+    correctedSpectra.intensityPlanck=ncread(filename,'/spectrometer1/intensity_planck')';
+end
 correctedSpectra.stdTb=ncread(filename,'/spectrometer1/stdTb')';
 correctedSpectra.freq=ncread(filename,'/spectrometer1/frequencies')';
 correctedSpectra.if=ncread(filename,'/spectrometer1/intermediate_freq')';
@@ -165,6 +168,9 @@ end
 
 for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).Tb = correctedSpectra.Tb(i,:);
+    if calibrationTool.savePlanckIntensity
+    calibratedSpectra(i).intensity_planck=correctedSpectra.intensityPlanck(i,:);
+    end
     calibratedSpectra(i).stdTb = correctedSpectra.stdTb(i,:);
     calibratedSpectra(i).dateTime = correctedSpectra.meanDateTime(i);
     calibratedSpectra(i).dateTime.TimeZone = calibrationTool.timeZone;

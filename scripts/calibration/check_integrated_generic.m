@@ -63,7 +63,12 @@ for i = 1:size(integratedSpectra,2)
     else
         integratedSpectra(i).estimatedIntegrationTimeSky = 0;
     end
-
+    if calibrationTool.savePlanckIntensity
+        integratedSpectra(i).TbPlanck =  (calibrationTool.h*integratedSpectra(i).frequencies/calibrationTool.kb)./log((2*calibrationTool.h*integratedSpectra(i).frequencies.^3)./(integratedSpectra(i).intensity_planck*calibrationTool.lightSpeed^2) + 1);
+        integratedSpectra(i).TbPlanckWinCorr =  (calibrationTool.h*integratedSpectra(i).frequencies/calibrationTool.kb)./log((2*calibrationTool.h*integratedSpectra(i).frequencies.^3)./(integratedSpectra(i).intensityPlanckWinCorr*calibrationTool.lightSpeed^2) + 1);
+        integratedSpectra(i).TbPlanckWinTropCorr =  (calibrationTool.h*integratedSpectra(i).frequencies/calibrationTool.kb)./log((2*calibrationTool.h*integratedSpectra(i).frequencies.^3)./(integratedSpectra(i).intensityPlanckTropWindowCorr*calibrationTool.lightSpeed^2) + 1);
+    end
+    
     %integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
     integratedSpectra(i).potentialBadChannels = isnan(integratedSpectra(i).channelsQuality);
     

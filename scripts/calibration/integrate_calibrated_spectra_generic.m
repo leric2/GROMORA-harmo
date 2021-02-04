@@ -73,7 +73,9 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         % Averaging the good spectra together
         integratedTb=nanmean(vertcat(calibratedSpectra(goodSpectra).Tb),1);
-        
+        if calibrationTool.savePlanckIntensity
+            integratedPlanckIntensity = nanmean(vertcat(calibratedSpectra(goodSpectra).intensity_planck),1);
+        end
         % Computing the std deviation on the integrated spectra
         sum_of_variance = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb).^2,1);
         %integratedStdTb = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
@@ -135,6 +137,9 @@ for h = 1:length(timeThresh)-1
     
     % variable that we want to integrate with good spectra if exist
     integratedSpectra(h).Tb=integratedTb;
+    if calibrationTool.savePlanckIntensity
+        integratedSpectra(h).intensity_planck=integratedPlanckIntensity;
+    end
     integratedSpectra(h).stdTb=integratedStdTb;
     integratedSpectra(h).meanStdTbFromCal=integratedMeanStdTbFromCalMean;
     integratedSpectra(h).mean_sky_elevation_angle = meanAngleAT;

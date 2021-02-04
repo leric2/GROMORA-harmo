@@ -107,7 +107,9 @@ nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',I
 nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/mean_hot_counts','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-
+if calibrationTool.savePlanckIntensity
+    nccreate(filename,'/spectrometer1/intensity_planck','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
+end  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags dataset
 
@@ -232,6 +234,9 @@ ncwriteatt(filename,'/spectrometer1/time_min','description','minimum theoretical
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
+if calibrationTool.savePlanckIntensity
+    ncwrite(filename,'/spectrometer1/intensity_planck',vertcat(calibratedSpectra.intensityPlanck)');
+end  
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
