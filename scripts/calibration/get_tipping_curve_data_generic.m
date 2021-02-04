@@ -5,12 +5,9 @@ function TC_data = get_tipping_curve_data_generic(rawSpectra, logFile, calibrati
 % AUTHOR(S)     | Eric Sauvageat
 % CREATION      | 01.2020
 %               |
-% ABSTRACT      | Doing a hot-cold calibration for MW radiometer.
-%               | This function has different modes to perform the
-%               | calibration: 'standard' and 'debug' (see below) and
-%               | different options to remove (or not) outliers
-%               | (individual spurious spectrum) before averaging them
-%               | together on the calibration time.
+% ABSTRACT      | Reading and saving tipping curve calibration data within
+%               | dedicated structure.
+%               | 
 %               | 
 %               |
 %               |
@@ -18,42 +15,27 @@ function TC_data = get_tipping_curve_data_generic(rawSpectra, logFile, calibrati
 %               |           cycle, channels as columns.
 %               |         2. logFile: standardized log file
 %               |         3. calibrationTool:
-%               |               - calibrationVersion
-%               |               - calibrationTime
-%               |               - instrumentName
-%               |               - indiceHot, indiceAntenna, indiceCold
-
+%               |               - numberOfChannels
+%               |               - TC
+%               |               - indiceHot, indiceAntenna, indiceCold,
+%               |                 indiceTC
+%               |               - referenceTime
+%               |               - tippingSize
 %               |              
-%               |         4. calType: Calibration type to do
-%               |               1. standard: mean antenna vs mean hot/cold 
-%               |                  spectra
-%               |               2. debug: perform the standard one and:
 %               |
-%               | OUTPUTS: 1. drift: structure containing mean values of all
-%               |               channels for this day
-%               |          2. calibratedSpectra: "structure array" of
-%               |               calibrated data
-%               |
-% CALLS         | find_up_down_cycle()
+%               | OUTPUTS: 1. TC_data: structure array containing all
+%               |               tipping curve data for this day
 %               |
 %==========================================================================
-% idx hot
 
-%idx_hot = find(logFile.Mirror_pos == 1);
-
+% find TC cycles
 tippingCurveInd=find(logFile.Tipping_Curve_active);      % all TC
 tippingCurveSkyInd=find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC); 
 
-% the tipping curve is calculated for the average of a certain frequency
-% range
-
-% f = load(calibrationTool.channel_freqs);
 N = calibrationTool.numberOfChannels;
-% freq     = interp1(f(:,1)',f(:,2)',1:N/2);
-% idx_freq = find (freq > 22.135e9 & freq < 22.335e9);
 
 skipChannels = calibrationTool.TC.skipFraction * N;
-        
+
 lower = int16(skipChannels);
 upper = int16(skipChannels) + calibrationTool.TC.numberOfChannelsTropCorr;
 
@@ -67,28 +49,14 @@ else
     idxFreqTC = calibrationTool.TC.tippingCurveChannels;
 end
 
-%TC_data.tippingCurveMeanRawCounts=mean(rawSpectra(tippingCurveInd,idxFreqTC),2);
-%TC_data.datetime = logFile.dateTime(tippingCurveInd);
-
-%if length(tippingCurveInd) == length(tippingCurveSkyInd)
-%    lastTipAngle = find(diff( tippingCurveSkyInd) > 10);
-%    nTippingCurve = length(lastTipAngle);
-%    if all(diff(lastTipAngle) == calibrationTool.tippingSize)
-%        effTippingSize = calibrationTool.tippingSize;
-%    else
-%        effTippingSize = median(diff(lastTipAngle));
-%    end
-%    firstTipAngle=lastTipAngle-effTippingSize+1;
-%else
-    lastTipAngle = find(diff( tippingCurveInd) > 10);
-    nTippingCurve = length(lastTipAngle);
-    if all(diff(lastTipAngle) == calibrationTool.tippingSize)
-       effTippingSize = calibrationTool.tippingSize;
-    else
-       effTippingSize = median(diff(lastTipAngle));
-    end
-    firstTipAngle=lastTipAngle-effTippingSize+1;
-%end
+lastTipAngle = find(diff( tippingCurveInd) > 10);
+nTippingCurve = length(lastTipAngle);
+if all(diff(lastTipAngle) == calibrationTool.tippingSize)
+    effTippingSize = calibrationTool.tippingSize;
+else
+    effTippingSize = median(diff(lastTipAngle));
+end
+firstTipAngle=lastTipAngle-effTippingSize+1;
 
 for i = 1:nTippingCurve
     TC_data(i).position = logFile.Position(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
