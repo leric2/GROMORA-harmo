@@ -12,7 +12,7 @@ function spectra = window_correction_generic(calibrationTool,spectra)
 % ARGUMENTS     | INPUTS:   1. calibrationTool:
 %               |               - numberOfChannels
 %               |               - h, lightSpeed, kb
-%               |               - tWindow
+%               |               - transmittanceWindow
 %               |           2. spectra: a standard spectra (calibrated or
 %               |               integrated) structure conatining at least a
 %               |               set of frequencies and TB and ideally a
@@ -32,19 +32,30 @@ for t = 1:length(spectra)
         spectra(t).TbWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
     else
         if ~isnan(spectra(t).TWindow) 
-            TWindow = spectra(t).TWindow;
+            TemperatureWindow = spectra(t).TWindow;
         else
-            TWindow = calibrationTool.zeroDegInKelvin + 20;
-            warning('no temperature found, correcting using standard window temperature (20°C)')
+            TemperatureWindow = calibrationTool.zeroDegInKelvin + 18;
+            warning('no temperature found, correcting using standard window temperature (18°C)')
         end
         
-        % Planck:
-        TbWindowP = (2*calibrationTool.h*frequencies.^2)/(calibrationTool.lightSpeed^2)*(1)./(exp((t*frequencies)./(calibrationTool.kb*TWindow))-1);
-    
-        % Railey-Jeans ??
-        % TbWindowRJ = (retrievalTool.lightSpeed^2 ./ (2*retrievalTool.kb*freq.^2) ) .* TbWindowP; 
+        if calibrationTool.savePlanckIntensity
+            % Planck radiation intensity
+            BT_Planck = ((2*calibrationTool.h*frequencies.^3)/(calibrationTool.lightSpeed^2))./(exp((calibrationTool.h*frequencies)./(calibrationTool.kb*TemperatureWindow)) - 1);
+            spectra(t).intensityPlanckWinCorr = (spectra(t).intensity_planck -  BT_Planck*(1-calibrationTool.transmittanceWindow))./calibrationTool.transmittanceWindow;
+        end
+        % Inverting attenuation from the window (see Fernandez, 2015)
+        % might be working only using the RJ equivalent temperature ? TO
+        % CHECK
+        spectra(t).TbWinCorr  = (spectra(t).Tb -  TemperatureWindow*(1-calibrationTool.transmittanceWindow))./calibrationTool.transmittanceWindow;
+        
+        % How it was done before (wrong ?!):
+        %spectra(t).TbWinCorr  = (spectra(t).Tb -  BT_Planck*(1-calibrationTool.transmittanceWindow))./calibrationTool.transmittanceWindow;
 
-        spectra(t).TbWinCorr  = (spectra(t).Tb - TbWindowP*(1-calibrationTool.tWindow))./calibrationTool.tWindow;
+        % In practice, this would gives the exact same result:
+        % spectra(t).TbWinCorr  = spectra(t).Tb./calibrationTool.transmittanceWindow;
+        
+        % It does not matter if window temperature is missing... unless the
+        % above correction is not right....
     end
 end
 end
