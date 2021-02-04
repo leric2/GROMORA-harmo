@@ -153,14 +153,18 @@ nccreate(filename,'/tipping_curve/cold_calib','Dimensions',{'time',Inf},'Datatyp
 nccreate(filename,'/tipping_curve/hot_calib','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/tipping_curve/THot_calib','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/tipping_curve/sky','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/tipping_curve/mean_frequency_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
-nccreate(filename,'/tipping_curve/tau_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
-nccreate(filename,'/tipping_curve/Tb_tc','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/opacity_iter_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/opacity_calib_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+%nccreate(filename,'/tipping_curve/Tb_tc','Dimensions',{'tipping_angle',lenTipping,'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/tipping_curve/cold_spectra','Dimensions',{'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/cold_spectra_tc','Dimensions',{'tipping_angle',lenTipping,'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+
 nccreate(filename,'/tipping_curve/hot_spectra','Dimensions',{'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/tipping_curve/hot_spectra_tc','Dimensions',{'tipping_angle',lenTipping,'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
+
 nccreate(filename,'/tipping_curve/sky_spectra','Dimensions',{'tipping_angle',lenTipping,'channel_idx_tc',lenFreqTC,'time',Inf},'Datatype','double','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,33 +312,41 @@ if isfield(logFile,'TC')
     ncwrite(filename,'/tipping_curve/time',[logFile.TC.meanDateNum]);
     ncwrite(filename,'/tipping_curve/channel_idx_tc',logFile.TC(1).channels);
     ncwrite(filename,'/tipping_curve/tipping_angle',vertcat(logFile.TC.skyAngle)');
-    ncwrite(filename,'/tipping_curve/sky',vertcat(logFile.TC.sky)');
-    ncwrite(filename,'/tipping_curve/Tb_tc',vertcat(logFile.TC.Tb_Calib)');
+    %ncwrite(filename,'/tipping_curve/sky',vertcat(logFile.TC.sky)');
+    %ncwrite(filename,'/tipping_curve/Tb_tc',vertcat(logFile.TC.Tb_Calib)');
     ncwrite(filename,'/tipping_curve/hot_spectra',vertcat(logFile.TC.hotSpectra)');
     ncwrite(filename,'/tipping_curve/cold_spectra',vertcat(logFile.TC.coldSpectra)');
     ncwrite(filename,'/tipping_curve/hot_calib', [logFile.TC.hotCalib]);
     ncwrite(filename,'/tipping_curve/THot_calib', [logFile.TC.THotCalib]);
     ncwrite(filename,'/tipping_curve/cold_calib', [logFile.TC.coldCalib]);
     ncwrite(filename,'/tipping_curve/hot_calib', [logFile.TC.hotCalib]);
-    ncwrite(filename,'/tipping_curve/tau_tc', [logFile.TC.tauCalib]);
+    ncwrite(filename,'/tipping_curve/opacity_calib_tc', [logFile.TC.tauCalibZenith]);
+    if isfield(logFile.TC,'')
+        ncwrite(filename,'/tipping_curve/opacity_iter_tc', [logFile.TC.tauIter]);
+    end
     ncwrite(filename,'/tipping_curve/mean_frequency_tc', [logFile.TC.meanFreq]);
     ncwrite(filename,'/tipping_curve/frequency_tc', logFile.TC(1).frequency);   
     for j=1:length(logFile.TC)
-    ncwrite(filename,'/tipping_curve/sky_spectra',logFile.TC(j).sky_spectra,[1,1,j]);
+        ncwrite(filename,'/tipping_curve/sky_spectra',logFile.TC(j).sky_spectra,[1,1,j]);
+        if isfield(logFile.TC,'cold_spectraTC')
+            ncwrite(filename,'/tipping_curve/hot_spectra_tc',logFile.TC(j).hot_spectraTC,[1,1,j]);
+            ncwrite(filename,'/tipping_curve/cold_spectra_tc',logFile.TC(j).cold_spectraTC,[1,1,j]);
+        end
     end
 else
     ncwrite(filename,'/tipping_curve/time',calibratedSpectra(1).firstSkyTime);
     ncwrite(filename,'/tipping_curve/channel_idx_tc',-9999);
     ncwrite(filename,'/tipping_curve/tipping_angle',-9999);
-    ncwrite(filename,'/tipping_curve/sky',-9999);
-    ncwrite(filename,'/tipping_curve/Tb_tc',-9999);
+    %ncwrite(filename,'/tipping_curve/sky',-9999);
+    %ncwrite(filename,'/tipping_curve/Tb_tc',-9999);
     ncwrite(filename,'/tipping_curve/hot_calib', -9999);
     ncwrite(filename,'/tipping_curve/THot_calib', -9999);
     ncwrite(filename,'/tipping_curve/cold_calib', -9999);
     ncwrite(filename,'/tipping_curve/hot_calib', -9999);
-    ncwrite(filename,'/tipping_curve/tau_tc', -9999);
+    ncwrite(filename,'/tipping_curve/opacity_calib_tc', -9999);
     ncwrite(filename,'/tipping_curve/mean_frequency_tc', -9999);
     ncwrite(filename,'/tipping_curve/frequency_tc', -9999);
+    ncwrite(filename,'/tipping_curve/opacity_iter_tc', -9999)
 %     ncwrite(filename,'/tipping_curve/cold_tc', -9999);
 %     ncwrite(filename,'/tipping_curve/hot_tc', -9999);
 %     ncwrite(filename,'/tipping_curve/hot_tc', -9999);
@@ -629,10 +641,25 @@ attrVal.tau_tc = {'tau TC',...
     '1',...
     'estimated tau from TC'};
 
-attrVal.Tb_tc = {'Tb from TC',...
-    'Tb_tc',...
-    'K',...
-    'Calibrated brightness temperature for TC'};
+attrVal.hot_spectra = {'hot spectra calibration',...
+    'hot_spectra',...
+    '1',...
+    'raw FFTS counts on hot during calibration cycle around TC'};
+
+attrVal.hot_spectra_tc = {'hot spectra TC',...
+    'hot_spectra_tc',...
+    '1',...
+    'raw FFTS counts on hot during TC'};
+
+attrVal.cold_spectra = {'cold spectra calibration',...
+    'cold_spectra',...
+    '1',...
+    'raw FFTS counts on cold during calibration cycle around TC'};
+
+attrVal.cold_spectra_tc = {'cold spectra TC',...
+    'cold_spectra_tc',...
+    '1',...
+    'raw FFTS counts on cold during TC'};
 
 attrVal.frequency_tc = {'frequency tc',...
     'frequency_tc',...
@@ -643,6 +670,16 @@ attrVal.mean_frequency_tc = {'mean frequency tc',...
     'frequency_tc',...
     'Hz',...
     'mean frequency used for the tc calibration'};
+
+attrVal.opacity_iter_tc = {'opacity iter tc',...
+    'opacity_iter_tc',...
+    '-',...
+    'opacity at zenith iterated with tc measurements only'};
+
+attrVal.opacity_calib_tc = {'mean frequency tc',...
+    'opacity_calib_tc',...
+    '-',...
+    'opacity at zenith computed using the calibration cycle around tc'};
 
 % Ugly and open to suggestion
 for i=1:length(attrName)
@@ -683,10 +720,14 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/tipping_curve/tipping_angle',attrName{i},attrVal.tipping_angle{i});
     ncwriteatt(filename,'/tipping_curve/cold_calib',attrName{i},attrVal.cold_calib{i});
     ncwriteatt(filename,'/tipping_curve/hot_calib',attrName{i},attrVal.hot_calib{i});
-    ncwriteatt(filename,'/tipping_curve/sky',attrName{i},attrVal.sky{i});
+    %ncwriteatt(filename,'/tipping_curve/sky',attrName{i},attrVal.sky{i});
     ncwriteatt(filename,'/tipping_curve/sky_spectra',attrName{i},attrVal.sky_spectra{i});
-    ncwriteatt(filename,'/tipping_curve/tau_tc',attrName{i},attrVal.tau_tc{i});
-    ncwriteatt(filename,'/tipping_curve/Tb_tc',attrName{i},attrVal.Tb_tc{i});
+    ncwriteatt(filename,'/tipping_curve/hot_spectra',attrName{i},attrVal.hot_spectra{i});
+    ncwriteatt(filename,'/tipping_curve/cold_spectra',attrName{i},attrVal.cold_spectra{i});
+    ncwriteatt(filename,'/tipping_curve/hot_spectra_tc',attrName{i},attrVal.hot_spectra_tc{i});
+    ncwriteatt(filename,'/tipping_curve/cold_spectra_tc',attrName{i},attrVal.cold_spectra_tc{i});
+    ncwriteatt(filename,'/tipping_curve/opacity_calib_tc',attrName{i},attrVal.opacity_calib_tc{i});
+    ncwriteatt(filename,'/tipping_curve/opacity_iter_tc',attrName{i},attrVal.opacity_iter_tc{i});
     ncwriteatt(filename,'/tipping_curve/mean_frequency_tc',attrName{i},attrVal.mean_frequency_tc{i});
     ncwriteatt(filename,'/tipping_curve/frequency_tc',attrName{i},attrVal.frequency_tc{i});
 end

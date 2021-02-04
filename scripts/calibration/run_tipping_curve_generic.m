@@ -77,7 +77,7 @@ else
             %TC_data(i).Tb_fromTCLoads = calibrationTool.TCold + (TC_data(i).THot - calibrationTool.TCold) .* (TC_data(i).sky - TC_data(i).cold)./(TC_data(i).hot - TC_data(i).cold);
             %tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-TC_data(i).Tb_fromTCLoads));
            
-            TC_data(i).tauEstimate = real(tau);
+            TC_data(i).tauIter = real(tau);
         end
     end
     TC = TC_data;

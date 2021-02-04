@@ -93,7 +93,7 @@ end
 for i = 1:nTippingCurve
     TC_data(i).position = logFile.Position(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
     TC_data(i).angle = logFile.Elevation_Angle(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
-    TC_data(i).THot = logFile.T_Hot_Absorber(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
+    TC_data(i).THot_all = logFile.T_Hot_Absorber(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
     TC_data(i).tippingCurveRawCounts = rawSpectra(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)),idxFreqTC);
     TC_data(i).tippingCurveMeanRawCounts = nanmean(rawSpectra(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)),idxFreqTC),2)';
     TC_data(i).datetime = logFile.dateTime(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
@@ -102,8 +102,10 @@ for i = 1:nTippingCurve
       
     if length(tippingCurveInd) ~= length(tippingCurveSkyInd)
         TC_data(i).cold = mean(TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceCold));
+        TC_data(i).cold_spectraTC = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceCold,:);
         TC_data(i).hot = mean(TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceHot));
-        TC_data(i).THot = mean(TC_data(i).THot(TC_data(i).position == calibrationTool.indiceHot));
+        TC_data(i).hot_spectraTC = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceHot,:);
+        TC_data(i).THot = mean(TC_data(i).THot_all(TC_data(i).position == calibrationTool.indiceHot));
         TC_data(i).sky = TC_data(i).tippingCurveMeanRawCounts(TC_data(i).position == calibrationTool.indiceTC);
         TC_data(i).sky_spectra = TC_data(i).tippingCurveRawCounts(TC_data(i).position == calibrationTool.indiceTC,:);
         TC_data(i).skyAngle = TC_data(i).angle(TC_data(i).position == calibrationTool.indiceTC);

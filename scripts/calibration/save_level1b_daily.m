@@ -117,6 +117,7 @@ nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',In
 % Tropospheric correction data:
 nccreate(filename,'/spectrometer1/tropospheric_transmittance','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/tropospheric_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/tropospheric_opacity_tc','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meteo Data
@@ -221,6 +222,7 @@ ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integra
 ncwrite(filename,'/spectrometer1/tropospheric_opacity',[integratedSpectra.troposphericOpacity]);
 ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).troposphericCorrType);
 
+ncwrite(filename,'/spectrometer1/tropospheric_opacity_tc',[integratedSpectra.tropospheric_opacity_tc]);
 
 if isfield(integratedSpectra,'noiseLevel')
     ncwrite(filename,'/spectrometer1/noise_level',[integratedSpectra.noiseLevel]);
@@ -508,6 +510,11 @@ attrVal.tropospheric_opacity = {'tropospheric opacity',...
     '1',...
     ''};
 
+attrVal.tropospheric_opacity_tc = {'tropospheric opacity from tc',...
+    'tropospheric_opacity_tc',...
+    '1',...
+    'averaged opacity derived from tipping curve measurements'};
+
 % for Meteo data:
 attrVal.air_pressure = {'air pressure',...
     'air_pressure',...
@@ -590,6 +597,7 @@ for i=1:length(attrName)
     % Corrections
     ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance',attrName{i},attrVal.tropospheric_transmittance{i});
     ncwriteatt(filename,'/spectrometer1/tropospheric_opacity',attrName{i},attrVal.tropospheric_opacity{i});
+    ncwriteatt(filename,'/spectrometer1/tropospheric_opacity_tc',attrName{i},attrVal.tropospheric_opacity_tc{i});
     
 end
 

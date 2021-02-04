@@ -141,13 +141,12 @@ if calibrationTool.doTippingCurve
     TC.dateTime = datetime(TC.time + calibrationTool.referenceTime,'ConvertFrom','datenum');
     TC.channel_idx = ncread(filename,'/tipping_curve/channel_idx_tc')';
     TC.freq = ncread(filename,'/tipping_curve/frequency_tc')';
-    TC.tauCalib = ncread(filename,'/tipping_curve/tau_tc')';
+    TC.tauCalib = ncread(filename,'/tipping_curve/opacity_calib_tc')';
     TC.THotTC = ncread(filename,'/tipping_curve/THot_calib')';
     TC.tipping_angle = ncread(filename,'/tipping_curve/tipping_angle')';
     TC.hot_spectra = ncread(filename,'/tipping_curve/hot_spectra')';
     TC.cold_spectra = ncread(filename,'/tipping_curve/cold_spectra')';
     TC.sky_spectra = ncread(filename,'/tipping_curve/sky_spectra');
-    
     
     for j = 1:length(TC.time)
         calibrationTool.logFile.TC(j).time = TC.time(j);

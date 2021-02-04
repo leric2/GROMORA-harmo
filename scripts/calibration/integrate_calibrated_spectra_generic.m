@@ -65,6 +65,7 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).number_of_cold_spectra = 0;
         integratedSpectra(h).number_of_sky_spectra = 0;
         
+        integratedSpectra(h).tropospheric_opacity_tc = -9999;
         meanAngleAT = -9999;
         tod = nanmean([calibratedSpectra(indSpectra).time_of_day]);
         dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
@@ -88,6 +89,7 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).number_of_cold_spectra = sum(vertcat(calibratedSpectra(goodSpectra).number_of_cold_spectra));
         integratedSpectra(h).number_of_sky_spectra = sum(vertcat(calibratedSpectra(goodSpectra).number_of_sky_spectra));
         
+        integratedSpectra(h).tropospheric_opacity_tc = nanmean([calibratedSpectra(goodSpectra).troposphericOpacityTC]);
         meanAngleAT = nanmean([calibratedSpectra(goodSpectra).mean_sky_elevation_angle]);
         tod = nanmean([calibratedSpectra(goodSpectra).time_of_day]);
         dateTime=nanmean([calibratedSpectra(goodSpectra).dateTime]);
@@ -101,6 +103,10 @@ for h = 1:length(timeThresh)-1
     integratedSpectra(h).THot=nanmean([calibratedSpectra(goodSpectra).THot]);
     if isnan(integratedSpectra(h).THot)
         integratedSpectra(h).THot=-9999;
+    end
+    
+    if isnan(integratedSpectra(h).tropospheric_opacity_tc)
+        integratedSpectra(h).tropospheric_opacity_tc = -9999;
     end
     
     %stdTHot
