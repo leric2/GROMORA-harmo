@@ -3,7 +3,7 @@
 This folder contains a specific documentation for the GROMORA project. 
 
 It completes the main user guide which is located at
-[UserGuideGROMORA](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROSOM.git) also on
+[UserGuideGROMORA](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROMORA.git) also on
 the IAP git server.
 
 The following documentation files are the most important:

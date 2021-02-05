@@ -1,7 +1,7 @@
 # Retrieval specifications
 
 ## Summary
-Definition of the specficiations for the "retrieval" part of GROSOM, the level1b to level2 data processing. Especially, we shall try to define here all the parameters that will be used for doing the retrieval with ARTS.
+Definition of the specficiations for the "retrieval" part of GROMORA, the level1b to level2 data processing. Especially, we shall try to define here all the parameters that will be used for doing the retrieval with ARTS.
 
 It was decided to use ARTS and write a Python interface for this part of the routine.
 
