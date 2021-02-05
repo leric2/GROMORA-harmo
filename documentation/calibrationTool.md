@@ -20,7 +20,7 @@ perform the calibration.
 The *calibrationTool* structure is unique for each instrument and each date of processing. 
 
 The building of the *calibrationTool* structure is done at different places
-within the GROSOM routine:
+within the GROMORA routine:
 
 ### 1. *import_default_calibrationTool*
 
@@ -28,7 +28,7 @@ The creation of the *calibrationTool* is done within the *import_default_calibra
 
 ### 2. Main script
 
-After *calibrationTool* has been initialized, some important parameters are defined directly within the [main script](main.md) of the GROSOM calibration. These are generally key parameters that are defined there because they are changing frequently. Most of them should be moved to the specific import functions when the routine will be ready for operationnal use.
+After *calibrationTool* has been initialized, some important parameters are defined directly within the [main script](main.md) of the GROMORA calibration. These are generally key parameters that are defined there because they are changing frequently. Most of them should be moved to the specific import functions when the routine will be ready for operationnal use.
 
 ### 3. *import_InstrumentName_calibrationTool*
 
@@ -205,7 +205,6 @@ in more details in [quality control](quality_control_calibration.md).
 | maxProportionOfIndLN2SensorOutlier | double | see [quality control](quality_control_calibration.md) | 
 
 
-
 Used for outliers detection: 
 | variable | type  | Description |
 |------|------|:-----------|
@@ -215,6 +214,7 @@ Used for outliers detection:
 | elevationAngleColdTol | double | tolerance for outlier detection of single cold spectra based on elevation angle | 
 | elevationAngleTolerance | double | tolerance for outlier detection of single sky spectra based on elevation angle | 
 | elevationAngleHotTol | double | tolerance for outlier detection of single hot spectra based on elevation angle | 
+| adcOverloadThresh | double | see [outlierDetection](#outlierdetection) |  
 | hotSpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection)|  
 | coldSpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection) |  
 | skySpectraNumberOfStdDev | double | see [outlierDetection](#outlierdetection) |  
@@ -222,7 +222,7 @@ Used for outliers detection:
 | threshNumRawSpectraCold | double | see [outlierDetection](#outlierdetection) |  
 | threshNumRawSpectraAnt | double | see [outlierDetection](#outlierdetection) | 
 
-Note that all angles are in degree.
+Note that all angles are in degreeand corresponds to elevation angles.
 
 #### outlierDetection
 
@@ -238,16 +238,7 @@ during recording. This is also explained in [quality control](quality_control_ca
 
 ---
 
-
-### Meteo variables
-| variable | type  | Description |
-|------|------|:-----------:|
-| doTippingCurve | boolean | 1 for instruments that performs a tipping curve calibration as main calibration scheme | 
-| troposphericCorrection | structure | a structure containing all required information to perform a tropospheric correction (see [run_integration](run_integration.md)) | 
-
----
-
-### Plotting variables
+### Plotting and saving variables
 
 | variable | type  | Description |
 |---|------|------|:-----------:|
@@ -255,6 +246,34 @@ during recording. This is also explained in [quality control](quality_control_ca
 | calibratedSpectraPlot | boolean | 1 to plot the calibrated spectra | 
 | calibratedSpectraSpectralPlot | boolean | 1 to plot the spectral variable for the calibrated spectra | 
 | integratedSpectraPlot | boolean | 1 to plot the integrated spectra | 
+| saveLevel1a | boolean | 1 to plot level 1a | 
+| saveLevel1b | boolean | 1 to plot level 1b | 
+| savePlanckIntensity | boolean | 1 to calibrated and save using Planck intensity | 
+
+---
+
+### Tipping curve variables
+
+To activate the tipping curve calibration, a first boolean is used:
+
+| variable | type  | Description 
+|---|------|------|:-----------:|
+| doTippingCurve | boolean | 1 for instruments that performs a tipping curve calibration as main calibration scheme | 
+
+Then, the variables needed to do collect, save and use the tipping curve data are
+located into a sub-structure named *TC* in *calibrationTool*. The following
+variables are saved in *TC* and are similar to the ones used to define the
+tropospheric correction (see [run_integration](run_integration.md)).
+
+| variable | type  | Description |
+|---|------|------|:-----------:|
+| numberOfChannelsTropCorr | double | see [run_integration](run_integration.md) | 
+| skipFraction | double | see [run_integration](run_integration.md) | 
+| useWings | str | see [run_integration](run_integration.md) | 
+| deltaT | double | see [run_integration](run_integration.md) | 
+| tauInitTC | double | the initial value for tau (in case of iterated TC) | 
+| maxIterTC | double | max number of iteration (in case of iterated TC) | 
+| offsetTC | double | offset threshold (in case of iterated TC) | 
 
 ---
 
@@ -272,9 +291,10 @@ during recording. This is also explained in [quality control](quality_control_ca
 | filterTypeChannelQualityInt | int | type of filtering use to identify spurious channels on the integrated spectra |  
 | filter1 | struct | see [run_integration](run_integration.md) |  
 | filter2 | struct | see [run_integration](run_integration.md) |  
+| troposphericCorrection | structure | a structure containing all required information to perform a tropospheric correction (see [run_integration](run_integration.md)) | 
 | maxStdDevTbCal | double | threshold for the standard deviation of individual channel on an calibration cycle | 
 | maxStdDevTbInt | double | threshold for the standard deviation of individual channel on an integration cycle |  
-| tWindow | double | microwave window transmittance value|  
+| transmittanceWindow | double | microwave window transmittance value|  
 
 For more information on these variables, see [run_integration](run_integration.md)
 
@@ -286,7 +306,7 @@ For more information on these variables, see [run_integration](run_integration.m
 |---|------|------|:-----------:|
 | successfulCalibration | boolean | indicates a successful calibration |  
 | flagVectorLength | double | number of level 1a flags (read from level 1a) |  
-| logFile | struct | an sub structure where we stores some interesting meta data read from level 1a (like the flags meanings, comments, ...) |  
+| logFile | struct | an sub structure where we stores some interesting meta data read from level 1a (like the flags meanings, the tipping curve data, comments, ...) |  
 | successfulIntegration | boolean | indicates a successful integration |  
 
 ---
@@ -310,6 +330,7 @@ All functions here are used in [run_calibration](run_calibration.md) and are det
 | plot_raw_spectra | rawSpectra, plot parameters | - | Optional | basic plots of the raw counts
 | read_meteo_data | calibrationTool | logFile.meteo | Required | read meteo data
 | run_tipping_curve | rawSpectra, logFile, calibrationTool | logFile\. TC | Conditional | perform tipping curve calibration
+| get_tipping_curve_data_generic | rawSpectra, logFile, calibrationTool | TC_data | Conditional | inside run_tipping_curve, it reads the tipping curve data
 | calibrate | rawSpectra, logFile, calibrationTool, calibrationTool.calType | drift, calibratedSpectra | Required | perform a hot-cold calibration
 | check_calibrated | logFile, calibrationTool,calibratedSpectra | calibratedSpectra | Conditional | check calibrated spectra and add some metadata
 | plot_calibrated_spectra | calibrationTool, drift, logFile.meteo, calibratedSpectra, N | - | Conditional | save standard plots for level 1a

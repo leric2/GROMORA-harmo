@@ -55,7 +55,7 @@ To perform the integration, we executes the followings steps sequentially:
 ### 1. Importing the calibrated spectra (read_level1a)
 
 These are the outputs from [*run_calibration*](run_calibration.md). Within the
-GROSOM project, a generic function (read_level1_GROSOM.m) for reading netCDF file has been written
+GROMORA project, a generic function (read_level1_GROMORA.m) for reading netCDF file has been written
 however, for speed purposes, we are using a quite dirty function reading only a
 selection of parameters in the level 1a. Moreover, these parameters are still hardcoded in the code and this should be improved.
 
@@ -183,7 +183,7 @@ same day together.
 ### Reading netCDF files in Matlab
 
 Until now, quite ugly script for reading the level 1a during the integration
-sub-routine. There is an automatic script existing (*read_level1_GROSOM.m*) but
+sub-routine. There is an automatic script existing (*read_level1_GROMORA.m*) but
 it takes much longer to run (however, it reads all variables within level 1a/1b)
 
 ### Flag filtering of the calibrated spectra during integration 

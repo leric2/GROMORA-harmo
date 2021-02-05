@@ -3,12 +3,13 @@
 ## Table of Contents
 1. [Format](#netcdf-format)
 1. [Tools and Conventions](#tools-and-conventions)
-3. [File structure](#grosom-file-structure)
+3. [File structure](#gromora-file-structure)
 
     1. [Global attributes](#global-attributes)
     2. [Group 1: spectrometer](#spectrometer1-group)
     2. [Group 2: flags](#flags-group)
     2. [Group 3: meteo](#meteo-group)
+    2. [Group 4: tipping curve](#tipping-curve-group)
 
 ---
 ---
@@ -38,7 +39,7 @@ netCDF classic dataset is stored as a single file containing 2 parts:
 ### Dimensions
 It represents either a real physical quantity or index other quantities. It has both a name and a length (positive int., can be unlimited)
 
-The level 1 files for the GROSOM project have the time as the main dimension. On 
+The level 1 files for the GROMORA project have the time as the main dimension. On 
 
 ### Variables
 Array of values of the same type. It has a name, a data type and a shape (described by its list of dimensions).
@@ -80,20 +81,22 @@ For more detailed data analysis, the
 ---
 ---
 
-## GROSOM file structure
+## GROMORA file structure
 
-GROSOM level 1 files are stored in netCDF-4 format.
+GROMORA level 1 files are stored in netCDF-4 format.
 
 Data are stored in daily files with time interval corresponding to the calibration (level 1a) or intergation (level 1b) time. Both levels have the same structure and more less the same variables. All files contains the following elements:
 * Global attributes: some meta information about the file content
-* Three 3 groups of variables:
+* Four groups of variables:
     * spectrometer1: contains all outputs from the calibration/integration from the main spectrometer in the instrument.
     * flags: contains a set of flags to assess the quality of the data stored in spectrometer1
-    * meteo: contains all meteorological variables at the location of the instrument.
+    * meteo: contains all meteorological variables at the location of the
+      instrument.
+    * tipping curve: now only in level 1a, contains all the tipping curve data.
 
 Note that each groups and variables within have in addition its own set of attributes. 
 
-The details of the level 1 for the GROSOM project is presented below:
+The details of the level 1 for the GROMORA project is presented below:
 
 ### Global attributes
 
@@ -199,6 +202,7 @@ The same variables are used in the level 1b file with some additions or adaptati
 | number_of_ calibrated_spectra  | double | time | - | number_of_calibrated_spectra |  number of calibrated spectra | number of calibrated spectra integrated during this cycle |
 | tropospheric_transmittance  | double | time | - | tropospheric_transmittance | tropospheric transmittance | mean tropospheric transmittance during t_int |
 | tropospheric_opacity  | double | time | - | tropospheric_opacity | tropospheric opacity | mean tropospheric opacity during t_int  |
+| tropospheric_opacity_tc | double | time | - | tropospheric_opacity_tc | tropospheric opacity from tc | mean opacity derived from tipping curve measurements |
 | Tb  | double | time, channel_idx | Kelvin | brightness_temperature | Tb | integrated brightness temperature for this cycle |
 | Tb_win_corr  | double | time, channel_idx | Kelvin | window_corrected_brightness_temperature | Tb_win_corr | integrated brightness temperature for this cycle, corrected for the window|
 | Tb_corr  | double | time, channel_idx | Kelvin | corrected_brightness_temperature | corrected_brightness_temperature |integrated brightness temperature for this cycle, corrected for window and troposphere |
@@ -264,6 +268,44 @@ It has 4 main variables with the same attributes as for the spectrometer1 group.
 | relative_humidity | double | time | - | relative_humidity | relative humidity | relative humidity of the air at the station |
 | precipitation | double | time | mm | precipitation | precipitation | Accumulation of precipitation during the cycle (from gauge ?) |
 
+### Tipping curve group
+Only in level 1a up to Jan 2021.
+
+It contains all the tipping curve data read during the calibration. It has the
+original time stamps from the raw file and therefore, we get a different time
+coordinates compared to the spectrometer1 group.
+
+### Dimensions:
+1. time (unlimited)
+2. tipping_angle 
+3. channel_idx_tc
+
+### Coordinate variables:
+| Coordinates | type | units | other attributes | Description |
+|------|------|------|------|:-----------|
+| time | double | days since 2000-01-01 00:00:00 | calendar |mean time of the measurements for this cycle |
+| tipping_angle | double | degree | - | elevation angles used for the tipping curve|
+| channel_idx_tc | double | - | - | the FFT channels used to save the tipping curve |
+
+### Variables:
+
+It has the following variables with the same attributes as for the spectrometer1 group.
+
+| variables | type | dimension | units | standard_name | long_name | description |
+|------|------|------|------|------|------|:-----------|
+| frequency_tc | double | channel_idx_tc | Hz | frequency_tc |  | mean FFTS cold counts for tipping curve |
+| sky_spectra | double | time, channel_idx_tc, tipping_angle | - | sky_spectra | - | raw FFTS counts on sky during TC |
+| cold_calib | double | time | - | cold_calib | - | mean raw FFTS counts on cold load during this cycle |
+| cold_spectra | double | time, channel_idx_tc | - | cold_spectra | - | raw FFTS counts on cold during calibration cycle around TC |
+| cold_spectra_tc | double | time, channel_idx_tc, tipping_angle | - | cold_spectra_tc | - | raw FFTS counts on cold during TC
+| hot_calib | double | time | - | hot_calib | - | mean raw FFTS counts on hot load during this cycle |
+| hot_spectra | double | time, channel_idx_tc | - | hot_spectra | - | raw FFTS counts on hot during calibration cycle around TC |
+| hot_spectra_tc | double | time, channel_idx_tc, tipping_angle | - | hot_spectra_tc | - | raw FFTS counts on hot during TC |
+| THot_calib | double | time | K | THot_calib |  | mean temperature of the hot load during calibration cycle around TC |
+| opacity_iter_tc | double | time | - | opacity_iter_tc |  | opacity at zenith iterated with tc measurements only |
+| opacity_calib_tc | double | time | - | opacity_calib_tc |  | opacity at zenith computed using the calibration cycle around tc |
+
+
 ## Some potential improvements
 
 ### Level 1 file naming
@@ -274,4 +316,5 @@ Implement specific names depending on the calibration outlier detection or calib
 
 Some variables are actually not depending on the time (like *altitude*, *latitude*, ...) but still have a time dimension. On the contrary, some variables like *frequencies* have a time dimension for the level 1b but not on the level 1a (historical reasons...).
 
-This is not a key point but could be harmonized and critical when appending different days ?
+This is not a key point but could be harmonized and critical when appending
+different days ?

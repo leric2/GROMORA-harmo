@@ -153,9 +153,19 @@ the following elements:
 
 ### 8. Run a tipping curve (run_tipping_curve)
 
-Only for instruments working with tipping curve as main calibration scheme.
+This functions has different goal depending on the instruments. For the ones
+working with tipping curve as main calibration scheme, this is where the main
+opacity used for the calibration is computed. For more information, see the
+functions for MIAWARA-C written by Franzisca.
 
-For more information, see the functions for MIAWARA-C written by Franzisca.
+For the instruments working with a hot-cold calibration scheme, this function is
+used to extract the data of the tipping curve calibrations during the day. For
+GROMOS, we also make a short estimation of the tropospheric opacity here.
+Otherwise, the computation of the opacity is done at a later stage, using the
+hot and cold value from the calibration. 
+
+At the end, this functions stores all the tipping curve data within a
+sub-structure in *logFile*.
 
 ---
 
@@ -228,6 +238,11 @@ the outliers detection, the flags are indicative of the data quality and do not
 lead to any data removal before level1a. Depending on the final use of the data,
 the user is then free to take these flags into account of not. Also the flags
 are determined for each calibration cycle (and not on individual spectrum).
+
+In this function, we also perform a first estimation of the tropospheric
+opactity derived from the tipping curve measurements. If a tc was done during
+one of the calibration cycles, then we calibrate it here using the hot-cold
+calibration formula and extract the opacity at zenith by fitting a tau-airmass curve.
 
 When doing the checks on the calibrated spectra, we also add all the necessary
 meta data added to the *calibratedSpectra* structure, extracted either from the

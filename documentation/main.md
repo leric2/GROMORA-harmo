@@ -28,7 +28,7 @@ Functions called directly from the main script:
 ## Parameters
 
 The main parameters to launch the calibration and/or integration process within
-the GROSOM project:
+the GROMORA project:
 
 | name | type | Description |
 |---|------|:-----------|

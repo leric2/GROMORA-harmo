@@ -4,7 +4,7 @@
 Reminder note for the computation of the brightness temperature and its standard deviation.
 
 ## Tb
-During a "standard" calibration cycle for GROSOM, we use the following procedure to compute the brightness temperature of the sky.
+During a "standard" calibration cycle for GROMORA, we use the following procedure to compute the brightness temperature of the sky.
 
 ### Calibration
 

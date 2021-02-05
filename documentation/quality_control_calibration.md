@@ -2,9 +2,9 @@
 
 ## Summary
 
-Technical documentation concerning the quality control applied during the GROSOM
+Technical documentation concerning the quality control applied during the GROMORA
 calibration routine (level 0 to level 1b). The general principles of flags and
-outlier detection is presented in the GROSOM user guide (UG) that can be found in the [User Guide](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROSOM) repository. 
+outlier detection is presented in the GROMORA user guide (UG) that can be found in the [User Guide](https://git.iap.unibe.ch/IAP_MCH/UserGuideGROMORA.git) repository. 
 
 In general, the quality control of the calibration can be divided into 2 main
 categories: the removing of "outlier" and the flagging of the potential spurious
@@ -71,7 +71,12 @@ During effective calibration, we check individual spectra for:
         calibrationTool.elevationAngleTolerance
         calibrationTool.elevationAngleHotTol
     
-2. State of the analog-to-digital converter when a the spectrum was recorded (*FFT_adc_overload* in the log file)
+2. State of the analog-to-digital converter when a the spectrum was recorded
+   (*FFT_adc_overload* in the log file). We check that the number of ADC
+   overloads per cycle does not exceed a certain threshold.
+
+        calibrationTool.adcOverloadThresh 
+
 
 3. Check that enough individual channels are comprised within a certain interval from the daily median (for hot and
         cold spectra). For sky spectra, as the atmosphere has a natural variation, we use the median of the calibration
@@ -98,8 +103,7 @@ Note that individual cycle removal is recorded and plotted (except if this there
 At that point, we also use the indiviual (cleaned) cycle to compute the standard deviation of the noise receiver temperature (stdTNoise) and of the brightness temperature (stdTb), using the channel averaged value of TNoise.
 
 ### Some possible Improvements
-
-Add threshold on the number of ADC overloads per cycle ?
+ 
 
 ### Level 1a flags
 
@@ -133,7 +137,6 @@ Compare the std dev of *TNoise* computed during the calibration (from the drift
    structure) against a threshold.
 
         calibrationTool.stdTNoiseThresh
-
 
 3. Check that X% (standard is 30%) of the LN2 Sensors flags in the log are OK
    for this calibration cycle.
