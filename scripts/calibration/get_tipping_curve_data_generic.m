@@ -58,6 +58,11 @@ else
 end
 firstTipAngle=lastTipAngle-effTippingSize+1;
 
+% removing the first TC when it is not completed during this day
+nTippingCurve = nTippingCurve - sum(firstTipAngle < 0);
+lastTipAngle(firstTipAngle < 0) = [];
+firstTipAngle(firstTipAngle < 0) = [];
+
 for i = 1:nTippingCurve
     TC_data(i).position = logFile.Position(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
     TC_data(i).angle = logFile.Elevation_Angle(tippingCurveInd(firstTipAngle(i):lastTipAngle(i)))';
