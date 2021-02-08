@@ -153,8 +153,8 @@ for i = 1:size(integratedSpectra,2)
     if (sum(integratedSpectra(i).errorVector)<length(integratedSpectra(i).errorVector))
         integratedSpectra(i).outlierCalib = 1;
         errorV=num2str(integratedSpectra(i).errorVector);
-        disp(['Calibration Cycle number ' num2str(i) ', TOD: ' datestr(timeofday(integratedSpectra(i).dateTime),'HH:MM:SS')])
-        warning(['Problem with this calibration, error code : ' errorV]);
+        disp(['Integration n. ' num2str(i) ', TOD: ' datestr(timeofday(integratedSpectra(i).dateTime),'HH:MM:SS')])
+        disp(['Problem with this integration, error code: ' errorV]);
         disp(integratedSpectra(i).errorVectorDescription(~integratedSpectra(i).errorVector))
     end
    
