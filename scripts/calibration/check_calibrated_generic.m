@@ -63,7 +63,11 @@ for i = 1:size(calibratedSpectra,2)
     end
     
     calibratedSpectra(i).TbPlanck =  (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck*calibrationTool.lightSpeed^2) + 1);
-        
+    
+    % from TbRJE: same results in TbPlanck as from intensity calibration !
+    %I_RJE =  calibratedSpectra(i).TbRJE.*(2*calibrationTool.kb*calibratedSpectra(i).freq.^2)/calibrationTool.lightSpeed^2;
+    %calibratedSpectra(i).TbPlanck2 = (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(I_RJE*calibrationTool.lightSpeed^2) + 1);
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Noise Receiver Temperature
     % Computing TN around the line center (approximately +- 200 MHz)
@@ -279,12 +283,29 @@ for i = 1:size(calibratedSpectra,2)
            Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            
            logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);
+           
+           % In terms of RJE:
+           TbColdRJ = planck_function(calibrationTool, calibrationTool.TCold, logFile.TC(isTC).frequency)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( logFile.TC(isTC).frequency.^2));
+           TbHotRJ = planck_function(calibrationTool, logFile.TC(isTC).THotCalib, logFile.TC(isTC).frequency)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( logFile.TC(isTC).frequency.^2));
+           logFile.TC(isTC).TbRJE = TbColdRJ + (TbHotRJ - TbColdRJ) .* (logFile.TC(isTC).sky_spectra - logFile.TC(isTC).coldSpectra)./(logFile.TC(isTC).hotSpectra - logFile.TC(isTC).coldSpectra);
+                
+           TC(isTC).TbRJE_mean = nanmean(logFile.TC(isTC).TbRJE,2);
+
+           TmeanRJ = planck_function(calibrationTool, Teff, logFile.TC(isTC).meanFreq)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(logFile.TC(isTC).meanFreq^2));
+           TbgRJ = planck_function(calibrationTool, calibrationTool.backgroundMWTb, logFile.TC(isTC).meanFreq)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(logFile.TC(isTC).meanFreq^2)); 
+                
+           tau_slantRJ = log((TmeanRJ-TbgRJ)./(TmeanRJ-TC(isTC).TbRJE_mean));                
+           
            tau_slant = log((Teff-calibrationTool.backgroundMWTb)./(Teff-logFile.TC(isTC).Tb_Calib));
            am = 1./sind(logFile.TC(isTC).skyAngle);
            
+           % fit the airmass-slant opacity data pairs (RJE)
+           [pRJE,s] = polyfit (am, tau_slantRJ, 1);
+           logFile.TC(isTC).tauCalibZenith = pRJE(1);
+           
            % fit the airmass-slant opacity data pairs
-           [p,s] = polyfit (am, tau_slant, 1);
-           logFile.TC(isTC).tauCalibZenith = p(1);
+           %[p,s] = polyfit (am, tau_slant, 1);
+           %logFile.TC(isTC).tauCalibZenith = p(1);
            logFile.TC(isTC).tauCalib = logFile.TC(isTC).tauCalibZenith * 1/sind(calibratedSpectra(i).meanAngleAntenna);
        end
        

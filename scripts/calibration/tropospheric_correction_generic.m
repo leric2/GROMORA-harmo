@@ -96,12 +96,29 @@ for t = 1:length(spectra)
         rightWingMeanFreq = nanmean(f_temp(N-upper:N-lower));
         rightWingMeanTb = nanmean(Tb_temp(N-upper:N-lower));
         
+        % For now, only works for both wings
+        if calibrationTool.savePlanckIntensity
+            if strcmp(calibrationTool.troposphericCorrection.useWings,'both')
+                leftWingIntensity = nanmean(spectra(t).intensity_planck(lower:upper));
+                rightWingIntensity = nanmean(spectra(t).intensity_planck(N-upper:N-lower));
+                intensityWing = (leftWingIntensity+rightWingIntensity)/2;
+                leftWingRJE = nanmean(spectra(t).TbRJEWinCorr(lower:upper));
+                rightWingRJE = nanmean(spectra(t).TbRJEWinCorr(N-upper:N-lower));
+                TwingRJE = (leftWingRJE+rightWingRJE)/2;
+            else
+                error('please, use both wings')
+            end
+        end
+        
         if strcmp(calibrationTool.troposphericCorrection.useWings,'both')
             Twing = (leftWingMeanTb+rightWingMeanTb)/2;
+            fwing = (leftWingMeanFreq+rightWingMeanFreq)/2;
         elseif strcmp(calibrationTool.troposphericCorrection.useWings,'left')
             Twing = leftWingMeanTb;
+            fwing = leftWingMeanFreq;
         elseif strcmp(calibrationTool.troposphericCorrection.useWings,'right')
             Twing = rightWingMeanTb;
+            fwing = rightWingMeanFreq;
         else
             error('please specifiy the wings to use for tropospheric correction')
         end
@@ -133,7 +150,6 @@ for t = 1:length(spectra)
         % Keeping the easy method for now
         %Twing=nanmean(Tb_trop_corr_smoothed);
         
-        
         if strcmp(tropCorrType,'Ingold_v1_fit')
             % frequency dependant opacity
             a = (rightWingMeanTb-leftWingMeanTb)/(rightWingMeanFreq - leftWingMeanFreq);
@@ -141,7 +157,6 @@ for t = 1:length(spectra)
             
             TbApprox = a * spectra(t).frequencies + b;
             transmittanceVector = (Tmean - TbApprox)./(Tmean - Tbg);
-            
             if nanmean(transmittanceVector) > 0
                 spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittanceVector) ) ./ transmittanceVector;
                 spectra(t).troposphericTransmittance = nanmean(transmittanceVector);
@@ -151,26 +166,83 @@ for t = 1:length(spectra)
                 spectra(t).troposphericTransmittance = -9999;
                 spectra(t).troposphericOpacity=-9999;
             end
-        else
-            % Transmitance calculated (Ingold)
-            transmittance = (Tmean - Twing)./(Tmean - Tbg);
-        
-            if transmittance > 0
-                spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittance) ) ./ transmittance;
-                if calibrationTool.savePlanckIntensity
-                    % to check if that makes sense
-                    BT_PlanckMean = ((2*calibrationTool.h*spectra(t).frequencies.^3)/(calibrationTool.lightSpeed^2))./(exp((calibrationTool.h*spectra(t).frequencies)./(calibrationTool.kb*Tmean)) - 1);
-                    spectra(t).intensityPlanckTropWindowCorr = (spectra(t).intensityPlanckWinCorr - BT_PlanckMean*(1-transmittance) ) ./ transmittance;
+            
+            if calibrationTool.savePlanckIntensity
+                % frequency dependant opacity with RJE brightness
+                % temperature
+                a = (rightWingRJE-leftWingRJE)/(rightWingMeanFreq - leftWingMeanFreq);
+                b = rightWingRJE - a*rightWingMeanFreq;
+                
+                TmeanRJvector = planck_function(calibrationTool, Tmean, spectra(t).frequencies)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(spectra(t).frequencies.^2));
+                TbgRJvector = planck_function(calibrationTool, Tbg, spectra(t).frequencies)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(spectra(t).frequencies.^2));
+                
+                TbRJEApprox = a * spectra(t).frequencies + b;
+                
+                transmittanceVectorRJE = (TmeanRJvector - TbRJEApprox)./(TmeanRJvector - TbgRJvector);
+                
+                if nanmean(transmittanceVectorRJE) > 0
+                    spectra(t).intensityPlanckTropWinCorr = (spectra(t).intensityPlanckWinCorr - planck_function(calibrationTool, Tmean, spectra(t).frequencies).*(1-transmittanceVectorRJE) ) ./ transmittanceVectorRJE;
+                    spectra(t).TbRJETroposphericWinCorr = (spectra(t).TbRJEWinCorr - TmeanRJvector.*(1-transmittanceVectorRJE) ) ./ transmittanceVectorRJE;
+                    
+                    % this is the variable that we keep ?????????????????????
+                    spectra(t).TbTroposphericWindowCorr = (Tb - Tmean.*(1-transmittanceVectorRJE) ) ./ transmittanceVectorRJE;
+                    
+                    %spectra(t).TbRJETroposphericWinCorr2 = spectra(t).intensityPlanckTropWinCorr*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(spectra(t).frequencies.^2));
+                    
+                    spectra(t).troposphericTransmittance = nanmean(transmittanceVectorRJE);
+                    spectra(t).troposphericOpacity = -log(nanmean(transmittanceVectorRJE));
+                else
+                    spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
+                    spectra(t).troposphericTransmittance = -9999;
+                    spectra(t).troposphericOpacity=-9999;
                 end
-                spectra(t).troposphericTransmittance = transmittance;
-                spectra(t).troposphericOpacity=-log(transmittance);
-                %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
+            end
+        else
+            % Exact value with RJE OR Intensity calibrated value
+            if calibrationTool.savePlanckIntensity
+                % The right way of computing the transmittance
+                %transmittanceIntensity = (B_PlanckMean - intensityWing)./(B_PlanckMean - planck_function(calibrationTool, Tbg, fwing));
+                % it is equal to:
+                TmeanRJ = planck_function(calibrationTool, Tmean,  fwing)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(fwing^2));
+                TwingRJ = intensityWing*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(fwing^2));
+                TbgRJ = planck_function(calibrationTool, Tbg, fwing)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(fwing^2));
+                transmittanceRJ = (TmeanRJ - TwingRJ)./(TmeanRJ - TbgRJ);
+                if transmittanceRJ > 0
+                    % to check if that makes sense
+                    spectra(t).intensityPlanckTropWindowCorr = (spectra(t).intensityPlanckWinCorr - planck_function(calibrationTool, Tmean, fwing)*(1-transmittanceRJ) ) ./ transmittanceRJ;
+                    %spectra(t).TbPlanckTropWinCorr = (calibrationTool.h*spectra(t).frequencies/calibrationTool.kb)./log((2*calibrationTool.h*spectra(t).frequencies.^3)./(spectra(t).intensityPlanckTropWindowCorr *calibrationTool.lightSpeed^2) + 1);
+                    spectra(t).TbRJETroposphericWindcorr = (spectra(t).TbRJEWinCorr - TmeanRJ*(1-transmittanceRJ) ) ./ transmittanceRJ;
+                    
+                    spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittanceRJ) ) ./ transmittanceRJ;
+                    %I_RJE =  spectra(t).TbRJETroposphericWindcorr.*(2*calibrationTool.kb*spectra(t).frequencies.^2)/calibrationTool.lightSpeed^2;
+                    %spectra(t).TbPlanckTropWinCorr2 = (calibrationTool.h*spectra(t).frequencies./calibrationTool.kb)./log((2*calibrationTool.h*spectra(t).frequencies.^3)./(I_RJE*calibrationTool.lightSpeed^2) + 1);
+                    
+                    spectra(t).troposphericTransmittance = transmittanceRJ;
+                    spectra(t).troposphericOpacity = -log(transmittanceRJ);
+                else
+                    spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
+                    spectra(t).troposphericTransmittance = -9999;
+                    spectra(t).troposphericOpacity=-9999;
+                end
             else
-                spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
-                spectra(t).troposphericTransmittance = -9999;
-                spectra(t).troposphericOpacity=-9999;
-                %spectra(t).meanTroposphericTransmittance  = -9999;
-                %spectra(t).TbtropWinCorr = -9999;
+                % Transmitance calculated (Ingold) with Planck temperature (-->
+                % 2.736K for background. This is an Approximation !
+                transmittance = (Tmean - Twing)./(Tmean - Tbg);
+                if transmittance > 0
+                    spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittance) ) ./ transmittance;
+                    spectra(t).troposphericTransmittance = transmittance;
+                    spectra(t).troposphericOpacity=-log(transmittance);
+                    %spectra(t).troposphericOpacityIntensity=-log(transmittanceIntensity);
+                    %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
+                else
+                    
+                    spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
+                    spectra(t).troposphericTransmittance = -9999;
+                    spectra(t).troposphericOpacity=-9999;
+                    
+                end
+                
+                
             end
         end
         if isfield(calibrationTool.logFile,'TC')
@@ -187,17 +259,35 @@ for t = 1:length(spectra)
             % Also, we do not account for the window yet !
             if sum(isTC) == 1
                 TC(isTC).Tb = calibrationTool.TCold + (TC(isTC).THot_calib - calibrationTool.TCold) .* (TC(isTC).sky_spectra - TC(isTC).cold_spectra)./(TC(isTC).hot_spectra - TC(isTC).cold_spectra);
+                % In terms of RJE:
+                TbColdRJ = planck_function(calibrationTool, calibrationTool.TCold, TC(isTC).frequency)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( TC(isTC).frequency.^2));
+                TbHotRJ = planck_function(calibrationTool, TC(isTC).THot_calib, TC(isTC).frequency)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( TC(isTC).frequency.^2));
+                TC(isTC).TbRJE = TbColdRJ + (TbHotRJ - TbColdRJ) .* (TC(isTC).sky_spectra - TC(isTC).cold_spectra)./(TC(isTC).hot_spectra - TC(isTC).cold_spectra);
+                
+                TC(isTC).TbRJE_mean = nanmean(TC(isTC).TbRJE,2);
                 TC(isTC).Tb_mean = nanmean(TC(isTC).Tb,2);
-        
+                
+                TmeanRJ = planck_function(calibrationTool, Tmean, fwing)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(fwing^2));
+                TbgRJ = planck_function(calibrationTool, Tbg, fwing)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*(fwing^2)); 
+                
+                tau_slantRJ = log((TmeanRJ-TbgRJ)./(TmeanRJ-TC(isTC).TbRJE_mean));
                 tau_slant = log((Tmean-calibrationTool.backgroundMWTb)./(Tmean-TC(isTC).Tb_mean));
                 am = 1./sind(TC(isTC).tipping_angle);
-        
-                % fit the airmass-slant opacity data pairs
+                
+                % fit the airmass-slant opacity data pairs TbRJE
+                [pRJE,sRJE] = polyfit (am, tau_slantRJ, 1);
+                TC(isTC).tauCalibZenithRJE = pRJE(1);
+                
+                % fit the airmass-slant opacity data pairs 
                 [p,s] = polyfit (am, tau_slant, 1);
                 TC(isTC).tauCalibZenith = p(1);
+                
+                % Difference between the 2 is minimal...
+                spectra(t).tauZenithTC = TC(isTC).tauCalibZenith;
+                spectra(t).tauZenithTCRJE = TC(isTC).tauCalibZenithRJE;
         
                 % In the beam direction:
-                spectra(t).troposphericOpacityTC = TC(isTC).tauCalibZenith * 1/sind(spectra(t).mean_sky_elevation_angle);
+                spectra(t).troposphericOpacityTC = TC(isTC).tauCalibZenithRJE * 1/sind(spectra(t).mean_sky_elevation_angle);               
             else
                 spectra(t).troposphericOpacityTC = NaN;
             end

@@ -205,6 +205,30 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).theoreticalStartTime=timeThresh(i);
     calibratedSpectra(i).theoreticalStartTimeStr=datestr(timeThresh(i),'yyyy_mm_dd_HH:MM:SS');
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Frequency vector
+    if calibrationTool.IQProcessing
+        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [-1:2/calibrationTool.numberOfChannels:1-2/calibrationTool.numberOfChannels];
+        
+        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
+        
+        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
+        
+        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+        
+        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
+    else
+        calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
+        
+        calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
+        
+        calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
+        
+        calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
+        
+        calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
+    end
+    
     % hot and cold indices for this calib cycle
     ih=reshape(indices(i).validHot,1,[]);
     ic=reshape(indices(i).validCold,1,[]);
@@ -372,29 +396,6 @@ switch calType
             calibratedSpectra(i).calibrationType=calType;
             calibratedSpectra(i).calibrationTime=calibTime;
             calibratedSpectra(i).calibrationVersion=calibVersion;
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Frequency vector
-            if calibrationTool.IQProcessing
-                calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [-1:2/calibrationTool.numberOfChannels:1-2/calibrationTool.numberOfChannels];
-                
-                calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
-                
-                calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
-                
-                calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
-                
-                calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
-            else
-                calibratedSpectra(i).if = calibrationTool.samplingRateFFTS/2 * [0:1/calibrationTool.numberOfChannels:1-1/calibrationTool.numberOfChannels];
-                
-                calibratedSpectra(i).observationFreq=calibrationTool.observationFreq;
-                
-                calibratedSpectra(i).LOFreqTot=calibrationTool.LOFreqTot;
-                
-                calibratedSpectra(i).freq=calibratedSpectra(i).if*1e6+calibratedSpectra(i).LOFreqTot;
-                
-                calibratedSpectra(i).df=calibrationTool.samplingRateFFTS/(2*calibrationTool.numberOfChannels);
-            end
             
             % All antenna measurements during this cycle
             ia=reshape(indices(i).validAntenna,1,[]);
@@ -465,26 +466,42 @@ switch calType
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
 
             % Calibration
+            
             % For all antenna measurement (to get the stddev of Tb on the
             % calibration cycle) against the mean of hot and cold spectra
             % for this calibration cycle.
-            TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+                        
+            % In terms of Intensity (same as RJE)
+            IColdPlanck = planck_function(calibrationTool, calibrationTool.TCold, calibratedSpectra(i).freq);
+            IHotPlanck = planck_function(calibrationTool, calibratedSpectra(i).THot, calibratedSpectra(i).freq);
+            intensityAll = IColdPlanck + (IHotPlanck-IColdPlanck).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+
+            % In terms of RJE brightness temperature (same as Intensity)
+            %TbColdRJ = planck_function(calibrationTool, calibrationTool.TCold, calibratedSpectra(i).freq)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( calibratedSpectra(i).freq.^2));
+            %TbHotRJ = planck_function(calibrationTool, calibratedSpectra(i).THot, calibratedSpectra(i).freq)*(calibrationTool.lightSpeed^2)./(2*calibrationTool.kb*( calibratedSpectra(i).freq.^2));
+            
+            if calibrationTool.savePlanckIntensity
+                TbAll = (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(intensityAll.*calibrationTool.lightSpeed^2) + 1);
+            else
+                TbAll = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntennaAll-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+            end
+            
             if size(std(TbAll),2) == calibrationTool.numberOfChannels
-                calibratedSpectra(i).stdTb=std(TbAll);
+                calibratedSpectra(i).stdTb = std(TbAll);
             else
                 calibratedSpectra(i).stdTb = -9999*ones(1,calibrationTool.numberOfChannels);
             end
             
             % And with the mean sky spectrum of the cycle (it should be the
             % same as just taking the average of TbAll).
-            calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
-            
-            % In terms of Intensity:
-            IColdPlanck = ((2*calibrationTool.h*calibratedSpectra(i).freq.^3)/(calibrationTool.lightSpeed^2))./(exp((calibrationTool.h*calibratedSpectra(i).freq)./(calibrationTool.kb*calibrationTool.TCold)) - 1);
-            IHotPlanck = ((2*calibrationTool.h*calibratedSpectra(i).freq.^3)/(calibrationTool.lightSpeed^2))./(exp((calibrationTool.h*calibratedSpectra(i).freq)./(calibrationTool.kb*calibratedSpectra(i).THot)) - 1);
-            
-            calibratedSpectra(i).intensityPlanck = IColdPlanck + (IHotPlanck-IColdPlanck).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
-
+            if calibrationTool.savePlanckIntensity
+                calibratedSpectra(i).intensityPlanck = IColdPlanck + (IHotPlanck-IColdPlanck).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+                calibratedSpectra(i).intensityPlanck(calibratedSpectra(i).intensityPlanck<=0) = NaN;
+                calibratedSpectra(i).Tb = (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck.*calibrationTool.lightSpeed^2) + 1);
+            else
+                calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
+            end
+            %calibratedSpectra(i).TbRJE = TbColdRJ + (TbHotRJ-TbColdRJ).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
         end
     case 'debug'
         % In this mode, we compute 3 types of calibration for debugging

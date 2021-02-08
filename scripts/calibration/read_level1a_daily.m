@@ -62,7 +62,8 @@ correctedSpectra.tod = ncread(filename,'/spectrometer1/time_of_day')';
 % Calibration variable
 correctedSpectra.Tb=ncread(filename,'/spectrometer1/Tb')';
 if calibrationTool.savePlanckIntensity
-    correctedSpectra.intensityPlanck=ncread(filename,'/spectrometer1/intensity_planck')';
+    %correctedSpectra.intensityPlanck=ncread(filename,'/spectrometer1/intensity_planck')';
+    
 end
 correctedSpectra.stdTb=ncread(filename,'/spectrometer1/stdTb')';
 correctedSpectra.freq=ncread(filename,'/spectrometer1/frequencies')';
@@ -168,13 +169,15 @@ end
 
 for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).Tb = correctedSpectra.Tb(i,:);
-    if calibrationTool.savePlanckIntensity
-    calibratedSpectra(i).intensity_planck=correctedSpectra.intensityPlanck(i,:);
-    end
     calibratedSpectra(i).stdTb = correctedSpectra.stdTb(i,:);
     calibratedSpectra(i).dateTime = correctedSpectra.meanDateTime(i);
     calibratedSpectra(i).dateTime.TimeZone = calibrationTool.timeZone;
     calibratedSpectra(i).frequencies = correctedSpectra.freq(:)';
+    if calibrationTool.savePlanckIntensity
+        %calibratedSpectra(i).intensity_planck=correctedSpectra.intensityPlanck(i,:);
+        calibratedSpectra(i).intensity_planck = planck_function(calibrationTool, calibratedSpectra(i).Tb, calibratedSpectra(i).frequencies);
+        %calibratedSpectra(i).TbPlanck = (calibrationTool.h*calibratedSpectra(i).frequencies/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).frequencies.^3)./(calibratedSpectra(i).intensity_planck*calibrationTool.lightSpeed^2) + 1);
+    end
     calibratedSpectra(i).intermediate_freq = correctedSpectra.if(:)';
     calibratedSpectra(i).year = correctedSpectra.year(i);
     calibratedSpectra(i).month = correctedSpectra.month(i);
