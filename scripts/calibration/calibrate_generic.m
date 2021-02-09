@@ -492,12 +492,14 @@ switch calType
                 calibratedSpectra(i).stdTb = -9999*ones(1,calibrationTool.numberOfChannels);
             end
             
+            calibratedSpectra(i).TbPhysicalTemperature = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
+
             % And with the mean sky spectrum of the cycle (it should be the
             % same as just taking the average of TbAll).
             if calibrationTool.savePlanckIntensity
                 calibratedSpectra(i).intensityPlanck = IColdPlanck + (IHotPlanck-IColdPlanck).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra);
                 calibratedSpectra(i).intensityPlanck(calibratedSpectra(i).intensityPlanck<=0) = NaN;
-                calibratedSpectra(i).Tb = (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck.*calibrationTool.lightSpeed^2) + 1);
+                calibratedSpectra(i).Tb = planck_Tb(calibrationTool, calibratedSpectra(i).intensityPlanck, calibratedSpectra(i).freq);
             else
                 calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
             end
