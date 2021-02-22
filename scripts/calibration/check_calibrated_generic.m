@@ -62,8 +62,7 @@ for i = 1:size(calibratedSpectra,2)
         sufficientNumberOfIndices=0;
     end
     
-    calibratedSpectra(i).TbPlanck =  (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck*calibrationTool.lightSpeed^2) + 1);
-    
+    %calibratedSpectra(i).TbPlanck =  (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(calibratedSpectra(i).intensityPlanck*calibrationTool.lightSpeed^2) + 1);
     % from TbRJE: same results in TbPlanck as from intensity calibration !
     %I_RJE =  calibratedSpectra(i).TbRJE.*(2*calibrationTool.kb*calibratedSpectra(i).freq.^2)/calibrationTool.lightSpeed^2;
     %calibratedSpectra(i).TbPlanck2 = (calibrationTool.h*calibratedSpectra(i).freq/calibrationTool.kb)./log((2*calibrationTool.h*calibratedSpectra(i).freq.^3)./(I_RJE*calibrationTool.lightSpeed^2) + 1);

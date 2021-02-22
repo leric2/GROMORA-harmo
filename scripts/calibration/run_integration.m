@@ -31,7 +31,6 @@ function [calibrationTool, level1] = run_integration(calibrationTool)
 %           | check_integrated
 %           | plot_integrated_spectra
 %           | save_level1b
-
 %           |
 % COMMENTS  | External documentation can be found for this function on the
 %           | git server of IAP.
