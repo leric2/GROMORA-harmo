@@ -22,9 +22,11 @@ import matplotlib.pyplot as plt
 from retrievals import arts
 from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels
+from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
-from typhon.arts.xml import load
+#from typhon.arts.xml import load
+from pyarts.xml import load
 
 ARTS_DATA_PATH = os.environ.get("ARTS_DATA_PATH", None)
 
@@ -88,9 +90,9 @@ def read_o3_apriori_OG_SOMORA(filename, m):
         #usecols=[0,1]
         )
 
-    o3_apriori_ds = xr.Dataset({'o3': (['altitude','month'], ds.iloc[:,1:])},
+    o3_apriori_ds = xr.Dataset({'o3': (['altitude','month'], 1e-6*ds.iloc[:,1:])},
                             coords = {
-                                'altitude' : ('altitude', ds.iloc[:,0]),
+                                'altitude' : ('altitude', 1e3*ds.iloc[:,0]),
                                 'month' : ('month', np.arange(1,13,1))
                             }
     )
@@ -123,9 +125,23 @@ def get_apriori_fascod(retrieval_param):
     if retrieval_param['atm'] == 'fascod_gromos_o3':
         o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
         fascod_atm.set_vmr_field(
-            "O3", o3_apriori["p"].values, o3_apriori['o3'].values
+            "o3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
         print('Ozone apriori from : OG GROMOS')
+    elif retrieval_param['atm'] == 'fascod_somora_o3':
+        # For SOMORA, we need to interpolate the o3 apriori with altitude from FM (no pressure defined)
+        o3_apriori = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
+        o3_apriori_h = interpolate(
+            fascod_atm.z_field.data[:,0,0], 
+            o3_apriori.altitude.data,
+            o3_apriori.o3.data
+            )
+        # extracting pressure from the fascod atm
+        pressure_fascod = fascod_atm.z_field.to_xarray().coords['Pressure']
+        fascod_atm.set_vmr_field(
+            "o3", pressure_fascod, o3_apriori_h
+        )
+        print('Ozone apriori from : OG SOMORA')
     else:
         print('Ozone apriori from : fascod')
     return fascod_atm
@@ -214,8 +230,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     # Read EACMWF data (oper for now)
     ECMWF_store_path = ecmwf_store
-    location = 'BERN'
-    ecmwf_prefix = f'ecmwf_oper_v{2}_{location}_%Y%m%d.nc'
+    ecmwf_prefix = retrieval_param['ecmwf_prefix']
     ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
 
     if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
@@ -226,12 +241,17 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
     
-
-    o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+    o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
 
     #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     
     o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
+    o3_apriori_h = interpolate(
+        atm.z_field.data[:,0,0], 
+        o3_apriori_SOMORA.altitude.data,
+        o3_apriori_SOMORA.o3.data
+        )
+    pressure_atm = atm.z_field.to_xarray().coords['Pressure']
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
@@ -245,22 +265,56 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
-    compare_o3_apriori_OG(o3_apriori,o3_apriori_SOMORA)
-    atm.set_vmr_field(
-        "O3", o3_apriori["p"].values, o3_apriori['o3'].values
+    compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
+
+    if retrieval_param['o3_apriori'] == 'somora':
+        print('Ozone apriori from : old SOMORA retrievals')
+        # extracting pressure from the fascod atm
+        atm.set_vmr_field(
+            "O3", pressure_atm, o3_apriori_h
+        )       
+    elif retrieval_param['o3_apriori'] == 'gromos':
+        print('Ozone apriori from : old GROMOS retrievals')
+        atm.set_vmr_field(
+            "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
         )
     
     # Water vapor
     # merging Fascod with ECMWF
-    #h2o_apriori = merge_ecmwf_Fascod_atm(ds_ecmwf, atm)
-    #plot_apriori_ptz(h2o_apriori)
-    
+    if retrieval_param['h2o_apriori']=='fascod_ecmwf':
+        fascod_atm = arts.Atmosphere.from_arts_xml(
+            ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
+        )
+        h2o_apriori = merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm)
+    elif retrieval_param['h2o_apriori']=='ecmwf_extended':
+        #plot_apriori_ptz(h2o_apriori)
+        h2o_apriori = p_interpolate(
+            pressure_atm, 
+            ds_ecmwf["pressure"].values,
+            ds_ecmwf['specific_humidity'].values,
+            )  
+        print('h2o taken from ecmwf (extended)')
+    elif retrieval_param['h2o_apriori']=='fascod_extended':
+        fascod_atm = arts.Atmosphere.from_arts_xml(
+            ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
+        )
+        fascod_h2o = fascod_atm.vmr_field('h2o').to_xarray()
+        fascod_h2o = fascod_h2o.sel(Latitude=0, Longitude=0)
+        h2o_apriori = p_interpolate(
+            pressure_atm,
+            fascod_atm.z_field.to_xarray().coords['Pressure'].data, 
+            fascod_h2o.data,
+            )  
+        print('h2o taken from fascod (extended)')
+    else:
+        print('select apriori for h2o')
+
     atm.set_vmr_field(
         "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
-        )
+    )
     
-    print('Atmospheric state defined with : ECMWF oper v2, CIRA86 and Fascod')
-    print('Ozone apriori from : old GROMOS retrievals')
+    print('Atmospheric state defined with : ECMWF oper v2, CIRA86')
+    
     return atm
 
 def merge_ecmwf_cira86(ds_ecmwf, cira86):
@@ -508,18 +562,22 @@ def plot_o3_apriori(o3_apriori):
     fig.show()
     pass
 
-def compare_o3_apriori_OG(o3_apriori, o3_apriori_SOMORA):
+def compare_o3_apriori_OG(pressure, o3_apriori, pressure_SOMORA, o3_apriori_SOMORA):
     fig, axs = plt.subplots(1,2, sharex=True)
-    axs[0].plot(o3_apriori.o3*1e6, o3_apriori.p)
+    axs[0].plot(o3_apriori*1e6, pressure)
     axs[0].invert_yaxis()
     axs[0].set_yscale('log')
     axs[0].set_xlabel('$O_3$ [PPM]')
     axs[0].set_ylabel('$P$ [Pa]')
+    axs[0].set_ylim(1e5,1e-3)
     axs[0].set_title('GROMOS')
 
-    axs[1].plot(o3_apriori_SOMORA.o3, o3_apriori_SOMORA.altitude)
+    axs[1].plot(o3_apriori_SOMORA*1e6, pressure_SOMORA)
+    axs[1].invert_yaxis()
+    axs[1].set_yscale('log')
     axs[1].set_xlabel('$O_3$ [PPM]')
-    axs[1].set_ylabel('$Z$ [km]')
+    axs[1].set_ylabel('$P$ [Pa]')
+    axs[1].set_ylim(1e5,1e-3)
     axs[1].set_title('SOMORA')
 
     fig.suptitle('OG $O_3$ apriori')

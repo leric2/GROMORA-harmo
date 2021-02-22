@@ -38,7 +38,7 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
+#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -1288,7 +1288,7 @@ class DataRetrieval(ABC):
             self.number_of_spectrometer = global_attrs_level1b['number_of_spectrometer']
             self.calibration_version = global_attrs_level1b['calibration_version']
 
-            self.raw_data_filename = global_attrs_level1b['raw_data_filename']
+            #self.raw_data_filename = global_attrs_level1b['raw_data_filename']
             self.raw_data_software_version = global_attrs_level1b['raw_data_software_version']
 
             self.filename_level1a = global_attrs_level1b['filename_level1a']
@@ -1444,7 +1444,7 @@ class DataRetrieval(ABC):
         '''
         return retrieval_module.forward_model(retrieval_param)
     
-    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
         ''' 
         Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
         '''
@@ -1455,9 +1455,9 @@ class DataRetrieval(ABC):
 
         retrieval_param['ref_elevation_angle'] = 90
 
-        return retrieval_module.retrieve_cycle(spectro_dataset, retrieval_param)
+        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
     
-    def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
+    def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
         ''' 
         Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
         '''
@@ -1469,8 +1469,21 @@ class DataRetrieval(ABC):
  
         retrieval_param['ref_elevation_angle'] = 90
 
-        return retrieval_module.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param)
+        return retrieval_module.retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, ac_FM=ac)
+    
+    def retrieve_cycle_tropospheric_corrected_pyarts(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
+        ''' 
+        Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
+        '''
 
+        if f_bin is not None:
+            retrieval_param["binned_ch"] = True
+        else:
+            retrieval_param["binned_ch"] = False
+ 
+        retrieval_param['ref_elevation_angle'] = 90
+        import retrieval_module_pyarts
+        return retrieval_module_pyarts.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param)
     def test_retrieval(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
         ''' 
         Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
@@ -1617,7 +1630,7 @@ class DataRetrieval(ABC):
 
         return self.data[spectro]
     
-    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title):
+    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list):
         '''
         
 
@@ -1637,9 +1650,9 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title)
+        return GROSOM_library.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title, figure_list)
     
-    def plot_level2(self, ac, spectro_dataset, retrieval_param, title):
+    def plot_level2(self, ac, spectro_dataset, retrieval_param, title, figure_list):
         '''
         
 
@@ -1659,7 +1672,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2(spectro_dataset, ac, retrieval_param, title)
+        return GROSOM_library.plot_level2(spectro_dataset, ac, retrieval_param, title, figure_list)
 
     def plot_level2_test_retrieval(self, ac, retrieval_param, title):
         '''
