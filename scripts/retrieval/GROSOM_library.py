@@ -493,15 +493,20 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         DESCRIPTION.
 
     '''
-    if (len( ac.retrieval_quantities) > 1) & retrieval_param['retrieved_h2o']:
+    fshift_ret = None
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
         ozone_ret, h2o_ret = ac.retrieval_quantities
-    elif (len( ac.retrieval_quantities) > 1) & (not retrieval_param['retrieved_h2o']):
-        ozone_ret, h2o_ret, o2_ret, n2_ret, fshift_ret = ac.retrieval_quantities
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+        ozone_ret, h2o_ret, fshift_ret = ac.retrieval_quantities
         #print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
-        print('Fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+        ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
     else:
         ozone_ret,  = ac.retrieval_quantities
-
+    
     good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
     f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
     y = ds.Tb[retrieval_param['integration_cycle']].values[good_channels]
@@ -515,6 +520,16 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
     #axs[0].set_ylim(-5, 50)
     axs[0].legend()
+    if fshift_ret is not None:
+        axs[0].text(
+            0.02,
+            0.8,
+            'fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3),
+            transform=axs[0].transAxes,
+            verticalalignment="bottom",
+            horizontalalignment="left",
+    )
+
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
     #axs[1].set_ylim(-2, 2)
@@ -569,6 +584,9 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
 
+    #print('Atmospheric opacity :')
+    #print(ac.ws.y_aux.value, ', mean: ', np.mean(ac.ws.y_aux.value))
+
     if retrieval_param['plot_opacities']:
         #opacities = ds.tropospheric_opacity[retrieval_param['integration_cycle']].values[good_channels]
         #plt.plot(f_backend,opacities,label='matlab' )
@@ -576,7 +594,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ax.plot(f_backend,ac.ws.y_aux.value[0], label='ARTS' )
         ax.legend()
 
-    if (len( ac.retrieval_quantities) > 1) & retrieval_param['retrieved_h2o']:
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
 
         fig, axs = plt.subplots(2, 2, sharey=True)
         axs[0][0].semilogx(
@@ -880,10 +898,13 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
 
     '''
     if len( ac.retrieval_quantities) > 1:
-        if retrieval_param['retrieved_h2o']:
+        if retrieval_param['retrieval_quantities'] == 'o3_h2o':
             ozone_ret, h2o_ret = ac.retrieval_quantities
-        else:
-            ozone_ret, h2o_ret, o2_ret, n2_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
+        elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+            #ozone_ret, h2o_ret, o2_ret, n2_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
+            ozone_ret, h2o_ret, fshift_ret = ac.retrieval_quantities
+        elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+            ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
             print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
     else:
         ozone_ret,  = ac.retrieval_quantities
@@ -958,7 +979,7 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
 
-    if (len( ac.retrieval_quantities) > 1) & retrieval_param['retrieved_h2o']:
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
         fig, axs = plt.subplots(2, 2, sharey=True)
         axs[0][0].semilogx(
             h2o_ret.x, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"

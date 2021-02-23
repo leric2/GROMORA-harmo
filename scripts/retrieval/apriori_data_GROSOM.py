@@ -122,13 +122,13 @@ def get_apriori_fascod(retrieval_param):
         ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
     )
     print('Atmospheric state and apriori defined from Fascod climatology : ',fascod_clim)
-    if retrieval_param['atm'] == 'fascod_gromos_o3':
+    if retrieval_param['o3_apriori']=='gromos':
         o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
         fascod_atm.set_vmr_field(
             "o3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
         print('Ozone apriori from : OG GROMOS')
-    elif retrieval_param['atm'] == 'fascod_somora_o3':
+    elif retrieval_param['o3_apriori']=='somora':
         # For SOMORA, we need to interpolate the o3 apriori with altitude from FM (no pressure defined)
         o3_apriori = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
         o3_apriori_h = interpolate(
@@ -239,7 +239,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # Reading CIRA86
     cira86 = read_cira86_monthly(cira86_path, month, lat)
 
-    plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
+    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
     
     o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
 
@@ -265,7 +265,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
-    compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
+
+    # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
 
     if retrieval_param['o3_apriori'] == 'somora':
         print('Ozone apriori from : old SOMORA retrievals')

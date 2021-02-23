@@ -109,7 +109,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     else :
         print("Retrieval of Ozone and H20 providing measurement vector")
         ds_freq = ac_FM.ws.f_backend.value
-        ds_y = (ac_FM.ws.y.value + 4*np.random.rand(len(ds_freq))) + 5 + 1e-9*(ds_freq-ds_freq[0])*(0) #Gaussian noise + linear baseline possible
+        ds_y = (ac_FM.ws.y.value + 4*np.random.rand(len(ds_freq))) + 1e-9*(ds_freq-ds_freq[0])*(2) #Gaussian noise + linear baseline possible
         ds_num_of_channel = len(ds_freq)
         #ds_Tb = Tb[cycle].values
 
@@ -122,7 +122,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         
     # Iniializing ArtsController object
     ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
-    ac.setup(atmosphere_dim=1, iy_unit='RJBT', ppath_lmax=-1, stokes_dim=1)
+    ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
     
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - spectro_dataset.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
@@ -218,8 +218,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         return ac, retrieval_param
 
     plot_FM_comparison(ds_freq,y_FM[0],ds_y)
-    print('Optical depth values:')
-    print(ac.ws.y_aux.value)
+
     ac.set_y([ds_y])
     
     # Setup the retrieval
@@ -233,10 +232,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
         p_grid_retrieval = z2p_simple(z_grid_retrieval)
     
-    z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
+    z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
     z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
     z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
-    z_grid_retrieval_h2o = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
+    z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
     p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
 
     lat_ret_grid = np.array([retrieval_param["lat"]])
@@ -249,20 +248,20 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         
     sx_o2 = covmat.covmat_diagonal_sparse(retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
     sx_n2 = covmat.covmat_diagonal_sparse(retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
-    # sx_water = covmat.covmat_1d_sparse(
-    #     grid1 = p_grid_retrieval_h2o,
-    #     sigma1 = retrieval_param["apriori_H2O_stdDev"] * np.ones_like(p_grid_retrieval_h2o),
-    #     cl1 = 0.2 * np.ones_like(p_grid_retrieval),
-    #     fname="exp",
-    #     cutoff=0.01,
-    # )
+    sx_water = covmat.covmat_1d_sparse(
+        grid1 = np.log10(p_grid_retrieval_h2o),
+        sigma1 = retrieval_param["apriori_H2O_stdDev"] * np.ones_like(p_grid_retrieval_h2o),
+        cl1 = 0.2 * np.ones_like(p_grid_retrieval_h2o),
+        fname="lin",
+        cutoff=0
+    )
 
     sx = covmat.covmat_1d_sparse(
         grid1 = np.log10(p_grid_retrieval),
         sigma1 = retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval),
-        cl1 = 0.3 * np.ones_like(p_grid_retrieval),
+        cl1 = 0.5 * np.ones_like(p_grid_retrieval),
         fname="lin",
-        cutoff=0.001,
+        cutoff=0
     )
     
     ozone_ret = arts.AbsSpecies(
@@ -273,13 +272,14 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         covmat = sx,
         unit = 'vmr'
     )
+
     h2o_ret = arts.AbsSpecies(
         species = water_vapor_model,
         p_grid = p_grid_retrieval_h2o,
         lat_grid = lat_ret_grid,
         lon_grid = lon_ret_grid,
         covmat = sx_water,
-        unit = 'vmr'
+        unit = 'q'
     )
     
     o2_ret = arts.AbsSpecies(
@@ -317,10 +317,14 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
     #ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
-    if retrieval_param['retrieved_h2o']:
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
         ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
-    else:
-        ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret, o2_ret, n2_ref, fshift_ret],  y_vars=y_var)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+        ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret, fshift_ret],  y_vars=y_var)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+        ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=y_var)
+    else: 
+        print('retrieval_param[retrieval_quantities] not recognized !')
     
     # Let a priori be off by 0.5 ppm (testing purpose)
     #vmr_offset = -0.5e-6
@@ -330,7 +334,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
     ac.oem(
         method='gn',
-        max_iter=10,
+        max_iter=5,
         stop_dx=0.1,
         display_progress=1,
         lm_ga_settings = [1000,2,2,1e5,1,99],

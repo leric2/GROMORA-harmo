@@ -45,8 +45,8 @@ ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
-    instrument_name = "GROMOS"
-    date = datetime.date(2019,1,1)
+    instrument_name = "SOMORA"
+    date = datetime.date(2019,2,21)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = True
@@ -95,34 +95,38 @@ if __name__ == "__main__":
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
     
-    cycles = np.arange(13,14)
+    cycles = np.arange(10,11)
+
+
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
-    retrieval_param['retrieved_h2o'] = False
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+
     retrieval_param["obs_freq"] = instrument.observation_frequency
     
-    retrieval_param["plot_meteo_ds"] = True
-    retrieval_param["number_of_freq_points"] = 1401
-    retrieval_param["irregularity_f_grid"] = 45
-    retrieval_param["show_f_grid"] = True
-    retrieval_param["f_shift"] =  0#+1500e3
+    retrieval_param["plot_meteo_ds"] = False
 
+    retrieval_param["show_f_grid"] = False
+    retrieval_param['plot_opacities'] = False
+    retrieval_param["f_shift"] =  0#+1500e3
+    retrieval_param["number_of_freq_points"] = 1201
+    retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 97e3
     retrieval_param["z_bottom_sim_grid"] = 600
     retrieval_param["z_resolution_sim_grid"] = 1e3
 
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
-    retrieval_param["z_bottom_ret_grid"] = 600
+    retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 50e3
+    retrieval_param["z_top_ret_grid_h2o"] = 40e3 
+    retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
-
     retrieval_param['increased_var_factor'] = 20
 
     #retrieval_param['unit_var_y']  = 3**2
@@ -136,23 +140,23 @@ if __name__ == "__main__":
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
-    retrieval_param['h2o_apriori']='fascod_extended'
+    retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
     #retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
     retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 6
 
     retrieval_param['o3_apriori']='gromos'   
     retrieval_param["apriori_O3_cov"] = 1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 8e-4 #6e-4
+    retrieval_param["apriori_H2O_stdDev"] = 6e-4 #6e-4
 
-    retrieval_param["apriori_o2_stdDev"]  = 1e-4 #6e-4
-    retrieval_param["apriori_n2_stdDev"] = 1e-4
+    retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
+    retrieval_param["apriori_n2_stdDev"] = 1e-8
 
-    retrieval_param['water_vapor_model'] = 'H2O-MPM93'#"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
-    retrieval_param['o2_model'] = 'O2-MPM93' #'O2-MPM93'
-    retrieval_param['n2_model'] = 'N2-SelfContMPM93' #'N2-SelfContMPM93'
+    retrieval_param['water_vapor_model'] = 'H2O-PWR98' #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
+    retrieval_param['o2_model'] = 'O2-PWR93' #'O2-MPM93'
+    retrieval_param['n2_model'] = 'N2-SelfContStandardType' #'N2-SelfContMPM93'
     
-    retrieval_param['selected_species']=['O3',retrieval_param['water_vapor_model'],retrieval_param['o2_model'],retrieval_param['n2_model']]
+    retrieval_param['selected_species']=['O3','H2O', retrieval_param['water_vapor_model'],retrieval_param['o2_model'],retrieval_param['n2_model']]
 
     #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
     #retrieval_param["azimuth_angle"]=32
@@ -222,7 +226,8 @@ if __name__ == "__main__":
     for c in cycles:
         counter = counter + 1
         retrieval_param["integration_cycle"] = c
-    
+        print('retrieving cycle : ',c)
+        
         if retrieval_param["retrieval_type"] == 1:
             retrieval_param["surface_altitude"] = 10e3
             retrieval_param["observation_altitude"] =  15e3
@@ -240,12 +245,11 @@ if __name__ == "__main__":
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 2:
             retrieval_param["surface_altitude"] = 800
-            retrieval_param["observation_altitude"] =  800
-            retrieval_param['plot_opacities'] = True
+            retrieval_param["observation_altitude"] =  800   
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
             figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
             level2_cycle = ac.get_level2_xarray()
-            save_str = str(retrieval_param["integration_cycle"])+'poly_bl.pdf'
+            save_str = str(retrieval_param["integration_cycle"])+'_all_MPM93_retrieved.pdf'
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 3:
             retrieval_param["surface_altitude"] = 800
@@ -301,6 +305,12 @@ if __name__ == "__main__":
             level2 = xr.concat([level2, level2_cycle], dim='observation')
         else: 
             level2 = level2_cycle
-
+        #except:
+        #    print('problem retrieving cycle : ',c)
+    
     #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
     #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+
+
+    # for d in [8]:
+    #     retrieve_day(d)
