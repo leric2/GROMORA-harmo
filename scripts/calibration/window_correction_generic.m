@@ -30,6 +30,10 @@ for t = 1:length(spectra)
     frequencies = spectra(t).frequencies;
     if sum(spectra(t).Tb==-9999) == calibrationTool.numberOfChannels
         spectra(t).TbWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
+        spectra(t).intensityPlanckWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
+        spectra(t).Tb_RJE = -9999*ones(1,calibrationTool.numberOfChannels);
+        spectra(t).TbRJEWinCorr = -9999*ones(1,calibrationTool.numberOfChannels);
+        spectra(t).TbWinCorrPhysicalTemperature = -9999*ones(1,calibrationTool.numberOfChannels);
     else
         if ~isnan(spectra(t).TWindow) 
             TemperatureWindow = spectra(t).TWindow;

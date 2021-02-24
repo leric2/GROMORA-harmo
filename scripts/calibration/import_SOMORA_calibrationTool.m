@@ -211,7 +211,7 @@ calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Corrections
-calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
 calibrationTool.troposphericCorrection.useWings = 'both';
 calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 500;
 calibrationTool.troposphericCorrection.skipFraction = 0.05;
@@ -328,14 +328,15 @@ elseif calibrationTool.timeNumber>datenum(2012,01,01) && calibrationTool.timeNum
 %     calibrationTool.elevationAngleColdTol = 1;
 end
 
-if calibrationTool.timeNumber>datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,12,28)
+if calibrationTool.timeNumber>datenum(2009,01,01) && calibrationTool.timeNumber<datenum(2012,12,28)
     % 28.12.2012 08:47:15 Zij: Acq restarted after Windows Update
     calibrationTool.adcOverloadThresh = 20;
 end
 
 % TC
 
-if (calibrationTool.timeNumber>= datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2010,12,09))
+if (calibrationTool.timeNumber>= datenum(2009,01,01) && calibrationTool.timeNumber<datenum(2010,01,28))
+    % until this day, appearance of TC
     calibrationTool.doTippingCurve = false;
 end
 
