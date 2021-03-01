@@ -109,7 +109,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     else :
         print("Retrieval of Ozone and H20 providing measurement vector")
         ds_freq = ac_FM.ws.f_backend.value
-        ds_y = (ac_FM.ws.y.value + 4*np.random.rand(len(ds_freq))) + 1e-9*(ds_freq-ds_freq[0])*(2) #Gaussian noise + linear baseline possible
+        ds_y = ac_FM.ws.y.value + np.random.normal(0,2,len(ds_freq)) + 0 + 1e-9*(ds_freq-ds_freq[0])*(0) #Gaussian noise + linear baseline possible
         ds_num_of_channel = len(ds_freq)
         #ds_Tb = Tb[cycle].values
 
@@ -304,8 +304,13 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     #factor = retrieval_param['increased_var_factor']
     
     #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
-    y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.noise_level[cycle].data)* np.ones_like(ds_y)
-    print('Measurement variance : ', y_var) 
+    if ac_FM is None:
+        y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.noise_level[cycle].data)* np.ones_like(ds_y)
+    else:
+        print('Using standard y var')
+        y_var = 4* np.ones_like(ds_y)
+
+    print('Measurement variance : ', y_var)
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
     
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
@@ -577,7 +582,12 @@ def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval
     )
     
     #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
-    y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.noise_level[cycle].data)* np.ones_like(ds_y)
+    if ac_FM is None:
+        y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.noise_level[cycle].data)* np.ones_like(ds_y)
+    else:
+        'Using standard y var:'
+        y_var = 4* np.ones_like(ds_y)
+
     print('Measurement variance : ', y_var)
     
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
