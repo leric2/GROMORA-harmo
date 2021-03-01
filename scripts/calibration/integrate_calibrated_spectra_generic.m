@@ -56,6 +56,7 @@ for h = 1:length(timeThresh)-1
     end
     if isempty(goodSpectra)
         integratedTb=-9999*ones(1,calibrationTool.numberOfChannels);
+        integratedPlanckIntensity=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedStdTb = -9999*ones(1,calibrationTool.numberOfChannels);
         integratedMeanStdTbFromCalMean = -9999;
         integratedSpectra(h).numberOfAveragedSpectra = 0;

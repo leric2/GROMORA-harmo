@@ -225,7 +225,7 @@ calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get
 calibrationTool.transmittanceWindow=0.99;
 
 % Corrections
-calibrationTool.troposphericCorrection.type = 'Ingold_v1';
+calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
 calibrationTool.troposphericCorrection.useWings = 'both';
 calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 500;
 calibrationTool.troposphericCorrection.skipFraction = 0.05;
