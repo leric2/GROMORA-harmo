@@ -16,6 +16,7 @@ import os
 import numpy as np
 import xarray as xr
 import pandas as pd
+import math
 import netCDF4
 import matplotlib.pyplot as plt
 
@@ -24,6 +25,7 @@ from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
+
 
 #from typhon.arts.xml import load
 from pyarts.xml import load
@@ -46,12 +48,18 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
     Building the ecmwf store for atmospheric state
     '''
     ecmwf_store = ECMWFLocationFileStore(ECMWF_store_path, ecmwf_prefix)
-    ecmwf_ds = (
+    ds_ecmwf = (
         ecmwf_store.select_time(t1, t2, combine='by_coords')
         .mean(dim='time')
         .swap_dims({"level":"pressure"})
     )
-    return ecmwf_ds
+
+    ds_ecmwf = read_add_geopotential_altitude(ds_ecmwf)
+    
+    print('ECMWF min pressure: ', min(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=min(ds_ecmwf.pressure.values)).values)
+    print('ECMWF max pressure: ', max(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=max(ds_ecmwf.pressure.values)).values)
+
+    return ds_ecmwf
 
 def read_o3_apriori_ecmwf_mls_gromosOG(filename):
     '''
@@ -228,6 +236,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf/2, "h")
     ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf/2, "h")
 
+    print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
+
     # Read EACMWF data (oper for now)
     ECMWF_store_path = ecmwf_store
     ecmwf_prefix = retrieval_param['ecmwf_prefix']
@@ -244,14 +254,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
 
     #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    
-    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
-    o3_apriori_h = interpolate(
-        atm.z_field.data[:,0,0], 
-        o3_apriori_SOMORA.altitude.data,
-        o3_apriori_SOMORA.o3.data
-        )
-    pressure_atm = atm.z_field.to_xarray().coords['Pressure']
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
@@ -263,6 +265,14 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # z field
     atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
     
+    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
+    o3_apriori_h = interpolate(
+        atm.z_field.data[:,0,0], 
+        o3_apriori_SOMORA.altitude.data,
+        o3_apriori_SOMORA.o3.data
+        )
+
+    pressure_atm = atm.z_field.to_xarray().coords['Pressure']
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
 
@@ -337,6 +347,64 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86):
             DESCRIPTION.
     '''
 
+    #upper_p_grid = cira86.Pressure.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)
+
+    # selection based on altitude
+    upper_p_grid = cira86.Pressure.data[cira86.altitude > np.max(ds_ecmwf.geometric_height.data)]
+    #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
+    
+    upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
+
+    p_grid = np.hstack((ds_ecmwf.pressure.data, upper_p_grid))
+
+    #ecmwf_t_i = p_interpolate(
+    #    p_grid, ds_ecmwf.pressure.data, ds_ecmwf.temperature.data, fill=np.nan
+    #)
+
+    temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
+    z_grid = np.hstack((ds_ecmwf.geometric_height.data, upper_cira86_ds.altitude.data))
+
+
+    # # interpolate CIRA86 altitude on p_grid
+    # cira86_alt_i = p_interpolate(
+    #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
+    # )
+
+    ds_merged = xr.Dataset({'t': ('p', temperature),
+                            'z': ('p', z_grid)},
+                            coords = {
+                                'p' : ('p', p_grid),
+                            }
+    )
+
+    print('Merging ECMWF and CIRA86 data')
+    print('Min pressure of the new grid: ', min(ds_merged.p.values))
+    print('Max pressure of the new grid: ', max(ds_merged.p.values))
+
+    print('Min altitude of the new grid (simple stacking based on altitude): ', min(ds_merged.z.values))
+    print('Max altitude of the new grid (simple stacking based on altitude): ', max(ds_merged.z.values))
+
+    return ds_merged
+
+def merge_ecmwf_cira86_old(ds_ecmwf, cira86):
+    '''
+    Merging profile from ECMWF oper and CIRA86 monthly climatology.
+
+    Start with a very simple scheme, we just take CIRA86 values when we reach the top
+    of the ECMWF ones.
+
+    Parameters
+        ----------
+        ds_ecmwf : xarray.Dataset
+            
+        cira86 : xarray.Dataset
+    
+    Returns
+        -------
+        TYPE
+            DESCRIPTION.
+    '''
+
     upper_p_grid = cira86.Pressure.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
     #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
     
@@ -362,7 +430,288 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86):
                             }
     )
 
+    print('Merging ECMWF and CIRA86 data')
+    print('Min pressure of the new grid: ', min(ds_merged.p.values))
+    print('Max pressure of the new grid: ', max(ds_merged.p.values))
+
+    print('Min altitude of the new grid (interpolated from cira86 !!): ', min(ds_merged.z.values))
+    print('Max altitude of the new grid (interpolated from cira86 !!): ', max(ds_merged.z.values))
+
     return ds_merged
+
+def get_ph_levs(sp, level):
+    '''Return the presure at a given level and the next'''
+    #a_coef = values['pv'][0:values['nlevels'] + 1]
+    #b_coef = values['pv'][values['nlevels'] + 1:]
+
+    ph_lev = levels.hybrid_level_a[level-2] + (levels.hybrid_level_b[level-2] * sp)
+    ph_levplusone = levels.hybrid_level_a[level-1] + (levels.hybrid_level_b[level-1] * sp)
+    return ph_lev, ph_levplusone
+
+def compute_z_level(lev, ds_ecmwf, z_h):
+    '''Compute z at half & full level for the given level, based on t/q/sp'''
+    # select the levelist and retrieve the vaules of t and q
+    # t_level: values for t
+    # q_level: values for q
+    # codes_index_select(idx, 'level', lev)
+    # codes_index_select(idx, 'shortName', 't')
+    # gid = codes_new_from_index(idx)
+    # if gid is None:
+    #     raise MissingLevelError('T at level {} missing from input'.format(lev))
+    # t_level = codes_get_values(gid)
+    # codes_release(gid)
+    # codes_index_select(idx, 'shortName', 'q')
+    # gid = codes_new_from_index(idx)
+    # if gid is None:
+    #     raise MissingLevelError('Q at level {} missing from input'.format(lev))
+    # q_level = codes_get_values(gid)
+    # codes_release(gid)
+    R_D = 287.06
+    R_G = 9.80665
+    level_ind = np.where(ds_ecmwf.level.values == lev)[0][0]
+    
+    t_level = ds_ecmwf.temperature[level_ind].values
+    q_level = ds_ecmwf.specific_humidity[level_ind].values
+    
+    # compute moist temperature
+    t_level = t_level * (1. + 0.609133 * q_level)
+
+    sp = np.exp(ds_ecmwf.logarithm_of_surface_pressure.values) 
+
+    # compute the pressures (on half-levels)
+    ph_lev, ph_levplusone = get_ph_levs(sp, lev)
+ 
+    if lev == 1:
+        dlog_p = np.log(ph_levplusone / 0.1)
+        alpha = np.log(2)
+    else:
+        dlog_p = np.log(ph_levplusone / ph_lev)
+        alpha = 1. - ((ph_lev / (ph_levplusone - ph_lev)) * dlog_p)
+
+    t_level = t_level * R_D
+ 
+    # z_f is the geopotential of this full level
+    # integrate from previous (lower) half-level z_h to the
+    # full level
+    z_f = z_h + (t_level * alpha)
+ 
+    # z_h is the geopotential of 'half-levels'
+    # integrate z_h to next half level
+    z_h = z_h + (t_level * dlog_p)
+ 
+    return z_h, z_f
+  
+def read_add_geopotential_altitude(ds_ecmwf):
+    '''Compute z at half & full level for the given level, based on t/q/sp'''
+    # We want to integrate up into the atmosphere, starting at the
+    # ground so we start at the lowest level (highest number) and
+    # keep accumulating the height as we go.
+    # See the IFS documentation, part III
+    # For speed and file I/O, we perform the computations with
+    # numpy vectors instead of fieldsets.
+ 
+    z_h = ds_ecmwf.geopotential.values
+    #codes_set(values['sample'], 'step', int(step))
+    geopotential = -999*np.ones(len(ds_ecmwf.pressure))
+    geometric_height = -999* np.ones(len(ds_ecmwf.pressure))
+    i = -1
+    for lev in sorted(ds_ecmwf.level.data, reverse=True):
+        i=i+1
+        #print(i)
+        try:
+            z_h, z_f = compute_z_level(lev, ds_ecmwf, z_h)
+            geopotential[i]=z_f
+            geometric_height[i]=z_f/9.80665
+            # store the result (z_f) in a field and add to the output
+            #codes_set(values['sample'], 'level', lev)
+            #codes_set_values(values['sample'], z_f)
+            #codes_write(values['sample'], fout)
+        except MissingLevelError as e:
+            print('%s [WARN] %s' % (sys.argv[0], e),
+                  file=sys.stderr)
+
+
+    ds = xr.Dataset(
+            {
+            'geometric_height': ('pressure', geometric_height),
+            'geopotential_ecmwf': ('pressure', geopotential)
+            },
+            coords = {
+            'pressure' : ('pressure', ds_ecmwf.pressure),
+            }
+    )
+
+    merged = ds_ecmwf.merge(ds)
+    return merged
+    
+def ecmwf_zp_calc( ds_ecmwf):
+    '''
+     [ z, p ] = ecmwf_zp_calc( A_h, B_h, T, p_surf, Phi_surf, q )
+    
+     Calculates geometric altitude and pressure from ECMWF profiles on model
+     levels.
+    
+     Input parameters:
+    
+     A_h:      A_k+1/2 constant from GDS section of GRIB file on half levels
+     B_h:      B_k+1/2 constant from GDS section of GRIB file on half levels
+     T:        Temperature [K] on full levels
+     p_surf:   Surface pressure [Pa] (optional)
+     Phi_surf: Surface geopotential [m^2 s^-2] (optional)
+     q:        Specific humidity [kg kg^-1] on full levels (optional)
+    
+     If missing, the parameters p_surf, Phi_surf, and q will be initialized
+     to p_surf = 1.01325e5 Pa, Phi_surf = 0 m^2/s^2, q = 0 kg/kg.
+    
+     Output parameters:
+    
+     z: geometric altitude [m] on full levels
+     p: pressure [Pa] on full levels
+    
+     Note: the function assumes that all vectors are sorted so that the first
+           value is near the top of the atmosphere and the last value is near
+           the surface.
+    
+     $Id: ecmwf_zp_calc.m,v 1.1 2005/03/04 23:06:53 feist Exp $
+    
+     Nomenclature for full and half-level variables:
+    
+     X is a variable on full levels (like all the prognostic variables)
+     X_h is a variable on half levels
+    
+     In the ECMWF documentation in chapter 2.2 that would be written as
+     X   <-> X_k
+     X_h <-> X_k+1/2 (which is not possible in Matlab syntax)
+    '''
+    # Set missing variables to default values
+
+    # if ~exist('p_surf', 'var')
+    #   p_surf = 100*1013.250; % Pa
+    # end
+
+    # if ~exist('Phi_surf', 'var')
+    #   Phi_surf = 0;
+    # end
+
+    # if ~exist('q', 'var')
+    #   q = zeros(size(T)); % Specific humidity [kg/kg]
+    # end
+
+    #
+    # Define physical constants according to the subroutine SUCST.F90
+    # from the source code of the ECMWF ITS model
+    #
+    # RKBOL = 1.380658E-23;	# Boltzmann's constant k [J/K]
+    # RNAVO = 6.0221367E+23;	# Avogadro's number NA []
+    # R = RNAVO * RKBOL;	# ideal gas constant R [J/(mol*K)]
+    # RMD = 28.9644;		# Dry air molecular weight [g/mol]
+    # RMV = 18.0153;          # Water vapor molecular weight [g/mol]
+    # RD = 1000 * R / RMD;	# Dry air constant Rd [J/(K*kg)]
+    # RV = 1000 * R / RMV;    # Water vapor constand Rv [J/(K*kg)]
+    # RG = 9.80665;		# Earth's gravitational acceleration g [m/s^2]
+
+    # # Get number of levels
+    # NLEV = len(ds_ecmwf.pressure)
+
+    
+    # #Calculate half-level pressure p_h  from
+    # #A_h, B_h and surface pressure p_surf
+    # #Level 1 = top, NLEV = bottom
+    
+    # p_h = levels.hybrid_level_a + levels.hybrid_level_b * p_surf;              # Half-level pressure (eq. 2.11)
+    # #p_h2 = ds_ecmwf.pressure.values
+    # #
+    # # Calculate delta_p according to Eq. 2.13
+    # #
+    # delta_p = np.diff( p_h )
+
+    # #
+    # # Calculate virtual temperature according to standard textbook formula
+    # #
+    # q = np.flip(ds_ecmwf.specific_humidity.values)
+    # T = np.flip(ds_ecmwf.temperature.values)
+    # T_v = T*( 1 + ( RV / RD - 1 ) * q ); # Virtual temperature [K]
+
+    # #
+    # # Calculate ln_p = log( p_k+1/2 / p_k-1/2 ) for 1 <= k <= NLEV
+    # #
+    # ln_p = np.log( p_h[1:-1] / p_h[0:-2])
+    # ln_p[0] = 0; # ln_p(1) is never used and might be infinite
+
+    # #
+    # # Geopotential height at half levels (eq. 2.21 in matrix form)
+    # #
+    # loopj = triu( np.ones( NLEV+1, NLEV ));  # Loop over j=k+1...NLEV as a matrix
+    # Phi_h = Phi_surf + RD * loopj * ( T_v * ln_p );
+    # Phi_h(1) = NaN; # Phi_h(1) was calculated with ln_p(1) and is never used
+
+    # #
+    # # Calculate alpha according to eq. 2.23
+    # #
+    # alpha = 1 - p_h[0:-1]/ delta_p * ln_p
+    # alpha[0] = np.log(2); # Top level specially defined
+
+    # #
+    # # Calculate geopotential on full levels according to eq. 2.22
+    # #
+    # Phi = Phi_h(2:end) + RD * alpha .* T_v;
+
+    # #
+    # # Return geometric height and pressure on full levels
+    # #
+    # p = ( p_h(1:end-1) + p_h(2:end) ) / 2; # Full level pressure [Pa]
+    # z = Phi / RG; # Geometric height [m]
+
+    # heighttoreturn=np.full(len(ds_ecmwf.pressure), -999, np.double)
+    # geotoreturn=np.full(len(ds_ecmwf.pressure), -999, np.double) 
+
+    # sp = math.exp(ds_ecmwf.logarithm_of_surface_pressure.values) 
+    # #sp = np.exp(ds_ecmwf.logarithm_of_surface_pressure.values) 
+
+    # Ph_levplusone =  Ph_lev = levels.hybrid_level_a + levels.hybrid_level_b * sp; 
+
+    # z_h = 0 
+    # #Integrate up into the atmosphere from lowest level
+    # for lev in ds_ecmwf.level.values:
+    #     print(lev)
+    #     #lev is the level number 1-60, we need a corresponding index into ts and qs
+    #     ilevel=np.where(ds_ecmwf.level==lev)[0]
+    #     t_level=ds_ecmwf.temperature[ilevel].values
+    #     q_level=ds_ecmwf.specific_humidity[ilevel].values
+  
+    #     #compute moist temperature
+    #     t_level = t_level * (1.+0.609133*q_level)
+
+    #     #compute the pressures (on half-levels)
+    #     Ph_lev = levels.hybrid_level_a[lev-1] + levels.hybrid_level_b[lev-1] * sp; 
+        
+    #     if lev == 1:
+    #         dlogP = math.log(Ph_levplusone/0.1)
+    #         alpha = math.log(2)
+    #     else:
+    #         dlogP = np.log(Ph_levplusone/Ph_lev)
+    #         dP    = Ph_levplusone-Ph_lev
+    #         alpha = 1. - ((Ph_lev/dP)*dlogP)
+   
+    #     TRd = t_level*RD
+   
+    #     # z_f is the geopotential of this full level
+    #     # integrate from previous (lower) half-level z_h to the full level
+    #     z_f = z_h + (TRd*alpha) 
+  
+    #     #Convert geopotential to height 
+    #     heighttoreturn[ilevel] = z_f / 9.80665
+          
+    #     #Geopotential (add in surface geopotential)
+    #     geotoreturn[ilevel] = z_f + ds_ecmwf.geopotential.values
+   
+    #     # z_h is the geopotential of 'half-levels'
+    #     # integrate z_h to next half level
+    #     z_h=z_h+(TRd*dlogP) 
+   
+    #     Ph_levplusone = Ph_lev
+  
+    # return geotoreturn, heighttoreturn 
 
 def merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm):
     '''
