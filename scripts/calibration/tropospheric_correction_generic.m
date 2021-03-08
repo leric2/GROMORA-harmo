@@ -158,15 +158,22 @@ for t = 1:length(spectra)
             
             TbApprox = a * spectra(t).frequencies + b;
             transmittanceVector = (Tmean - TbApprox)./(Tmean - Tbg);
+            
+            TbgCorr = Tbg + calibrationTool.h*spectra(t).frequencies/(2*calibrationTool.kb);
+            %TmeanCorr = Tmean + calibrationTool.h*spectra(t).frequencies/(2*calibrationTool.kb);
+            transmittanceVectorCorr = (Tmean - TbApprox)./(Tmean - TbgCorr);
             if nanmean(transmittanceVector) > 0
                 spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittanceVector) ) ./ transmittanceVector;
                 spectra(t).troposphericTransmittance = nanmean(transmittanceVector);
                 spectra(t).troposphericOpacity=-log(nanmean(transmittanceVector));
                 spectra(t).troposphericOpacityFromPhysicalTemp=-log(nanmean(transmittanceVector));
+                spectra(t).troposphericOpacityFromPhysicalTempCorr=-log(nanmean(transmittanceVectorCorr));
             else
                 spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
                 spectra(t).troposphericTransmittance = -9999;
                 spectra(t).troposphericOpacity=-9999;
+                spectra(t).troposphericOpacityFromPhysicalTemp=-9999;
+                spectra(t).troposphericOpacityFromPhysicalTempCorr=-9999;
             end
             
             if calibrationTool.savePlanckIntensity
@@ -197,17 +204,22 @@ for t = 1:length(spectra)
                     spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
                     spectra(t).troposphericTransmittance = -9999;
                     spectra(t).troposphericOpacity=-9999;
+                    
                 end
             end
         else
             % Transmitance calculated (Ingold) with Planck temperature (-->
             % 2.736K for background. This is an Approximation !
             transmittance = (Tmean - Twing)./(Tmean - Tbg);
+            %TbgCorr = Tbg + calibrationTool.h*spectra(t).frequencies/(2*calibrationTool.kb);
+            %TmeanCorr = Tmean + calibrationTool.h*spectra(t).frequencies/(2*calibrationTool.kb);
+            %transmittanceVectorCorr = (TmeanCorr - TbApprox)./(TmeanCorr - TbgCorr);
             if transmittance > 0
                 spectra(t).TbTroposphericWindowCorr = (Tb - Tmean*(1-transmittance) ) ./ transmittance;
                 spectra(t).troposphericTransmittance = transmittance;
                 spectra(t).troposphericOpacity=-log(transmittance);
                 spectra(t).troposphericOpacityFromPhysicalTemp=-log(transmittance);
+                spectra(t).troposphericOpacityFromPhysicalTempCorr=-9999;
                 %spectra(t).troposphericOpacityIntensity=-log(transmittanceIntensity);
                 %spectra(t).meanTroposphericTransmittance  = mean(transmittance);
             else
@@ -215,6 +227,8 @@ for t = 1:length(spectra)
                 spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
                 spectra(t).troposphericTransmittance = -9999;
                 spectra(t).troposphericOpacity=-9999;
+                spectra(t).troposphericOpacityFromPhysicalTemp=-9999;
+                spectra(t).troposphericOpacityFromPhysicalTempCorr=-9999;
             end
             % More accurate value with RJE OR Intensity calibrated value
             if calibrationTool.savePlanckIntensity
