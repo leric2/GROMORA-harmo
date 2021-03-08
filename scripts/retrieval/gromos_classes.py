@@ -124,6 +124,9 @@ class GROMOS_LvL2(DataRetrieval):
         level1_folder = os.path.join(basename_lvl1, instrument_name)
         level2_folder =  os.path.join(basename_lvl2, instrument_name)
 
+        # Can be used for plotting names (GROMOS_AC240_...)
+        self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
+
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
     
     def return_bad_channels(self, date, spectro):
