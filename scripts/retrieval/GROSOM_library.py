@@ -504,6 +504,11 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
         print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
         print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
+        ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+        print('Sinefit : ', sinefit_ret.x)
     else:
         ozone_ret,  = ac.retrieval_quantities
     
@@ -594,7 +599,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ax.plot(f_backend,ac.ws.y_aux.value[0], label='ARTS' )
         ax.legend()
 
-    if retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+    if (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift') or (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit'):
 
         fig, axs = plt.subplots(2, 2, sharey=True)
         axs[0][0].semilogx(
