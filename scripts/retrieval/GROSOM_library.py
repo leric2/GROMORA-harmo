@@ -18,7 +18,11 @@ import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
 
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.lines import Line2D
 #from retrievals import arts
+
+from utils_GROSOM import save_single_pdf
 
 def read_level1(filenameLevel1, no_flag = False):
     """Example function with types documented in the docstring.
@@ -1038,3 +1042,91 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
     
     return figures
     
+def plot_O3_all(level2_data, outName, cycles=None):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3  
+    # 
+    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'} 
+    spectro = 'AC240'
+    figure_o3_sel=list()
+
+    if cycles is None:
+        cycles = np.arange(len(level2_data['AC240'].time))
+
+    for i in cycles:
+        fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+        
+        o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+        o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+        o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+        o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+        mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+        #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+        error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
+        error_frac = error/o3
+        o3_good = o3.where(mr>0.8).data
+        #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+        axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='r')
+        axs[0].set_title('$O_3$ VMR')
+        axs[0].set_xlim(-0.5,11)
+        axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+        axs[0].set_xlabel('$O_3$ VMR [ppm]')
+        axs[0].yaxis.set_major_locator(MultipleLocator(10))
+        axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+        axs[0].xaxis.set_major_locator(MultipleLocator(5))
+        axs[0].xaxis.set_minor_locator(MultipleLocator(1))
+        axs[0].grid(which='both',  axis='x', linewidth=0.5)
+        axs[0].set_ylabel('Altitude [km]')
+        axs[0].legend()
+        axs[1].plot(mr/4, o3_z/1e3,color='k', label='MR/4')
+        counter=0
+        for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+            if 0.8 <= np.sum(avk) <= 1.2:
+                counter=counter+1
+                if np.mod(counter,5)==0:
+                    axs[1].plot(avk, o3_z / 1e3, label='z='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+'km', color='r')
+                else:
+                    axs[1].plot(avk, o3_z / 1e3, color='k')
+        axs[1].set_xlabel("AVKM")
+        axs[1].set_xlim(-0.05,0.3)
+        axs[1].xaxis.set_major_locator(MultipleLocator(0.1))
+        axs[1].xaxis.set_minor_locator(MultipleLocator(0.05))
+        axs[1].legend()
+        axs[1].grid(which='both',  axis='x', linewidth=0.5)
+        
+
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_z / 1e3, label="smoothing error")
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_z / 1e3, label="obs error")
+        axs[2].set_xlabel("$e$ [ppm]")
+        axs[2].set_ylabel("Altitude [km]")
+        axs[2].legend()
+        axs[2].grid(axis='x', linewidth=0.5)
+        
+        #axs[2].axvline(x=0, linewidth=0.6,color='k')
+
+        for a in axs:
+            #a.set_ylim(10,80)
+            a.grid(which='both', axis='y', linewidth=0.5)
+        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data['AC240'].time[i].data).strftime('%Y-%m-%d %H:%M'))
+        figure_o3_sel.append(fig)
+
+        # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+        # fig, axs = plt.subplots(1, 1, sharey=True)
+        # h2o_x = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_x
+        # h2o_xa = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_xa
+        # h2o_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_z
+
+        # axs[0].semilogx(
+        #     h2o_x, h2o_z / 1e3, label="retrieved", marker="x"
+        # )
+        # axs[0].semilogx(h2o_xa, h2o_z / 1e3, label="apriori")
+        # axs[0].set_xlabel("Water VMR []")
+        # axs[0].set_ylabel("Altitude [km]")
+        # axs[0].legend()
+        
+        # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
+        # figure_o3_sel.append(fig)
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
