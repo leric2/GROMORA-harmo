@@ -108,8 +108,11 @@ class SOMORA_LvL2(DataRetrieval):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
         
-        level1_folder = os.path.join(basename_lvl1, instrument_name)
-        level2_folder =  os.path.join(basename_lvl2, instrument_name)
+        level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
+        level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)
+
+        # Can be used for plotting names (SOMORA_AC240_...)
+        self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
 
