@@ -274,7 +274,7 @@ for i = 1:size(calibratedSpectra,2)
            logFile.TC(isTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(isTC).channels));
            logFile.TC(isTC).frequency = calibratedSpectra(i).freq(logFile.TC(isTC).channels);
            
-           if isfield('air_temperature',logFile.meteo)
+           if isfield(logFile.meteo,'air_temperature')
                air_temp = [logFile.meteo.air_temperature];
                % we take the 3 meteo data aroung this calibration cycle to have
                % at least one value.
