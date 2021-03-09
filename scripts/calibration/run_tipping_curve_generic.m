@@ -74,7 +74,12 @@ if strcmp(calibrationTool.instrumentName,'MIAWARA-C')
 else
     %% For instruments using hot-cold calibration scheme
     if length(find(logFile.Tipping_Curve_active)) ~= length(find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC))
-        Teff = nanmean([logFile.meteo.air_temperature])-calibrationTool.TC.deltaT;
+        if isfield('air_temperature',logFile.meteo)
+            Teff = nanmean([logFile.meteo.air_temperature])-calibrationTool.TC.deltaT;
+        else
+            disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+            Teff = 283 - calibrationTool.TC.deltaT;
+        end
         for i =1:length(TC_data)
             am = 1./sind(TC_data(i).skyAngle);
             tau = calibrationTool.TC.tauInitTC;

@@ -274,13 +274,17 @@ for i = 1:size(calibratedSpectra,2)
            logFile.TC(isTC).meanFreq = mean(calibratedSpectra(i).freq(logFile.TC(isTC).channels));
            logFile.TC(isTC).frequency = calibratedSpectra(i).freq(logFile.TC(isTC).channels);
            
-           air_temp = [logFile.meteo.air_temperature];
-           % we take the 3 meteo data aroung this calibration cycle to have
-           % at least one value.
-           meteoInd = isbetween([logFile.meteo.dateTime], calibratedSpectra(i).theoreticalStartTime-minutes(calibrationTool.calibrationTime),calibratedSpectra(i).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
-           % just for estimation
-           Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
-           
+           if isfield('air_temperature',logFile.meteo)
+               air_temp = [logFile.meteo.air_temperature];
+               % we take the 3 meteo data aroung this calibration cycle to have
+               % at least one value.
+               meteoInd = isbetween([logFile.meteo.dateTime], calibratedSpectra(i).theoreticalStartTime-minutes(calibrationTool.calibrationTime),calibratedSpectra(i).theoreticalStartTime+minutes(calibrationTool.calibrationTime));
+               % just for estimation
+               Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
+           else
+               disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+               Teff = 283 - calibrationTool.TC.deltaT; 
+           end
            logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);
            
            % In terms of RJE:
