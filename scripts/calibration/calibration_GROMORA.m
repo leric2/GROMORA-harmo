@@ -44,7 +44,7 @@ readLabviewLog = false;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2014_01_01','yyyy_mm_dd'):datenum('2015_12_31','yyyy_mm_dd');
+dates=datenum('2017_01_01','yyyy_mm_dd'):datenum('2017_08_11','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
