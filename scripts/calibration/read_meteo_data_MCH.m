@@ -32,9 +32,10 @@ function meteoData = read_meteo_data_MCH(calibrationTool)
 %%% CHECK FOR LEAP YEARS ?
 try
     % fileName for meteo file in anetz: VQCA43.YYYYMMDD0200
+    % ATTENTION, day must be real day + 5.
     
     % First reading the Meteo dataset for this day
-    dateStringMeteo=['VQCA43.' calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10) '0200'];
+    dateStringMeteo=['VQCA43.' datestr(calibrationTool.dateTime + days(5), 'YYYYmmDD') '0200'];
     %dateStringMeteo='2020065.002';
     
     meteoDataFile=[calibrationTool.meteoAnetzFolder dateStringMeteo];
