@@ -153,13 +153,14 @@ Note: all folders needs to be given with their full paths.
 | extraFileFolder | str | folder to use for storing extra time stamps |  
 | level1Folder | str | folder to use for storing the outputs files (plots + level 1) |  
 | meteoFolder | str | folder containing the meteo files | 
+| meteoAnetzFolder | str | folder containing the meteo files from ANETZ | 
+| anetzStnName | str | station abbreviation from ANETZ | 
 | filename | str | name of the raw file (often GROMOS09_dateStr) |  
 | file | str |  rawFileFolder + filename|  
 | delimiter_logfile | str  | delimiter symbol used in the log file (for instance '\t') |  
 | labviewLog | boolean | 1 for trying to read the log book from the labview -> filename to specify |  
 | filenameLevel1a | str | full name of level 1a netCDF output file |  
 | filenameLevel1b | str | full name of level 1b netCDF output file |  
-
 
 ---
 
@@ -241,7 +242,7 @@ during recording. This is also explained in [quality control](quality_control_ca
 ### Plotting and saving variables
 
 | variable | type  | Description |
-|---|------|------|:-----------:|
+|---------|------|:-----------:|
 | rawSpectraPlot | boolean | 1 to plot the raw counts (to be improved) | 
 | calibratedSpectraPlot | boolean | 1 to plot the calibrated spectra | 
 | calibratedSpectraSpectralPlot | boolean | 1 to plot the spectral variable for the calibrated spectra | 
@@ -257,7 +258,7 @@ during recording. This is also explained in [quality control](quality_control_ca
 To activate the tipping curve calibration, a first boolean is used:
 
 | variable | type  | Description 
-|---|------|------|:-----------:|
+|---------|------|:-----------:|
 | doTippingCurve | boolean | 1 for instruments that performs a tipping curve calibration as main calibration scheme | 
 
 Then, the variables needed to do collect, save and use the tipping curve data are
@@ -266,7 +267,7 @@ variables are saved in *TC* and are similar to the ones used to define the
 tropospheric correction (see [run_integration](run_integration.md)).
 
 | variable | type  | Description |
-|---|------|------|:-----------:|
+|---------|------|:-----------:|
 | numberOfChannelsTropCorr | double | see [run_integration](run_integration.md) | 
 | skipFraction | double | see [run_integration](run_integration.md) | 
 | useWings | str | see [run_integration](run_integration.md) | 
@@ -281,7 +282,7 @@ tropospheric correction (see [run_integration](run_integration.md)).
 
 
 | variable | type  | Description |
-|---|------|------|:-----------:|
+|---------|------|:-----------:|
 | integrationTime | double | time interval for the integration \[min\] |  
 | minNumberOfAvgSpectra | double | minimum number of calibrated spectra to get a valid integrated spectrum |  
 | filterByTransmittance | boolean | decides if the calibrated spectra are filtered based on their atmospheric transmittance before integration |  
@@ -303,7 +304,7 @@ For more information on these variables, see [run_integration](run_integration.m
 ### Variable created during the calibration or integration
 
 | variable | type  | Description |
-|---|------|------|:-----------:|
+|--------|------|:-----------:|
 | successfulCalibration | boolean | indicates a successful calibration |  
 | flagVectorLength | double | number of level 1a flags (read from level 1a) |  
 | logFile | struct | an sub structure where we stores some interesting meta data read from level 1a (like the flags meanings, the tipping curve data, comments, ...) |  
