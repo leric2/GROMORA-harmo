@@ -8,7 +8,8 @@ function meteoData = read_meteo_data_payerne(calibrationTool)
 % ABSTRACT      | Function to read temperature and humidity values measured
 %               | by the ASTA station from MCH in Payerne. It is then saved
 %               | in the form of a standard meteoData structure (see
-%               | outputs).
+%               | outputs). If the local meteo station file does not exist,
+%               | we try reading the anetz meteo data directly. 
 %               | 
 %               |
 % ARGUMENTS     | INPUTS:   1. calibrationTool:
@@ -17,6 +18,8 @@ function meteoData = read_meteo_data_payerne(calibrationTool)
 %               |               - referenceTime
 %               |               - timeZone
 %               |               - zeroDegInKelvin
+%               |               - meteoAnetzFolder
+%               |               - anetzStnName
 %               |
 %               | OUTPUTS:  1. meteoData: standard structure containing:
 %               |               - dateTime
@@ -68,8 +71,13 @@ try
         meteoData(i).tod = 24*(met(i,1) - met(1,1));
     end
 catch ME
-    warning(ME.message)
-    disp('no meteo data loaded for this day')
-    meteoData = struct();
-end
+    warning('no meteo from local station, trying with anetz data')
+    try
+        meteoData = read_meteo_data_MCH(calibrationTool);
+        disp('Found anetz data for this day');
+    catch ME
+        warning(ME.message)
+        disp('no meteo data loaded for this day')
+        meteoData = struct();
+    end
 end
