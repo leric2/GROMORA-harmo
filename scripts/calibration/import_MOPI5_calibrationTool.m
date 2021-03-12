@@ -170,6 +170,10 @@ calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' ca
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibrationTool);
 calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
 
+% Backup reading of MCH ground station data (ANETZ)
+calibrationTool.meteoAnetzFolder = ['/mnt/tub/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.anetzStnName = 'BER';
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tipping curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

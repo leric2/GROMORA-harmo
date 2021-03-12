@@ -6,7 +6,9 @@ function meteoData = read_meteo_data_unibe(calibrationTool)
 % CREATION      | 09.2014 // modified 01.2020
 %               |
 % ABSTRACT      | Function to read temperature and humidity values measured
-%               | by the sensors on the top of ExWi building at Unibe
+%               | by the sensors on the top of ExWi building at Unibe. 
+%               | If the local meteo station file does not exist,
+%               | we try reading the anetz meteo data directly. 
 %               |
 % ARGUMENTS     | INPUTS: 1. calibrationTool:
 %               |           - dateTime
@@ -14,7 +16,8 @@ function meteoData = read_meteo_data_unibe(calibrationTool)
 %               |           - dateStr
 %               |           - meteoFolder
 %               |           - referenceTime
-%               |           - timeZone
+%               |           - meteoAnetzFolder
+%               |           - anetzStnName
 %               |
 %               | OUTPUTS: 1. meteoData: structure containing the meteo
 %               |            data read from exwi meteo station with the
@@ -53,9 +56,9 @@ try
                 meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
             end
         end
-    elseif  (calibrationTool.dateTime > datetime(2017,01,01, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime < datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone))
-        disp('status of meteo data unkown between 01.01 and 09.08.2017')
-        meteoData = struct();
+%     elseif  (calibrationTool.dateTime > datetime(2017,01,01, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime < datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone))
+%         disp('status of meteo data unkown between 01.01 and 09.08.2017')
+%         meteoData = struct();
     else
         dateStringMeteo=[calibrationTool.dateStr(3:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
         dateStringMeteoPrec=[calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
@@ -110,8 +113,14 @@ try
         end
     end
 catch ME
-    warning(ME.message)
-    disp('no meteo data loaded for this day')
-    meteoData = struct();
+    warning('no meteo from local station, trying with anetz data')
+    try
+        meteoData = read_meteo_data_MCH(calibrationTool);
+        disp('Found anetz data for this day');
+    catch ME
+        warning(ME.message)
+        disp('no meteo data loaded for this day')
+        meteoData = struct();
+    end
 end
 end
