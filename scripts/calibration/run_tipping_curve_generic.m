@@ -42,8 +42,12 @@ function TC = run_tipping_curve_generic(rawSpectra, logFile, calibrationTool)
 
 
 %% get tipping curve data
-
-TC_data = calibrationTool.get_tipping_curve_data(rawSpectra,logFile, calibrationTool);
+try
+    TC_data = calibrationTool.get_tipping_curve_data(rawSpectra,logFile, calibrationTool);
+catch ME
+    warning('no TC data found for this day');
+    TC_data = struct();
+end
 
 if strcmp(calibrationTool.instrumentName,'MIAWARA-C')
     %% find opacity (tau)
