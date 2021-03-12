@@ -60,8 +60,8 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2016-01-01', end='2016-03-10')
-date = datetime.date(2016,1,2)
+date = pd.date_range(start='2019-02-21', end='2019-02-21')
+#date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
 
 int_time = 1
@@ -74,11 +74,13 @@ plot_o3_ts = False
 plot_selected = False
 
 compare_MERRA2 = True
+compare_ECMWF = True
 
 integration_strategy = 'classic'
 classic = np.arange(1, 24)
 
 cycle = 14
+
 # %%
 
 basename_lvl1 = "/scratch/GROSOM/Level1/"
@@ -217,7 +219,7 @@ if compare_MERRA2:
         else:
             o3_merra2_tot = xr.concat([o3_merra2_tot, o3_merra2], dim='datetime')
         counter = counter + 1
-           
+        
     fig,ax = plt.subplots(1,1)
     o3_merra2_tot.plot(x='datetime', y='altitude', ax=ax,vmin=0, vmax=15)
     ax.set_ylim(5,65)
@@ -225,3 +227,45 @@ if compare_MERRA2:
     plt.tight_layout()
     fig.savefig(instrument.level2_folder+'/ozone_ts_16_merra2.pdf')
 # %%
+
+if compare_ECMWF:
+    ECMWF_folder = '/home/eric/Documents/PhD/ECMWF/'
+    counter = 0
+    for d in date:
+        ECMWF_file = os.path.join(ECMWF_folder, 'ecmwf_oper_v2_BERN_'+d.strftime('%Y%m%d')+'.nc')
+
+        ecmwf = xr.open_dataset(
+            ECMWF_file,
+            decode_times=True,
+            decode_coords=True,
+            use_cftime=False,
+        )
+
+        if counter == 0:
+            ecmwf_ts = ecmwf
+        else:
+            ecmwf_ts = xr.concat([ecmwf_ts, ecmwf], dim='time')
+
+        counter = counter + 1
+
+    o3_ecmwf = ecmwf_ts.isel(loc=0).ozone_mass_mixing_ratio
+    o3_ecmwf['pressure'] = ecmwf_ts['pressure'].isel(loc=0)
+    o3_ecmwf.data = o3_ecmwf.data * 1e6
+    
+    fig = plt.figure(num=1)
+    ax = fig.subplots(1)
+    #o3.plot(x='time', y='altitude')
+    o3_ecmwf.plot(
+        x='time',
+        y='pressure',
+        vmin=0,
+        vmax=12,
+        cmap='viridis',
+        cbar_kwargs={"label": "ozone [PPM]"}
+    )
+    ax.invert_yaxis()
+    ax.set_yscale('log')
+    ax.set_ylabel('P [hPa]')
+    plt.tight_layout()
+    #o3.plot.imshow(x='time')
+    fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2+'ozone_ts_19_ecmwf.pdf')
