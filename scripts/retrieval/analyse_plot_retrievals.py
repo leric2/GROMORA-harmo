@@ -45,6 +45,7 @@ import GROSOM_library
 
 # %%
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -59,8 +60,8 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2016-01-02', end='2016-01-02')
-#date = datetime.date(2016,1,2)
+date = pd.date_range(start='2016-01-01', end='2016-03-10')
+date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
 
 int_time = 1
@@ -94,8 +95,8 @@ if instrument_name=="GROMOS":
     )
 elif instrument_name=="SOMORA":
     import somora_classes as sm
-    basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
-    basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"  
+    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/SOMORA/"
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -137,7 +138,7 @@ if plot_o3_ts:
     o3_hourly.plot(
         x='time',
         vmin=0,
-        vmax=9,
+        vmax=8,
         cmap='viridis',
         cbar_kwargs={"label": "ozone [PPM]"}
     )
@@ -146,7 +147,7 @@ if plot_o3_ts:
     ax.set_ylabel('P [hPa]')
     plt.tight_layout()
     #o3.plot.imshow(x='time')
-   # fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2+'ozone_ts_16.pdf')
+    fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2+'ozone_ts_16.pdf')
 
 if plot_selected:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2+instrument.datestr +'_plot_sel_test'
@@ -159,56 +160,68 @@ if plot_selected:
 
 if compare_MERRA2:
     merra2_basename = '/mnt/tub/atmosphere/MERRA2/BRN/'
-    filename_merra2 = os.path.join(merra2_basename,'MERRA2_BRN_'+date[0].strftime('%Y_%m')+'_diagnostic.h5')
+    filename_merra2 =[
+        os.path.join(merra2_basename,'MERRA2_BRN_2016_01_diagnostic.h5'),
+        os.path.join(merra2_basename,'MERRA2_BRN_2016_02_diagnostic.h5'),
+        os.path.join(merra2_basename,'MERRA2_BRN_2016_03_diagnostic.h5')
+    ] 
     
-    attrs = {"units": 'days since '+date[0].strftime('%Y-%m-%d')}
-    merra2_info = xr.open_dataset(
-        filename_merra2,
-        group='info',
-        decode_times=False,
-        decode_coords=True,
-        #use_cftime=True,
-    )
-    #merra2_info.time.attrs = attrs
-    merra2_info['time'] = merra2_info.time - merra2_info.time[0]
-    #
-    # construct time vector
-    time_merra2=[]
-    for i in range(len(merra2_info.time)):
-        time_merra2.append(
-            datetime.datetime(
-                merra2_info.year.data[i], 
-                merra2_info.month.data[i],  
-                merra2_info.day.data[i], 
-                merra2_info.hour.data[i], 
-                merra2_info['min'].data[i], 
-                merra2_info.sec.data[i]
-            )
+    o3_merra2_tot = xr.Dataset()
+    counter = 0
+    for f in filename_merra2:
+        merra2_info = xr.open_dataset(
+            f,
+            group='info',
+            decode_times=False,
+            decode_coords=True,
+            #use_cftime=True,
         )
-    merra2_info['datetime'] = time_merra2
-    merra2_decoded = xr.decode_cf(merra2_info)
+        #merra2_info.time.attrs = attrs
+        merra2_info['time'] = merra2_info.time - merra2_info.time[0]
+    #   # construct time vector
 
-    merra2 = xr.open_dataset(
-        filename_merra2,
-        group='wind',        
-        decode_times=True,
-        decode_coords=True,
-        #use_cftime=True,
-    )
+        time_merra2=[]
+        for i in range(len(merra2_info.time)):
+            time_merra2.append(
+                datetime.datetime(
+                    int(merra2_info.isel(phony_dim_1=0).year.data[i]), 
+                    int(merra2_info.isel(phony_dim_1=0).month.data[i]),  
+                    int(merra2_info.isel(phony_dim_1=0).day.data[i]), 
+                    int(merra2_info.isel(phony_dim_1=0).hour.data[i]), 
+                    int(merra2_info.isel(phony_dim_1=0)['min'].data[i]), 
+                    int(merra2_info.isel(phony_dim_1=0).sec.data[i])
+                )
+            )
+        merra2_info['datetime'] = time_merra2
+        merra2_decoded = xr.decode_cf(merra2_info)
 
-    o3_merra2 = merra2.O3
+        merra2 = xr.open_dataset(
+            f,
+            group='wind',        
+            decode_times=True,
+            decode_coords=True,
+            #use_cftime=True,
+        )
 
-    o3_merra2 = o3_merra2.swap_dims({'phony_dim_6':'altitude'})
-    o3_merra2['altitude']=merra2_decoded.alt.isel(phony_dim_1=0).data
+        o3_merra2 = merra2.O3
 
-    o3_merra2 = o3_merra2.swap_dims({'phony_dim_5':'datetime'})
-    o3_merra2['datetime']=merra2_decoded.datetime.data
+        o3_merra2 = o3_merra2.swap_dims({'phony_dim_6':'altitude'})
+        o3_merra2['altitude']=merra2_decoded.alt.isel(phony_dim_1=0).data
 
-    o3_merra2.data = o3_merra2.data*1e6
+        o3_merra2 = o3_merra2.swap_dims({'phony_dim_5':'datetime'})
+        o3_merra2['datetime']=merra2_decoded.datetime.data
 
+        o3_merra2.data = o3_merra2.data*1e6
+        if counter ==0:
+            o3_merra2_tot = o3_merra2
+        else:
+            o3_merra2_tot = xr.concat([o3_merra2_tot, o3_merra2], dim='datetime')
+        counter = counter + 1
+           
     fig,ax = plt.subplots(1,1)
-    o3_merra2.plot(x='datetime', y='altitude', ax=ax,vmin=0, vmax=15)
+    o3_merra2_tot.plot(x='datetime', y='altitude', ax=ax,vmin=0, vmax=15)
     ax.set_ylim(5,65)
     #o3_merra2.assign_coords({'altitude':merra2_info.alt.isel(phony_dim_1=0)})
-
+    plt.tight_layout()
+    fig.savefig(instrument.level2_folder+'/ozone_ts_16_merra2.pdf')
 # %%
