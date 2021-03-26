@@ -223,7 +223,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.set_observations([obs])
 
     # Defining our sensors
-    sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+    if retrieval_param['sensor']: 
+        sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+    else: 
+        sensor = arts.SensorOff()
     ac.set_sensor(sensor)
 
     # doing the checks
@@ -241,7 +244,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         )
        # ac.ws.abs_lookupCalc()
         y_FM = ac.y_calc()
-        plot_FM_comparison(ds_freq, y_FM[0], ds_y)
+       # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
         return ac, retrieval_param
 
     if retrieval_param['show_FM']:
@@ -251,6 +254,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     #print("FM_time: %s seconds" % (FM_time - start_FM_time))
 
     ac.set_y([ds_y])
+
+    if len(ds_y) < 1000:
+        ac.oem_converged = False
+        return ac, retrieval_param
 
     # Setup the retrieval
 
@@ -352,7 +359,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     polyfit_ret = arts.Polyfit(
-        poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+        poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
     )
 
     fshift_ret = arts.FreqShift(100e3, df=50e3)
