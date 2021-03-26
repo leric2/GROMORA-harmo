@@ -199,7 +199,55 @@ def compare_ecmwf_oper_dataset():
     
     plot_ecmwf_comparison(ds_ecmwf, ds_ecmwf_2)
 
-def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf):
+def read_merra2_data(retrieval_param, merra_location, t1, t2):
+    '''
+    Function to read MERRA2 monthly data
+    
+    Merra2 data reminder because of its weird dimensions names:
+
+    phony_dim_0 = time
+    phony_dim_1 = altitude
+    phony_dim_2 = latitude ?
+    phony_dim_3 = longitude ?
+    phony_dim_4 = ??
+
+    '''
+    merra_location = '/mnt/tub/atmosphere/MERRA2/'
+    t1 = datetime.date(2017,1,6)
+    #merra_global_filename = merra_location + t1.strftime('%Y')+ '_' + t1.strftime('%m') +'/' + 'MERRA2_400.inst3_3d_asm_Nv.'+t1.strftime('%Y%m%d')+'.nc4'
+    merra_BRN_filename = merra_location + 'BRN/'+ 'MERRA2_BRN_'+t1.strftime('%Y_%m')+'_diagnostic.h5'
+
+    # merra2_monthly = xr.open_dataset(
+    #     merra_monthly_filename,
+    #     mask_and_scale=True,
+    #     decode_times=True,
+    #     decode_coords=True,
+    #     #use_cftime=True,
+    #     )
+
+    #latitude = merra2_monthly.lat.sel(phony_dim_0=1, phony_dim_1=1)
+    #ozone = merra2_monthly.O3.sel(phony_dim_0=1, phony_dim_2=65, phony_dim_3=65)
+    #ozone.plot()
+
+    merra2_monthly_info = xr.open_dataset(
+        merra_BRN_filename,
+        group='info',
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        #use_cftime=True,
+        )
+
+    merra2_monthly_variables = xr.open_dataset(
+        merra_BRN_filename,
+        group='wind',
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        #use_cftime=True,
+        )
+
+def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf, z_grid=None):
     '''
     Defining a-priori atmosphere from ECMWF operationnal dataset and CIRA86 clim
 
@@ -233,8 +281,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # atm = arts.Atmosphere.from_dataset(ds_ptz)
     atm = arts.Atmosphere.from_arts_xml(clim_prefix)
 
-    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf/2, "h")
-    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf/2, "h")
+    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf, "h")
+    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf, "h")
 
     print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
 
@@ -257,7 +305,11 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
-    #plot_apriori_ptz(ds_ptz)
+   # plot_apriori_ptz(ds_ptz)
+
+    # extrapolate to p_grid ??
+    if z_grid is not None:
+        ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
     
     # Temperature
     atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
@@ -276,8 +328,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
 
-    # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
-
     if retrieval_param['o3_apriori'] == 'somora':
         print('Ozone apriori from : old SOMORA retrievals')
         # extracting pressure from the fascod atm
@@ -289,7 +339,31 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
             "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
         )
-    
+    elif retrieval_param['o3_apriori'] == 'mls':
+        o3_apriori = read_mls(retrieval_param['o3_apriori_file'])
+        print('Ozone apriori from : mean MLS profile')
+        atm.set_vmr_field(
+            "O3", o3_apriori["p"].values, o3_apriori['o3'].values
+        )
+    elif retrieval_param['o3_apriori'] == 'retrieved_gromos':
+        o3_apriori = read_retrieved(retrieval_param['o3_apriori_file'])
+        ind =  np.where((o3_apriori.o3_p<10000) & (o3_apriori.o3_p>2.54))
+        o3_apriori = o3_apriori.isel(o3_p=ind[0])
+        print('Ozone apriori from : mean GROMOS profile, cut for MLS pressure grid')
+        atm.set_vmr_field(
+            "O3", o3_apriori["o3_p"].values, o3_apriori['o3_x'].values
+        )
+    elif retrieval_param['o3_apriori'] == 'retrieved_somora':
+        o3_apriori = read_retrieved(retrieval_param['o3_apriori_file'])
+        ind =  np.where((o3_apriori.o3_p<10000) & (o3_apriori.o3_p>2.54))
+        o3_apriori = o3_apriori.isel(o3_p=ind[0])
+        print('Ozone apriori from : mean SOMORA profile, cut for MLS pressure grid')
+        atm.set_vmr_field(
+            "O3", o3_apriori["o3_p"].values, o3_apriori['o3_x'].values
+        )
+
+   # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
+
     # Water vapor
     # merging Fascod with ECMWF
     if retrieval_param['h2o_apriori']=='fascod_ecmwf':
@@ -327,6 +401,45 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     print('Atmospheric state defined with : ECMWF oper v2, CIRA86')
     
     return atm
+def read_mls(filename):
+    mls_o3 = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    mls_o3['p'] = mls_o3['p']*100
+    mls_o3['o3'] = mls_o3['o3']*1e-6
+    return mls_o3
+
+def read_retrieved(filename):
+    retrieved_o3 = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    retrieved_o3['o3_p'] = retrieved_o3['o3_p']*100
+    retrieved_o3['o3_x'] = retrieved_o3['o3_x']*1e-6
+    return retrieved_o3
+
+def extrapolate_down_ptz(ds_ptz, z_grid):
+    '''
+    extrapolate to get low enough
+
+    '''
+    new_p = interpolate(z_grid, ds_ptz.z.values, ds_ptz.p.values)
+    new_t = interpolate(z_grid, ds_ptz.z.values, ds_ptz.t.values)
+
+    ds_extrapolated = xr.Dataset({'t': ('p', new_t),
+                        'z': ('p', z_grid)},
+                        coords = {
+                            'p' : ('p', new_p),
+                        }
+    )
+    return ds_extrapolated
 
 def merge_ecmwf_cira86(ds_ecmwf, cira86):
     '''
@@ -363,7 +476,6 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86):
 
     temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
     z_grid = np.hstack((ds_ecmwf.geometric_height.data, upper_cira86_ds.altitude.data))
-
 
     # # interpolate CIRA86 altitude on p_grid
     # cira86_alt_i = p_interpolate(
@@ -467,6 +579,7 @@ def compute_z_level(lev, ds_ecmwf, z_h):
     # q_level = codes_get_values(gid)
     # codes_release(gid)
     R_D = 287.06
+    R_D = 287.0597
     R_G = 9.80665
     level_ind = np.where(ds_ecmwf.level.values == lev)[0][0]
     
@@ -583,24 +696,24 @@ def ecmwf_zp_calc( ds_ecmwf):
      X   <-> X_k
      X_h <-> X_k+1/2 (which is not possible in Matlab syntax)
     '''
-    # Set missing variables to default values
+    # # Set missing variables to default values
 
-    # if ~exist('p_surf', 'var')
-    #   p_surf = 100*1013.250; % Pa
-    # end
+    # # if ~exist('p_surf', 'var')
+    # #   p_surf = 100*1013.250; % Pa
+    # # end
 
-    # if ~exist('Phi_surf', 'var')
-    #   Phi_surf = 0;
-    # end
+    # # if ~exist('Phi_surf', 'var')
+    # #   Phi_surf = 0;
+    # # end
 
-    # if ~exist('q', 'var')
-    #   q = zeros(size(T)); % Specific humidity [kg/kg]
-    # end
+    # # if ~exist('q', 'var')
+    # #   q = zeros(size(T)); % Specific humidity [kg/kg]
+    # # end
 
-    #
-    # Define physical constants according to the subroutine SUCST.F90
-    # from the source code of the ECMWF ITS model
-    #
+    # #
+    # # Define physical constants according to the subroutine SUCST.F90
+    # # from the source code of the ECMWF ITS model
+    # #
     # RKBOL = 1.380658E-23;	# Boltzmann's constant k [J/K]
     # RNAVO = 6.0221367E+23;	# Avogadro's number NA []
     # R = RNAVO * RKBOL;	# ideal gas constant R [J/(mol*K)]
@@ -610,20 +723,20 @@ def ecmwf_zp_calc( ds_ecmwf):
     # RV = 1000 * R / RMV;    # Water vapor constand Rv [J/(K*kg)]
     # RG = 9.80665;		# Earth's gravitational acceleration g [m/s^2]
 
-    # # Get number of levels
+    # # # Get number of levels
     # NLEV = len(ds_ecmwf.pressure)
 
     
     # #Calculate half-level pressure p_h  from
     # #A_h, B_h and surface pressure p_surf
     # #Level 1 = top, NLEV = bottom
-    
+    # p_surf = np.exp(ds_ecmwf.logarithm_of_surface_pressure.data)
     # p_h = levels.hybrid_level_a + levels.hybrid_level_b * p_surf;              # Half-level pressure (eq. 2.11)
     # #p_h2 = ds_ecmwf.pressure.values
     # #
     # # Calculate delta_p according to Eq. 2.13
     # #
-    # delta_p = np.diff( p_h )
+    # #delta_p = np.diff( p_h )
 
     # #
     # # Calculate virtual temperature according to standard textbook formula
@@ -631,6 +744,17 @@ def ecmwf_zp_calc( ds_ecmwf):
     # q = np.flip(ds_ecmwf.specific_humidity.values)
     # T = np.flip(ds_ecmwf.temperature.values)
     # T_v = T*( 1 + ( RV / RD - 1 ) * q ); # Virtual temperature [K]
+
+    # phi_h = ds_ecmwf.geopotential.data
+
+    # # reversedLevel = np.flip(np.arange(0,137))
+    # # for rlev in reversedLevel:
+    # #     if rlev == max(reversedLevel):
+
+    # #     else:
+        
+    # #     phi_h_new = phi_h + 
+        
 
     # #
     # # Calculate ln_p = log( p_k+1/2 / p_k-1/2 ) for 1 <= k <= NLEV
@@ -661,57 +785,6 @@ def ecmwf_zp_calc( ds_ecmwf):
     # #
     # p = ( p_h(1:end-1) + p_h(2:end) ) / 2; # Full level pressure [Pa]
     # z = Phi / RG; # Geometric height [m]
-
-    # heighttoreturn=np.full(len(ds_ecmwf.pressure), -999, np.double)
-    # geotoreturn=np.full(len(ds_ecmwf.pressure), -999, np.double) 
-
-    # sp = math.exp(ds_ecmwf.logarithm_of_surface_pressure.values) 
-    # #sp = np.exp(ds_ecmwf.logarithm_of_surface_pressure.values) 
-
-    # Ph_levplusone =  Ph_lev = levels.hybrid_level_a + levels.hybrid_level_b * sp; 
-
-    # z_h = 0 
-    # #Integrate up into the atmosphere from lowest level
-    # for lev in ds_ecmwf.level.values:
-    #     print(lev)
-    #     #lev is the level number 1-60, we need a corresponding index into ts and qs
-    #     ilevel=np.where(ds_ecmwf.level==lev)[0]
-    #     t_level=ds_ecmwf.temperature[ilevel].values
-    #     q_level=ds_ecmwf.specific_humidity[ilevel].values
-  
-    #     #compute moist temperature
-    #     t_level = t_level * (1.+0.609133*q_level)
-
-    #     #compute the pressures (on half-levels)
-    #     Ph_lev = levels.hybrid_level_a[lev-1] + levels.hybrid_level_b[lev-1] * sp; 
-        
-    #     if lev == 1:
-    #         dlogP = math.log(Ph_levplusone/0.1)
-    #         alpha = math.log(2)
-    #     else:
-    #         dlogP = np.log(Ph_levplusone/Ph_lev)
-    #         dP    = Ph_levplusone-Ph_lev
-    #         alpha = 1. - ((Ph_lev/dP)*dlogP)
-   
-    #     TRd = t_level*RD
-   
-    #     # z_f is the geopotential of this full level
-    #     # integrate from previous (lower) half-level z_h to the full level
-    #     z_f = z_h + (TRd*alpha) 
-  
-    #     #Convert geopotential to height 
-    #     heighttoreturn[ilevel] = z_f / 9.80665
-          
-    #     #Geopotential (add in surface geopotential)
-    #     geotoreturn[ilevel] = z_f + ds_ecmwf.geopotential.values
-   
-    #     # z_h is the geopotential of 'half-levels'
-    #     # integrate z_h to next half level
-    #     z_h=z_h+(TRd*dlogP) 
-   
-    #     Ph_levplusone = Ph_lev
-  
-    # return geotoreturn, heighttoreturn 
 
 def merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm):
     '''
@@ -877,7 +950,7 @@ def plot_apriori_ptz(ds_ptz):
     axs[1].set_xlabel('T [K]')
     axs[1].set_ylabel('$Z$ [km]')
 
-    fig.suptitle('Apriori ptz profile')
+    fig.suptitle('Apriori raw ptz profile')
 
     fig.show()
     pass

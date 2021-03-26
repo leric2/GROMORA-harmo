@@ -151,6 +151,10 @@ the following elements:
 5. *precipitation*: the rain accumulation measured between 2 time stamps in the original meteo file
 6. *tod*: the time of day extracted from the meteo station time variable.
 
+In addition, for the instruments located in Switzerland, there is often a
+MeteoSwiss meteo station in the area which can be used as backup if some
+measurements are missing from the instruments' meteo station.
+
 ### 8. Run a tipping curve (run_tipping_curve)
 
 This functions has different goal depending on the instruments. For the ones
@@ -226,7 +230,10 @@ For T_hot, there are often 2 different measurements recorded in the log file:
 
 For T_cold, we use the temperature of liquid nitrogen and we take into account
 some effect from the edge of the containter, reflections on the liquid surface,
-... Therefore, we ended up using 80 K, which of course needs some references.
+... Therefore, we ended up using 80 K, which of course needs some references. In
+order to perform an accurate calibration, these physical temperatures are then
+converted into brightness intensity using Planck's law and assuming there are
+perfect blackbodies.
 
 ### 10. check the calibration (check_calibrated)
 

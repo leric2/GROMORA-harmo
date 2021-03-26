@@ -6,8 +6,8 @@ Main repository for the harmonization of GROMOS and SOMORA ozone calibration and
 The goal of this repository is to enable anyone concerned at the IAP and at MCH to follow and comment on the progression of the new harmonized retrieval routines.
 
 ## Version
-* 1.0 pre-released 12.2020
-* 1.0 release planned 02.2021
+* 1.0 pre-release 12.2020
+* 1.0 released 03.2021
 
 ## Structure of the repository
 #### documentation 

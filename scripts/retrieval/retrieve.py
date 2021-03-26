@@ -27,6 +27,7 @@ Todo: all
 from abc import ABC
 import os
 import datetime
+import time
 
 import numpy as np
 import xarray as xr
@@ -40,21 +41,23 @@ from dotenv import load_dotenv
 # For ARTS, we need to specify some paths
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.5')
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
-    instrument_name = "GROMOS"
-    date = datetime.date(2019,1,1)
+    start = time.time()
+    instrument_name = "SOMORA"
+    date = datetime.date(2019, 4, 14)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = True
     basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
     basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"
     
-    #basename_lvl1 = "/scratch/GROSOM/Level1/"
-    #basename_lvl2 = "/scratch/GROSOM/Level2/"
+    
+    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -63,6 +66,7 @@ if __name__ == "__main__":
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
+        basename_lvl1 = os.path.join('/mnt/tub/instruments/gromos/level1/GROMORA/',str(date.year))
         instrument = gc.GROMOS_LvL2(
             date, 
             basename_lvl1, 
@@ -70,6 +74,7 @@ if __name__ == "__main__":
             integration_strategy, 
             int_time)
     elif instrument_name=="SOMORA":
+        basename_lvl1 = "/scratch/GROSOM/Level1/SOMORA/"
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -95,15 +100,17 @@ if __name__ == "__main__":
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
     
-    cycles = np.arange(7,8)
+    cycles = np.arange(10,11)
 
 
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 4
+    retrieval_param["retrieval_type"] = 7
     retrieval_param['FM_only'] = False
+    retrieval_param['show_FM'] = True
+    retrieval_param['sensor'] = True
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
@@ -113,37 +120,37 @@ if __name__ == "__main__":
     retrieval_param["show_f_grid"] = False
     retrieval_param['plot_opacities'] = False
     retrieval_param["f_shift"] =  0#+1500e3
-    retrieval_param["number_of_freq_points"] = 1201
+    retrieval_param["number_of_freq_points"] = 1601
     retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 112e3
     retrieval_param["z_bottom_sim_grid"] = 600
-    retrieval_param["z_resolution_sim_grid"] = 1e3
+    retrieval_param["z_resolution_sim_grid"] = 2e3
 
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
     retrieval_param["z_bottom_ret_grid"] = 1e3
-    retrieval_param["z_resolution_ret_grid"] = 2e3
+    retrieval_param["z_resolution_ret_grid"] = 3e3
 
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
-    retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
+    retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
     retrieval_param['increased_var_factor'] = 15
 
     #retrieval_param['unit_var_y']  = 3**2
 
-    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
 
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-    #retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
-    retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
-    retrieval_param['extra_time_ecmwf'] = 6
+    retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+    #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
+    retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='somora'   
     retrieval_param["apriori_O3_cov"] = 1e-6
@@ -227,6 +234,9 @@ if __name__ == "__main__":
         counter = counter + 1
         retrieval_param["integration_cycle"] = c
         print('retrieving cycle : ',c)
+
+        retrieval_param['p_surface'] = integrated_meteo[spectro].air_pressure[c].data
+        retrieval_param['T_surface'] = integrated_meteo[spectro].air_temperature[c].data
         
         if retrieval_param["retrieval_type"] == 1:
             retrieval_param["surface_altitude"] = 10e3
@@ -244,11 +254,14 @@ if __name__ == "__main__":
             #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 2:
-            retrieval_param["surface_altitude"] = 800
-            retrieval_param["observation_altitude"] =  800   
+            retrieval_param["surface_altitude"] = 900
+            retrieval_param["observation_altitude"] =  900   
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
-            figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
-            level2_cycle = ac.get_level2_xarray()
+            if ac.oem_converged:
+                figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
+                level2_cycle = ac.get_level2_xarray()
+            else:
+                level2_cycle=xr.Dataset()
             save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved.pdf'
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_'+retrieval_param['water_vapor_model']+'.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 3:
@@ -267,23 +280,24 @@ if __name__ == "__main__":
             figure_list = GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 4:
+            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
             retrieval_param["surface_altitude"] = 800
             retrieval_param["observation_altitude"] =  800
             #retrieval_param['atm']='fascod_somora_o3'
             #retrieval_param['atm']='fascod_gromos_o3'
             retrieval_param['atm']='ecmwf_cira86'
-            retrieval_param['o3_apriori']='somora'
+            retrieval_param['o3_apriori']='gromos'
             retrieval_param['ref_elevation_angle']=90
             retrieval_param['FM_only'] = True
             ac_FM, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
             retrieval_param['FM_only'] = False
             #retrieval_param['atm']='fascod_gromos_o3'
             #retrieval_param['atm']='fascod_somora_o3'
-            retrieval_param['o3_apriori']='gromos'
+            retrieval_param['o3_apriori']='somora'
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_FM)
             level2_cycle = ac.get_level2_xarray()
             import GROSOM_library
-            figure_list = GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
+            figure_list = GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_gromos_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
             save_single_pdf(instrument.filename_level2[spectro]+'_test'+retrieval_param['water_vapor_model']+'_GN_somora_og'+'.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 5:
             retrieval_param["surface_altitude"] = 1200
@@ -298,18 +312,76 @@ if __name__ == "__main__":
             #     )
             #level2_cycle = ac.get_level2_xarray()
             #save_str = str(retrieval_param["integration_cycle"])+'_Perrin_corr.pdf'
+        elif retrieval_param["retrieval_type"] == 6:
+            retrieval_param["surface_altitude"] = 800
+            retrieval_param["observation_altitude"] =  800   
+            ac, retrieval_param = instrument.retrieve_double(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+            figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
+            level2_cycle = ac.get_level2_xarray()
+            save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved.pdf'
+        elif retrieval_param["retrieval_type"] == 7:
+            retrieval_param["surface_altitude"] = 900
+            retrieval_param["observation_altitude"] =  900  
+            retrieval_param['FM_only'] = True
+            retrieval_param['show_FM'] = False
+            retrieval_param['sensor'] = False
+            a_priori = ['mls', 'retrieved_gromos', 'retrieved_somora']  
+            o3_apriori_file =[
+                '/scratch/GROSOM/Level2/mls_mean_o3_2016-02-21.nc',
+                '/scratch/GROSOM/Level2/gromos_mean_o3_2016-02-21.nc',
+                '/scratch/GROSOM/Level2/somora_mean_o3_2016-02-21.nc'
+            ] 
+            ds_freq = spectro_dataset.frequencies[c].values[ spectro_dataset.good_channels[c].data == 1]
+            y = np.zeros((len(a_priori), 1601))
+            fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True)
+            ax1 = axs[0].inset_axes([0.1, 0.4, 0.25, 0.5])
+
+            colors =['blue', 'red', 'green'] 
+            for i, ap in enumerate(a_priori):
+                retrieval_param['o3_apriori'] = ap
+                retrieval_param['o3_apriori_file'] = o3_apriori_file[i] 
+                ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                y[i] = ac.y[0]
+                ds_freq = ac.f_grid
+                axs[0].plot(ds_freq/1e9, y[i], label = ap, color = colors[i], lw=0.7 )
+                ax1.plot((ds_freq- instrument.observation_frequency)/1e6, y[i], label = ap, color = colors[i], lw=0.5 )
+            # for i in[0,1,2]:
+            #     ax1.plot(ds_freq, y[i], label = ap, color = colors[i], lw=0.5 )
+            
+            axs[1].plot(ds_freq/1e9, y[1]-y[2], label = 'GRO-SOM', color='k')
+            axs[1].plot(ds_freq/1e9, y[0]-y[2], label = 'MLS-SOM', color='green')
+            axs[1].plot(ds_freq/1e9, y[0]-y[1], label = 'MLS-GRO', color='red')
+            axs[0].set_ylabel('Tb [K]')
+            axs[1].set_ylim(-2.5, 2.5)
+            ax1.set_xlim(-10,10)
+            ax1.set_ylim(max(y[0])-8,max(y[0])+1)
+            axs[1].set_ylabel(r'$\Delta Tb$ [K]')
+            axs[1].set_xlabel('frequency [GHz]')
+            for ax in axs:
+                ax.legend(loc='upper right')
+                ax.grid()
+            fig.tight_layout()
+            plt.show()
+            fig.savefig(basename_lvl2+'comparison_FM_sensorFFT.pdf')
+            
+            # save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved.pdf'
+            level2_cycle=xr.Dataset()
         else:
-            level2_cycle=[]
+            level2_cycle=xr.Dataset()
 
         if counter>1:
-            level2 = xr.concat([level2, level2_cycle], dim='observation')
+            level2 = xr.concat([level2, level2_cycle], dim='time')
         else: 
             level2 = level2_cycle
         #except:
         #    print('problem retrieving cycle : ',c)
-    
-    #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-    #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        end_time = time.time()
+        print("Total time for this cycle: %s seconds" % (end_time - start))
+        start=time.time()
+
+    if retrieval_param["retrieval_type"] == 1 or retrieval_param["retrieval_type"] == 2:
+        save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
+       # level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
 
 
     # for d in [8]:
