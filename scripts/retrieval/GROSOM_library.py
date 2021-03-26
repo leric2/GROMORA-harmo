@@ -1050,12 +1050,40 @@ def plot_O3_all(level2_data, outName, cycles=None):
     # 
     color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'} 
     spectro = 'AC240'
+    F0 = 142175040000.0
     figure_o3_sel=list()
 
     if cycles is None:
-        cycles = np.arange(len(level2_data['AC240'].time))
+        cycles = np.arange(len(level2_data[spectro].time))
 
     for i in cycles:
+        f_backend = level2_data[spectro].f.data
+        y = level2_data[spectro].y[i].data
+        yf = level2_data[spectro].yf[i].data
+        bl = level2_data[spectro].y_baseline[i].data 
+        r = y - yf
+        r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
+        fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
+        axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
+        axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
+        
+       # axs[0].set_xlim(-0.5,15)
+        axs[0].legend()
+        axs[1].plot((f_backend - F0) / 1e6, r, label="residuals")
+        axs[1].plot((f_backend - F0) / 1e6, r_smooth, label="residuals smooth")
+        axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
+        
+       # axs[1].set_ylim(-4, 4)
+        axs[1].legend()
+        axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(F0 / 1e9))
+        
+        for ax in axs:
+            ax.set_ylabel("$T_B$ [K]")
+            ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
+        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data['AC240'].time[i].data).strftime('%Y-%m-%d %H:%M'))
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        figure_o3_sel.append(fig)
+
         fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
         
         o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
@@ -1105,7 +1133,11 @@ def plot_O3_all(level2_data, outName, cycles=None):
         axs[2].legend()
         axs[2].grid(axis='x', linewidth=0.5)
         
-        #axs[2].axvline(x=0, linewidth=0.6,color='k')
+        #axs[3].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o_x * 1e6, o3_z / 1e3, label="retrieved")
+        # axs[3].set_xlabel("$VMR$ [ppm]")
+        # axs[3].set_ylabel("Altitude [km]")
+        # axs[3].legend()
+        #axs[3].grid(axis='x', linewidth=0.5)
 
         for a in axs:
             #a.set_ylim(10,80)
