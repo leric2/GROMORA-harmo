@@ -39,25 +39,23 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.5')
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
+
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
+tub_path = os.environ['DATATUB_PATH']
+lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
-    date = datetime.date(2019, 4, 14)
+    instrument_name = "GROMOS"
+    date = datetime.date(2019, 6, 2)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = True
-    basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
-    basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"
-    
-    
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -66,7 +64,7 @@ if __name__ == "__main__":
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        basename_lvl1 = os.path.join('/mnt/tub/instruments/gromos/level1/GROMORA/',str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/',str(date.year))
         instrument = gc.GROMOS_LvL2(
             date, 
             basename_lvl1, 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
             integration_strategy, 
             int_time)
     elif instrument_name=="SOMORA":
-        basename_lvl1 = "/scratch/GROSOM/Level1/SOMORA/"
+        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -107,7 +105,7 @@ if __name__ == "__main__":
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 7
+    retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = True
     retrieval_param['sensor'] = True
@@ -138,8 +136,8 @@ if __name__ == "__main__":
 
     #retrieval_param['unit_var_y']  = 3**2
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
 
@@ -148,7 +146,7 @@ if __name__ == "__main__":
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-    retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 

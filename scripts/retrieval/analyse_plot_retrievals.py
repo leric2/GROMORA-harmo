@@ -41,21 +41,21 @@ from matplotlib.ticker import (
     MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 from dotenv import load_dotenv
-import colormaps as cmaps
+#import colormaps as cmaps
 import GROSOM_library
 
 #from cmcrameri import cm
 
 # %%
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
+
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "GROMOS"
+instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -63,7 +63,7 @@ instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2019-05-12', end='2019-05-12')
+date = pd.date_range(start='2017-03-16', end='2017-08-31')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
 
@@ -123,7 +123,7 @@ def read_mls(d1, d2):
 if instrument_name=="GROMOS":
     import gromos_classes as gc
     basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"    
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
     instrument = gc.GROMOS_LvL2(
         date = date, 
         basename_lvl1=basename_lvl1,
@@ -134,7 +134,7 @@ if instrument_name=="GROMOS":
 elif instrument_name=="SOMORA":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -344,7 +344,7 @@ if plot_selected:
 
 
 if compare_MERRA2:
-    merra2_basename = '/mnt/tub/atmosphere/MERRA2/BRN/'
+    merra2_basename = '/storage/tub/atmosphere/MERRA2/BRN/'
     filename_merra2 =[
        # os.path.join(merra2_basename,'MERRA2_BRN_2016_01_diagnostic.h5'),
         os.path.join(merra2_basename,'MERRA2_BRN_2016_02_diagnostic.h5'),
