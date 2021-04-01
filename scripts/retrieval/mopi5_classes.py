@@ -304,7 +304,19 @@ class MOPI5_LvL2(DataRetrieval):
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+    
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
+        ''' 
+        Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
+        '''
+        if f_bin is not None:
+            retrieval_param["binned_ch"] = True
+        else:
+            retrieval_param["binned_ch"] = False
 
+        retrieval_param['ref_elevation_angle'] = 180
+
+        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
 
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
         '''
