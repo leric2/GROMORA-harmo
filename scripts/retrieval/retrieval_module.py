@@ -361,10 +361,14 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     polyfit_ret = arts.Polyfit(
         poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
     )
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    # )
 
     fshift_ret = arts.FreqShift(100e3, df=50e3)
 
-    periods = np.array([319e6])
+   # periods = np.array([319e6])
+    periods = retrieval_param['sinefit_periods']
     covmat_sinefit = covmat.covmat_diagonal_sparse(
         np.ones_like([0.04, 0.0016])*1)
     sinefit_ret = arts.RetrievalQuantity(
