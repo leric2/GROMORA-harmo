@@ -39,7 +39,7 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -66,7 +66,7 @@ def retrieve_day(date, instrument_name):
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
 
     basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
-    basename_lvl2 = "/scratch/MOPI5/Level2/v2/"
+    basename_lvl2 = "/home/es19m597/Documents/MOPI5/Data/"
 
     instrument = mc.MOPI5_LvL2(
         date=date,
@@ -115,23 +115,21 @@ def retrieve_day(date, instrument_name):
 
     #retrieval_param['unit_var_y']  = 3**2
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
 
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-    retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='somora'   
     retrieval_param["apriori_O3_cov"] = 1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4
+    retrieval_param["apriori_H2O_stdDev"] = 64e-4 #12e-4
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8
@@ -199,8 +197,8 @@ def retrieve_day(date, instrument_name):
         spectro_dataset = instrument.integrated_data[spectro]
 
         if spectro == 'USRP-A':
-            retrieval_param["number_of_freq_points"] = 1801
-            retrieval_param["irregularity_f_grid"] = 85
+            retrieval_param["number_of_freq_points"] = 2401
+            retrieval_param["irregularity_f_grid"] = 90
         figure_list = []
         
         #print(retrieval_param['increased_var_factor'])
@@ -270,7 +268,7 @@ def retrieve_day(date, instrument_name):
             #lvl2[spectro] = level2
     
 if __name__ == "__main__":
-    dates = pd.date_range(start='2019-04-26', end='2019-04-26')
+    dates = pd.date_range(start='2019-02-14', end='2019-02-22')
 
     for d in dates:
         try:
