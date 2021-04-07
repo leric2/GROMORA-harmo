@@ -134,7 +134,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
-        spectro_dataset.mean_sky_elevation_angle.values[cycle]
+        spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
     retrieval_param["time"] = spectro_dataset.time[cycle].values
     retrieval_param["lat"] = spectro_dataset.lat[cycle].values
@@ -155,6 +155,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # altitude for the retrieval
     # ac.set_surface(level1b_ds.alt.values[cycle])
     # ac.set_surface(retrieval_param["surface_altitude"])
+    print('Zenith angle is: ', retrieval_param["zenith_angle"])
 
     # spectroscopy
     # abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"]
