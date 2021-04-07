@@ -49,8 +49,13 @@ lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
+<<<<<<< HEAD
     instrument_name = "GROMOS"
     date = datetime.date(2019, 6, 2)
+=======
+    instrument_name = "SOMORA"
+    date = datetime.date(2019, 2, 20)
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = True
@@ -98,7 +103,7 @@ if __name__ == "__main__":
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
     
-    cycles = np.arange(10,11)
+    cycles = np.arange(12,13)
 
 
     # type of retrieval to do:
@@ -135,6 +140,7 @@ if __name__ == "__main__":
     retrieval_param['increased_var_factor'] = 15
 
     #retrieval_param['unit_var_y']  = 3**2
+    retrieval_param['pointing_angle_corr'] = 0
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
@@ -146,7 +152,11 @@ if __name__ == "__main__":
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
+<<<<<<< HEAD
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
+=======
+    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern' #  /tub/instruments/gromos/ECMWF_Bern'
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -170,6 +180,10 @@ if __name__ == "__main__":
         ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly')
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
+    
+
+   # Baseline retrievals 
+    retrieval_param['sinefit_periods'] = np.array([319e6])
     
     if integration_strategy == 'classic':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
@@ -323,11 +337,13 @@ if __name__ == "__main__":
             retrieval_param['FM_only'] = True
             retrieval_param['show_FM'] = False
             retrieval_param['sensor'] = False
-            a_priori = ['mls', 'retrieved_gromos', 'retrieved_somora']  
+            #a_priori = ['mls', 'retrieved_perrin', 'retrieved_hitran']  
+            a_priori = ['retrieved_gromos', 'retrieved_somora']
+            a_priori_legend = ['retrieved_Perrin', 'retrieved_HITRAN']    
             o3_apriori_file =[
-                '/scratch/GROSOM/Level2/mls_mean_o3_2016-02-21.nc',
-                '/scratch/GROSOM/Level2/gromos_mean_o3_2016-02-21.nc',
-                '/scratch/GROSOM/Level2/somora_mean_o3_2016-02-21.nc'
+                '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/gromos_mean_o3_2017-03-23.nc',
+                '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/somora_mean_o3_2017-03-23.nc',
+                #'/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/somora_mean_o3_2017-03-23.nc'
             ] 
             ds_freq = spectro_dataset.frequencies[c].values[ spectro_dataset.good_channels[c].data == 1]
             y = np.zeros((len(a_priori), 1601))
@@ -341,16 +357,16 @@ if __name__ == "__main__":
                 ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
                 y[i] = ac.y[0]
                 ds_freq = ac.f_grid
-                axs[0].plot(ds_freq/1e9, y[i], label = ap, color = colors[i], lw=0.7 )
+                axs[0].plot(ds_freq/1e9, y[i], label = a_priori_legend[i], color = colors[i], lw=0.7 )
                 ax1.plot((ds_freq- instrument.observation_frequency)/1e6, y[i], label = ap, color = colors[i], lw=0.5 )
             # for i in[0,1,2]:
             #     ax1.plot(ds_freq, y[i], label = ap, color = colors[i], lw=0.5 )
             
-            axs[1].plot(ds_freq/1e9, y[1]-y[2], label = 'GRO-SOM', color='k')
-            axs[1].plot(ds_freq/1e9, y[0]-y[2], label = 'MLS-SOM', color='green')
-            axs[1].plot(ds_freq/1e9, y[0]-y[1], label = 'MLS-GRO', color='red')
+            axs[1].plot(ds_freq/1e9, y[0]-y[1], label = 'Per-HIT', color='k')
+            #axs[1].plot(ds_freq/1e9, y[0]-y[2], label = 'MLS-HIT', color='green')
+            #axs[1].plot(ds_freq/1e9, y[0]-y[1], label = 'MLS-Per', color='red')
             axs[0].set_ylabel('Tb [K]')
-            axs[1].set_ylim(-2.5, 2.5)
+            #axs[1].set_ylim(-2.5, 2.5)
             ax1.set_xlim(-10,10)
             ax1.set_ylim(max(y[0])-8,max(y[0])+1)
             axs[1].set_ylabel(r'$\Delta Tb$ [K]')
@@ -360,7 +376,7 @@ if __name__ == "__main__":
                 ax.grid()
             fig.tight_layout()
             plt.show()
-            fig.savefig(basename_lvl2+'comparison_FM_sensorFFT.pdf')
+            fig.savefig(basename_lvl2+'comparison_FM_sensorFFT_'+instrument.datestr+'.pdf')
             
             # save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved.pdf'
             level2_cycle=xr.Dataset()

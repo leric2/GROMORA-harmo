@@ -78,7 +78,7 @@ def retrieve_day(date, instrument_name):
     
     retrieval_param = instrument.import_standard_retrieval_params_mopi5()
 
-    cycles = np.arange(0,4)
+    cycles = np.arange(2,3)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -147,6 +147,7 @@ def retrieve_day(date, instrument_name):
 
    # Baseline retrievals 
     retrieval_param['sinefit_periods'] = np.array([319e6])
+    retrieval_param['pointing_angle_corr'] = -5
     
     if integration_strategy == 'classic' or integration_strategy == 'TOD_harmo' or integration_strategy == 'TOD':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
@@ -170,7 +171,7 @@ def retrieve_day(date, instrument_name):
     #
     spectrometers = instrument.spectrometers
   #  spectrometers = ['AC240','U5303']
-   # spectrometers = ['AC240']
+    spectrometers = ['AC240']
     #spectrometers = ['USRP-A']
    # spectrometers = ['U5303']
 
@@ -268,10 +269,16 @@ def retrieve_day(date, instrument_name):
             #lvl2[spectro] = level2
     
 if __name__ == "__main__":
+<<<<<<< HEAD
     dates = pd.date_range(start='2019-02-14', end='2019-02-22')
+=======
+    dates = pd.date_range(start='2019-02-13', end='2019-02-13')
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
 
     for d in dates:
         try:
             retrieve_day(d, 'mopi5')
         except:
             print('problem retrieving day : ',d)
+
+# %%

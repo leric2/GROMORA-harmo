@@ -71,8 +71,13 @@ def retrieve_day(date, instrument_name):
             integration_strategy, 
             int_time)
     elif instrument_name=="SOMORA":
+<<<<<<< HEAD
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
         basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+=======
+        basename_lvl1 = "/scratch/GROSOM/Level1/SOMORA/"
+        basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -135,6 +140,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['increased_var_factor'] = 15
 
     #retrieval_param['unit_var_y']  = 3**2
+    retrieval_param['pointing_angle_corr'] = 5
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
@@ -146,7 +152,11 @@ def retrieve_day(date, instrument_name):
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
+<<<<<<< HEAD
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
+=======
+    retrieval_param['ecmwf_store_location'] ='/mnt/tub/instruments/gromos/ECMWF_Bern'
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -170,6 +180,9 @@ def retrieve_day(date, instrument_name):
         ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly')
     # Check the structure of the file and maybe use it ?
     #print(netCDF4.Dataset(filename+".nc").groups.keys())
+
+    # Baseline retrievals 
+    retrieval_param['sinefit_periods'] = np.array([319e6])
     
     if integration_strategy == 'classic':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
@@ -338,14 +351,18 @@ def retrieve_day(date, instrument_name):
     else:
         return 0
 if __name__ == "__main__":
+<<<<<<< HEAD
     dates = pd.date_range(start='2017-11-01', end='2017-12-31')
+=======
+    dates = pd.date_range(start='2017-01-02', end='2017-03-15')
+>>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
 
     for d in dates:
         try:
             level2 = retrieve_day(d, 'GROMOS')
         except:
             print('problem retrieving day : ',d)
-        try:
-            level2 = retrieve_day(d, 'SOMORA')
-        except:
-            print('problem retrieving day : ',d)
+        # try:
+        #     level2 = retrieve_day(d, 'SOMORA')
+        # except:
+        #     print('problem retrieving day : ',d)
