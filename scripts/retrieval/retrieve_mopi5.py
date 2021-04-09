@@ -78,7 +78,7 @@ def retrieve_day(date, instrument_name):
     
     retrieval_param = instrument.import_standard_retrieval_params_mopi5()
 
-    cycles = np.arange(2,3)
+    cycles = np.arange(1,4)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -86,7 +86,7 @@ def retrieve_day(date, instrument_name):
     # 3. test retrieving the FM
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
-    retrieval_param['show_FM'] = True
+    retrieval_param['show_FM'] = False
     retrieval_param['sensor'] = True
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
 
@@ -111,7 +111,6 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
-    retrieval_param['increased_var_factor'] = 15
 
     #retrieval_param['unit_var_y']  = 3**2
 
@@ -128,8 +127,8 @@ def retrieve_day(date, instrument_name):
     retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='somora'   
-    retrieval_param["apriori_O3_cov"] = 1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 64e-4 #12e-4
+    retrieval_param["apriori_O3_cov"] = 0.8e-6
+    retrieval_param["apriori_H2O_stdDev"] = 12e-4 #12e-4
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8
@@ -147,7 +146,7 @@ def retrieve_day(date, instrument_name):
 
    # Baseline retrievals 
     retrieval_param['sinefit_periods'] = np.array([319e6])
-    retrieval_param['pointing_angle_corr'] = -5
+    retrieval_param['pointing_angle_corr'] = 0
     
     if integration_strategy == 'classic' or integration_strategy == 'TOD_harmo' or integration_strategy == 'TOD':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
@@ -159,7 +158,7 @@ def retrieve_day(date, instrument_name):
     if recheck_channels:
         integrated_data = instrument.find_bad_channels_stdTb(
             spectrometers = instrument.spectrometers, 
-            stdTb_threshold = 15,
+            stdTb_threshold = 10,
             apply_on='int',
             dimension=dimension
             )
@@ -170,10 +169,10 @@ def retrieve_day(date, instrument_name):
     # %%
     #
     spectrometers = instrument.spectrometers
-  #  spectrometers = ['AC240','U5303']
-    spectrometers = ['AC240']
+    #spectrometers = ['USRP-A','U5303']
+    #spectrometers = ['AC240']
     #spectrometers = ['USRP-A']
-   # spectrometers = ['U5303']
+    #spectrometers = ['U5303']
 
     
     #var_fac_U5303_feb = [400, 1500, 1200, 1200, 1500, 1500, 800, 700, 700, 600, 600, 600, 600, 600, 600]
@@ -185,28 +184,34 @@ def retrieve_day(date, instrument_name):
     var_fac_AC240_apr = np.ones((11,1))*200
     #var_fac_AC240_feb = np.ones((15,1))*600
     #var_fac_AC240[0] = 200
-
-    
     
     #var_factor = {'U5303':var_fac_U5303, 'AC240':var_fac_AC240_feb, 'USRP-A':var_factor_USRP_feb}
     var_factor = {'U5303':var_fac_U5303_apr, 'AC240':var_fac_AC240_apr, 'USRP-A':var_fac_USRP_apr}
+    
+    var_factor = {'U5303':9, 'AC240':15, 'USRP-A':1.08}
+    var_factor = {'U5303':0.05, 'AC240':0.05, 'USRP-A':0.002}
     #[450 , 450, 350]
 
     level2 = dict()
     for i, spectro in enumerate(spectrometers):
+        print('######################################################################################')
         print('Retrieving ', spectro, ' on day: ')
         spectro_dataset = instrument.integrated_data[spectro]
 
         if spectro == 'USRP-A':
-            retrieval_param["number_of_freq_points"] = 2401
-            retrieval_param["irregularity_f_grid"] = 90
+            retrieval_param["number_of_freq_points"] = 4601
+            retrieval_param["irregularity_f_grid"] = 60
         figure_list = []
-        
+        #cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
+
+        if len(cycles) ==0:
+            return 0
         #print(retrieval_param['increased_var_factor'])
         counter = 0
         for c in cycles:
+            print('########################################')
             try:
-                retrieval_param['increased_var_factor'] = var_factor[spectro][c]
+                retrieval_param['increased_var_factor'] = var_factor[spectro] #var_factor[spectro][c]
                 retrieval_param["integration_cycle"] = c
            #     instrument.compare_spectra_mopi5(dim=dimension[0], idx=[c], save_plot=False, identifier=np.arange(c+1), with_corr=True)
                 #bin_vector = instrument.create_binning(
@@ -269,11 +274,15 @@ def retrieve_day(date, instrument_name):
             #lvl2[spectro] = level2
     
 if __name__ == "__main__":
-<<<<<<< HEAD
-    dates = pd.date_range(start='2019-02-14', end='2019-02-22')
-=======
     dates = pd.date_range(start='2019-02-13', end='2019-02-13')
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
+    # date = pd.date_range(start='2019-01-03', end='2019-01-05')
+    # date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    # date = pd.date_range(start='2019-05-01', end='2019-05-04')
+    # No U5303
+
+    # date = pd.date_range(start='2019-04-25', end='2019-04-27')
+
+    # date = pd.date_range(start='2019-06-11', end='2019-06-15')
 
     for d in dates:
         try:
@@ -282,3 +291,4 @@ if __name__ == "__main__":
             print('problem retrieving day : ',d)
 
 # %%
+
