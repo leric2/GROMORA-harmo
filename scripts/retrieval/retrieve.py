@@ -49,16 +49,11 @@ lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-<<<<<<< HEAD
     instrument_name = "GROMOS"
-    date = datetime.date(2019, 6, 2)
-=======
-    instrument_name = "SOMORA"
-    date = datetime.date(2019, 2, 20)
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
+    date = datetime.date(2017, 3, 20)
     int_time = 1
     integration_strategy = 'classic'
-    recheck_channels = True
+    recheck_channels = False
 
     basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
     
@@ -66,6 +61,9 @@ if __name__ == "__main__":
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
+
+    # Dictionnary containing all EXTERNAL retrieval parameters 
+    retrieval_param = dict()
 
     if instrument_name=="GROMOS":
         import gromos_classes as gc
@@ -76,6 +74,7 @@ if __name__ == "__main__":
             basename_lvl2, 
             integration_strategy, 
             int_time)
+        retrieval_param['increased_var_factor'] = 1 #15
     elif instrument_name=="SOMORA":
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
         import somora_classes as sm
@@ -86,6 +85,7 @@ if __name__ == "__main__":
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
+        retrieval_param['increased_var_factor'] = 1.1 #15
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -100,10 +100,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    # Dictionnary containing all EXTERNAL retrieval parameters 
-    retrieval_param = dict()
-    
-    cycles = np.arange(12,13)
+    cycles = np.arange(0,1)
 
 
     # type of retrieval to do:
@@ -137,8 +134,7 @@ if __name__ == "__main__":
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
-    retrieval_param['increased_var_factor'] = 15
-
+    
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
@@ -152,17 +148,13 @@ if __name__ == "__main__":
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-<<<<<<< HEAD
-    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
-=======
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern' #  /tub/instruments/gromos/ECMWF_Bern'
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='somora'   
-    retrieval_param["apriori_O3_cov"] = 1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4
+    retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
+    retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4 12e-4
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8

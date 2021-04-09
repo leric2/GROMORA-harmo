@@ -49,7 +49,7 @@ def retrieve_day(date, instrument_name):
    # date = datetime.date(2019,4,d)
     int_time = 1
     integration_strategy = 'classic'
-    recheck_channels = True
+    recheck_channels = False
     basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
     basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"
 
@@ -59,7 +59,9 @@ def retrieve_day(date, instrument_name):
    # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
    # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
    # line_file = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/Hitran_all.xml'
-
+    
+    # Dictionnary containing all EXTERNAL retrieval parameters 
+    retrieval_param = dict()
     if instrument_name=="GROMOS":
         import gromos_classes as gc
         basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/',str(date.year))
@@ -70,14 +72,10 @@ def retrieve_day(date, instrument_name):
             basename_lvl2, 
             integration_strategy, 
             int_time)
+        retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
-<<<<<<< HEAD
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
         basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
-=======
-        basename_lvl1 = "/scratch/GROSOM/Level1/SOMORA/"
-        basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -86,6 +84,7 @@ def retrieve_day(date, instrument_name):
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
+        retrieval_param['increased_var_factor'] = 1.1
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -99,9 +98,6 @@ def retrieve_day(date, instrument_name):
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
-    
-    # Dictionnary containing all EXTERNAL retrieval parameters 
-    retrieval_param = dict()
     
    # cycles = np.arange(1,24)
     
@@ -137,7 +133,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
-    retrieval_param['increased_var_factor'] = 15
+    
 
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 5
@@ -152,11 +148,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-<<<<<<< HEAD
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
-=======
-    retrieval_param['ecmwf_store_location'] ='/mnt/tub/instruments/gromos/ECMWF_Bern'
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -345,17 +337,13 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         # save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'right_cost.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-<<<<<<< HEAD
-    dates = pd.date_range(start='2017-11-01', end='2017-12-31')
-=======
-    dates = pd.date_range(start='2017-01-02', end='2017-03-15')
->>>>>>> a23901c5078644d98f5f82093adbf068e47c42c7
+    dates = pd.date_range(start='2017-03-15', end='2017-04-05')
 
     for d in dates:
         try:

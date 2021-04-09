@@ -63,7 +63,7 @@ def plot_FM_comparison(ds_freq, y_FM, y_obs):
     ax = fig.add_subplot(111)
     ax.plot(ds_freq/1e9, y_obs, 'r')
     ax.plot(ds_freq/1e9, y_FM, 'b-', linewidth=2)
-    # ax.set_ylim((-5,25))
+    ax.set_ylim((10,250))
 
     ax.set_xlabel('freq [GHz]')
     ax.set_ylabel('Tb [K]')
@@ -95,6 +95,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     if ac_FM is None:
         print("Retrieval of Ozone and H20")
         good_channels = spectro_dataset.good_channels[cycle].data == 1
+        bad_channels = spectro_dataset.good_channels[cycle].data == 0
         ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
         ds_y = spectro_dataset.Tb[cycle].values[good_channels]
 
@@ -349,13 +350,18 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
     if ac_FM is None:
-        y_var = retrieval_param['increased_var_factor']*np.square(
-            spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+        if instrument.instrument_name == 'mopi5':
+            y_var = retrieval_param['increased_var_factor']*np.square(
+                spectro_dataset.mean_std_Tb[cycle].data) * np.ones_like(ds_y)
+        else:
+            y_var = retrieval_param['increased_var_factor']*np.square(
+                spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+            #y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
     else:
         print('Using standard y var')
         y_var = 4 * np.ones_like(ds_y)
 
-    print('Measurement variance : ', y_var)
+    print('Measurement variance : ', np.median(y_var))
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
@@ -406,7 +412,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.oem(
         method='gn',
         max_iter=20,
-        stop_dx=0.1,
+        stop_dx=0.05,
         display_progress=1,
         lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
         inversion_iterate_agenda=inversion_iterate_agenda,
@@ -414,6 +420,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     retrievals_time = time.time()
     print("retrievals_time: %s seconds" %
           (retrievals_time - retrievals_setup_time))
+    print("OEM diagnostics: " + str(ac.oem_diagnostics))
+    print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
     if not ac.oem_converged:
         print("OEM did not converge.")
         print("OEM diagnostics: " + str(ac.oem_diagnostics))
