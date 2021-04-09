@@ -86,8 +86,7 @@ calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibration
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
-calibrationTool.level1Folder='/scratch/GROSOM/Level1/SOMORA/';
+calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v1/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 

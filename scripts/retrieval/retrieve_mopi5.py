@@ -56,8 +56,8 @@ def retrieve_day(date, instrument_name):
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
     #date = datetime.date(2019,1,4)
-    int_time = 6
-    integration_strategy = 'classic'
+    int_time = 1
+    integration_strategy = 'meanTb_harmo'
     recheck_channels = True
     do_corr = False
    # cycles = np.arange(0,4)
