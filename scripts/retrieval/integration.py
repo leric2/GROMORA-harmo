@@ -36,6 +36,10 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 
+from dotenv import load_dotenv
+
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+
 from retrievals import data
 
 # %%
@@ -44,13 +48,13 @@ def integrate(date, integration_strategy):
     instrument_name = "mopi5"
     #date = datetime.date(2019,2,21)
     #date = pd.date_range(start='2019-01-03', end='2019-01-05')
-    #meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
+   # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
     #date = pd.date_range(start='2019-01-30', end='2019-02-22')
-    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     # No U5303
@@ -59,16 +63,16 @@ def integrate(date, integration_strategy):
     #meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
 
 
-    #date = pd.date_range(start='2019-06-11', end='2019-06-15')
-    #meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+   # date = pd.date_range(start='2019-06-11', end='2019-06-15')
+    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-30')
     #date = pd.date_range(start='2019-06-13', end='2019-06-13')
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = False
-    plot_ts_Tb_Tsys = True
+    save_nc = True
+    plot_ts_Tb_Tsys = False
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/Level1a/"
@@ -85,10 +89,10 @@ def integrate(date, integration_strategy):
         calibration = sm.IntegrationSOMORA(date, basename_lvl1, integration_strategy, int_time)
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
-        basename_lvl1 = "/scratch/MOPI5/Level1/"
+        basename_lvl1 = "/storage/tub/instruments/mopi5/level1"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
-        basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
-        basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
+        # basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
+        # basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
         #calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
         calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time)
 
@@ -331,11 +335,12 @@ def plot_integrated(date, integration_strategy):
 
 # %%
 if __name__ == "__main__":
-    #dateR = pd.date_range(start='2019-01-03', end='2019-01-05')
+   # dateR = pd.date_range(start='2019-01-03', end='2019-01-05')
     #dateR = pd.date_range(start='2019-04-25', end='2019-04-27')
     dateR = pd.date_range(start='2019-01-30', end='2019-02-22')
+    dateR = pd.date_range(start='2019-06-11', end='2019-06-15')
     #dateR = pd.date_range(start='2019-01-03', end='2019-06-30')
-    #integrate(dateR, 'meanTb_harmo')
+    integrate(dateR, 'meanTb_harmo')
     
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     # integration_strategy = 'TOD_harmo'

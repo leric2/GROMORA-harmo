@@ -56,8 +56,8 @@ def retrieve_day(date, instrument_name):
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
     #date = datetime.date(2019,1,4)
-    int_time = 6
-    integration_strategy = 'classic'
+    int_time = 1
+    integration_strategy = 'meanTb_harmo'
     recheck_channels = True
     do_corr = False
    # cycles = np.arange(0,4)
@@ -149,7 +149,7 @@ def retrieve_day(date, instrument_name):
 
    # Baseline retrievals 
     retrieval_param['sinefit_periods'] = np.array([319e6])
-    retrieval_param['pointing_angle_corr'] = -5
+    retrieval_param['pointing_angle_corr'] = 0
     
     if integration_strategy == 'classic' or integration_strategy == 'TOD_harmo' or integration_strategy == 'TOD':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
@@ -271,7 +271,7 @@ def retrieve_day(date, instrument_name):
             #lvl2[spectro] = level2
     
 if __name__ == "__main__":
-    dates = pd.date_range(start='2019-02-13', end='2019-02-13')
+    dates = pd.date_range(start='2019-02-22', end='2019-02-22')
 
     for d in dates:
         try:

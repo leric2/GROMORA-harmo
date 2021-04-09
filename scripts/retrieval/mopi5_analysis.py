@@ -43,7 +43,6 @@ import mopi5_library
 from matplotlib.ticker import (
     MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
-import plotly_express as px
 
 
 # %%
@@ -71,8 +70,9 @@ lowerBound = [0, 80, 85, 90, 95, 100, 105,
 # meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
 # lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
 
-# date = pd.date_range(start='2019-06-11', end='2019-06-15')
-# meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+date = pd.date_range(start='2019-06-11', end='2019-06-15')
+meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+lowerBound = [0, 110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
 
 # date = pd.date_range(start='2019-03-12', end='2019-03-12')
 # date = pd.date_range(start='2019-02-22', end='2019-02-22')
@@ -85,9 +85,9 @@ df_bins = 200e3
 date1b = pd.to_datetime(date[-1])
 
 plot_comparison = False
-plot_fancy1 = True
+plot_fancy1 = False
 plot_fancy2 = True
-plot_interp_facny3 = True
+plot_interp_facny3 = False
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
@@ -104,10 +104,11 @@ classic = np.arange(1, 24)
 
 # %%
 
-basename_lvl1 = "/scratch/MOPI5/Level1/"
+basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
+basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/scratch/MOPI5/Level2/"
-basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
-basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
+# basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
+# basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
 # calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
 integration = mc.MOPI5_LvL2(date1b, basename_lvl1, basename_lvl2,
                             integration_strategy, integration_time=int_time)
@@ -133,7 +134,7 @@ if plot_fancy1:
             dim=dimension[0],
             idx=idx_all,
             # idx=[0,1,2,3],
-            save_plot=True,
+            save_plot=False,
             identifier=identifier_plot,
             lowerBound=lowerBound,
             with_corr=False,
@@ -233,7 +234,7 @@ if plot_fancy2:
         dim=dimension[0],
         idx=idx_all,
         spectrometers=['AC240'],
-        save_plot=True,
+        save_plot=False,
         use_basis='U5303',
         # identifier=TOD,
         identifier=identifier_plot,
