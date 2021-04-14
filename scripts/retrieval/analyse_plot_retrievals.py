@@ -1,6 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Created on Fri Apr 10 11:37:52 2020
+
+@author: eric
+
+Integration script for IAP instruments
+
+Example:
+    E...
+
+        $ python example_google.py
+
+Attributes:
+    module_level_variable1 (int): Module level variables may be documented in
+        either the ``Attributes`` section of the module docstring, or in an
+        inline docstring immediately following the variable.
+
+        Either form is acceptable, but the two should not be mixed. Choose
+        one convention to document module level variables and be consistent
+        with it.
+
+Todo: all
+
+"""
 import datetime
 import os
 from abc import ABC
@@ -114,6 +138,7 @@ def read_mls(d1, d2):
         ),
         attrs=dict(description='ozone time series at bern')
     )
+
 
     return ds_mls.sel(time=slice(d1, d2))
 
@@ -495,7 +520,7 @@ if compare_MLS:
 
     fig, ax = plt.subplots(1, 1)
     #monthly_mls.plot(x='time', y='p', ax=ax ,vmin=0, vmax=9).resample(time='24H', skipna=True).mean()
-    pl = o3_mls.plot(
+    pl = o3_mls.resample(time='4H', skipna=True).mean().plot(
         x='time',
         y='p',
         ax=ax,
