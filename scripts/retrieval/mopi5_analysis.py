@@ -16,11 +16,16 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
+<<<<<<< HEAD
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+=======
+
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+>>>>>>> 377b999 (update mopi5 processing)
 
 # cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
 # cm_data = np.loadtxt(
@@ -69,8 +74,11 @@ int_time = 1
 plot_ts_Tb_Tsys = False
 df_bins = 200e3
 #date1b = pd.to_datetime(date[-1])
+<<<<<<< HEAD
 
 plot_spectra_schematic = True
+=======
+>>>>>>> 377b999 (update mopi5 processing)
 
 plot_comparison = False
 compare_level2_mopi5 = False
@@ -81,7 +89,7 @@ plot_bias = False
 plot_bias_TOD = True
 plot_bias_TOD_full = False
 plot_o3 = False
-plot_o3_sel = False
+plot_o3_sel = True
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -329,8 +337,11 @@ if plot_bias:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
+<<<<<<< HEAD
             #integrated_data = integration.add_mean_Tb(spectrometers = integration.spectrometers, around_center=True, around_center_value=500e6)
 
+=======
+>>>>>>> 377b999 (update mopi5 processing)
             color = monthly_color[d[0].month-1]
             for s in ['U5303', 'AC240']:
                 scatter = ax1.scatter(
@@ -571,8 +582,12 @@ if plot_bias_TOD:
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
+<<<<<<< HEAD
             color = monthly_color[d.month-1]
             smb = symbols[d.month-1]
+=======
+            color = monthly_color[d[0].month-1]
+>>>>>>> 377b999 (update mopi5 processing)
             s = 'AC240'
 
             # normal diff
@@ -652,7 +667,7 @@ if plot_bias_TOD_full:
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].line_amplitude.data -
                                                                         integrated_data['U5303'].line_amplitude.data)/integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -697,7 +712,7 @@ if plot_bias_TOD_full:
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             # scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
             # #scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -756,6 +771,7 @@ if plot_bias_TOD_full:
     save_single_pdf(basename_lvl2+'full_bias_all_' +
                     integration_strategy+'_2021.pdf', figures2)
 if plot_o3:
+<<<<<<< HEAD
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='_all')
@@ -884,3 +900,19 @@ if plot_o3_sel:
         outname=outName
     )
 # %%
+=======
+   spectro_lvl2 = integration.spectrometers
+   level2_data = integration.read_level2(
+       spectrometers=spectro_lvl2, extra_base='_all')
+   outName = 'bias_o3_feb'
+   mopi5_library.plot_O3_all_mopi5(level2_data, outName)
+if  plot_o3_sel:
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+       spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise')
+    level2_ac240_unbiased = integration.read_level2(
+       spectrometers=['AC240'], extra_base='fascodunbiased_all_fix_noise')
+    level2_data['AC240_unbiased'] =level2_ac240_unbiased['AC240']
+    outName = integration.level2_folder+'/bias_o3_feb_all_unbiased_fascod_fix_noise'
+    mopi5_library.plot_O3_sel_mopi5(level2_data, spectro=['U5303','AC240','AC240_unbiased'], outName=outName)       
+>>>>>>> 377b999 (update mopi5 processing)

@@ -70,7 +70,11 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
+<<<<<<< HEAD
 date = pd.date_range(start='2018-01-01', end='2018-03-31')
+=======
+date = pd.date_range(start='2019-02-22', end='2019-02-22')
+>>>>>>> 377b999 (update mopi5 processing)
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -99,6 +103,7 @@ classic = np.arange(1, 24)
 
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
+<<<<<<< HEAD
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
@@ -107,6 +112,15 @@ ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 ex = '_newcorr'
 #ex = '_waccm'
+=======
+spectros = ['USRP-A'] 
+#spectros = ['AC240'] 
+
+
+ex = 'fascodunbiased_all'
+ex = '_fascod_fix_noise_2'
+#ex = ''
+>>>>>>> 377b999 (update mopi5 processing)
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -138,7 +152,6 @@ def read_mls(d1, d2):
         ),
         attrs=dict(description='ozone time series at bern')
     )
-
 
     return ds_mls.sel(time=slice(d1, d2))
 
@@ -227,6 +240,7 @@ if plot_cost:
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
+<<<<<<< HEAD
             fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
@@ -234,6 +248,11 @@ if plot_cost:
             noise_input.plot(marker='.',ax=axs[1])
             #axs[1].set_ylim(0,1)
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
+=======
+            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            end_cost = level2_dataset[s].oem_diagnostics[:, 3]
+            end_cost.plot(ax=axs)
+>>>>>>> 377b999 (update mopi5 processing)
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+'_end_cost.pdf', dpi=500)
 
@@ -435,6 +454,7 @@ if plot_o3_diff_waccm:
 
 if plot_all_mopi5:
     for s in spectros:
+<<<<<<< HEAD
         outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
         mopi5_library.plot_O3_sel_paper(
             level2_dataset,
@@ -480,6 +500,15 @@ if read_waccm_clim:
     )
     ds_o3_all.time.attrs['description'] = 'day of year'
     ds_o3_all.tod.attrs['description'] = 'time of day: daytime [0] or nighttime [1]'
+=======
+        outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
+        mopi5_library.plot_O3_all(
+            level2_dataset,
+            outname,
+            spectro=s,
+            cycles=np.arange(0, 14)
+        )
+>>>>>>> 377b999 (update mopi5 processing)
 
     ds_o3_all.to_netcdf('waccm_o3_climatology.nc')
 
