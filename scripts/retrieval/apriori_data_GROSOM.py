@@ -328,8 +328,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
 
-    
-
     if retrieval_param['o3_apriori'] == 'somora':
         print('Ozone apriori from : old SOMORA retrievals')
         # extracting pressure from the fascod atm
@@ -341,7 +339,29 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
             "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
         )
-    
+    elif retrieval_param['o3_apriori'] == 'mls':
+        o3_apriori = read_mls(retrieval_param['o3_apriori_file'])
+        print('Ozone apriori from : mean MLS profile')
+        atm.set_vmr_field(
+            "O3", o3_apriori["p"].values, o3_apriori['o3'].values
+        )
+    elif retrieval_param['o3_apriori'] == 'retrieved_gromos':
+        o3_apriori = read_retrieved(retrieval_param['o3_apriori_file'])
+        ind =  np.where((o3_apriori.o3_p<10000) & (o3_apriori.o3_p>2.54))
+        o3_apriori = o3_apriori.isel(o3_p=ind[0])
+        print('Ozone apriori from : mean GROMOS profile, cut for MLS pressure grid')
+        atm.set_vmr_field(
+            "O3", o3_apriori["o3_p"].values, o3_apriori['o3_x'].values
+        )
+    elif retrieval_param['o3_apriori'] == 'retrieved_somora':
+        o3_apriori = read_retrieved(retrieval_param['o3_apriori_file'])
+        ind =  np.where((o3_apriori.o3_p<10000) & (o3_apriori.o3_p>2.54))
+        o3_apriori = o3_apriori.isel(o3_p=ind[0])
+        print('Ozone apriori from : mean SOMORA profile, cut for MLS pressure grid')
+        atm.set_vmr_field(
+            "O3", o3_apriori["o3_p"].values, o3_apriori['o3_x'].values
+        )
+
    # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
 
     # Water vapor
@@ -381,6 +401,29 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     print('Atmospheric state defined with : ECMWF oper v2, CIRA86')
     
     return atm
+def read_mls(filename):
+    mls_o3 = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    mls_o3['p'] = mls_o3['p']*100
+    mls_o3['o3'] = mls_o3['o3']*1e-6
+    return mls_o3
+
+def read_retrieved(filename):
+    retrieved_o3 = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    retrieved_o3['o3_p'] = retrieved_o3['o3_p']*100
+    retrieved_o3['o3_x'] = retrieved_o3['o3_x']*1e-6
+    return retrieved_o3
 
 def extrapolate_down_ptz(ds_ptz, z_grid):
     '''

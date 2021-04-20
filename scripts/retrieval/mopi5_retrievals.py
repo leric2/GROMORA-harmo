@@ -26,7 +26,8 @@ from retrievals import utils
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from retrievals.data import p_interpolate
 
-from typhon.arts.workspace import arts_agenda
+# from typhon.arts.workspace import arts_agenda
+from pyarts.workspace import arts_agenda
 
 from utils_GROSOM import var_allan
 
@@ -193,7 +194,7 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
         lat = retrieval_param["lat"],
         lon = retrieval_param["lon"],
         alt = retrieval_param["observation_altitude"],
-        time = retrieval_param["time"]
+        time = cycle
         )
 
     ac.set_observations([obs])
@@ -261,8 +262,8 @@ def retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param
     )
 
     #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
-    ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
-    
+    #ac.define_retrieval([ozone_ret, fshift_ret, polyfit_ret], y_var)
+    ac.define_retrieval_compatiblepyarts(retrieval_quantities=[ozone_ret], y_vars=y_var)
     # Let a priori be off by 0.5 ppm (testing purpose)
     #vmr_offset = -0.5e-6
     #ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)

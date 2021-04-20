@@ -134,7 +134,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
 
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
-        spectro_dataset.mean_sky_elevation_angle.values[cycle]
+        spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
     retrieval_param["time"] = spectro_dataset.time[cycle].values
     retrieval_param["lat"] = spectro_dataset.lat[cycle].values
@@ -155,6 +155,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # altitude for the retrieval
     # ac.set_surface(level1b_ds.alt.values[cycle])
     # ac.set_surface(retrieval_param["surface_altitude"])
+    print('Zenith angle is: ', retrieval_param["zenith_angle"])
 
     # spectroscopy
     # abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"]
@@ -223,7 +224,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.set_observations([obs])
 
     # Defining our sensors
-    sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+    if retrieval_param['sensor']: 
+        sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+    else: 
+        sensor = arts.SensorOff()
     ac.set_sensor(sensor)
 
     # doing the checks
@@ -241,7 +245,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         )
        # ac.ws.abs_lookupCalc()
         y_FM = ac.y_calc()
-        plot_FM_comparison(ds_freq, y_FM[0], ds_y)
+       # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
         return ac, retrieval_param
 
     if retrieval_param['show_FM']:
@@ -251,6 +255,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     #print("FM_time: %s seconds" % (FM_time - start_FM_time))
 
     ac.set_y([ds_y])
+
+    if len(ds_y) < 1000:
+        ac.oem_converged = False
+        return ac, retrieval_param
 
     # Setup the retrieval
 
@@ -352,12 +360,16 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     polyfit_ret = arts.Polyfit(
-        poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+        poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
     )
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    # )
 
     fshift_ret = arts.FreqShift(100e3, df=50e3)
 
-    periods = np.array([319e6])
+   # periods = np.array([319e6])
+    periods = retrieval_param['sinefit_periods']
     covmat_sinefit = covmat.covmat_diagonal_sparse(
         np.ones_like([0.04, 0.0016])*1)
     sinefit_ret = arts.RetrievalQuantity(

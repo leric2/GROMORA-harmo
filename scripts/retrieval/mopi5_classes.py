@@ -164,42 +164,42 @@ class MOPI5_LvL2(DataRetrieval):
     def import_standard_retrieval_params_mopi5(self):
 
         retrieval_param = dict()
-        retrieval_param["retrieval_type"] = 1
+        # retrieval_param["retrieval_type"] = 1
 
-        retrieval_param["obs_freq"] = self.observation_frequency
+        # retrieval_param["obs_freq"] = self.observation_frequency
     
-        retrieval_param["plot_meteo_ds"] = True
-        retrieval_param["number_of_freq_points"] = 601
-        retrieval_param["irregularity_f_grid"] = 10
-        retrieval_param["show_f_grid"] = True
+        # retrieval_param["plot_meteo_ds"] = True
+        # retrieval_param["number_of_freq_points"] = 601
+        # retrieval_param["irregularity_f_grid"] = 10
+        # retrieval_param["show_f_grid"] = True
 
-        retrieval_param["z_top_sim_grid"] = 97e3
-        retrieval_param["z_bottom_sim_grid"] = 1000
-        retrieval_param["z_resolution_sim_grid"] = 1e3
+        # retrieval_param["z_top_sim_grid"] = 97e3
+        # retrieval_param["z_bottom_sim_grid"] = 1000
+        # retrieval_param["z_resolution_sim_grid"] = 1e3
 
-        retrieval_param["z_top_ret_grid"] = 95e3
-        retrieval_param["z_bottom_ret_grid"] = 1000
-        retrieval_param["z_resolution_ret_grid"] = 3e3
+        # retrieval_param["z_top_ret_grid"] = 95e3
+        # retrieval_param["z_bottom_ret_grid"] = 1000
+        # retrieval_param["z_resolution_ret_grid"] = 3e3
 
-        #retrieval_param["z_top_ret_grid_h2o"] = 50e3
-        #retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
-
-        
-        retrieval_param['unit_var_y']  = 3
-
-
-        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-        retrieval_param["apriori_O3_cov"] = 1.5e-6
-
-        retrieval_param['water_vapor_model'] = "H2O-PWR98"
-        #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
-        #retrieval_param["azimuth_angle"]=32
+        # #retrieval_param["z_top_ret_grid_h2o"] = 50e3
+        # #retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
 
         
+        # retrieval_param['unit_var_y']  = 3
+
+
+        # retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+        # retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+        # retrieval_param["apriori_O3_cov"] = 1.5e-6
+
+        # retrieval_param['water_vapor_model'] = "H2O-PWR98"
+        # #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
+        # #retrieval_param["azimuth_angle"]=32
+
         
-        retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
-        retrieval_param['extra_time_ecmwf'] = 6
+        
+        # retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+        # retrieval_param['extra_time_ecmwf'] = 6
 
 
         return retrieval_param
@@ -304,7 +304,19 @@ class MOPI5_LvL2(DataRetrieval):
 
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_interp_diff_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
+    
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
+        ''' 
+        Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
+        '''
+        if f_bin is not None:
+            retrieval_param["binned_ch"] = True
+        else:
+            retrieval_param["binned_ch"] = False
 
+        retrieval_param['ref_elevation_angle'] = 180
+
+        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
 
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
         '''

@@ -195,7 +195,7 @@ class Integration(ABC):
         self.number_of_spectrometer = global_attrs_level1a['number_of_spectrometer']
         self.calibration_version = global_attrs_level1a['calibration_version']
 
-        self.raw_data_filename = global_attrs_level1a['raw_data']
+        self.raw_data_filename = global_attrs_level1a['raw_filename']
         self.raw_data_software_version = global_attrs_level1a['raw_data_software_version']
         
         #self.filename_level1a = global_attrs_level1a['filename']
@@ -853,7 +853,7 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_data[s] = self.integrated_data[s].drop(
-                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
         return self.integrated_data, self.integrated_meteo
@@ -1131,7 +1131,6 @@ class Integration(ABC):
         if save:
             raise NotImplementedError()
     
-
 class DataRetrieval(ABC):
     def __init__(
         self,
@@ -1158,12 +1157,12 @@ class DataRetrieval(ABC):
         # must be false for Integration
         self.multiday = False
         try:
-            len(self.date) > 1
+            if len(self.date) > 1:
+                self.multiday = True
         except TypeError:
             self.multiday = False
-        else:
-            self.multiday = True
-
+            
+    
         self.calibrated_data = dict()
         self.meteo_data = dict()
         self.calibration_flags = dict()
@@ -1174,8 +1173,8 @@ class DataRetrieval(ABC):
             self.filename_level1a[s] = list()
             self.filename_level1b[s] = list()
             if self.multiday:
-                for date in date:
-                    self.datestr = date.strftime('%Y_%m_%d')
+                for d in self.date:
+                    self.datestr = d.strftime('%Y_%m_%d')
                     self.filename_level1a[s].append(
                         os.path.join(
                     self.level1_folder,
@@ -1202,7 +1201,7 @@ class DataRetrieval(ABC):
                             s + "_" + self.datestr
                             )
             else:
-                self.datestr = self.date.strftime('%Y_%m_%d')
+                self.datestr = self.date[0].strftime('%Y_%m_%d')
                 if self.integration_strategy == 'classic':
                     if self.int_time == 1:
                         self.filename_level1b[s].append(os.path.join(
@@ -1334,12 +1333,19 @@ class DataRetrieval(ABC):
             print('No meta data updates for multi-days reading (only first day is saved) !')
             counter = 0
             for d in self.date:
-                for s in self.spectrometers:
-                    self.filename_level2[s] = os.path.join(
-                    self.level2_folder,
-                    self.instrument_name + "_level2_" +
-                    s + "_" + d.strftime('%Y_%m_%d') + extra_base
-                    )
+                for s in spectrometers:
+                    if self.int_time == 1:
+                        self.filename_level2[s] = os.path.join(
+                        self.level2_folder,
+                        self.instrument_name + "_level2_" +
+                        s + "_" + d.strftime('%Y_%m_%d') + extra_base
+                        )
+                    else:
+                        self.filename_level2[s] = os.path.join(
+                        self.level2_folder,
+                        self.instrument_name + "_level2_" + str(self.int_time)+'h_' +
+                        s + "_" + d.strftime('%Y_%m_%d') + extra_base
+                        )
                     print(self.filename_level2[s]) 
                     try:
                         level2_data = xr.open_dataset(
@@ -1480,7 +1486,7 @@ class DataRetrieval(ABC):
         else:
             retrieval_param["binned_ch"] = False
 
-        retrieval_param['ref_elevation_angle'] = 90
+        retrieval_param['ref_elevation_angle'] =  90
 
         return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
     
