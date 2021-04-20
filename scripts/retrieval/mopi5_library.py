@@ -27,7 +27,7 @@ import datetime
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 
-color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'black'}
 F0 = 110.836e9
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
@@ -1288,26 +1288,29 @@ def plot_O3_all_mopi5(level2_data, outName):
     figures2.append(fig3)
     save_single_pdf(basename_lvl2+outName+integration_strategy+'.pdf',figures2)  
 
-def plot_O3_sel_mopi5(level2_data, outName):
+def plot_O3_sel_mopi5(level2_data, spectro, outName):
     # fig = plt.figure(figsize=(9,6))
     # ax1 = fig.add_subplot(1,3,1)
     # ax2 = fig.add_subplot(1,3,2)
     # ax3 = fig.add_subplot(1,3,3   
-
+    spectro_lvl2 = spectro
     figure_o3_sel=list()
     for i in range(len(level2_data['AC240'].observation)):
         fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
         for spectro in spectro_lvl2:
-            o3 = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
-            o3_apriori = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_xa
-            o3_z = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_z
-            o3_p = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_p
-            mr = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
-            #error = lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es
-            error = np.sqrt(level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_es**2)
+            o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+            eo = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo
+            #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
             error_frac = error/o3
             o3_good = o3.where(mr>0.8).data
             axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
+            axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
+
             axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1, label=spectro,color=color_spectro[spectro])
             axs[0].plot(o3_apriori*1e6, o3_z/1e3, '--', linewidth=0.2, label=spectro,color='r')
             axs[0].set_title('$O_3$ VMR')
@@ -1320,7 +1323,7 @@ def plot_O3_sel_mopi5(level2_data, outName):
             axs[0].grid(which='both',  axis='x', linewidth=0.5)
             axs[0].set_ylabel('Altitude [km]')
 
-            mr_basis = level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_mr
+            mr_basis = level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
             axs[1].plot(mr, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
             axs[1].set_xlim(-0.1,1.2)
             axs[1].yaxis.set_major_locator(MultipleLocator(10))
@@ -1330,7 +1333,7 @@ def plot_O3_sel_mopi5(level2_data, outName):
             axs[1].set_xlabel('MR [-]')
             axs[1].grid(which='both',  axis='x', linewidth=0.5)
             axs[1].set_title('Measurement response') 
-            o3_diff = level2_data[spectro].isel(observation=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(observation=i, o3_lat=0, o3_lon=0).o3_x
+            o3_diff = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x
             o3_good_diff = o3_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
             if not spectro=='U5303':
                 axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
@@ -1365,13 +1368,14 @@ def plot_O3_sel_mopi5(level2_data, outName):
         Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
         Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
         Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
+        Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
         Line2D([0], [0], linestyle='--', color='r', label='a priori')
         ]
         axs[0].legend(handles=legend_elements)
         axs[2].axvline(x=0, linewidth=0.6,color='k')
-        fig.suptitle('$O_3$ retrievals with $T_{B,mean}$ between '+str(lowerBound[i])+' and '+str(identifier_plot[i]))
+        fig.suptitle('$O_3$ retrievals with chunks '+str(i))
         figure_o3_sel.append(fig)
-    save_single_pdf(basename_lvl2+outName+integration_strategy+'.pdf',figure_o3_sel)
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
 
 def plot_O3_all(level2_data, outName, spectro, cycles=None):
     # fig = plt.figure(figsize=(9,6))
@@ -1391,10 +1395,26 @@ def plot_O3_all(level2_data, outName, spectro, cycles=None):
         bl = level2_data[spectro].y_baseline[i].data 
         r = y - yf
         r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
+
+        # Text
+        fshift_text = "$\\Delta f =$ {:g} kHz".format(level2_data[spectro].freq_shift_x[i].values[0] / 1e3)
+        baseline_text = ", ".join(
+            ["$b_{}={:.2f}$".format(a, b) for a, b in enumerate(level2_data[spectro].poly_fit_x[:,i].values)]
+        )
+
+
         fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
         axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
         axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
-        
+        axs[0].text(
+            0.02,
+            0.8,
+            fshift_text + "\n" + baseline_text,
+            transform=axs[0].transAxes,
+            verticalalignment="top",
+            horizontalalignment="left",
+        )
+
        # axs[0].set_xlim(-0.5,15)
         axs[0].legend()
         axs[1].plot((f_backend - F0) / 1e6, r, label="residuals")
