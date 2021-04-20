@@ -1353,6 +1353,7 @@ class DataRetrieval(ABC):
                         )                    
                     except FileNotFoundError:
                         print('No file for this day, skipping ', self.filename_level2[s])
+                        level2_data[s] = np.Dataset()
                     else:
                         if counter == 0:
                             self.level2_data[s] = level2_data
