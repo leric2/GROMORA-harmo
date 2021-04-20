@@ -1157,12 +1157,12 @@ class DataRetrieval(ABC):
         # must be false for Integration
         self.multiday = False
         try:
-            len(self.date) > 1
+            if len(self.date) > 1:
+                self.multiday = True
         except TypeError:
             self.multiday = False
-        else:
-            self.multiday = True
-
+            
+    
         self.calibrated_data = dict()
         self.meteo_data = dict()
         self.calibration_flags = dict()
@@ -1201,7 +1201,7 @@ class DataRetrieval(ABC):
                             s + "_" + self.datestr
                             )
             else:
-                self.datestr = self.date.strftime('%Y_%m_%d')
+                self.datestr = self.date[0].strftime('%Y_%m_%d')
                 if self.integration_strategy == 'classic':
                     if self.int_time == 1:
                         self.filename_level1b[s].append(os.path.join(
