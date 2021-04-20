@@ -66,7 +66,8 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2017-03-16', end='2017-08-31')
+date = pd.date_range(start='2019-02-22', end='2019-02-22')
+#date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
 
@@ -92,7 +93,14 @@ integration_strategy = 'classic'
 classic = np.arange(1, 24)
 
 cycle = 14
-s = 'U5303'
+spectros = ['U5303','AC240','USRP-A'] #
+spectros = ['USRP-A'] 
+#spectros = ['AC240'] 
+
+
+ex = 'fascodunbiased_all'
+ex = '_fascod_fix_noise_2'
+#ex = ''
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -124,7 +132,6 @@ def read_mls(d1, d2):
         ),
         attrs=dict(description='ozone time series at bern')
     )
-
 
     return ds_mls.sel(time=slice(d1, d2))
 
@@ -191,31 +198,33 @@ if instrument_name == "compare":
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_right_cost'
+        extra_base=''
     )
     F0 = somora.observation_frequency
 else:
     # Plotting part
     level2_dataset = instrument.read_level2(
-        spectrometers=[s],
-        extra_base=''
+        spectrometers=spectros,
+        extra_base=ex
     )
     F0 = instrument.observation_frequency
 
 
 if plot_cost:
     if instrument_name == 'mopi5':
-        fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
-        end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-        axs.plot(end_cost)
-        fig.savefig(instrument.level2_folder+'/' +
-                    instrument.datestr+s+'_end_cost.pdf', dpi=500)
+        for s in spectros:
+            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            end_cost = level2_dataset[s].oem_diagnostics[:, 3]
+            axs.plot(end_cost)
+            fig.savefig(instrument.level2_folder+'/' +
+                        instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
-        fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
-        end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-        end_cost.plot(ax=axs)
-        fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
-                    instrument.datestr+'_end_cost.pdf', dpi=500)
+        for s in spectros:
+            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            end_cost = level2_dataset[s].oem_diagnostics[:, 3]
+            end_cost.plot(ax=axs)
+            fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+                        instrument.datestr+'_end_cost.pdf', dpi=500)
 
 if compare:
 
@@ -247,7 +256,7 @@ if compare:
     fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True, figsize=(9, 6))
 
     ozone_somora.where(mr_somora > 0.8, drop=False).mean(dim='time').plot(
-        y='o3_p', ax=axs[0], color='red', label='newcorr')
+        y='o3_p', ax=axs[0], color='red', label='SOMORA')
     ozone_gromos.where(mr_gromos > 0.8, drop=False).mean(dim='time').plot(
         y='o3_p', ax=axs[0], color='blue', label='GROMOS')
     o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
@@ -355,13 +364,14 @@ if plot_o3_ts:
                 instrument.datestr+'_ozone_ts_mr.pdf', dpi=500)
 
 if plot_all_mopi5:
-    outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_sel_polyfit2'
-    mopi5_library.plot_O3_all(
-        level2_dataset,
-        outname,
-        spectro = s,
-        cycles=np.arange(0,14)
-    )
+    for s in spectros:
+        outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
+        mopi5_library.plot_O3_all(
+            level2_dataset,
+            outname,
+            spectro=s,
+            cycles=np.arange(0, 14)
+        )
 
 
 if compare_MLS:
@@ -395,7 +405,7 @@ if compare_MLS:
 
     #ds_mls.to_netcdf('/home/esauvageat/Documents/AuraMLS/ozone_bern_ts.nc', format='NETCDF4')
 
-    o3_mls = ds_mls.sel(time=slice("2017-03-15", "2017-08-31")).o3
+    o3_mls = ds_mls.sel(time=slice("2019-01-30", "2019-06-22")).o3
 
     monthly_mls = o3_mls.resample(time='1m', skipna=True).mean()
 
@@ -406,13 +416,13 @@ if compare_MLS:
         y='p',
         ax=ax,
         vmin=0,
-        vmax=9,
+        vmax=10,
         yscale='log',
-        # linewidth=0,
-        # rasterized=True,
+        linewidth=0,
+        rasterized=True,
         cmap=colormap
     )
-    pl.set_edgecolor('face')
+   # pl.set_edgecolor('face')
     # ax.set_yscale('log')
     ax.set_ylim(0.01, 500)
     ax.invert_yaxis()
@@ -450,13 +460,15 @@ if plot_fshift:
 
 if compare_MERRA2:
     merra2_basename = '/storage/tub/atmosphere/MERRA2/BRN/'
-    filename_merra2 =[
-       # os.path.join(merra2_basename,'MERRA2_BRN_2016_01_diagnostic.h5'),
-        os.path.join(merra2_basename,'MERRA2_BRN_2016_02_diagnostic.h5'),
-        os.path.join(merra2_basename,'MERRA2_BRN_2016_03_diagnostic.h5'),
-        os.path.join(merra2_basename,'MERRA2_BRN_2016_04_diagnostic.h5')
-    ] 
-    
+    filename_merra2 = [
+        # os.path.join(merra2_basename,'MERRA2_BRN_2016_01_diagnostic.h5'),
+        os.path.join(merra2_basename, 'MERRA2_BRN_2017_08_diagnostic.h5'),
+        os.path.join(merra2_basename, 'MERRA2_BRN_2017_09_diagnostic.h5'),
+        os.path.join(merra2_basename, 'MERRA2_BRN_2017_10_diagnostic.h5'),
+        os.path.join(merra2_basename, 'MERRA2_BRN_2017_11_diagnostic.h5'),
+        os.path.join(merra2_basename, 'MERRA2_BRN_2017_12_diagnostic.h5')
+    ]
+
     o3_merra2_tot = xr.Dataset()
     counter = 0
     for f in filename_merra2:
@@ -511,14 +523,14 @@ if compare_MERRA2:
         counter = counter + 1
 
     o3_merra2_tot = o3_merra2_tot.sel(
-        datetime=slice("2016-02-15", "2016-04-07"))
+        datetime=slice("2017-08-15", "2017-12-31"))
 
     fig, ax = plt.subplots(1, 1)
-    o3_merra2_tot.plot(x='datetime', y='altitude', ax=ax, vmin=0, vmax=15)
+    o3_merra2_tot.plot(x='datetime', y='altitude', ax=ax, vmin=0, vmax=15, cmap=colormap)
     ax.set_ylim(5, 65)
     # o3_merra2.assign_coords({'altitude':merra2_info.alt.isel(phony_dim_1=0)})
     plt.tight_layout()
-    fig.savefig(instrument.level2_folder+'/ozone_ts_16_merra2.pdf')
+    fig.savefig(instrument.level2_folder+'/ozone_ts_17_merra2.pdf')
 # %%
 
 if compare_ECMWF:

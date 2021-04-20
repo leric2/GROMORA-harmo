@@ -35,7 +35,9 @@ import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
+from dotenv import load_dotenv
 
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 
 import mopi5_classes as mc
 import mopi5_library
@@ -57,7 +59,7 @@ instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2019-01-30', end='2019-02-22')
+date = pd.date_range(start='2019-02-22', end='2019-02-22')
 meanTb_chunks = [80, 85, 90, 95, 100, 105,
                  110, 115, 120, 130, 140, 150, 170, 190]
 lowerBound = [0, 80, 85, 90, 95, 100, 105,
@@ -70,9 +72,9 @@ lowerBound = [0, 80, 85, 90, 95, 100, 105,
 # meanTb_chunks = [105, 110, 115, 120, 130, 160, 180, 200]
 # lowerBound = [0, 105, 110, 115, 120, 130, 160, 180, 200]
 
-date = pd.date_range(start='2019-06-11', end='2019-06-15')
-meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
-lowerBound = [0, 110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+# date = pd.date_range(start='2019-06-11', end='2019-06-15')
+# meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+# lowerBound = [0, 110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
 
 # date = pd.date_range(start='2019-03-12', end='2019-03-12')
 # date = pd.date_range(start='2019-02-22', end='2019-02-22')
@@ -82,16 +84,16 @@ int_time = 1
 
 plot_ts_Tb_Tsys = False
 df_bins = 200e3
-date1b = pd.to_datetime(date[-1])
+#date1b = pd.to_datetime(date[-1])
 
 plot_comparison = False
 plot_fancy1 = False
-plot_fancy2 = True
+plot_fancy2 = False
 plot_interp_facny3 = False
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
-plot_o3_sel = False
+plot_o3_sel = True
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -106,11 +108,11 @@ classic = np.arange(1, 24)
 
 basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
-basename_lvl2 = "/scratch/MOPI5/Level2/"
+basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
 # basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
 # basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
 # calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
-integration = mc.MOPI5_LvL2(date1b, basename_lvl1, basename_lvl2,
+integration = mc.MOPI5_LvL2(date, basename_lvl1, basename_lvl2,
                             integration_strategy, integration_time=int_time)
  # Plotting part
 integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
@@ -297,8 +299,9 @@ if plot_comparison:
 
 # %%
 if plot_bias:
-    end_dates = [datetime.date(2019, 1, 5), datetime.date(
-        2019, 2, 22), datetime.date(2019, 4, 27)]
+    # end_dates = [datetime.date(2019, 1, 5), datetime.date(
+    #     2019, 2, 22), datetime.date(2019, 4, 27)]
+    end_dates = [pd.date_range(start='2019-02-22', end='2019-02-22')]
     monthly_color = ['magenta', 'blue', 'cyan', 'orange', 'red']
     month_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
     size = 12
@@ -316,24 +319,24 @@ if plot_bias:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             for s in ['U5303', 'AC240']:
                 scatter = ax1.scatter(
-                    integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data, s=size, marker=symbol[s], color=monthly_color[d.month-1])
+                    integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data, s=size, marker=symbol[s], color=monthly_color[d[0].month-1])
                 ax1.set_ylabel(r'$T_B$ [K]')
                 # ax1.set_ylim(-2,0)
                 # ax1.set_ylim(-1,0.5)
                 ax1.set_title('line amplitude')
                 ax1.set_xlabel('Mean $T_b$ [K]')
                 ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data,
-                            s=size, marker=symbol[s], color=monthly_color[d.month-1])
+                            s=size, marker=symbol[s], color=monthly_color[d[0].month-1])
                 ax2.set_ylabel(r'$T_B$ [K]')
                 ax2.set_xlabel('Mean $T_b$ [K]')
                 ax2.set_title('$T_B$ continuum')
                 # ax2.set_ylim(-2,0)
                 # ax2.set_ylim(-1,1)
                 ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv *
-                            1e9, s=size, marker=symbol[s], color=monthly_color[d.month-1])
+                            1e9, s=size, marker=symbol[s], color=monthly_color[d[0].month-1])
                 ax3.set_ylabel('m [K/GHz]')
                 # ax3.set_ylim(-0.8,0.2)
                 ax3.set_title('Slope')
@@ -381,7 +384,7 @@ if plot_bias:
                 d, basename_lvl1, integration_strategy, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data -
                                   integrated_data['U5303'].line_amplitude.data, s=size, color=color)
@@ -445,7 +448,7 @@ if plot_bias:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].line_amplitude.data -
                                                                         integrated_data['U5303'].line_amplitude.data)/integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -496,7 +499,7 @@ if plot_bias:
                 d, basename_lvl1, integration_strategy, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             ax1.scatter(integrated_data['AC240'].mean_Tb.data, 100 *
                         integrated_data['AC240'].bias_Tb_lc_corr.data, marker='x', color=color, s=10)
             ax1.scatter(integrated_data['USRP-A'].mean_Tb.data, 100 *
@@ -555,7 +558,7 @@ if plot_bias_TOD:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data -
                                   integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -625,7 +628,7 @@ if plot_bias_TOD:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].line_amplitude.data -
                                                                         integrated_data['U5303'].line_amplitude.data)/integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -670,7 +673,7 @@ if plot_bias_TOD:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d.month-1]
+            color = monthly_color[d[0].month-1]
             s = 'AC240'
             # scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
             # #scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -735,10 +738,11 @@ if plot_o3:
    outName = 'bias_o3_feb'
    mopi5_library.plot_O3_all_mopi5(level2_data, outName)
 if  plot_o3_sel:
-   spectro_lvl2 = integration.spectrometers
-   level2_data = integration.read_level2(
-       spectrometers=spectro_lvl2, extra_base='_all')
-   outName = 'bias_o3_feb_all_'
-   mopi5_library.plot_O3_sel_mopi5(level2_data, outName)       
- 
-# %%
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+       spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise')
+    level2_ac240_unbiased = integration.read_level2(
+       spectrometers=['AC240'], extra_base='fascodunbiased_all_fix_noise')
+    level2_data['AC240_unbiased'] =level2_ac240_unbiased['AC240']
+    outName = integration.level2_folder+'/bias_o3_feb_all_unbiased_fascod_fix_noise'
+    mopi5_library.plot_O3_sel_mopi5(level2_data, spectro=['U5303','AC240','AC240_unbiased'], outName=outName)       
