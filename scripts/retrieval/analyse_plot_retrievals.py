@@ -1,30 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Created on Fri Apr 10 11:37:52 2020
-
-@author: eric
-
-Integration script for IAP instruments
-
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
-
-"""
 import datetime
 import os
 from abc import ABC
@@ -36,7 +12,11 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 from dotenv import load_dotenv
-#import colormaps as cmaps
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.lines import Line2D
+from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
+                               MultipleLocator)
+
 import GROSOM_library
 import mopi5_library
 from utils_GROSOM import save_single_pdf
@@ -77,11 +57,11 @@ plot_cycle = False
 df_bins = 200e3
 
 plot_all = False
-plot_all_mopi5 = False
+plot_all_mopi5 = True
 plot_o3_ts = False
 plot_selected = False
 plot_fshift = False
-plot_cost = True
+plot_cost = False
 
 compare = False
 
@@ -99,7 +79,7 @@ spectros = ['USRP-A']
 
 
 ex = 'fascodunbiased_all'
-ex = '_fascod_fix_noise_2'
+ex = '_fascod_fix_noise_3'
 #ex = ''
 # %%
 
@@ -365,7 +345,7 @@ if plot_o3_ts:
 
 if plot_all_mopi5:
     for s in spectros:
-        outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
+        outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
         mopi5_library.plot_O3_all(
             level2_dataset,
             outname,

@@ -428,5 +428,15 @@ class MOPI5_LvL2(DataRetrieval):
         '''
         return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
 
+    def plot_o3_retrieval_mopi5(self, level2_data, spectrometers=[], idx=[0], save_plot = False, identifier=[], lowerBound=[], title=None, outname=None):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title ='Ozone retrievals with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+            figures.append(mopi5_library.plot_O3_chunk_mopi5(level2_data, spectrometers, i, title=title))
+
+        if save_plot:
+            save_single_pdf(outname, figures)
+
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)

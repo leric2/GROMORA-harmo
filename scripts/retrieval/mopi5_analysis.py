@@ -1,30 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Created on Fri Apr 10 11:37:52 2020
+from matplotlib.lines import Line2D
+from matplotlib.ticker import (
+    MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 
-@author: eric
-
-Integration script for IAP instruments
-
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
-
-"""
 from abc import ABC
 import os
 import datetime
@@ -36,24 +16,27 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
-
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-
-import mopi5_classes as mc
-import mopi5_library
-
-from matplotlib.ticker import (
-    MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 
+cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
+cm_data = np.loadtxt(
+    '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
+cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
+
+
+import mopi5_library
+import mopi5_classes as mc
 # %%
 
 # if __name__ == "__main__":
 
 instrument_name = "mopi5"
 # date = datetime.date(2019,2,21)
-# date = pd.date_range(start='2019-01-03', end='2019-01-05')
+# date = pd.date_range(start='2019-01-05', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
@@ -87,13 +70,14 @@ df_bins = 200e3
 #date1b = pd.to_datetime(date[-1])
 
 plot_comparison = False
+compare_level2_mopi5 = True
 plot_fancy1 = False
 plot_fancy2 = False
 plot_interp_facny3 = False
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
-plot_o3_sel = True
+plot_o3_sel = False
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -114,9 +98,9 @@ basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
 # calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
 integration = mc.MOPI5_LvL2(date, basename_lvl1, basename_lvl2,
                             integration_strategy, integration_time=int_time)
- # Plotting part
+# Plotting part
 integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
-     no_flag=True, meta_data=False)
+    no_flag=True, meta_data=False)
 if integration_strategy == 'meanTb' or integration_strategy == 'meanTb_harmo':
     identifier_plot = integrated_data['AC240'].coords['chunks'].data[1:].tolist(
     ) + [300]
@@ -131,18 +115,18 @@ param_slope_broadband = [111.2e9, 25e6, 110.5e9, 25e6]
 param_slope = {'AC240': param_slope_broadband,
                'USRP-A': [110.84e9, 5e6, 110.72e9, 5e6], 'U5303': param_slope_broadband}
 if plot_fancy1:
-        integration.compare_spectra_mopi5(
-            spectrometers=['U5303'],
-            dim=dimension[0],
-            idx=idx_all,
-            # idx=[0,1,2,3],
-            save_plot=False,
-            identifier=identifier_plot,
-            lowerBound=lowerBound,
-            with_corr=False,
-            corr_band=param_slope,
-            title='',
-        )
+    integration.compare_spectra_mopi5(
+        spectrometers=['U5303'],
+        dim=dimension[0],
+        idx=idx_all,
+        # idx=[0,1,2,3],
+        save_plot=False,
+        identifier=identifier_plot,
+        lowerBound=lowerBound,
+        with_corr=False,
+        corr_band=param_slope,
+        title='',
+    )
 # %%
 if plot_fancy2:
     #     integration.compare_spectra_binned_interp_mopi5(
@@ -280,12 +264,12 @@ if plot_comparison:
         dim=dimension[0],
         idx=idx_all,
         # idx=[0,1,2,3],
-          spectrometers=integration.spectrometers,
-          save_plot=True,
-          # identifier=TOD,
-          identifier=identifier_plot,
-          use_basis='U5303'
-      )
+        spectrometers=integration.spectrometers,
+        save_plot=True,
+        # identifier=TOD,
+        identifier=identifier_plot,
+        use_basis='U5303'
+    )
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
         # idx=np.arange(0,len(meanTb_chunks)+1),
@@ -341,8 +325,8 @@ if plot_bias:
                 # ax3.set_ylim(-0.8,0.2)
                 ax3.set_title('Slope')
                 ax3.set_xlabel('Mean $T_b$ [K]')
-         
-        except: 
+
+        except:
             print('no data for :', d)
             pass
     legend_elements_both = [
@@ -509,17 +493,17 @@ if plot_bias:
             # ax1.set_ylim(-1,0.5)
             ax1.set_title('Line center bias after tropospheric correction')
             ax1.set_xlabel('Mean $T_B$ [K]')
-              # ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_corr.data*1e9, color=color, s=size)
-              # ax2.set_ylabel(r'$\Delta T_B$ [K]')
-              # ax2.set_xlabel('Mean $T_B$ [K]')
-              # ax2.set_title('Corrected slope continuum')
-              # ax2.set_ylim(-2,0)
-              # ax2.set_ylim(-1,1)
-              # ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv*1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=size)
-              # ax3.set_ylabel('$\Delta m$ [K/GHz]')
-              # #ax3.set_ylim(-0.8,0.2)
-              # ax3.set_title('Slope difference')
-              # ax3.set_xlabel('Mean $T_B$ [K]')
+            # ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_corr.data*1e9, color=color, s=size)
+            # ax2.set_ylabel(r'$\Delta T_B$ [K]')
+            # ax2.set_xlabel('Mean $T_B$ [K]')
+            # ax2.set_title('Corrected slope continuum')
+            # ax2.set_ylim(-2,0)
+            # ax2.set_ylim(-1,1)
+            # ax3.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].slope_indiv*1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=size)
+            # ax3.set_ylabel('$\Delta m$ [K/GHz]')
+            # #ax3.set_ylim(-0.8,0.2)
+            # ax3.set_title('Slope difference')
+            # ax3.set_xlabel('Mean $T_B$ [K]')
         except:
             print('no data for :', d)
             pass
@@ -551,7 +535,7 @@ if plot_bias_TOD:
     ax2 = fig2.add_subplot(1, 3, 3)
     ax3 = fig2.add_subplot(1, 3, 2)
     count = 0
-    fs=12
+    fs = 12
     for d in end_dates:
         try:
             integration = mc.MOPI5_LvL2(
@@ -574,9 +558,10 @@ if plot_bias_TOD:
                 theoretical_nonlinearities)
             ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data -
                         integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
-            ax2.plot(np.arange(70,300,1), fitted_poly_theoretical_nonlinearities(np.arange(70,300,1)), 'k-', linewidth=0.4)
-            ax2.axvline(80,color='b',linewidth=0.6, ls='--')
-            ax2.axvline(292,color='r',linewidth=0.6, ls='--')
+            ax2.plot(np.arange(70, 300, 1), fitted_poly_theoretical_nonlinearities(
+                np.arange(70, 300, 1)), 'k-', linewidth=0.4)
+            ax2.axvline(80, color='b', linewidth=0.6, ls='--')
+            ax2.axvline(292, color='r', linewidth=0.6, ls='--')
             ax2.set_ylabel(r'$\Delta T_B$ [K]', fontsize=fs)
             ax2.set_xlabel('Mean $T_B$ [K]', fontsize=fs)
             ax2.set_title(r'$\Delta T_B$ continuum', fontsize=fs+2)
@@ -586,8 +571,8 @@ if plot_bias_TOD:
                         1e9-integrated_data['U5303'].slope_indiv.data*1e9, color=color, s=12)
             ax3.set_ylabel(r'$\Delta m$ [K/GHz]', fontsize=fs)
             # ax3.set_ylim(-0.8,0.2)
-            ax3.set_title('Slope difference',fontsize=fs+2)
-            ax3.set_xlabel('Mean $T_B$ [K]',fontsize=fs)
+            ax3.set_title('Slope difference', fontsize=fs+2)
+            ax3.set_xlabel('Mean $T_B$ [K]', fontsize=fs)
         except:
             print('no data for :', d)
             pass
@@ -732,17 +717,113 @@ if plot_bias_TOD:
     save_single_pdf(basename_lvl1+'full_bias_all_' +
                     integration_strategy+'.pdf', figures2)
 if plot_o3:
-   spectro_lvl2 = integration.spectrometers
-   level2_data = integration.read_level2(
-       spectrometers=spectro_lvl2, extra_base='_all')
-   outName = 'bias_o3_feb'
-   mopi5_library.plot_O3_all_mopi5(level2_data, outName)
-if  plot_o3_sel:
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
-       spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise')
+        spectrometers=spectro_lvl2, extra_base='_all')
+    outName = 'bias_o3_feb'
+    mopi5_library.plot_O3_all_mopi5(level2_data, outName)
+
+if compare_level2_mopi5:
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
     level2_ac240_unbiased = integration.read_level2(
-       spectrometers=['AC240'], extra_base='fascodunbiased_all_fix_noise')
-    level2_data['AC240_unbiased'] =level2_ac240_unbiased['AC240']
-    outName = integration.level2_folder+'/bias_o3_feb_all_unbiased_fascod_fix_noise'
-    mopi5_library.plot_O3_sel_mopi5(level2_data, spectro=['U5303','AC240','AC240_unbiased'], outName=outName)       
+        spectrometers=['AC240'], extra_base='_fascod_fix_noise_unbiased_3')
+    level2_data['AC240_unbiased'] = level2_ac240_unbiased['AC240']
+
+    reference_spectro = 'U5303'
+
+    o3_ref = level2_data[reference_spectro].o3_x.isel(o3_lat=0, o3_lon=0)
+    o3_z = level2_data[reference_spectro].o3_z
+
+    # Corresponds to altitude range: 20-30km, 30-40km, 40-50km, 50-60km, 60-70km
+    p_range = [np.arange(7, 11), np.arange(11, 14), np.arange(
+        14, 17), np.arange(17, 20), np.arange(20, 23)]
+
+    bias_AC240 = dict()
+
+    for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
+        alt_bias = xr.DataArray()
+        o3_s1 = level2_data[s].o3_x.isel(o3_lat=0, o3_lon=0)
+        diff = o3_s1 - o3_ref
+        #alt_bias =1e6*np.mean(np.abs(diff.isel(o3_p=p_range[0])),1)
+        alt_bias = 1e6*np.mean(diff.isel(o3_p=p_range[0]), 1)
+
+        #alt_bias= alt_bias.expand_dims(dim='altitude')
+        for i in np.arange(1, len(p_range)):
+            #alt_bias = xr.concat([alt_bias, 1e6*np.mean(np.abs(diff.isel(o3_p=p_range[i])),1)], dim='altitude_range')
+            alt_bias = xr.concat(
+                [alt_bias, 1e6*np.mean(diff.isel(o3_p=p_range[i]), 1)], dim='altitude_range')
+
+        alt_bias.coords['altitude_range'] = [25, 35, 45, 55, 65]
+        alt_bias.coords['time'] = np.arange(0, 15)
+        bias_AC240[s] = alt_bias
+
+    toplim = 0.8
+    colormap = 'coolwarm'#cmap_crameri#'bwr'
+    fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True, figsize=(9, 6))
+    pl = bias_AC240['AC240'].plot(
+        ax=axs[0],
+        cmap=colormap,
+        center=0,
+        vmin=-toplim,
+        vmax=toplim,
+        # linewidth=0,
+        # rasterized=True,
+        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+    )
+    pl2 = bias_AC240['AC240_unbiased'].plot(
+        ax=axs[1],
+        cmap=colormap,
+        center=0,
+        vmin=-toplim,
+        vmax=toplim,
+        # linewidth=0,
+        # rasterized=True,
+        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+    )
+    # pl3 = bias_AC240['USRP-A'].plot(
+    #     ax=axs[2],
+    #     cmap=colormap,
+    #     center=0,
+    #     vmin=-toplim,
+    #     vmax=toplim,
+    #     # linewidth=0,
+    #     # rasterized=True,
+    #     cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+    # )
+    for i in [0,1]:
+        axs[i].set_xlabel('Tb chunks [-]')
+        axs[i].set_ylabel('altitude [km]')
+    axs[0].set_title('AC240')
+    axs[1].set_title('AC240 corrected')
+    #axs[1].set_title('USRP-A')
+    pl.set_edgecolor('face')
+
+    plt.tight_layout()
+    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_feb_paper.pdf')
+
+if plot_o3_sel:
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
+    level2_ac240_unbiased = integration.read_level2(
+        spectrometers=['AC240'], extra_base='_fascod_fix_noise_unbiased_3')
+    level2_data['AC240_unbiased'] = level2_ac240_unbiased['AC240']
+    outName = '/home/eric/Documents/PhD/MOPI/Data/Level3/' + \
+        'bias_o3_feb_all_fascod_fix_noise_paper.pdf'
+    # mopi5_library.plot_O3_sel_mopi5(
+    #     level2_data, 
+    #     spectro=['U5303', 'AC240', 'AC240_unbiased'], 
+    #     outName=outName)
+
+    integration.plot_o3_retrieval_mopi5(
+        level2_data,
+        spectrometers=['U5303', 'AC240', 'AC240_unbiased'],
+        idx=[1,11],
+        save_plot=True,
+        identifier=identifier_plot,
+        lowerBound=lowerBound,
+        outname=outName
+    )
+# %%
