@@ -1,30 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Created on Fri Apr 10 11:37:52 2020
-
-@author: eric
-
-Integration script for IAP instruments
-
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
-
-"""
 import datetime
 import os
 from abc import ABC
@@ -85,13 +61,17 @@ plot_cycle = False
 df_bins = 200e3
 
 plot_all = False
-plot_all_mopi5 = False
+plot_all_mopi5 = True
 plot_o3_ts = False
 plot_selected = False
 plot_fshift = False
 plot_cost = False
+<<<<<<< HEAD
 plot_o3_diff_waccm = True
 read_waccm_clim = False
+=======
+
+>>>>>>> c85af08 (added plots for outline)
 compare = False
 
 compare_MERRA2 = False
@@ -118,7 +98,7 @@ spectros = ['USRP-A']
 
 
 ex = 'fascodunbiased_all'
-ex = '_fascod_fix_noise_2'
+ex = '_fascod_fix_noise_3'
 #ex = ''
 >>>>>>> 377b999 (update mopi5 processing)
 # %%
@@ -455,6 +435,7 @@ if plot_o3_diff_waccm:
 if plot_all_mopi5:
     for s in spectros:
 <<<<<<< HEAD
+<<<<<<< HEAD
         outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
         mopi5_library.plot_O3_sel_paper(
             level2_dataset,
@@ -502,6 +483,9 @@ if read_waccm_clim:
     ds_o3_all.tod.attrs['description'] = 'time of day: daytime [0] or nighttime [1]'
 =======
         outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
+=======
+        outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
+>>>>>>> c85af08 (added plots for outline)
         mopi5_library.plot_O3_all(
             level2_dataset,
             outname,
