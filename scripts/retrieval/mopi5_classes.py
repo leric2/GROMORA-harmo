@@ -131,11 +131,11 @@ class IntegrationMOPI5(Integration):
     def plot_time_series_all_mopi5(self, title='', special=False):
         figures = list()
         if special:
-            figures.append(mopi5_library.plot_ts_mopi5_Feb(self, title=title))
+            figures.append(mopi5_library.plot_ts_mopi5_Feb_paper(self, title=title))
         else:
             figures.append(mopi5_library.plot_ts_mopi5(self, title=title))
 
-        save_single_pdf(self.level1_folder+'time_series_'+self.datestr+'.pdf', figures)
+        save_single_pdf(self.level1_folder+'time_series_paper'+self.datestr+'.pdf', figures)
         save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
 
