@@ -46,7 +46,7 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2019-02-22', end='2019-02-22')
+date = pd.date_range(start='2018-03-13', end='2018-03-13')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -57,11 +57,11 @@ plot_cycle = False
 df_bins = 200e3
 
 plot_all = False
-plot_all_mopi5 = True
+plot_all_mopi5 = False
 plot_o3_ts = False
-plot_selected = False
+plot_selected = True
 plot_fshift = False
-plot_cost = False
+plot_cost = True
 
 compare = False
 
@@ -75,12 +75,12 @@ classic = np.arange(1, 24)
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A'] 
-#spectros = ['AC240'] 
+spectros = ['AC240'] 
 
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
-#ex = ''
+ex = '_newcorr'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -174,7 +174,7 @@ elif instrument_name == "compare":
 if instrument_name == "compare":
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base='_newcorr'
+        extra_base=''
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
@@ -203,6 +203,7 @@ if plot_cost:
             fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             end_cost.plot(ax=axs)
+          #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+'_end_cost.pdf', dpi=500)
 
@@ -391,7 +392,7 @@ if compare_MLS:
 
     fig, ax = plt.subplots(1, 1)
     #monthly_mls.plot(x='time', y='p', ax=ax ,vmin=0, vmax=9).resample(time='24H', skipna=True).mean()
-    pl = o3_mls.resample(time='4H', skipna=True).mean().plot(
+    pl = o3_mls.plot(
         x='time',
         y='p',
         ax=ax,
@@ -409,7 +410,7 @@ if compare_MLS:
     ax.set_ylabel('P [hPa]')
     plt.tight_layout()
     fig.savefig(instrument.level2_folder +
-                '/ozone_mls_01-10-2019_mr'+'.pdf', dpi=500)
+                '/ozone_mls_01-02-2019_mr'+'.pdf', dpi=500)
 
 
 if plot_selected:
@@ -419,7 +420,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1, 3, 6]
+        cycles=[1]
     )
 
 if plot_fshift:

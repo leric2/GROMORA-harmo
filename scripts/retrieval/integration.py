@@ -53,8 +53,8 @@ def integrate(date, integration_strategy):
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-    #date = pd.date_range(start='2019-01-30', end='2019-02-22')
-    #meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
+    date = pd.date_range(start='2019-01-30', end='2019-02-22')
+    meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
     # No U5303
@@ -64,15 +64,15 @@ def integrate(date, integration_strategy):
 
 
    # date = pd.date_range(start='2019-06-11', end='2019-06-15')
-    meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
+    # meanTb_chunks = [110, 120, 130, 140, 150, 160, 170, 180, 200, 220]
 
     #date = pd.date_range(start='2019-01-30', end='2019-06-30')
     #date = pd.date_range(start='2019-06-13', end='2019-06-13')
     # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
     #integration_strategy = 'meanTb_harmo'
     int_time = 1
-    save_nc = True
-    plot_ts_Tb_Tsys = False
+    save_nc = False
+    plot_ts_Tb_Tsys = True
     df_bins=200e3
 
     #basename_lvl1 = "/home/eric/Documents/PhD/DATA/Level1a/"
@@ -121,13 +121,15 @@ def integrate(date, integration_strategy):
 
     calibrated_data = calibration.find_bad_channels_stdTb(spectrometers = calibration.spectrometers, stdTb_threshold = 10, apply_on='cal')
 
+
+    if plot_ts_Tb_Tsys:
+        calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=50e6)
+        calibration.plot_time_series_all_mopi5(special=True)
+        return
+        #fig.savefig(calibration.level1_folder+'Tb_Tsys_all_'+calibration.datestr+'.pdf')
     #calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers)
     calibrated_data = calibration.add_mean_Tb(spectrometers = calibration.spectrometers, around_center=True, around_center_value=500e6)
     
-    if plot_ts_Tb_Tsys:
-        calibration.plot_time_series_all_mopi5(special=True)
-        #fig.savefig(calibration.level1_folder+'Tb_Tsys_all_'+calibration.datestr+'.pdf')
-
     # WARNING, depending on the integration type, some variable becomes meaningless --> for instance stdTb !!
     #integrated_data = calibration.integrate(spectrometers = calibration.spectrometers, strategy=integration_strategy, Tb_chunks=[150])
 
