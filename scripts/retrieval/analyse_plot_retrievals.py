@@ -47,10 +47,14 @@ instrument_name = "SOMORA"
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 date = pd.date_range(start='2018-01-01', end='2018-03-31')
 =======
 date = pd.date_range(start='2019-02-22', end='2019-02-22')
 >>>>>>> 377b999 (update mopi5 processing)
+=======
+date = pd.date_range(start='2018-03-13', end='2018-03-13')
+>>>>>>> b523e1c (replots of mopi5 ts)
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -61,15 +65,19 @@ plot_cycle = False
 df_bins = 200e3
 
 plot_all = False
-plot_all_mopi5 = True
+plot_all_mopi5 = False
 plot_o3_ts = False
-plot_selected = False
+plot_selected = True
 plot_fshift = False
+<<<<<<< HEAD
 plot_cost = False
 <<<<<<< HEAD
 plot_o3_diff_waccm = True
 read_waccm_clim = False
 =======
+=======
+plot_cost = True
+>>>>>>> b523e1c (replots of mopi5 ts)
 
 >>>>>>> c85af08 (added plots for outline)
 compare = False
@@ -94,13 +102,17 @@ ex = '_newcorr'
 #ex = '_waccm'
 =======
 spectros = ['USRP-A'] 
-#spectros = ['AC240'] 
+spectros = ['AC240'] 
 
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
+<<<<<<< HEAD
 #ex = ''
 >>>>>>> 377b999 (update mopi5 processing)
+=======
+ex = '_newcorr'
+>>>>>>> b523e1c (replots of mopi5 ts)
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -232,7 +244,11 @@ if plot_cost:
             fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             end_cost.plot(ax=axs)
+<<<<<<< HEAD
 >>>>>>> 377b999 (update mopi5 processing)
+=======
+          #  end_cost.plot(ax=axs, ylim=(0.75,8))
+>>>>>>> b523e1c (replots of mopi5 ts)
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+'_end_cost.pdf', dpi=500)
 
@@ -533,7 +549,7 @@ if compare_MLS:
 
     fig, ax = plt.subplots(1, 1)
     #monthly_mls.plot(x='time', y='p', ax=ax ,vmin=0, vmax=9).resample(time='24H', skipna=True).mean()
-    pl = o3_mls.resample(time='4H', skipna=True).mean().plot(
+    pl = o3_mls.plot(
         x='time',
         y='p',
         ax=ax,
@@ -561,7 +577,11 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
+<<<<<<< HEAD
         cycles=[1,6,9]
+=======
+        cycles=[1]
+>>>>>>> b523e1c (replots of mopi5 ts)
     )
 
 if plot_fshift:
