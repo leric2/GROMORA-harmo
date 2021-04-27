@@ -57,12 +57,12 @@ plot_cycle = False
 df_bins = 200e3
 
 plot_all = False
-plot_all_mopi5 = True
+plot_all_mopi5 = False
 plot_o3_ts = False
 plot_selected = False
 plot_fshift = False
 plot_cost = False
-
+read_waccm_clim = False
 compare = False
 
 compare_MERRA2 = False
@@ -353,6 +353,45 @@ if plot_all_mopi5:
             cycles=np.arange(0, 14)
         )
 
+if read_waccm_clim:
+    filename_dt = os.path.join('/home/eric/Documents/PhD/GROSOM/InputsRetrievals', 'O3_apriori_daily_waccm_Bern_daylight.mat')
+    filename_nt = os.path.join('/home/eric/Documents/PhD/GROSOM/InputsRetrievals', 'O3_apriori_daily_waccm2x_Bern_nighttime.mat')
+
+    dt = scipy.io.loadmat(filename_dt)
+    nt = scipy.io.loadmat(filename_nt)
+
+
+    o3_dt = dt['O3_mean_smooth']
+    o3_std_dt = dt['O3_std_smooth']
+    p_dt = dt['p_mean_smooth']
+
+    o3_nt = nt['O3_mean_smooth']
+    o3_std_nt = nt['O3_std_smooth']
+    p_nt = nt['p_mean_smooth']
+
+    o3 = [dt['O3_mean_smooth'], nt['O3_mean_smooth']]
+    o3_std = [dt['O3_std_smooth'], nt['O3_std_smooth']]
+    p = [dt['p_mean_smooth'], nt['p_mean_smooth']]
+
+    doy = np.arange(1,367)
+
+    ds_o3_all = xr.Dataset(
+        data_vars=dict(
+            o3=(['tod','level', 'time'], o3),
+            o3_std=(['tod','level', 'time'], o3_std),
+            p=(['tod','level', 'time'], p),
+        ),
+        coords=dict(
+            tod=['day', 'night'],
+            time=doy,
+            level=np.arange(0,66)
+        ),
+        attrs=dict(description='ozone climatology from waccm')
+    )
+    ds_o3_all.time.attrs['description'] = 'day of year'
+    ds_o3_all.tod.attrs['description'] = 'time of day: daytime [0] or nighttime [1]'
+
+    ds_o3_all.to_netcdf('waccm_o3_climatology.nc')
 
 if compare_MLS:
     MLS_basename = '/home/esauvageat/Documents/AuraMLS/'
