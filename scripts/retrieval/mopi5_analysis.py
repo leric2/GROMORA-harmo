@@ -652,7 +652,7 @@ if plot_bias_TOD_full:
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d[0].month-1]
+            color = monthly_color[d.month-1]
             s = 'AC240'
             scatter = ax1.scatter(integrated_data[s].mean_Tb.data, 100*(integrated_data[s].line_amplitude.data -
                                                                         integrated_data['U5303'].line_amplitude.data)/integrated_data['U5303'].line_amplitude.data, color=color, s=12)
@@ -697,7 +697,7 @@ if plot_bias_TOD_full:
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-            color = monthly_color[d[0].month-1]
+            color = monthly_color[d.month-1]
             s = 'AC240'
             # scatter = ax1.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].line_amplitude.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
             # #scatter = ax1.scatter(integrated_data[s].time_of_day.data, integrated_data[s].THot.data-integrated_data['U5303'].line_amplitude.data, color=color, s=12)
