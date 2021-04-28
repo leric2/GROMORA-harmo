@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.5')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -49,9 +49,7 @@ def retrieve_day(date, instrument_name):
    # date = datetime.date(2019,4,d)
     int_time = 1
     integration_strategy = 'classic'
-    recheck_channels = True
-    basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
-    basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"
+    recheck_channels = False
 
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -59,20 +57,23 @@ def retrieve_day(date, instrument_name):
    # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
    # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
    # line_file = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/Hitran_all.xml'
-
+    
+    # Dictionnary containing all EXTERNAL retrieval parameters 
+    retrieval_param = dict()
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        basename_lvl1 = os.path.join("/mnt/tub/instruments/gromos/level1/GROMORA/",str(date.year))
-        basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/',str(date.year))
+        basename_lvl2 = os.path.join('/storage/tub/instruments/gromos/level2/GROMORA/v1/',str(date.year))
         instrument = gc.GROMOS_LvL2(
             date, 
             basename_lvl1, 
             basename_lvl2, 
             integration_strategy, 
             int_time)
+        retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
-        basename_lvl1 = "/scratch/GROSOM/Level1/SOMORA/"
-        basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
+        basename_lvl2 = os.path.join('/storage/tub/instruments/somora/level2/v1/',str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -81,6 +82,7 @@ def retrieve_day(date, instrument_name):
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
+        retrieval_param['increased_var_factor'] = 1.1
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -95,12 +97,9 @@ def retrieve_day(date, instrument_name):
             integration_time=int_time
         )
     
-    # Dictionnary containing all EXTERNAL retrieval parameters 
-    retrieval_param = dict()
-    
    # cycles = np.arange(1,24)
     
-   # cycles = [17]
+    #cycles = [17]
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
@@ -132,13 +131,13 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
-    retrieval_param['increased_var_factor'] = 15
+    
 
     #retrieval_param['unit_var_y']  = 3**2
-    retrieval_param['pointing_angle_corr'] = 5
+    retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
 
@@ -147,11 +146,16 @@ def retrieve_day(date, instrument_name):
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-    retrieval_param['ecmwf_store_location'] ='/mnt/tub/instruments/gromos/ECMWF_Bern'
+    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='gromos'   
+    retrieval_param['o3_apriori']='waccm'   
+    retrieval_param['o3_apriori_covariance'] = 'constant'
+    #retrieval_param['o3_apriori']='gromos'   
+    retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
+
+
     retrieval_param["apriori_O3_cov"] = 1e-6
     retrieval_param["apriori_H2O_stdDev"] = 6e-4 #6e-4
 
@@ -201,7 +205,7 @@ def retrieve_day(date, instrument_name):
     spectro_dataset = instrument.integrated_data[spectro]
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-
+    #cycles = [1]
     if len(cycles) ==0:
         return 0
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -239,6 +243,7 @@ def retrieve_day(date, instrument_name):
     counter = 0
     save_str='.pdf'
     for c in cycles:
+        print('######################################################################################')
         retrieval_param["integration_cycle"] = c
         print('retrieving cycle : ',c)
         try:
@@ -336,20 +341,24 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         # save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    dates = pd.date_range(start='2017-01-02', end='2017-03-15')
-
+    dates = pd.date_range(start='2018-02-06', end='2018-02-10')
+    print('######################################################################################')
+    print('######################################################################################')
+    print('######################################################################################')
     for d in dates:
         try:
             level2 = retrieve_day(d, 'GROMOS')
         except:
             print('problem retrieving day : ',d)
-        # try:
-        #     level2 = retrieve_day(d, 'SOMORA')
-        # except:
-        #     print('problem retrieving day : ',d)
+        print('######################################################################################')
+        print('######################################################################################')
+        try:
+            level2 = retrieve_day(d, 'SOMORA')
+        except:
+            print('problem retrieving day : ',d)

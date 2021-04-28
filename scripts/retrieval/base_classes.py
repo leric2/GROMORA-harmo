@@ -1683,7 +1683,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2_from_tropospheric_corrected(spectro_dataset, ac, retrieval_param, title, figure_list)
+        return GROSOM_library.plot_level2_from_tropospheric_corrected_spectra(spectro_dataset, ac, retrieval_param, title, figure_list)
     
     def plot_level2(self, ac, spectro_dataset, retrieval_param, title, figure_list):
         '''

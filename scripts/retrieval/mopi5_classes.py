@@ -153,6 +153,7 @@ class MOPI5_LvL2(DataRetrieval):
         instrument_name = "mopi5"
 
         self.bandwidth = [1.6e9, 1e9, 200e6]
+        self.location = 'BERN'
         #self.number_of_channel = [16384, 16384, 16384]
         spectrometers = ["U5303","AC240","USRP-A"]
         
@@ -316,7 +317,7 @@ class MOPI5_LvL2(DataRetrieval):
 
         retrieval_param['ref_elevation_angle'] = 180
 
-        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
+        return mopi5_retrievals.retrieve_cycle_mopi5(self, spectro_dataset, retrieval_param, ac_FM=ac)
 
     def correction_function_mopi5(self, spectro_as_basis='U5303', t_trop=290):
         '''
@@ -381,9 +382,9 @@ class MOPI5_LvL2(DataRetrieval):
         '''
         retrieval_param["binned_ch"] = False
         retrieval_param['ref_elevation_angle'] = 180
-        return mopi5_retrievals.retrieve_cycle_tropospheric_corrected_mopi5(spectro_dataset, retrieval_param)
+        return mopi5_retrievals.retrieve_cycle_tropospheric_corrected_mopi5(self, spectro_dataset, retrieval_param)
 
-    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list, fshift, bl):
+    def plot_level2(self, ac, spectro_dataset, retrieval_param, title, figure_list):
         '''
         
 
@@ -403,7 +404,29 @@ class MOPI5_LvL2(DataRetrieval):
         None.
 
         '''
-        return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list, fshift=fshift, compute_bl=bl)
+        return mopi5_library.plot_level2(spectro_dataset, ac, retrieval_param, title, figure_list)
+
+    def plot_level2_from_tropospheric_corrected_spectra(self, ac, spectro_dataset, retrieval_param, title, figure_list):
+        '''
+        
+
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        ac : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+        title : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
+        return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
 
     def plot_o3_retrieval_mopi5(self, level2_data, spectrometers=[], idx=[0], save_plot = False, identifier=[], lowerBound=[], title=None, outname=None):
         figures = list()

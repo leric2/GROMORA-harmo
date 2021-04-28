@@ -1,4 +1,4 @@
-function calibratedSpectra = check_calibrated_mopi5(logFile,calibrationTool,calibratedSpectra)
+function [calibratedSpectra, logFile] = check_calibrated_mopi5(logFile,calibrationTool,calibratedSpectra)
 %==========================================================================
 % NAME          | CHECK_CALIBRATED_SPECTRA Quality check of the calibrated spectra
 % TYPE          |

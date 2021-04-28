@@ -68,11 +68,11 @@ calibrationTool.DCChannel=1; %=Nchannel/2 ??
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Folder, Raw and log file data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-calibrationTool.rawFileFolder=['/mnt/datalake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.rawFileFolder=['smb://resstore.unibe.ch/iap_mwlake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
 
-calibrationTool.level1Folder='/scratch/MOPI5/Level1/';
-calibrationTool.extraFileFolder='/scratch/MOPI5/ExtraRawFiles/'; % no write permission on the IAP lake
+calibrationTool.level1Folder='/storage/tub/instruments/mopi5/level1/';
+calibrationTool.extraFileFolder='/storage/tub/instruments/mopi5/extraRawFiles/'; % no write permission on the IAP lake
 %calibrationTool.level1Folder='/home/eric/Documents/PhD/DATA/MOPI5/';
 
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
@@ -125,6 +125,7 @@ calibrationTool.toleranceTippingCurves=2;
 % minimum number of indices (h-a-c) we want in a calibration cycle for it
 % to be valid
 calibrationTool.elevationAngleTolerance=10;
+calibrationTool.adcOverloadThresh = 0;
 calibrationTool.stdAntAngleThresh = 0.5;
 
 calibrationTool.minNumberOfIndicePerCycle=15;
@@ -159,7 +160,7 @@ calibrationTool.filter2.boxCarThresh=2;
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
-calibrationTool.meteoFolder=['/mnt/datalake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoFolder=['/storage/lake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
 
 %calibrationTool.meteoFolder='smb://resstore.unibe.ch/iap_mwlake/instrumentdata/meteo/exwi/meteo/';
 %calibrationTool.meteoFolder='/home/eric/Documents/PhD/METEO_DATA/';

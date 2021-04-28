@@ -16,6 +16,7 @@ import xarray as xr
 import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
+import datetime
 
 import apriori_data_GROSOM
 import GROSOM_library
@@ -31,7 +32,7 @@ from typhon.arts.workspace import arts_agenda
 #from pyarts.workspace import arts_agenda
 
 
-def make_f_grid(retrieval_param):  # TODO
+def make_f_grid(retrieval_param): 
     '''
     create simulation frequency grid
 
@@ -63,7 +64,7 @@ def plot_FM_comparison(ds_freq, y_FM, y_obs):
     ax = fig.add_subplot(111)
     ax.plot(ds_freq/1e9, y_obs, 'r')
     ax.plot(ds_freq/1e9, y_FM, 'b-', linewidth=2)
-    # ax.set_ylim((-5,25))
+    ax.set_ylim((10,250))
 
     ax.set_xlabel('freq [GHz]')
     ax.set_ylabel('Tb [K]')
@@ -95,6 +96,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     if ac_FM is None:
         print("Retrieval of Ozone and H20")
         good_channels = spectro_dataset.good_channels[cycle].data == 1
+        bad_channels = spectro_dataset.good_channels[cycle].data == 0
         ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
         ds_y = spectro_dataset.Tb[cycle].values[good_channels]
 
@@ -136,11 +138,16 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
         spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
-    retrieval_param["time"] = spectro_dataset.time[cycle].values
     retrieval_param["lat"] = spectro_dataset.lat[cycle].values
     retrieval_param["lon"] = spectro_dataset.lon[cycle].values
-    retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
-    retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
+    try:
+        retrieval_param["time"] = spectro_dataset.time[cycle].values
+        retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
+        retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
+    except:
+        retrieval_param["time"] = 0
+        retrieval_param['time_start'] = datetime.date(2019,1,30)
+        retrieval_param['time_stop'] = instrument.date
     retrieval_param["f_max"] = max(ds_freq)
     retrieval_param["f_min"] = min(ds_freq)
 
@@ -197,6 +204,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
             z_grid
         )
         ac.set_atmosphere(atm, vmr_zeropadding=True)
+        retrieval_param['test_apriori'] = ac.ws.vmr_field.value[1,:,0]
     else:
         ValueError('atmosphere type not recognized')
 
@@ -294,19 +302,42 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         grid1=np.log10(p_grid_retrieval_h2o),
         sigma1=retrieval_param["apriori_H2O_stdDev"] *
         np.ones_like(p_grid_retrieval_h2o),
-        cl1=0.2 * np.ones_like(p_grid_retrieval_h2o),
+        cl1=0.2*np.ones_like(p_grid_retrieval_h2o),
         fname="lin",
         cutoff=0
     )
+    # std_h2o = 0.3*retrieval_param['test_apriori'][:,0]
+    # plt.plot(std_h2o)
+    # sx_water = covmat.covmat_1d_sparse(
+    #     grid1=np.log10(p_grid_retrieval),
+    #     sigma1=std_h2o,
+    #     cl1=np.ones_like(p_grid_retrieval),
+    #     fname="lin",
+    #     cutoff=0
+    # )
+    #plt.matshow(sx_water.todense())
+    #plt.colorbar()
+
+    if retrieval_param['o3_apriori_covariance']=='waccm':
+        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param['waccm_file'] , retrieval_param["time"], extra_day=30)
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
+    else:
+        sigma_o3 = retrieval_param["apriori_O3_cov"]
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
 
     sx = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval),
-        sigma1=retrieval_param["apriori_O3_cov"] *
-        np.ones_like(p_grid_retrieval),
-        cl1=0.5 * np.ones_like(p_grid_retrieval),
-        fname="lin",
-        cutoff=0
+        sigma1= sigma_o3*np.ones_like(p_grid_retrieval),
+        cl1=1* np.ones_like(p_grid_retrieval),
+        fname="exp",
+        cutoff=0.1
     )
+
+    # plt.matshow(sx.todense())
+    # plt.colorbar()
 
     ozone_ret = arts.AbsSpecies(
         species='O3',
@@ -349,13 +380,22 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
     if ac_FM is None:
-        y_var = retrieval_param['increased_var_factor']*np.square(
-            spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+        if instrument.instrument_name == 'mopi5':
+            y_var = retrieval_param['increased_var_factor']*np.square(
+                spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+        elif instrument.instrument_name == 'stdTb':
+            y_var = retrieval_param['increased_var_factor']*np.square(
+                spectro_dataset.mean_std_Tb[cycle].data) * np.ones_like(ds_y)
+        else:
+            y_var = retrieval_param['increased_var_factor']*np.square(
+                spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+            #y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
     else:
         print('Using standard y var')
         y_var = 4 * np.ones_like(ds_y)
 
-    print('Measurement variance : ', y_var)
+    print('Measurement std dev : ', np.sqrt(np.median(y_var)))
+    ac.noise_variance_vector = y_var
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
@@ -365,7 +405,9 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # polyfit_ret = arts.Polyfit(
     #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
     # )
-
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=3, covmats=[np.array([[20]]), np.array([[10]]), np.array([[5]]), np.array([[1]])]
+    # )
     fshift_ret = arts.FreqShift(100e3, df=50e3)
 
    # periods = np.array([319e6])
@@ -406,7 +448,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.oem(
         method='gn',
         max_iter=20,
-        stop_dx=0.1,
+        stop_dx=0.05,
         display_progress=1,
         lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
         inversion_iterate_agenda=inversion_iterate_agenda,
@@ -414,6 +456,9 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     retrievals_time = time.time()
     print("retrievals_time: %s seconds" %
           (retrievals_time - retrievals_setup_time))
+    print("OEM diagnostics: " + str(ac.oem_diagnostics))
+    print('###########')
+    print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
     if not ac.oem_converged:
         print("OEM did not converge.")
         print("OEM diagnostics: " + str(ac.oem_diagnostics))
@@ -428,7 +473,7 @@ def inversion_iterate_agenda(ws):
     """Custom inversion iterate agenda to ignore bad partition functions."""
     ws.Ignore(ws.inversion_iteration_counter)
 
-    ws.xClip(ijq=0, limit_low=0.00000000001, limit_high=0.00001)
+    ws.xClip(ijq=0, limit_low=0.00000000001, limit_high=0.00002)
     # Map x to ARTS' variables
     ws.x2artsAtmAndSurf()
     ws.x2artsSensor()
@@ -505,9 +550,10 @@ def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
         spectro_dataset.mean_sky_elevation_angle.values[cycle]
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
-    retrieval_param["time"] = spectro_dataset.time[cycle].values
+
     retrieval_param["lat"] = spectro_dataset.lat[cycle].values
     retrieval_param["lon"] = spectro_dataset.lon[cycle].values
+    retrieval_param["time"] = spectro_dataset.time[cycle].values
     retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
     retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
     retrieval_param["f_max"] = max(ds_freq)
