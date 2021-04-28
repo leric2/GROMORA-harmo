@@ -29,6 +29,7 @@ from matplotlib.lines import Line2D
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
 =======
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'black'}
@@ -36,6 +37,9 @@ color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue',
 =======
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
 >>>>>>> c85af08 (added plots for outline)
+=======
+color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
+>>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
 F0 = 110.836e9
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
@@ -1775,13 +1779,17 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
             axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c85af08 (added plots for outline)
+=======
+>>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
             #axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
 
             axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1.1, label=spectro,color=color_spectro[spectro])
             axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.4, label=spectro,color='k')
             axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.1)
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 =======
@@ -1793,6 +1801,9 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
 =======
 
 >>>>>>> c85af08 (added plots for outline)
+=======
+
+>>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
             axs[0].set_title('$O_3$ VMR')
             axs[0].set_xlim(-0.5,11)
             axs[0].set_xlabel('$O_3$ VMR [ppm]')
@@ -1851,6 +1862,7 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
         Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         Line2D([0], [0], linestyle='--', color='k', label='a priori')
 =======
         Line2D([0], [0], linestyle='--', color='r', label='a priori')
@@ -1858,12 +1870,16 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
 =======
         Line2D([0], [0], linestyle='--', color='k', label='a priori')
 >>>>>>> c85af08 (added plots for outline)
+=======
+        Line2D([0], [0], linestyle='--', color='k', label='a priori')
+>>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
         ]
         axs[0].legend(handles=legend_elements)
         axs[2].axvline(x=0, linewidth=0.6,color='k')
         fig.suptitle('$O_3$ retrievals with chunks '+str(i))
         figure_o3_sel.append(fig)
     save_single_pdf(outName+'.pdf',figure_o3_sel)
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
@@ -1954,6 +1970,8 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     return fig
 =======
 >>>>>>> 377b999 (update mopi5 processing)
+=======
+>>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
 
 def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     # fig = plt.figure(figsize=(9,6))

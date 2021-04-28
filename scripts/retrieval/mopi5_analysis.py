@@ -74,9 +74,9 @@ plot_spectra_schematic = True
 
 plot_comparison = False
 compare_level2_mopi5 = False
-plot_fancy1 = False
-plot_fancy2 = False
-plot_interp_facny3 = False
+
+plot_spectra_comparison_scaling_corr_paper = False
+plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
 plot_bias_TOD = True
 plot_bias_TOD_full = False

@@ -56,6 +56,14 @@ cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
 # %%
 load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 
+cmpa_str = 'davos'  # batlow, devon, oslo, imola, lapaz
+cm_data = np.loadtxt(
+    '/home/esauvageat/Documents/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
+cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
+
+# %%
+load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -144,8 +152,8 @@ def read_mls(d1, d2):
 
 if instrument_name == "GROMOS":
     import gromos_classes as gc
-    basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"    
-    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     instrument = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -156,7 +164,7 @@ if instrument_name == "GROMOS":
 elif instrument_name == "SOMORA":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
-    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -519,7 +527,7 @@ if compare_MLS:
 
     fig, ax = plt.subplots(1, 1)
     #monthly_mls.plot(x='time', y='p', ax=ax ,vmin=0, vmax=9).resample(time='24H', skipna=True).mean()
-    pl = o3_mls.resample(time='4H', skipna=True).mean().plot(
+    pl = o3_mls.plot(
         x='time',
         y='p',
         ax=ax,

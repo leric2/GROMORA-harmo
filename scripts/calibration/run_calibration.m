@@ -151,9 +151,7 @@ disp('Calibration successful')
 calibrationTool.successfulCalibration = true;
 
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-%% For MOPI5 spectro analysis
-save_daily_mean_sky_counts_mopi5(calibrationTool,logFile, rawSpectra)
-
+%%
 % Clearing some variables for space
 clear rawSpectra; 
 clear calibratedSpectra;
