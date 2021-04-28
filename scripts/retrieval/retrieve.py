@@ -39,13 +39,11 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
-tub_path = os.environ['DATATUB_PATH']
-lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
@@ -55,7 +53,7 @@ if __name__ == "__main__":
     integration_strategy = 'classic'
     recheck_channels = False
 
-    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    basename_lvl2 = "/storage/tub/instruments/somora/level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -85,7 +83,7 @@ if __name__ == "__main__":
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
-        retrieval_param['increased_var_factor'] = 0.02#1.1 #15
+        retrieval_param['increased_var_factor'] = 1#1.1 #15
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -138,10 +136,8 @@ if __name__ == "__main__":
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
 
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
@@ -152,7 +148,7 @@ if __name__ == "__main__":
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='waccm'   
+    retrieval_param['o3_apriori']='gromos'   
     retrieval_param['o3_apriori_covariance'] = 'constant'
     retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
