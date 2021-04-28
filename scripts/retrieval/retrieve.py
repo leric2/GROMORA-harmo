@@ -44,8 +44,6 @@ load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
-tub_path = os.environ['DATATUB_PATH']
-lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()

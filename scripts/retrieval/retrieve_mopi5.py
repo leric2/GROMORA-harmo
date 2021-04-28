@@ -55,7 +55,7 @@ if __name__ == "__main__":
     #date = datetime.date(2019,2,1)
     #date = datetime.date(2019,2,6)
     #date = datetime.date(2019,2,13)
-    date = datetime.date(2019,1,5)
+    #date = datetime.date(2019,1,5)
     int_time = 1
     integration_strategy = 'meanTb_harmo'
     recheck_channels = True
@@ -184,8 +184,8 @@ if __name__ == "__main__":
     spectrometers = instrument.spectrometers
     spectrometers = ['AC240_unbiased','AC240']
     
-    spectrometers = ['USRP-A']
-    spectrometers = ['U5303']
+    # spectrometers = ['USRP-A']
+    # spectrometers = ['U5303']
     spectrometers = ['U5303','AC240','USRP-A','AC240_unbiased']
     #spectrometers = ['AC240']
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     
     #fix_noise = {'U5303':0.25, 'AC240':0.3, 'USRP-A':0.15}
     fix_noise = {'U5303':fix_noise_U5303_feb, 'AC240':fix_noise_AC240_feb, 'USRP-A':fix_noise_USRP_feb}
-    fix_noise = {'U5303':fix_noise_U5303_jan, 'AC240':fix_noise_AC240_jan, 'USRP-A':fix_noise_USRP_jan}
+    #fix_noise = {'U5303':fix_noise_U5303_jan, 'AC240':fix_noise_AC240_jan, 'USRP-A':fix_noise_USRP_jan}
 
     #fix_noise = {'U5303':0.25, 'AC240':0.3, 'USRP-A':0.2}
 
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     #[450 , 450, 350]
     #cycles=[4]
     level2 = dict()
-    add_on = '_fascod_fix_noise_jan'
+    add_on = '-test'
 
     THot = instrument.integrated_data['U5303'].THot.data.mean()
     # AC240 bias:

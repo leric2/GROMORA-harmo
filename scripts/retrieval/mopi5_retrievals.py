@@ -422,6 +422,8 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
         y_var = 4 * np.ones_like(ds_y)
 
     print('Measurement variance : ', np.median(y_var))
+    print('Measurement std dev : ', np.sqrt(np.median(y_var)))
+    ac.noise_variance_vector = y_var
     #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
