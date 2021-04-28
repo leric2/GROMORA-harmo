@@ -305,22 +305,22 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, spectrometers, calibration_
     #print(corr_band)
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    ax2 = ax1.inset_axes([0.1, 0.5, 0.3, 0.45])
+    col = 'k'
+   # ax2 = ax1.inset_axes([0.1, 0.5, 0.3, 0.45])
     for s in spectrometers:
         mask = ds_dict[s].good_channels[calibration_cycle].data
         mask[mask==0]=np.nan
         ax1.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,
-                 ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.5, label=s)
-        ax1.set_xlim(110.25, 111.4)
+                 ds_dict[s].Tb[calibration_cycle].data*mask, color=col, lw=0.5, label=s)
+        ax1.set_xlim(110.25, 111.3)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[id].data)+calibration_cycle)
-        ax1.set_xlabel("f [GHz]")
+        ax1.set_xlabel("Frequency [GHz]")
         ax1.set_ylabel(r"$T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
         ax1.set_title(title)
         
-        ax1.legend(fontsize='small',loc=1)
+       #s ax1.legend(fontsize='small',loc=1)
         if corr_band:
-            color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
             freq_left=ds_dict[s].frequencies[calibration_cycle].where(
                 abs(ds_dict[s].frequencies[calibration_cycle]-corr_band[s][0])<corr_band[s][1],drop=True)
             freq_right=ds_dict[s].frequencies[calibration_cycle].where(
@@ -328,30 +328,30 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, spectrometers, calibration_
             if (s=='AC240') or (s=='U5303'):
                 b = ds_dict[s].continuum_value_line_center[calibration_cycle].data - ds_dict[s].slope_indiv[calibration_cycle].data*cal_int_obj.observation_frequency
                 ax1.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,
-                ds_dict[s].slope_indiv[calibration_cycle].data*ds_dict[s].frequencies[calibration_cycle].data+b, color=color_spectro[s], lw=0.5)
-                ax1.axvspan(freq_left[0]/1e9, freq_left[-1]/1e9 , alpha=0.25, color=color_spectro[s])
-                ax1.axvspan(freq_right[0]/1e9, freq_right[-1]/1e9, alpha=0.25, color=color_spectro[s])
+                ds_dict[s].slope_indiv[calibration_cycle].data*ds_dict[s].frequencies[calibration_cycle].data+b, color=col, lw=0.5)
+                ax1.axvspan(freq_left[0]/1e9, freq_left[-1]/1e9 , alpha=0.25, color=col)
+                ax1.axvspan(freq_right[0]/1e9, freq_right[-1]/1e9, alpha=0.25, color=col)
         
 
         #ax3.legend()
         #ax2.plot(ds_dict[s].frequencies[calibration_cycle].data/1e9,ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2)
-        ax2.plot(
-            (ds_dict[s].frequencies[calibration_cycle].data-cal_int_obj.observation_frequency)/1e6,
-            ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2
-        )
-        ax2.yaxis.set_major_locator(MultipleLocator(2))
-        ax2.yaxis.set_minor_locator(MultipleLocator(1))
-        ax2.set_xlim(-10, 10)
-        ax2.set_xlabel('[MHz]')
+        # ax2.plot(
+        #     (ds_dict[s].frequencies[calibration_cycle].data-cal_int_obj.observation_frequency)/1e6,
+        #     ds_dict[s].Tb[calibration_cycle].data*mask, lw=0.2
+        # )
+        # ax2.yaxis.set_major_locator(MultipleLocator(2))
+        # ax2.yaxis.set_minor_locator(MultipleLocator(1))
+        # ax2.set_xlim(-10, 10)
+        # ax2.set_xlabel('[MHz]')
         #ax2.set_yticklabels([])
         #ax2.set_xticklabels([])
-        ymax = np.nanmax(ds_dict[s].Tb[calibration_cycle].data*mask)
-        if not np.isnan(ymax):
-            ax2.set_ylim(ymax-3,ymax+1)
+        # ymax = np.nanmax(ds_dict[s].Tb[calibration_cycle].data*mask)
+        # if not np.isnan(ymax):
+        #     ax2.set_ylim(ymax-3,ymax+1)
         
         #ax2.legend(fontsize='xx-small')
     ax1.grid()
-    ax2.grid(which='both')
+    # ax2.grid(which='both')
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
     
@@ -966,6 +966,105 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
     
     return fig
 
+def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',broadband_bias=[]):
+    fig = plt.figure(figsize=(8, 7))
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+    clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
+    clean_f = ds_dict[use_basis].bin_freq.data
+    color_alpha = ['tab:orange','red','green','blue']
+    for s in spectrometers:
+        #mask = ds_dict[s].good_channels[calibration_cycle].data
+        #mask[mask==0]=np.nan
+        Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
+        #Tb_OG = ds_dict[s].interpolated_Tb[calibration_cycle].data
+        #Tb_diff = (Tb-clean_Tb)/clean_Tb
+        Tb_diff = Tb-clean_Tb
+        ax1.plot(clean_f/1e9, Tb, color=color_spectro[s], lw=0.5, label=s)
+        ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
+        ax1.set_xlim(110.25, 111.4)
+        #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
+        ax1.set_xlabel("frequency [GHz]")
+        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.yaxis.set_major_locator(MultipleLocator(2))
+        ax1.set_title(title)
+        ax1.grid()
+        
+        ymax = np.nanmax(ds_dict[s].interpolated_Tb_corr[calibration_cycle].data)
+        # if not np.isnan(ymax):
+        #     ax2.set_ylim(ymax-4,ymax+0.5)
+        #     ax2.yaxis.set_major_locator(MultipleLocator(2))
+        #     ax2.yaxis.set_minor_locator(MultipleLocator(1))
+        #     ax2.xaxis.set_minor_locator(MultipleLocator(5))
+        #     ax2.tick_params(axis='both', which='major', labelsize=8)
+        # ax2.set_xlabel('[MHz]',fontsize='x-small')
+        # ax2.grid(which='both')
+
+        Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
+        a = alpha[calibration_cycle]/100
+        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.0f}%'
+
+        #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
+        
+        # 
+        #mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
+        #Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
+
+        #U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
+
+        Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
+        Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
+
+        #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
+        #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
+
+        #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
+        #Tb_diff_corrected = Tb-mod_U5303
+        #Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
+        #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+        #Tb_diff_corrected_non_lin_1 = Tb-Tb_corrected_factor_non_lin
+
+        Tb_diff_corrected = Tb_corr - clean_Tb
+        Tb_diff_corrected_non_lin = Tb_corr_all - clean_Tb
+
+
+        #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
+        ax1.legend()
+
+        #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
+
+        clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
+        smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
+        smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
+        #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
+        #smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
+        smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full') 
+        
+        
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
+        
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha$ = 8%, with $\Delta T_{B,nonlin}$')
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
+
+
+        ax2.axhline(0,lw=0.6, color='k', ls='--')
+        ax2.set_title(title2)
+        ax2.set_ylim(-1,0.4)
+        ax2.yaxis.set_major_locator(MultipleLocator(0.2))
+        ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
+        ax2.set_ylabel('$\Delta T_B$ [K]')
+        ax2.set_xlabel("frequency [GHz]")
+        ax2.set_xlim(110.25, 111.4)
+        #ax23.set_ylabel('[%]')
+        ax2.grid(which='both')
+        ax2.legend(loc=4)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+    
+    return fig
+
 def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', title=''):
     fig = plt.figure()
     ax1 = fig.add_subplot(211)
@@ -1062,6 +1161,8 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
 
         if s in spectrometers:
             ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s, color=color_spectro[s])
+            # print('$T_b$ differences, '+s)
+            # print(np.nanmean(Tb_diff))
             ax3.axhline(0,lw=0.6, color='k', ls='--')
         ax3.set_title('$T_b$ differences with: '+use_basis)
         ax3.set_ylim(-1.5,0.5)
@@ -1719,6 +1820,144 @@ def plot_O3_all(level2_data, outName, spectro, cycles=None):
             #a.set_ylim(10,80)
             a.grid(which='both', axis='y', linewidth=0.5)
         fig.suptitle('$O_3$ retrievals for '+spectro+ ' chunk: '+str(i))
+        figure_o3_sel.append(fig)
+
+        # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+        # fig, axs = plt.subplots(1, 1, sharey=True)
+        # h2o_x = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_x
+        # h2o_xa = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_xa
+        # h2o_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_z
+
+        # axs[0].semilogx(
+        #     h2o_x, h2o_z / 1e3, label="retrieved", marker="x"
+        # )
+        # axs[0].semilogx(h2o_xa, h2o_z / 1e3, label="apriori")
+        # axs[0].set_xlabel("Water VMR []")
+        # axs[0].set_ylabel("Altitude [km]")
+        # axs[0].legend()
+        
+        # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
+        # figure_o3_sel.append(fig)
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
+
+def plot_O3_sel_paper(level2_data, outName, spectro, cycles=None):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3      
+    
+    figure_o3_sel=list()
+
+    if cycles is None:
+        cycles = np.arange(len(level2_data[spectro].time))
+
+    for i in cycles:
+        f_backend = level2_data[spectro].f.data
+        y = level2_data[spectro].y[i].data
+        yf = level2_data[spectro].yf[i].data
+        bl = level2_data[spectro].y_baseline[i].data 
+        r = y - yf
+        r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
+
+        # Text
+        fshift_text = "$\\Delta f =$ {:g} kHz".format(level2_data[spectro].freq_shift_x[i].values[0] / 1e3)
+        baseline_text = ", ".join(
+            ["$b_{}={:.2f}$".format(a, b) for a, b in enumerate(level2_data[spectro].poly_fit_x[:,i].values)]
+        )
+
+
+        fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
+        axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
+        axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
+        axs[0].text(
+            0.02,
+            0.8,
+            fshift_text + "\n" + baseline_text,
+            transform=axs[0].transAxes,
+            verticalalignment="top",
+            horizontalalignment="left",
+        )
+
+       # axs[0].set_xlim(-0.5,15)
+        axs[0].legend()
+        axs[1].plot((f_backend - F0) / 1e6, r, label="residuals")
+        axs[1].plot((f_backend - F0) / 1e6, r_smooth, label="residuals smooth")
+        axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
+        
+       # axs[1].set_ylim(-4, 4)
+        axs[1].legend()
+        axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(F0 / 1e9))
+        axs[1].set_ylim(-0.8,0.8)
+
+        for ax in axs:
+            ax.set_ylabel("$T_B$ [K]")
+            ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
+        fig.suptitle('$O_3$ retrievals for '+spectro+ ' chunk: '+str(i))
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        figure_o3_sel.append(fig)
+
+        fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+        
+        o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+        o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+        o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+        o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+        mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+        #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+        error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
+        error_frac = error/o3
+        o3_good = o3.where(mr>0.8).data
+        #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+       # axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='k')       
+        axs[0].plot(o3*1e6, o3_z/1e3,'-', linewidth=1, label='retrieved',color=color_spectro[spectro])
+        axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.5)
+
+       # axs[0].set_title('$O_3$ VMR')
+        axs[0].set_xlim(-0.5,11)
+        axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+        axs[0].set_xlabel('Ozone VMR [ppmv]')
+        axs[0].yaxis.set_major_locator(MultipleLocator(10))
+        axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+        axs[0].xaxis.set_major_locator(MultipleLocator(5))
+        axs[0].xaxis.set_minor_locator(MultipleLocator(1))
+        axs[0].grid(which='both',  axis='x', linewidth=0.5)
+        axs[0].set_ylabel('Altitude [km]')
+        axs[0].legend()
+        axs[1].plot(mr/2, o3_z/1e3,color='b', label='MR/2')
+        counter=0
+        for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+            if 0.6 <= np.sum(avk) <= 1.4:
+                counter=counter+1
+                if np.mod(counter,5)==0:
+                    axs[1].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color='r')
+                else:
+                    axs[1].plot(avk, o3_z / 1e3, color='k')
+        axs[1].set_xlabel("AVK")
+        axs[1].set_xlim(-0.05,0.6)
+        axs[1].xaxis.set_major_locator(MultipleLocator(0.1))
+        axs[1].xaxis.set_minor_locator(MultipleLocator(0.05))
+        axs[1].legend()
+        axs[1].grid(which='both',  axis='x', linewidth=0.5)
+        
+
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_z / 1e3, color='g', label="smoothing")
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_z / 1e3, color='r', label="observation")
+        axs[2].set_xlabel("Error [ppmv]")
+        axs[2].set_ylabel("Altitude [km]")
+        axs[2].legend(loc='upper center')
+        axs[2].grid(axis='x', linewidth=0.5)
+        
+        #axs[3].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o_x * 1e6, o3_z / 1e3, label="retrieved")
+        # axs[3].set_xlabel("$VMR$ [ppm]")
+        # axs[3].set_ylabel("Altitude [km]")
+        # axs[3].legend()
+        #axs[3].grid(axis='x', linewidth=0.5)
+
+        for a in axs:
+            #a.set_ylim(10,80)
+            a.grid(which='both', axis='y', linewidth=0.5)
+        fig.suptitle('Ozone retrievals for '+spectro+ ' chunk: '+str(i))
         figure_o3_sel.append(fig)
 
         # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':

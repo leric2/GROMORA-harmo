@@ -20,12 +20,12 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 
-cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
-cm_data = np.loadtxt(
-    '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
-cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
+# cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
+# cm_data = np.loadtxt(
+#     '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
+# cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
 
 
 import mopi5_library
@@ -69,11 +69,13 @@ plot_ts_Tb_Tsys = False
 df_bins = 200e3
 #date1b = pd.to_datetime(date[-1])
 
+plot_spectra_schematic = True
+
 plot_comparison = False
-compare_level2_mopi5 = True
-plot_fancy1 = False
-plot_fancy2 = False
-plot_interp_facny3 = False
+compare_level2_mopi5 = False
+
+plot_spectra_comparison_scaling_corr_paper = False
+plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
 plot_bias_TOD = False
 plot_o3 = False
@@ -114,21 +116,56 @@ else:
 param_slope_broadband = [111.2e9, 25e6, 110.5e9, 25e6]
 param_slope = {'AC240': param_slope_broadband,
                'USRP-A': [110.84e9, 5e6, 110.72e9, 5e6], 'U5303': param_slope_broadband}
-if plot_fancy1:
+if plot_spectra_schematic:
     integration.compare_spectra_mopi5(
-        spectrometers=['U5303'],
+        spectrometers=['AC240'],
         dim=dimension[0],
         idx=idx_all,
         # idx=[0,1,2,3],
-        save_plot=False,
+        save_plot=True,
         identifier=identifier_plot,
         lowerBound=lowerBound,
         with_corr=False,
         corr_band=param_slope,
         title='',
     )
+    
 # %%
-if plot_fancy2:
+
+if plot_spectra_comparison_3_spectro_paper:
+    # Mean comparison
+    df_around_line = 25e6
+    mean_bias_USRP = np.ones(len(idx_all))
+    for i in idx_all:
+        Tb_diff = integrated_data['USRP-A'].interpolated_Tb[i].data - integrated_data['U5303'].binned_Tb[i].data
+        Tb_diff = Tb_diff[(integrated_data['USRP-A'].bin_freq_interp> integration.observation_frequency-df_around_line ) & (integrated_data['USRP-A'].bin_freq_interp< integration.observation_frequency+df_around_line )]
+        print('Mean bias around obs freq for USRP-A an cycle ',str(i),': ')
+        print(np.nanmean(Tb_diff))
+        mean_bias_USRP[i] = np.nanmean(Tb_diff)
+    mean_bias_AC240 = np.ones(len(idx_all))
+    for i in idx_all:
+        Tb_diff = integrated_data['AC240'].interpolated_Tb[i].data - integrated_data['U5303'].binned_Tb[i].data
+        Tb_diff = Tb_diff[(integrated_data['AC240'].bin_freq_interp> integration.observation_frequency-df_around_line ) & (integrated_data['AC240'].bin_freq_interp< integration.observation_frequency+df_around_line )]
+        print('Mean bias around obs freq for AC240 an cycle ',str(i),': ')
+        print(np.nanmean(Tb_diff))
+        mean_bias_AC240[i] = np.nanmean(Tb_diff)
+
+    integrated_data['U5303'].frequencies 
+    integration.compare_spectra_binned_interp_mopi5(
+        dim=dimension[0],
+        idx=idx_all,
+        spectrometers=['AC240', 'USRP-A'],
+        save_plot=True,
+        use_basis='U5303',
+        # identifier=TOD,
+        identifier=identifier_plot,
+        clean=True,
+        corrected=False
+    )
+
+
+#%%
+if plot_spectra_comparison_scaling_corr_paper:
     #     integration.compare_spectra_binned_interp_mopi5(
     #         dim=dimension[0],
     #         idx=idx_all,
@@ -220,7 +257,7 @@ if plot_fancy2:
         dim=dimension[0],
         idx=idx_all,
         spectrometers=['AC240'],
-        save_plot=False,
+        save_plot=True,
         use_basis='U5303',
         # identifier=TOD,
         identifier=identifier_plot,
@@ -229,36 +266,23 @@ if plot_fancy2:
         binning=4,
         lowerBound=lowerBound,
         variable=True,
-        broadband_bias=non_lin
+        broadband_bias=fitted_poly_theoretical_nonlinearities(integrated_data['AC240'].interpolated_Tb.data),
+        paper=True
     )
 
-# %%
-
-if plot_interp_facny3:
-    integration.compare_spectra_binned_interp_mopi5(
-        dim=dimension[0],
-        idx=idx_all,
-        spectrometers=['AC240', 'USRP-A'],
-        save_plot=True,
-        use_basis='U5303',
-        # identifier=TOD,
-        identifier=identifier_plot,
-        clean=True,
-        corrected=False
-    )
 
     # %%
 if plot_comparison:
-    integration.compare_spectra_mopi5(
-        dim=dimension[0],
-        idx=idx_all,
-        # idx=[0,1,2,3],
-        save_plot=True,
-        # identifier=TOD,
-        identifier=identifier_plot,
-        with_corr=True,
-        corr_band=False
-    )
+    # integration.compare_spectra_mopi5(
+    #     dim=dimension[0],
+    #     idx=idx_all,
+    #     # idx=[0,1,2,3],
+    #     save_plot=True,
+    #     # identifier=TOD,
+    #     identifier=identifier_plot,
+    #     with_corr=True,
+    #     corr_band=False
+    # )
     integration.plot_time_min_comp()
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
@@ -740,6 +764,8 @@ if compare_level2_mopi5:
     p_range = [np.arange(7, 11), np.arange(11, 14), np.arange(
         14, 17), np.arange(17, 20), np.arange(20, 23)]
 
+    p_range_full = np.arange(7, 23)
+
     bias_AC240 = dict()
 
     for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
@@ -748,6 +774,10 @@ if compare_level2_mopi5:
         diff = o3_s1 - o3_ref
         #alt_bias =1e6*np.mean(np.abs(diff.isel(o3_p=p_range[0])),1)
         alt_bias = 1e6*np.mean(diff.isel(o3_p=p_range[0]), 1)
+
+        alt_bias_full = np.mean(1e6*np.mean(diff.isel(o3_p=p_range_full), 1))
+        print('Full bias for ',  s)
+        print(alt_bias_full)
 
         #alt_bias= alt_bias.expand_dims(dim='altitude')
         for i in np.arange(1, len(p_range)):
