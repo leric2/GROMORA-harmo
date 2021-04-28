@@ -299,7 +299,7 @@ class Integration(ABC):
         None.
 
         '''
-        fig, ax = plt.subplots(1,1,sharex=True)
+        # fig, ax = plt.subplots(1,1,sharex=True)
         for s in spectrometers:
             if around_center:
                 if 'good_channels' in self.calibrated_data[s].data_vars:
@@ -328,9 +328,9 @@ class Integration(ABC):
             self.calibrated_data[s] = self.calibrated_data[s].assign(mean_Tb = da_mean_Tb)
             self.calibrated_data[s] = self.calibrated_data[s].assign(median_Tb = da_median_Tb)
 
-            ax.plot(self.calibrated_data[s].time, self.calibrated_data[s].mean_Tb,'.',markersize=4,label=s)
-            ax.legend()        
-        plt.title('Mean Tb')
+        #     ax.plot(self.calibrated_data[s].time, self.calibrated_data[s].mean_Tb,'.',markersize=4,label=s)
+        #     ax.legend()        
+        # plt.title('Mean Tb')
 
         return self.calibrated_data
 
@@ -920,9 +920,8 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_data[s] = self.integrated_data[s].drop(
-                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
-
         return self.integrated_data, self.integrated_meteo
 
     def integrate_by_tod(self, spectrometers, tod = [9, 16], interval= [2, 1]):
@@ -1035,7 +1034,7 @@ class Integration(ABC):
 
             # Drop meaningless variables:
             self.integrated_data[s] = self.integrated_data[s].drop(
-                ['stdTHot','stdTSys', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
+                ['stdTHot', 'mean_std_Tb','stdTRoom','number_of_hot_spectra','number_of_cold_spectra','number_of_sky_spectra','good_channels']
                 )
 
         return self.integrated_data, self.integrated_meteo
@@ -1095,7 +1094,7 @@ class Integration(ABC):
         '''
         for s in spectrometers:
             filename = self.filename_level1b[s] + extra + '.nc'
-
+            
             for i, group_name in enumerate(groups):
                 ds = datasets[i][s]
                 if i==0:
@@ -1157,12 +1156,12 @@ class DataRetrieval(ABC):
         # must be false for Integration
         self.multiday = False
         try:
-            len(self.date) > 1
+            if len(self.date) > 1:
+                self.multiday = True
         except TypeError:
             self.multiday = False
-        else:
-            self.multiday = True
-
+            
+    
         self.calibrated_data = dict()
         self.meteo_data = dict()
         self.calibration_flags = dict()
@@ -1201,7 +1200,7 @@ class DataRetrieval(ABC):
                             s + "_" + self.datestr
                             )
             else:
-                self.datestr = self.date.strftime('%Y_%m_%d')
+                self.datestr = self.date[0].strftime('%Y_%m_%d')
                 if self.integration_strategy == 'classic':
                     if self.int_time == 1:
                         self.filename_level1b[s].append(os.path.join(
@@ -1353,6 +1352,7 @@ class DataRetrieval(ABC):
                         )                    
                     except FileNotFoundError:
                         print('No file for this day, skipping ', self.filename_level2[s])
+                       # level2_data[s] = xr.Dataset()
                     else:
                         if counter == 0:
                             self.level2_data[s] = level2_data

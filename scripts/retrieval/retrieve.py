@@ -47,7 +47,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
+    instrument_name = "GROMOS"
     date = datetime.date(2018, 1, 2)
     int_time = 1
     integration_strategy = 'classic'
