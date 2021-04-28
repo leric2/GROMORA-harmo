@@ -46,7 +46,7 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-03-13', end='2018-03-13')
+date = pd.date_range(start='2018-01-01', end='2018-03-31')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -59,10 +59,10 @@ df_bins = 200e3
 plot_all = False
 plot_all_mopi5 = False
 plot_o3_ts = False
-plot_selected = True
+plot_selected = False
 plot_fshift = False
-plot_cost = True
-
+plot_cost = False
+plot_o3_diff_waccm = True
 compare = False
 
 compare_MERRA2 = False
@@ -74,13 +74,14 @@ classic = np.arange(1, 24)
 
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
-spectros = ['USRP-A'] 
+spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 ex = '_newcorr'
+#ex = '_waccm'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -200,9 +201,12 @@ if plot_cost:
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-            end_cost.plot(ax=axs)
+            noise_input = level2_dataset[s].median_noise
+            end_cost.plot(marker='.', ax=axs[0])
+            noise_input.plot(marker='.',ax=axs[1])
+            #axs[1].set_ylim(0,1)
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+'_end_cost.pdf', dpi=500)
@@ -342,16 +346,75 @@ if plot_o3_ts:
     plt.tight_layout()
     # o3.plot.imshow(x='time')
     fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
-                instrument.datestr+'_ozone_ts_mr.pdf', dpi=500)
+                instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
+
+if plot_o3_diff_waccm:
+    # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
+    # ds_waccm = xr.open_dataset(
+    #         filename_waccm,
+    #         decode_times=True,
+    #         decode_coords=True,
+    #         use_cftime=False,
+    #     )
+
+    # waccm_hourly = ds_waccm.isel(time=np.arange(0,90)).resample(time=1/24)
+    
+    ozone = level2_dataset['AC240'].isel(o3_lat=0, o3_lon=0)
+    o3 = ozone.o3_x
+    mr = ozone.o3_mr.data
+    o3['altitude'] = ozone.o3_z / 1e3
+    # o3_test = xr.DataArray(
+    #     data=ozone.o3_x.data,
+    #     dims={'time','altitude'},
+    #     coords=dict(
+    #         time=ozone.time.values,
+    #         altitude=(['time','altitude'],ozone.o3_z.values)
+    #     )
+    # )
+   # o3 = o3.assign_coords({'altitude':ozone.o3_z})
+    o3_hourly = o3.resample(time='1H', skipna=True).nearest(tolerance='1H')
+
+    o3_weekly= o3.resample(time='1d', skipna=True).nearest(tolerance='1H')
+
+    o3.coords['o3_p'] = o3.coords['o3_p']/100
+    o3.data = o3.data*1e6
+   # o3=o3.swap_dims({'o3_p':'altitude'})
+    fig = plt.figure(num=1)
+    ax = fig.subplots(1)
+  #  o3_hourly = o3_hourly.swap_dims({'o3_p':'geometric_height'})
+   # o3_hourly['geometric_height'] = o3_hourly.o3_z
+    #o3.plot(x='time', y='altitude')
+    pl = (o3_hourly).where(mr > 0.8).resample(time='4H', skipna=True).mean().plot(
+        x='time',
+        y='o3_p',
+        vmin=0,
+        vmax=9,
+        cmap=colormap,
+        yscale='log',
+        # linewidth=0,
+        # rasterized=True,
+        cbar_kwargs={"label": "ozone [PPM]"}
+    )
+    pl.set_edgecolor('face')
+    ax.set_ylim(0.01, 500)
+    ax.set_yticks([])
+    ax.invert_yaxis()
+    ax.set_yscale('log')
+
+    ax.set_ylabel('Pressure [hPa]')
+    plt.tight_layout()
+    # o3.plot.imshow(x='time')
+    fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+                instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
 
 if plot_all_mopi5:
     for s in spectros:
         outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
-        mopi5_library.plot_O3_all(
+        mopi5_library.plot_O3_sel_paper(
             level2_dataset,
             outname,
             spectro=s,
-            cycles=np.arange(0, 14)
+            cycles=np.arange(0,15)
         )
 
 
@@ -420,7 +483,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1]
+        cycles=[1,6,9]
     )
 
 if plot_fshift:
