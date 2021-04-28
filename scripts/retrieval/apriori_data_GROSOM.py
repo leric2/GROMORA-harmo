@@ -130,6 +130,15 @@ def get_apriori_fascod(retrieval_param):
         ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
     )
     print('Atmospheric state and apriori defined from Fascod climatology : ',fascod_clim)
+
+    if retrieval_param['atm'] == 'fascod_cira86':
+        # Reading CIRA86
+        cira86 = read_cira86_monthly(retrieval_param['cira86_path'], month, retrieval_param['lat'])
+        fascod_atm.set_t_field(cira86['Pressure'].values, cira86['temperature'].values)
+        # z field
+        fascod_atm.set_z_field(cira86['Pressure'].values, cira86["altitude"].values)
+        print('Set altitude and Temperature fields to CIRA86 !')
+        
     if retrieval_param['o3_apriori']=='gromos':
         o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
         fascod_atm.set_vmr_field(
@@ -298,9 +307,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     cira86 = read_cira86_monthly(cira86_path, month, lat)
 
     #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
-    
-    o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
-
+        
     #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
 
     # Merging ecmwf and CIRA86
@@ -335,9 +342,16 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             "O3", pressure_atm, o3_apriori_h
         )       
     elif retrieval_param['o3_apriori'] == 'gromos':
+        o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
         print('Ozone apriori from : old GROMOS retrievals')
         atm.set_vmr_field(
             "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
+        )
+    elif retrieval_param['o3_apriori'] == 'waccm':
+        print('Ozone apriori from : WACCM climatology')
+        ds_waccm = read_waccm(retrieval_param['waccm_file'], retrieval_param['time'])
+        atm.set_vmr_field(
+            "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
     elif retrieval_param['o3_apriori'] == 'mls':
         o3_apriori = read_mls(retrieval_param['o3_apriori_file'])
@@ -361,7 +375,9 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
             "O3", o3_apriori["o3_p"].values, o3_apriori['o3_x'].values
         )
-
+    else: 
+        print('Ozone apriori not recognized !')
+        return 0
    # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
 
     # Water vapor
@@ -412,6 +428,29 @@ def read_mls(filename):
     mls_o3['p'] = mls_o3['p']*100
     mls_o3['o3'] = mls_o3['o3']*1e-6
     return mls_o3
+
+def read_waccm(filename, datetime, extra_day=0):
+    ds_waccm = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    if pd.to_datetime(datetime).hour < 8 or pd.to_datetime(datetime).hour > 20:
+        tod = 'night'
+    else:
+        tod = 'day' 
+    
+    # As a function of datetime, select appropriate day and time from climatology:
+    if extra_day:
+        ds_waccm = ds_waccm.sel(
+            time=slice(pd.to_datetime(datetime).dayofyear-extra_day,pd.to_datetime(datetime).dayofyear+extra_day), 
+            tod=tod
+        ).mean(dim='time')
+    else:
+        ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
+    return ds_waccm
 
 def read_retrieved(filename):
     retrieved_o3 = xr.open_dataset(

@@ -49,8 +49,8 @@ lake_path = os.environ['DATALAKE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "GROMOS"
-    date = datetime.date(2017, 3, 20)
+    instrument_name = "SOMORA"
+    date = datetime.date(2018, 1, 2)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -85,7 +85,7 @@ if __name__ == "__main__":
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
-        retrieval_param['increased_var_factor'] = 1.1 #15
+        retrieval_param['increased_var_factor'] = 0.02#1.1 #15
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(0,1)
+    cycles = np.arange(11,12)
 
 
     # type of retrieval to do:
@@ -152,7 +152,9 @@ if __name__ == "__main__":
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='somora'   
+    retrieval_param['o3_apriori']='waccm'   
+    retrieval_param['o3_apriori_covariance'] = 'constant'
+    retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
     retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4 12e-4
 
@@ -258,8 +260,8 @@ if __name__ == "__main__":
             #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 2:
-            retrieval_param["surface_altitude"] = 900
-            retrieval_param["observation_altitude"] =  900   
+            retrieval_param["surface_altitude"] = 1000
+            retrieval_param["observation_altitude"] =  1000   
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
             if ac.oem_converged:
                 figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
