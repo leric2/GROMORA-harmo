@@ -16,33 +16,16 @@ import netCDF4
 import matplotlib.pyplot as plt
 from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c85af08 (added plots for outline)
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-<<<<<<< HEAD
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-=======
-
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
->>>>>>> 377b999 (update mopi5 processing)
 
 # cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
 # cm_data = np.loadtxt(
 #     '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
 # cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
-=======
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-
-cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
-cm_data = np.loadtxt(
-    '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
-cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
->>>>>>> c85af08 (added plots for outline)
 
 
 import mopi5_library
@@ -86,18 +69,11 @@ int_time = 1
 plot_ts_Tb_Tsys = False
 df_bins = 200e3
 #date1b = pd.to_datetime(date[-1])
-<<<<<<< HEAD
 
 plot_spectra_schematic = True
-=======
->>>>>>> 377b999 (update mopi5 processing)
 
 plot_comparison = False
-<<<<<<< HEAD
 compare_level2_mopi5 = False
-=======
-compare_level2_mopi5 = True
->>>>>>> c85af08 (added plots for outline)
 plot_fancy1 = False
 plot_fancy2 = False
 plot_interp_facny3 = False
@@ -105,7 +81,7 @@ plot_bias = False
 plot_bias_TOD = True
 plot_bias_TOD_full = False
 plot_o3 = False
-plot_o3_sel = False
+plot_o3_sel = True
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -142,7 +118,6 @@ else:
 param_slope_broadband = [111.2e9, 25e6, 110.5e9, 25e6]
 param_slope = {'AC240': param_slope_broadband,
                'USRP-A': [110.84e9, 5e6, 110.72e9, 5e6], 'U5303': param_slope_broadband}
-<<<<<<< HEAD
 if plot_spectra_schematic:
     integration.compare_spectra_mopi5(
         spectrometers=['AC240'],
@@ -150,25 +125,13 @@ if plot_spectra_schematic:
         idx=idx_all,
         # idx=[0,1,2,3],
         save_plot=True,
-=======
-if plot_fancy1:
-    integration.compare_spectra_mopi5(
-        spectrometers=['U5303'],
-        dim=dimension[0],
-        idx=idx_all,
-        # idx=[0,1,2,3],
-        save_plot=False,
->>>>>>> c85af08 (added plots for outline)
         identifier=identifier_plot,
         lowerBound=lowerBound,
         with_corr=False,
         corr_band=param_slope,
         title='',
     )
-<<<<<<< HEAD
     
-=======
->>>>>>> c85af08 (added plots for outline)
 # %%
 
 if plot_spectra_comparison_3_spectro_paper:
@@ -333,20 +296,6 @@ if plot_comparison:
         identifier=identifier_plot,
         use_basis='U5303'
     )
-<<<<<<< HEAD
-=======
-    integration.plot_time_min_comp()
-    integration.compare_spectra_binned_interp_mopi5(
-        dim=dimension[0],
-        idx=idx_all,
-        # idx=[0,1,2,3],
-        spectrometers=integration.spectrometers,
-        save_plot=True,
-        # identifier=TOD,
-        identifier=identifier_plot,
-        use_basis='U5303'
-    )
->>>>>>> c85af08 (added plots for outline)
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
         # idx=np.arange(0,len(meanTb_chunks)+1),
@@ -380,11 +329,8 @@ if plot_bias:
                 d, basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-<<<<<<< HEAD
             #integrated_data = integration.add_mean_Tb(spectrometers = integration.spectrometers, around_center=True, around_center_value=500e6)
 
-=======
->>>>>>> 377b999 (update mopi5 processing)
             color = monthly_color[d[0].month-1]
             for s in ['U5303', 'AC240']:
                 scatter = ax1.scatter(
@@ -618,23 +564,15 @@ if plot_bias_TOD:
     ax2 = fig2.add_subplot(1, 3, 3)
     ax3 = fig2.add_subplot(1, 3, 2)
     count = 0
-<<<<<<< HEAD
     fs = 10
-=======
-    fs = 12
->>>>>>> c85af08 (added plots for outline)
     for d in end_dates:
         try:
             integration = mc.MOPI5_LvL2(
                 pd.DatetimeIndex([d]), basename_lvl1, basename_lvl2, integration_strategy, integration_time=int_time)
             integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
                 no_flag=True, meta_data=False)
-<<<<<<< HEAD
             color = monthly_color[d.month-1]
             smb = symbols[d.month-1]
-=======
-            color = monthly_color[d[0].month-1]
->>>>>>> 377b999 (update mopi5 processing)
             s = 'AC240'
 
             # normal diff
@@ -654,11 +592,7 @@ if plot_bias_TOD:
             fitted_poly_theoretical_nonlinearities = np.poly1d(
                 theoretical_nonlinearities)
             ax2.scatter(integrated_data[s].mean_Tb.data, integrated_data[s].continuum_value_line_center.data -
-<<<<<<< HEAD
                         integrated_data['U5303'].continuum_value_line_center.data, marker=smb, color=color, s=12)
-=======
-                        integrated_data['U5303'].continuum_value_line_center.data, color=color, s=12)
->>>>>>> c85af08 (added plots for outline)
             ax2.plot(np.arange(70, 300, 1), fitted_poly_theoretical_nonlinearities(
                 np.arange(70, 300, 1)), 'k-', linewidth=0.4)
             ax2.axvline(80, color='b', linewidth=0.6, ls='--')
@@ -822,8 +756,6 @@ if plot_bias_TOD_full:
     save_single_pdf(basename_lvl2+'full_bias_all_' +
                     integration_strategy+'_2021.pdf', figures2)
 if plot_o3:
-<<<<<<< HEAD
-<<<<<<< HEAD
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='_all')
@@ -952,130 +884,3 @@ if plot_o3_sel:
         outname=outName
     )
 # %%
-=======
-   spectro_lvl2 = integration.spectrometers
-   level2_data = integration.read_level2(
-       spectrometers=spectro_lvl2, extra_base='_all')
-   outName = 'bias_o3_feb'
-   mopi5_library.plot_O3_all_mopi5(level2_data, outName)
-if  plot_o3_sel:
-=======
->>>>>>> c85af08 (added plots for outline)
-    spectro_lvl2 = integration.spectrometers
-    level2_data = integration.read_level2(
-        spectrometers=spectro_lvl2, extra_base='_all')
-    outName = 'bias_o3_feb'
-    mopi5_library.plot_O3_all_mopi5(level2_data, outName)
-
-if compare_level2_mopi5:
-    spectro_lvl2 = integration.spectrometers
-    level2_data = integration.read_level2(
-        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
-    level2_ac240_unbiased = integration.read_level2(
-        spectrometers=['AC240'], extra_base='_fascod_fix_noise_unbiased_3')
-    level2_data['AC240_unbiased'] = level2_ac240_unbiased['AC240']
-
-    reference_spectro = 'U5303'
-
-    o3_ref = level2_data[reference_spectro].o3_x.isel(o3_lat=0, o3_lon=0)
-    o3_z = level2_data[reference_spectro].o3_z
-
-    # Corresponds to altitude range: 20-30km, 30-40km, 40-50km, 50-60km, 60-70km
-    p_range = [np.arange(7, 11), np.arange(11, 14), np.arange(
-        14, 17), np.arange(17, 20), np.arange(20, 23)]
-
-    bias_AC240 = dict()
-
-    for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
-        alt_bias = xr.DataArray()
-        o3_s1 = level2_data[s].o3_x.isel(o3_lat=0, o3_lon=0)
-        diff = o3_s1 - o3_ref
-        #alt_bias =1e6*np.mean(np.abs(diff.isel(o3_p=p_range[0])),1)
-        alt_bias = 1e6*np.mean(diff.isel(o3_p=p_range[0]), 1)
-
-        #alt_bias= alt_bias.expand_dims(dim='altitude')
-        for i in np.arange(1, len(p_range)):
-            #alt_bias = xr.concat([alt_bias, 1e6*np.mean(np.abs(diff.isel(o3_p=p_range[i])),1)], dim='altitude_range')
-            alt_bias = xr.concat(
-                [alt_bias, 1e6*np.mean(diff.isel(o3_p=p_range[i]), 1)], dim='altitude_range')
-
-        alt_bias.coords['altitude_range'] = [25, 35, 45, 55, 65]
-        alt_bias.coords['time'] = np.arange(0, 15)
-        bias_AC240[s] = alt_bias
-
-    toplim = 0.8
-    colormap = 'coolwarm'#cmap_crameri#'bwr'
-    fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True, figsize=(9, 6))
-    pl = bias_AC240['AC240'].plot(
-        ax=axs[0],
-        cmap=colormap,
-        center=0,
-        vmin=-toplim,
-        vmax=toplim,
-        # linewidth=0,
-        # rasterized=True,
-        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
-    )
-    pl2 = bias_AC240['AC240_unbiased'].plot(
-        ax=axs[1],
-        cmap=colormap,
-        center=0,
-        vmin=-toplim,
-        vmax=toplim,
-        # linewidth=0,
-        # rasterized=True,
-        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
-    )
-    # pl3 = bias_AC240['USRP-A'].plot(
-    #     ax=axs[2],
-    #     cmap=colormap,
-    #     center=0,
-    #     vmin=-toplim,
-    #     vmax=toplim,
-    #     # linewidth=0,
-    #     # rasterized=True,
-    #     cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
-    # )
-    for i in [0,1]:
-        axs[i].set_xlabel('Tb chunks [-]')
-        axs[i].set_ylabel('altitude [km]')
-    axs[0].set_title('AC240')
-    axs[1].set_title('AC240 corrected')
-    #axs[1].set_title('USRP-A')
-    pl.set_edgecolor('face')
-
-    plt.tight_layout()
-    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_feb_paper.pdf')
-
-if plot_o3_sel:
-    spectro_lvl2 = integration.spectrometers
-    level2_data = integration.read_level2(
-        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
-    level2_ac240_unbiased = integration.read_level2(
-<<<<<<< HEAD
-       spectrometers=['AC240'], extra_base='fascodunbiased_all_fix_noise')
-    level2_data['AC240_unbiased'] =level2_ac240_unbiased['AC240']
-    outName = integration.level2_folder+'/bias_o3_feb_all_unbiased_fascod_fix_noise'
-    mopi5_library.plot_O3_sel_mopi5(level2_data, spectro=['U5303','AC240','AC240_unbiased'], outName=outName)       
->>>>>>> 377b999 (update mopi5 processing)
-=======
-        spectrometers=['AC240'], extra_base='_fascod_fix_noise_unbiased_3')
-    level2_data['AC240_unbiased'] = level2_ac240_unbiased['AC240']
-    outName = '/home/eric/Documents/PhD/MOPI/Data/Level3/' + \
-        'bias_o3_feb_all_fascod_fix_noise_paper.pdf'
-    # mopi5_library.plot_O3_sel_mopi5(
-    #     level2_data, 
-    #     spectro=['U5303', 'AC240', 'AC240_unbiased'], 
-    #     outName=outName)
-
-    integration.plot_o3_retrieval_mopi5(
-        level2_data,
-        spectrometers=['U5303', 'AC240', 'AC240_unbiased'],
-        idx=[1,11],
-        save_plot=True,
-        identifier=identifier_plot,
-        lowerBound=lowerBound,
-        outname=outName
-    )
-# %%
->>>>>>> c85af08 (added plots for outline)

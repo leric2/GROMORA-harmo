@@ -1,6 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Created on Fri Apr 10 11:37:52 2020
+
+@author: eric
+
+Integration script for IAP instruments
+
+Example:
+    E...
+
+        $ python example_google.py
+
+Attributes:
+    module_level_variable1 (int): Module level variables may be documented in
+        either the ``Attributes`` section of the module docstring, or in an
+        inline docstring immediately following the variable.
+
+        Either form is acceptable, but the two should not be mixed. Choose
+        one convention to document module level variables and be consistent
+        with it.
+
+Todo: all
+
+"""
 import datetime
 import os
 from abc import ABC
@@ -46,15 +70,7 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 date = pd.date_range(start='2018-01-01', end='2018-03-31')
-=======
-date = pd.date_range(start='2019-02-22', end='2019-02-22')
->>>>>>> 377b999 (update mopi5 processing)
-=======
-date = pd.date_range(start='2018-03-13', end='2018-03-13')
->>>>>>> b523e1c (replots of mopi5 ts)
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -67,19 +83,11 @@ df_bins = 200e3
 plot_all = False
 plot_all_mopi5 = False
 plot_o3_ts = False
-plot_selected = True
+plot_selected = False
 plot_fshift = False
-<<<<<<< HEAD
 plot_cost = False
-<<<<<<< HEAD
 plot_o3_diff_waccm = True
 read_waccm_clim = False
-=======
-=======
-plot_cost = True
->>>>>>> b523e1c (replots of mopi5 ts)
-
->>>>>>> c85af08 (added plots for outline)
 compare = False
 
 compare_MERRA2 = False
@@ -91,7 +99,6 @@ classic = np.arange(1, 24)
 
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
-<<<<<<< HEAD
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
@@ -100,19 +107,6 @@ ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 ex = '_newcorr'
 #ex = '_waccm'
-=======
-spectros = ['USRP-A'] 
-spectros = ['AC240'] 
-
-
-ex = 'fascodunbiased_all'
-ex = '_fascod_fix_noise_3'
-<<<<<<< HEAD
-#ex = ''
->>>>>>> 377b999 (update mopi5 processing)
-=======
-ex = '_newcorr'
->>>>>>> b523e1c (replots of mopi5 ts)
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -232,7 +226,6 @@ if plot_cost:
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-<<<<<<< HEAD
             fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
@@ -240,15 +233,6 @@ if plot_cost:
             noise_input.plot(marker='.',ax=axs[1])
             #axs[1].set_ylim(0,1)
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
-=======
-            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
-            end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-            end_cost.plot(ax=axs)
-<<<<<<< HEAD
->>>>>>> 377b999 (update mopi5 processing)
-=======
-          #  end_cost.plot(ax=axs, ylim=(0.75,8))
->>>>>>> b523e1c (replots of mopi5 ts)
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+'_end_cost.pdf', dpi=500)
 
@@ -450,8 +434,6 @@ if plot_o3_diff_waccm:
 
 if plot_all_mopi5:
     for s in spectros:
-<<<<<<< HEAD
-<<<<<<< HEAD
         outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
         mopi5_library.plot_O3_sel_paper(
             level2_dataset,
@@ -497,18 +479,6 @@ if read_waccm_clim:
     )
     ds_o3_all.time.attrs['description'] = 'day of year'
     ds_o3_all.tod.attrs['description'] = 'time of day: daytime [0] or nighttime [1]'
-=======
-        outname = '/scratch/MOPI5/Level2/v2/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
-=======
-        outname = basename_lvl2+'/'+s+'_'+instrument.datestr + '_plot_fascod'+ex
->>>>>>> c85af08 (added plots for outline)
-        mopi5_library.plot_O3_all(
-            level2_dataset,
-            outname,
-            spectro=s,
-            cycles=np.arange(0, 14)
-        )
->>>>>>> 377b999 (update mopi5 processing)
 
     ds_o3_all.to_netcdf('waccm_o3_climatology.nc')
 
@@ -549,7 +519,7 @@ if compare_MLS:
 
     fig, ax = plt.subplots(1, 1)
     #monthly_mls.plot(x='time', y='p', ax=ax ,vmin=0, vmax=9).resample(time='24H', skipna=True).mean()
-    pl = o3_mls.plot(
+    pl = o3_mls.resample(time='4H', skipna=True).mean().plot(
         x='time',
         y='p',
         ax=ax,
@@ -577,11 +547,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-<<<<<<< HEAD
         cycles=[1,6,9]
-=======
-        cycles=[1]
->>>>>>> b523e1c (replots of mopi5 ts)
     )
 
 if plot_fshift:

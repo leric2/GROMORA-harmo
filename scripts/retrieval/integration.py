@@ -52,13 +52,9 @@ def integrate(date, integration_strategy):
 
    # date = pd.date_range(start='2019-01-03', end='2019-04-30')
 
-<<<<<<< HEAD
-   # date = pd.date_range(start='2019-01-30', end='2019-02-22')
-=======
     #date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
     date = pd.date_range(start='2019-01-30', end='2019-02-22')
->>>>>>> b523e1c (replots of mopi5 ts)
     meanTb_chunks = [80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 170, 190]
 
     #date = pd.date_range(start='2019-05-01', end='2019-05-04')
