@@ -540,8 +540,8 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     )
 
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
-    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
-    #axs[1].set_ylim(-2, 2)
+    axs[1].plot((f_backend- retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    #axs[1].set_ylim(np.median(r[good_channels])-5, np.median(r[good_channels]+5))
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
 
@@ -557,7 +557,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
     )
     axs[0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
-    axs[0].set_xlim(-2,9)
+    #axs[0].set_xlim(-2,9)
     axs[0].set_xlabel("Ozone VMR [ppm]")
     axs[0].set_ylabel("Altitude [km]")
     axs[0].legend()

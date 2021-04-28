@@ -48,7 +48,7 @@ end
 calibrationTool.instrumentBandwidth = BW(modelFFTS);
 calibrationTool.spectrometer=spectrometerTypes{modelFFTS};
 calibrationTool.samplingRateFFTS=samplingRateFFTS(modelFFTS);
-calibrationTool.filenameLevel1a=['/scratch/MOPI5/Level1/mopi5_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+calibrationTool.filenameLevel1a=[calibrationTool.level1Folder 'mopi5_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
 
 % TNoise threshold:
 TNoiseCenter = [550 0 550 500];

@@ -31,20 +31,20 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='mopi5';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
 calibrate = true;
 integrate = true;
-readLabviewLog = true;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2014_01_01','yyyy_mm_dd'):datenum('2015_12_31','yyyy_mm_dd');
+dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -251,7 +251,7 @@ for d = 1:numel(dates)
                     warning('Problem with the integration:');
                     disp(ME.message)
                 end
-                clearvars calibrationTool
+                %clearvars calibrationTool
             end 
         end
     end
