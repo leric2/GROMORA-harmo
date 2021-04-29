@@ -61,12 +61,35 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
 
     return ds_ecmwf
 
-def read_o3_apriori_ecmwf_mls_gromosOG(filename):
+def read_o3_apriori_ecmwf_mls_gromosOG_old(filename):
     '''
     read the apriori o3 used in gromos retrieval
     
     just for fun, no idea where that file come from...
     '''
+    ds = pd.read_csv(
+        filename,
+        sep=' ',
+        skiprows=6,
+        header=None,
+        usecols=[0,1]
+        )
+
+    o3_apriori_ds = xr.Dataset({'o3': ('p', ds.iloc[:,1])},
+                            coords = {
+                                'p' : ('p', ds.iloc[:,0]),
+                            }
+    )
+    return o3_apriori_ds
+
+def read_o3_apriori_ecmwf_mls_gromosOG(folder_name, month_num):
+    '''
+    read the apriori o3 used in gromos retrieval
+    
+    Combined ECMWF and MLS climatology, described in:
+    Studer et al. 2013, AMTD
+    '''
+    filename = folder_name + 'apriori_gromos_new_' + str(month_num) + '.aa'
     ds = pd.read_csv(
         filename,
         sep=' ',
@@ -140,7 +163,7 @@ def get_apriori_fascod(retrieval_param):
         print('Set altitude and Temperature fields to CIRA86 !')
         
     if retrieval_param['o3_apriori']=='gromos':
-        o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+        o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         fascod_atm.set_vmr_field(
             "o3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
@@ -342,7 +365,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             "O3", pressure_atm, o3_apriori_h
         )       
     elif retrieval_param['o3_apriori'] == 'gromos':
-        o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+        o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         print('Ozone apriori from : old GROMOS retrievals')
         atm.set_vmr_field(
             "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
