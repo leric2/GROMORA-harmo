@@ -20,13 +20,12 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 
 # cmpa_str = 'berlin'  # batlow, devon, oslo, imola, lapaz
 # cm_data = np.loadtxt(
 #     '/home/eric/Documents/PhD/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
 # cmap_crameri = LinearSegmentedColormap.from_list('berlin', cm_data)
-
 
 import mopi5_library
 import mopi5_classes as mc
@@ -70,7 +69,7 @@ plot_ts_Tb_Tsys = False
 df_bins = 200e3
 #date1b = pd.to_datetime(date[-1])
 
-plot_spectra_schematic = True
+plot_spectra_schematic = False
 
 plot_comparison = False
 compare_level2_mopi5 = False
@@ -78,10 +77,11 @@ compare_level2_mopi5 = False
 plot_spectra_comparison_scaling_corr_paper = False
 plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
-plot_bias_TOD = True
+plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
-plot_o3_sel = True
+plot_o3_sel = False
+plot_sel_paper = True
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -98,9 +98,9 @@ basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
 # basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
-basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
+#basename_lvl2 = "/home/eric/Documents/PhD/MOPI/Data/Level2/"
 # calibration = mc.IntegrationMOPI5(date, basename_lvl1, integration_strategy, int_time, ['AC240','USRP-A'])
-integration = mc.MOPI5_LvL2(date, basename_lvl1, basename_lvl2,
+integration = mc.MOPI5_LvL2(date[0], basename_lvl1, basename_lvl2,
                             integration_strategy, integration_time=int_time)
 # Plotting part
 integrated_data, integrated_flags, integrated_meteo = integration.read_level1b(
@@ -884,3 +884,14 @@ if plot_o3_sel:
         outname=outName
     )
 # %%
+if plot_sel_paper:
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
+    outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_3on1_'+integration.datestr + '_plot_fascod'
+    mopi5_library.plot_O3_3on1_paper(
+        level2_data,
+        outname,
+        spectrometer=spectro_lvl2,
+        cycles=np.arange(0,15)
+    )

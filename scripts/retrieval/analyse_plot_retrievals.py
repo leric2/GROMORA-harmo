@@ -47,30 +47,16 @@ from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
 
-
-cmpa_str = 'davos'  # batlow, devon, oslo, imola, lapaz
-cm_data = np.loadtxt(
-    '/home/esauvageat/Documents/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
-cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
-
-# %%
-load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
-
-cmpa_str = 'davos'  # batlow, devon, oslo, imola, lapaz
-cm_data = np.loadtxt(
-    '/home/esauvageat/Documents/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
-cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
-
 # %%
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "SOMORA"
+instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -78,7 +64,7 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-01-01', end='2018-03-31')
+date = pd.date_range(start='2018-02-22', end='2018-02-22')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
