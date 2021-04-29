@@ -19,6 +19,11 @@ from dotenv import load_dotenv
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.sans-serif": ["Times New Roman"]})
+
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 
@@ -62,7 +67,7 @@ lowerBound = [0, 80, 85, 90, 95, 100, 105,
 # date = pd.date_range(start='2019-03-12', end='2019-03-12')
 # date = pd.date_range(start='2019-02-22', end='2019-02-22')
 # options are: 'TOD', 'TOD_harmo', 'classic' 'meanTb_harmo', or 'meanTb'
-integration_strategy = 'TOD_harmo'
+integration_strategy = 'meanTb_harmo'
 int_time = 1
 
 plot_ts_Tb_Tsys = False
@@ -74,14 +79,14 @@ plot_spectra_schematic = False
 plot_comparison = False
 compare_level2_mopi5 = False
 
-plot_spectra_comparison_scaling_corr_paper = False
+plot_spectra_comparison_scaling_corr_paper = True
 plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
 plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
 plot_o3_sel = False
-plot_sel_paper = True
+plot_sel_paper = False
 
 # Define the parameters for integration
 # TOD = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -637,7 +642,7 @@ if plot_bias_TOD:
     fig2.tight_layout(rect=[0, 0.01, 1, 0.95])
     plt.show()
     figures2.append(fig2)
-    save_single_pdf(basename_lvl2+'bias_all_' +
+    save_single_pdf('/home/eric/Documents/PhD/MOPI/Data/Level3/'+'bias_all_' +
                     integration_strategy+'_2021.pdf', figures2)
 if plot_bias_TOD_full:
     figures2 = list()
@@ -765,9 +770,9 @@ if plot_o3:
 if compare_level2_mopi5:
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
-        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
+        spectrometers=spectro_lvl2, extra_base='fascod_paper')
     level2_ac240_unbiased = integration.read_level2(
-        spectrometers=['AC240'], extra_base='_fascod_fix_noise_unbiased_3')
+        spectrometers=['AC240'], extra_base='fascodunbiased_all')
     level2_data['AC240_unbiased'] = level2_ac240_unbiased['AC240']
 
     reference_spectro = 'U5303'
@@ -829,16 +834,16 @@ if compare_level2_mopi5:
         # rasterized=True,
         cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
     )
-    # pl2 = bias_AC240['AC240_unbiased'].plot(
-    #     ax=axs[1],
-    #     cmap=colormap,
-    #     center=0,
-    #     vmin=-toplim,
-    #     vmax=toplim,
-    #     # linewidth=0,
-    #     # rasterized=True,
-    #     cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
-    # )
+    pl2 = bias_AC240['AC240_unbiased'].plot(
+        ax=axs[1],
+        cmap=colormap,
+        center=0,
+        vmin=-toplim,
+        vmax=toplim,
+        # linewidth=0,
+        # rasterized=True,
+        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+    )
     # pl3 = bias_AC240['USRP-A'].plot(
     #     ax=axs[2],
     #     cmap=colormap,
@@ -887,11 +892,11 @@ if plot_o3_sel:
 if plot_sel_paper:
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
-        spectrometers=spectro_lvl2, extra_base='_fascod_fix_noise_3')
+        spectrometers=spectro_lvl2, extra_base='fascod_paper')
     outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_3on1_'+integration.datestr + '_plot_fascod'
     mopi5_library.plot_O3_3on1_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles=np.arange(0,15)
+        cycles= np.arange(0,15)
     )
