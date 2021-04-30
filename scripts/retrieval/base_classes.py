@@ -1215,6 +1215,7 @@ class DataRetrieval(ABC):
                         s + "_" + self.datestr
                         ))
                 else:
+                    self.datestr = self.date.strftime('%Y_%m_%d')
                     self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +

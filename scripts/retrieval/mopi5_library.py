@@ -990,7 +990,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_ylabel(r"Brightness Temperature $T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
         ax1.set_title(title)
         ax1.grid()
@@ -1060,7 +1060,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
         ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("frequency [GHz]")
+        ax2.set_xlabel("Frequency [GHz]")
         ax2.set_xlim(110.25, 111.4)
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
@@ -1334,8 +1334,8 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_xlabel("Frequency [GHz]")
+        ax1.set_ylabel(r"Brightness Temperature $T_B$ [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(4))
         ax1.set_title(title)
         ax1.grid()
@@ -1361,11 +1361,11 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
             # print('$T_b$ differences, '+s)
             # print(np.nanmean(Tb_diff))
             ax3.axhline(0,lw=0.6, color='k', ls='--')
-        ax3.set_title('$T_b$ differences with: '+use_basis)
+        ax3.set_title('$T_B$ differences with: '+use_basis)
         ax3.set_ylim(-1.5,0.5)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
         ax3.set_ylabel('$\Delta T_B$ [K]')
-        ax3.set_xlabel("frequency [GHz]")
+        ax3.set_xlabel("Frequency [GHz]")
         ax3.set_xlim(110.25, 111.4)
         #ax3.set_ylabel('[%]')
         ax3.grid(which='both')
@@ -1958,11 +1958,11 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
         axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
         #axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
         axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1.1, label=spectro,color=color_spectro[spectro])
-        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.4, label=spectro,color='k')
+        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label=spectro,color='k')
         axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.1)
-        axs[0].set_title('$O_3$ VMR')
+        axs[0].set_title(r'O$_3$ Volume Mixing Ratio')
         axs[0].set_xlim(-0.5,11)
-        axs[0].set_xlabel('$O_3$ VMR [ppm]')
+        axs[0].set_xlabel(r'O$_3$ VMR [ppmv]')
         axs[0].yaxis.set_major_locator(MultipleLocator(10))
         axs[0].yaxis.set_minor_locator(MultipleLocator(5))
         axs[0].xaxis.set_major_locator(MultipleLocator(5))
@@ -1976,7 +1976,8 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
         axs[1].yaxis.set_minor_locator(MultipleLocator(5))
         axs[1].xaxis.set_major_locator(MultipleLocator(0.4))
         axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
-        axs[1].set_xlabel('MR [-]')
+        axs[1].set_xlabel('MR [ - ]')
+        axs[1].set_ylabel('Altitude [km]')
         axs[1].grid(which='both',  axis='x', linewidth=0.5)
         axs[1].set_title('Measurement response') 
         o3_diff = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x
@@ -1984,13 +1985,14 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
         if not spectro=='U5303':
             axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
             axs[2].plot(o3_good_diff*1e6, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
-        axs[2].set_title('$O_3$ VMR difference with U5303')
+        axs[2].set_title(r'O$_3$ bias with U5303')
         axs[2].set_xlim(-2,2)
-        axs[2].set_xlabel('$\Delta O_3$ [ppm]')
+        axs[2].set_xlabel(r'$\Delta$ O$_3$ VMR [ppmv]')
         axs[2].yaxis.set_major_locator(MultipleLocator(10))
         axs[2].yaxis.set_minor_locator(MultipleLocator(5))
         axs[2].xaxis.set_major_locator(MultipleLocator(1))
         axs[2].xaxis.set_minor_locator(MultipleLocator(0.5))
+        axs[2].set_ylabel('Altitude [km]')
         axs[2].grid(which='both',  axis='x', linewidth=0.5) 
         for a in axs:
             a.set_ylim(10,80)
@@ -2011,9 +2013,9 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     legend_elements = [
     Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
     Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
-    Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
-    Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
-    Line2D([0], [0], linestyle='--', color='k', label='a priori')
+    #Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
+    Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240 unbiased'),
+    Line2D([0], [0], linestyle='-', color='k', label='a priori')
     ]
     axs[0].legend(handles=legend_elements)
     axs[2].axvline(x=0, linewidth=0.6,color='k')
