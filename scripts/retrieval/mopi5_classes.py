@@ -131,11 +131,11 @@ class IntegrationMOPI5(Integration):
     def plot_time_series_all_mopi5(self, title='', special=False):
         figures = list()
         if special:
-            figures.append(mopi5_library.plot_ts_mopi5_Feb(self, title=title))
+            figures.append(mopi5_library.plot_ts_mopi5_Feb_paper(self, title=title))
         else:
             figures.append(mopi5_library.plot_ts_mopi5(self, title=title))
 
-        save_single_pdf(self.level1_folder+'time_series_'+self.datestr+'.pdf', figures)
+        save_single_pdf(self.level1_folder+'time_series_paper'+self.datestr+'.pdf', figures)
         save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
 
@@ -246,7 +246,7 @@ class MOPI5_LvL2(DataRetrieval):
         if save_plot:
             save_single_pdf(self.level1_folder+'spectra_binned_comparison_'+self.integration_strategy+'_'+self.datestr+'_'+str(idx)+'.pdf', figures)
     
-    def compare_spectra_binned_interp_mopi5_factor(self, dim='time', idx=[0], save_plot = False, spectrometers=['AC240'], identifier=[], use_basis = 'U5303', alpha=[0,7,8,9], binning=8, lowerBound=[], corr_band=[], variable=False, broadband_bias=[]):
+    def compare_spectra_binned_interp_mopi5_factor(self, dim='time', idx=[0], save_plot = False, spectrometers=['AC240'], identifier=[], use_basis = 'U5303', alpha=[0,7,8,9], binning=8, lowerBound=[], corr_band=[], variable=False, broadband_bias=[], paper=False):
         figures = list()
         #spectro_ds = self.calibrated_data[s]
         
@@ -254,9 +254,15 @@ class MOPI5_LvL2(DataRetrieval):
             title ='Integrated spectra with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
             if variable:
                 #title2='$\Delta T_B$ using $T_{B,AC240}^{\'} = (1+\\alpha) T_B - \\alpha T_{B,mean} - \Delta T_{B,continuum}$'
-                title2='$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean} + \Delta T_{B,nonlin}$'
+                
                 outName='Tb_scaling_non_lin_'
-                figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor_variable(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, title2=title2,broadband_bias=broadband_bias))
+                
+                if paper:
+                    title2='$\Delta T_B$ using $T_{B,corr} = \\frac{1}{1-\\alpha} (T_B - \\alpha T_{B,mean} - \Delta T_{B,nonlin})$'
+                    figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, title2=title2,broadband_bias=broadband_bias))                    
+                else:
+                    title2='$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean} + \Delta T_{B,nonlin}$'
+                    figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor_variable(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, title2=title2,broadband_bias=broadband_bias))
             else:
                 title2='$\Delta T_B$ using $T_B^{\'}= (1-\\alpha) T_B + \\alpha T_{B,mean}$'
                 figures.append(mopi5_library.compare_spectra_binned_interp_mopi5_clean_factor(self, self.integrated_data, i, spectrometers=spectrometers, use_basis=use_basis, alpha=alpha, binning=binning, title=title, title2=title2, corr_band=corr_band))
@@ -427,6 +433,16 @@ class MOPI5_LvL2(DataRetrieval):
 
         '''
         return mopi5_library.plot_level2_from_tropospheric_corrected_mopi5(spectro_dataset, ac, retrieval_param, title, figure_list)
+
+    def plot_o3_retrieval_mopi5(self, level2_data, spectrometers=[], idx=[0], save_plot = False, identifier=[], lowerBound=[], title=None, outname=None):
+        figures = list()
+        #spectro_ds = self.calibrated_data[s]
+        for i in idx:
+            title ='Ozone retrievals with $T_{B,mean}$ between '+str(lowerBound[i])+ ' and '+str(identifier[i])+'K'
+            figures.append(mopi5_library.plot_O3_chunk_mopi5(level2_data, spectrometers, i, title=title))
+
+        if save_plot:
+            save_single_pdf(outname, figures)
 
     def plot_time_min_comp(self):
         return mopi5_library.plot_time_min_comp(self)

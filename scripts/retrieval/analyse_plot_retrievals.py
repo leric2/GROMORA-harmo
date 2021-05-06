@@ -56,11 +56,6 @@ cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
 # %%
 load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 
-cmpa_str = 'davos'  # batlow, devon, oslo, imola, lapaz
-cm_data = np.loadtxt(
-    '/home/esauvageat/Documents/ScientificColourMaps7/'+cmpa_str+'/'+cmpa_str+'.txt')
-cmap_crameri = LinearSegmentedColormap.from_list('batlow', cm_data)
-
 # %%
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
@@ -70,7 +65,7 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "SOMORA"
+instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -109,7 +104,6 @@ cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
-
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'

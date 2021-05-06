@@ -1042,14 +1042,14 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
     
     return figures
     
-def plot_O3_all(level2_data, outName, cycles=None):
+def plot_O3_all(level2_data, outName, spectro, cycles=None):
     # fig = plt.figure(figsize=(9,6))
     # ax1 = fig.add_subplot(1,3,1)
     # ax2 = fig.add_subplot(1,3,2)
     # ax3 = fig.add_subplot(1,3,3  
     # 
     color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'} 
-    spectro = 'AC240'
+    
     F0 = 142175040000.0
     figure_o3_sel=list()
 
@@ -1080,7 +1080,7 @@ def plot_O3_all(level2_data, outName, cycles=None):
         for ax in axs:
             ax.set_ylabel("$T_B$ [K]")
             ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
-        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data['AC240'].time[i].data).strftime('%Y-%m-%d %H:%M'))
+        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
         figure_o3_sel.append(fig)
 
@@ -1142,7 +1142,7 @@ def plot_O3_all(level2_data, outName, cycles=None):
         for a in axs:
             #a.set_ylim(10,80)
             a.grid(which='both', axis='y', linewidth=0.5)
-        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data['AC240'].time[i].data).strftime('%Y-%m-%d %H:%M'))
+        fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
         figure_o3_sel.append(fig)
 
         # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':

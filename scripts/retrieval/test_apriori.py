@@ -40,6 +40,7 @@ from dotenv import load_dotenv
 # For ARTS, we need to specify some paths
 #load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.5')
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -61,15 +62,15 @@ from typhon.arts.workspace import arts_agenda
 
 if __name__ == "__main__":
     instrument_name = "GROMOS"
-    date = datetime.date(2019,1,1)
+    date = datetime.date(2016,1,1)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = True
     basename_lvl1 = "/home/eric/Documents/PhD/GROSOM/Data/"
     basename_lvl2 = "/home/eric/Documents/PhD/GROSOM/Data/"
     
-    #basename_lvl1 = "/scratch/GROSOM/Level1/"
-    #basename_lvl2 = "/scratch/GROSOM/Level2/"
+    basename_lvl1 = "/scratch/GROSOM/Level1/"
+    basename_lvl2 = "/scratch/GROSOM/Level2/"
     
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -116,8 +117,8 @@ if __name__ == "__main__":
     retrieval_param["number_of_freq_points"] = 1201
     retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 112e3
-    retrieval_param["z_bottom_sim_grid"] = 600
-    retrieval_param["z_resolution_sim_grid"] = 500
+    retrieval_param["z_bottom_sim_grid"] = 500
+    retrieval_param["z_resolution_sim_grid"] = 1e3
 
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
@@ -127,23 +128,24 @@ if __name__ == "__main__":
     retrieval_param["z_top_ret_grid_h2o"] = 40e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 600
     retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
+
     retrieval_param['increased_var_factor'] = 15
 
     #retrieval_param['unit_var_y']  = 3**2
 
-    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
-    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROSOM/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
 
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
     retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
-    #retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
-    retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
-    retrieval_param['extra_time_ecmwf'] = 6
+    retrieval_param['ecmwf_store_location'] ='/scratch/ECMWF'
+    #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
+    retrieval_param['extra_time_ecmwf'] = 1.2
 
     retrieval_param['o3_apriori']='somora'   
     retrieval_param["apriori_O3_cov"] = 1e-6
@@ -176,10 +178,10 @@ if __name__ == "__main__":
     spectro = 'AC240'
     spectro_dataset = instrument.integrated_data[spectro]
 
-    cycle = 7
+    cycle = 1
     retrieval_param['ref_elevation_angle'] = 90
     
-    retrieval_param["observation_altitude"]=800
+    retrieval_param["observation_altitude"]=600
 
     ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
     ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
@@ -259,7 +261,8 @@ if __name__ == "__main__":
             cira86_path,
             t1,
             t2,
-            retrieval_param['extra_time_ecmwf']
+            retrieval_param['extra_time_ecmwf'],
+            z_grid
         )
 
         print('Min altitude before setting atm: ', min(atm.z_field))
@@ -274,7 +277,7 @@ if __name__ == "__main__":
                 ac.set_atmosphere(atm, vmr_zeropadding=True)
     else:
         ValueError('atmosphere type not recognized')
-
+    
     print('Min altitude : ', min(ac.ws.z_field.value[:,0,0]))
     print('Max altitude : ', max(ac.ws.z_field.value[:,0,0]))
 
@@ -292,6 +295,25 @@ if __name__ == "__main__":
 
     print('Min altitude (HSE): ', min(ac.ws.z_field.value[:,0,0]))
     print('Max altitude (HSE): ', max(ac.ws.z_field.value[:,0,0]))
+
+    fig, ax = plt.subplots(2,2)
+    ax[0,0].plot(integrated_meteo[spectro].air_temperature[cycle], 100*integrated_meteo[spectro].air_pressure[cycle],'x')
+    ax[0,0].plot(ac.ws.t_field.value[:,0,0], ac.ws.p_grid)
+    ax[0,0].invert_yaxis()
+    ax[0,0].set_yscale('log')
+    ax[0,1].plot(integrated_meteo[spectro].air_temperature[cycle], 550/1e3,'x')
+    ax[0,1].plot(ac.ws.t_field.value[:,0,0], ac.ws.z_field.value[:,0,0]/1e3)
+    ax[1,0].plot(integrated_meteo[spectro].air_temperature[cycle], 100*integrated_meteo[spectro].air_pressure[cycle],'x')
+    ax[1,0].plot(ac.ws.t_field.value[:,0,0], ac.ws.p_grid.value)
+    ax[1,0].set_yscale('log')
+    ax[1,0].invert_yaxis()
+    ax[1,0].set_ylim(1e5,6e4)
+    ax[1,0].set_xlim(265,285)
+    
+    ax[1,1].plot(integrated_meteo[spectro].air_temperature[cycle], 550,'x')
+    ax[1,1].plot(ac.ws.t_field.value[:,0,0], ac.ws.z_field.value[:,0,0])
+    ax[1,1].set_ylim(-500,5e3)
+    ax[1,1].set_xlim(265,285)
 
 
     obs = arts.Observation(
