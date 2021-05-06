@@ -205,7 +205,7 @@ def retrieve_day(date, instrument_name):
     spectro_dataset = instrument.integrated_data[spectro]
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-    #cycles = [1]
+    #cycles = [1,2]
     if len(cycles) ==0:
         return 0
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -347,7 +347,7 @@ def retrieve_day(date, instrument_name):
     else:
         return 0
 if __name__ == "__main__":
-    dates = pd.date_range(start='2018-02-06', end='2018-02-10')
+    dates = pd.date_range(start='2018-02-11', end='2018-03-31')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
