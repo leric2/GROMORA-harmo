@@ -80,12 +80,12 @@ plot_comparison = False
 compare_level2_mopi5 = False
 
 plot_spectra_comparison_scaling_corr_paper = False
-plot_spectra_comparison_3_spectro_paper = False
+plot_spectra_comparison_3_spectro_paper = True
 plot_bias = False
 plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
-plot_o3_sel = True
+plot_o3_sel = False
 plot_sel_paper = False
 
 # Define the parameters for integration
@@ -98,7 +98,7 @@ interval = 0.5*np.ones(len(TOD))
 classic = np.arange(1, 24)
 
 # %%
-
+outfolder = '/home/eric/Documents/PhD/MOPI/Data/Level3/'
 basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
@@ -140,6 +140,10 @@ if plot_spectra_schematic:
 # %%
 
 if plot_spectra_comparison_3_spectro_paper:
+    theoretical_nonlinearities = np.polyfit(
+        [80, 186, 292], [0, -0.20, 0], deg=2)
+    fitted_poly_theoretical_nonlinearities = np.poly1d(theoretical_nonlinearities)
+
     # Mean comparison
     df_around_line = 25e6
     mean_bias_USRP = np.ones(len(idx_all))
@@ -156,13 +160,28 @@ if plot_spectra_comparison_3_spectro_paper:
         print('Mean bias around obs freq for AC240 an cycle ',str(i),': ')
         print(np.nanmean(Tb_diff))
         mean_bias_AC240[i] = np.nanmean(Tb_diff)
+    mean_bias_AC240_corr = np.ones(len(idx_all))
+    a = 0.08
+    for i in idx_all:
+        Tb_ac240 = integrated_data['AC240'].interpolated_Tb[i].data
+        non_lin = fitted_poly_theoretical_nonlinearities(integrated_data['AC240'].interpolated_Tb[i].data)
+        Tb_ac240_corr = (1/(1-a))*(Tb_ac240 - a*np.nanmean(Tb_ac240) - non_lin)
+        Tb_diff = Tb_ac240_corr - integrated_data['U5303'].binned_Tb[i].data
+        Tb_diff = Tb_diff[(integrated_data['AC240'].bin_freq_interp> integration.observation_frequency-df_around_line ) & (integrated_data['AC240'].bin_freq_interp< integration.observation_frequency+df_around_line )]
+        print('Mean bias around obs freq for AC240 corrected an cycle ',str(i),': ')
+        print(np.nanmean(Tb_diff))
+        mean_bias_AC240_corr[i] = np.nanmean(Tb_diff)
+
+    np.savetxt(outfolder + 'meanBiasUSRP.txt',1000*mean_bias_USRP,fmt='%.0f')
+    np.savetxt(outfolder + 'meanBiasAC240.txt',1000*mean_bias_AC240,fmt='%.0f')
+    np.savetxt(outfolder + 'meanBiasAC240Corr.txt',1000*mean_bias_AC240_corr,fmt='%.0f')
 
     integrated_data['U5303'].frequencies 
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
-        idx=idx_all,
+        idx=[0],
         spectrometers=['AC240', 'USRP-A'],
-        save_plot=True,
+        save_plot=False,
         use_basis='U5303',
         # identifier=TOD,
         identifier=identifier_plot,

@@ -320,9 +320,9 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, spectrometers, calibration_
         ax1.set_xlim(110.25, 111.3)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[id].data)+calibration_cycle)
         ax1.set_xlabel("Frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_ylabel(r"Brightness Temperature [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
-        ax1.set_title(title)
+        #ax1.set_title(title)
         
        #s ax1.legend(fontsize='small',loc=1)
         if corr_band:
@@ -406,6 +406,7 @@ def compare_binned_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0,
 
 def plot_ts_mopi5(calibration, title):
     import matplotlib.dates as mdates
+    
     fig = plt.figure()
     ax = fig.subplots(nrows=3, ncols=1, sharex=True)
     #ax2 = fig.add_subplot(412, sharex=True)
@@ -472,7 +473,7 @@ def plot_ts_mopi5(calibration, title):
     #ax[1].xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
     
     ax[0].yaxis.set_major_locator(MultipleLocator(50))
-    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(25))
     ax[0].xaxis.set_major_locator(days)
     ax[0].xaxis.set_minor_locator(hours)   
 
@@ -484,12 +485,14 @@ def plot_ts_mopi5(calibration, title):
         ax[i].grid(which='minor', linewidth=0.2)
     fig.tight_layout(rect=[0, 0.01, 1, 1])
     #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_04.png', dpi=600, facecolor='w', edgecolor='w')
-    
+
     return fig
 
-
 def plot_ts_mopi5_Feb_paper(calibration, title):
-    fig = plt.figure()
+    figures = list()
+    fs = 14
+    fs_ticks = 12
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.subplots(nrows=3, ncols=1, sharex=True)
     #ax2 = fig.add_subplot(412, sharex=True)
     ax31 = ax[1]
@@ -513,15 +516,16 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
         #ax.legend()
     ax[0].set_xlim([start,stop])
     ax[0].set_ylim(60,260)
-    ax[0].set_ylabel('$T_B$ [K]')
+    ax[0].set_ylabel('Brightness Temperature [K]', fontsize=fs)
     ax[0].set_xlabel('')
+    ax[0].tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
 
-    ax[0].legend(fontsize='small', loc='upper left', bbox_to_anchor=(0.75, 0.99))
+    ax[0].legend(fontsize=fs, loc='upper left', bbox_to_anchor=(0.75, 0.99))
     s = 'AC240'
 
     #ts1 = calibration.meteo_data[s].where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-02'), drop=True)
     ts1 = calibration.meteo_data[s].sel(time=slice('2019-01-30','2019-02-22'), drop=True)
-
+    ts1 = ts1.rename_vars({'air_temperature':'airt', 'air_pressure':'airp','relative_humidity':'relH'})
     # ts2 = calibration.meteo_data[s].sel(time=slice('2019-02-03','2019-02-10'),drop=True)
 
     # #ts2 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-02'), drop=True)
@@ -530,19 +534,18 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     # #ts3 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-11'), drop=True)
     # ts3 = calibration.meteo_data[s].sel(time=slice('2019-02-11','2019-02-22'),drop=True)
     
-    (ts1.air_temperature-273.15).resample(time='1H', skipna=True).mean().plot.line(
+    (ts1['airt']-273.15).resample(time='1H', skipna=True).mean().plot.line(
         'red',
         ax=ax31,
         xticks=[],
-        lw=meteo_lw
+        lw=meteo_lw,
     )
-    ts1.air_pressure.resample(time='1H', skipna=True).mean().plot.line(
+    ts1['airp'].resample(time='1H', skipna=True).mean().plot.line(
         'k',
         ax=ax32,
         xticks=[],
         lw=meteo_lw
     )
-    
 
     # ax31.plot(ts1.time, ts1.air_temperature-273.15,'r-', lw=meteo_lw) 
     # ax31.plot(ts2.time, ts2.air_temperature-273.15,'r-', lw=meteo_lw) 
@@ -551,12 +554,15 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     # ax32.plot(ts1.time, ts1.air_pressure,'k-', lw=meteo_lw)  
     # ax32.plot(ts2.time, ts2.air_pressure,'k-', lw=meteo_lw)  
     # ax32.plot(ts3.time, ts3.air_pressure,'k-', lw=meteo_lw)  
-    ax31.set_ylabel('$T_{air}$ [$\degree C$]', color='r')
+    #ax31.set_ylabel(r'$T_{air}$ [$\degree C$]', color='r')
+    ax31.set_ylabel(r'Air Temperature [$^\circ$ C]', color='r', fontsize=fs)
     ax31.set_ylim(-10, 20)
-    ax31.tick_params(axis='y', labelcolor='r')
+    ax31.tick_params(axis='y', labelcolor='r', labelsize=fs_ticks)
 
-    ax32.set_ylabel('$P_{air}$ [hPa]', color='k')
+    #ax32.set_ylabel(r'$P_{air}$ [hPa]', color='k')
+    ax32.set_ylabel(r'Air Pressure [hPa]', color='k', fontsize=fs)
     ax32.set_ylim(910, 970)
+    ax32.tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
 
     ax31.set_xlabel('')
     ax32.set_xlabel('')
@@ -570,7 +576,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     #rain_serie = calibration.meteo_data[s].precipitation.resample(time='2H', skipna=True).sum().to_series()
     #rain_serie.plot.bar(ax=ax41, x='time', width=0.1, color='k',xticks=[])
 
-    ts1.relative_humidity.resample(time='1H', skipna=True).mean().plot.line(
+    ts1['relH'].resample(time='1H', skipna=True).mean().plot.line(
         'b-',
         ax=ax42,
         xticks=[],
@@ -580,13 +586,13 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     rain = calibration.meteo_data[s].precipitation.resample(time='1H', skipna=True).sum()
     ax41.bar(rain.time.data, rain.data, width=0.08, color='k')
     
-    ax42.set_ylabel('$RH$ [%]', color='b')
-    ax42.tick_params(axis='y', labelcolor='b')
+    ax42.set_ylabel(r'Relative Humidity [\%]', color='b', fontsize=fs)
+    ax42.tick_params(axis='y', labelcolor='b', labelsize=fs_ticks)
     ax42.set_ylim(20, 100)
     ax42.yaxis.set_major_locator(MultipleLocator(20))
-
-    ax41.set_ylabel('Prec [mm]', color='k')
-    ax41.tick_params(axis='y', labelcolor='k')
+    ax[2].tick_params(axis='x', labelsize=fs_ticks)
+    ax41.set_ylabel('Precipitation [mm]', color='k', fontsize=fs)
+    ax41.tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
     ax41.set_ylim(0, 2)
     ax41.yaxis.set_major_locator(MultipleLocator(0.5))
     #ax41.yaxis.set_minor_locator(MultipleLocator(10))
@@ -611,7 +617,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     ax[1].xaxis.set_major_locator(mdates.DayLocator(interval=5))
     
     ax[0].yaxis.set_major_locator(MultipleLocator(50))
-    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(25))
     
     #ax[1].xaxis.set_major_locator(midmonth)
     ax[1].xaxis.set_minor_locator(days)
@@ -621,7 +627,9 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
         ax[i].grid(which='minor', linewidth=0.2)
     fig.tight_layout(rect=[0, 0.01, 1, 1])
     #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_02_22.png', dpi=600, facecolor='w', edgecolor='w')
-
+    figures.append(fig)
+    
+    save_single_pdf('/home/eric/Documents/PhD/MOPI/'+'time_series_paper'+calibration.datestr+'.pdf', figures)
     return fig
 
 
@@ -1007,7 +1015,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
         a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.0f}%'
+        lab = r'$ \alpha = 8\%$'#+f'{alpha[calibration_cycle]:.0f}'+'\%'
 
         #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
         
@@ -1046,11 +1054,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full') 
         
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha$ = 8%, with $\Delta T_{B,nonlin}$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
 
 
