@@ -554,15 +554,19 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     fig, axs = plt.subplots(1, 2, sharey=True)
     axs[0].plot(
-        ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
+        ozone_ret.x * 1e6, ozone_ret.p_grid / 1e2, label="retrieved", marker="x"
     )
-    axs[0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
+    axs[0].plot(ozone_ret.xa * 1e6, ozone_ret.p_grid / 1e2, label="apriori")
     #axs[0].set_xlim(-2,9)
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
     axs[0].set_xlabel("Ozone VMR [ppm]")
-    axs[0].set_ylabel("Altitude [km]")
+    axs[0].set_ylabel("Pressure [hPa]")
     axs[0].legend()
-    axs[1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
+    axs[1].plot(ozone_ret.mr, ozone_ret.p_grid / 1e2)
     axs[1].set_xlabel("Measurement response")
+    #axs[1].invert_yaxis()
+    #axs[1].set_yscale('log')
 
     axs[0].grid(True)
     axs[1].grid(True)
@@ -570,10 +574,10 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     fig, axs = plt.subplots(1, 2, sharey=True)    
 
-    axs[0].plot(ozone_ret.es * 1e6, ozone_ret.z_grid / 1e3, label="smoothing error")
-    axs[0].plot(ozone_ret.eo * 1e6, ozone_ret.z_grid / 1e3, label="obs error")
+    axs[0].plot(ozone_ret.es * 1e6, ozone_ret.p_grid / 1e2, label="smoothing error")
+    axs[0].plot(ozone_ret.eo * 1e6, ozone_ret.p_grid / 1e2, label="obs error")
     axs[0].set_xlabel("$e$ [ppm]")
-    axs[0].set_ylabel("Altitude [km]")
+    axs[0].set_ylabel("Pressure [hPa]")
     axs[0].legend()
 
     # axs[1].plot(100*(ozone_ret.x - og_ozone)/og_ozone, ozone_ret.z_grid / 1e3, label="retrieval-og")
@@ -583,9 +587,15 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     for avk in ozone_ret.avkm:
         if 0.8 <= np.sum(avk) <= 1.2:
-            axs[1].plot(avk, ozone_ret.z_grid / 1e3)
+            axs[1].plot(avk, ozone_ret.p_grid / 1e2)
     
     axs[1].set_xlabel("AVKM")
+    axs[0].invert_yaxis()
+    axs[0].set_yscale('log')
+
+    #axs[1].invert_yaxis()
+    #axs[1].set_yscale('log')
+
     axs[1].grid(True)
     axs[0].grid(True)
 

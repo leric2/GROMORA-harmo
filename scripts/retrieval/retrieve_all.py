@@ -82,7 +82,7 @@ def retrieve_day(date, instrument_name):
             integration_strategy=integration_strategy,
             integration_time=int_time
         )
-        retrieval_param['increased_var_factor'] = 1.1
+        retrieval_param['increased_var_factor'] = 1 # 1.1 for constant o3 cov 
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
         basename_lvl1 = "/scratch/MOPI5/Level1/"
@@ -136,7 +136,7 @@ def retrieve_day(date, instrument_name):
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS/'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
     #retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
@@ -151,7 +151,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='waccm'   
-    retrieval_param['o3_apriori_covariance'] = 'constant'
+    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
     #retrieval_param['o3_apriori']='gromos'   
     retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
 
@@ -341,13 +341,13 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         # save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_cov_yearly.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    dates = pd.date_range(start='2018-02-11', end='2018-03-31')
+    dates = pd.date_range(start='2018-01-01', end='2018-06-30')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')

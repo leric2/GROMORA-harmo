@@ -475,6 +475,46 @@ def read_waccm(filename, datetime, extra_day=0):
         ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
     return ds_waccm
 
+def read_waccm_monthly(filename, datetime):
+    ds_waccm = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    if pd.to_datetime(datetime).hour < 8 or pd.to_datetime(datetime).hour > 20:
+        tod = 'night'
+    else:
+        tod = 'day' 
+    
+    month = pd.to_datetime(datetime).month
+    month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    # As a function of datetime, select appropriate month from climatology:
+    ds_waccm_monthly = ds_waccm.sel(
+        time=slice(month_start[month-1],month_stop[month-1]), 
+        tod=tod
+    ).mean(dim='time')
+
+    return ds_waccm_monthly
+
+def read_waccm_yearly(filename, datetime):
+    ds_waccm = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    tod = 'day' 
+    
+    # As a function of datetime, select appropriate month from climatology:
+    ds_waccm_yearly = ds_waccm.sel(
+        tod=tod
+    ).mean(dim='time')
+
+    return ds_waccm_yearly
 def read_retrieved(filename):
     retrieved_o3 = xr.open_dataset(
         filename,
