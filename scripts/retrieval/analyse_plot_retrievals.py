@@ -46,17 +46,21 @@ import mopi5_library
 from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
-
+plt.rcParams.update({
+    "text.usetex": False,
+    "font.family": "serif",
+    "font.sans-serif": ["Times New Roman"]})
+plt.rcParams['axes.unicode_minus'] = False
 # %%
 load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
-#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "mopi5"
+instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -64,7 +68,7 @@ instrument_name = "mopi5"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-02-22', end='2018-02-22')
+date = pd.date_range(start='2018-01-09', end='2018-01-10')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -77,10 +81,10 @@ df_bins = 200e3
 plot_all = False
 plot_all_mopi5 = False
 plot_o3_ts = False
-plot_selected = False
+plot_selected = True
 plot_fshift = False
 plot_cost = False
-plot_o3_diff_waccm = True
+plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
 
@@ -100,7 +104,7 @@ spectros = ['AC240']
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 ex = '_newcorr'
-#ex = '_waccm'
+ex = '_waccm'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -194,13 +198,14 @@ elif instrument_name == "compare":
 if instrument_name == "compare":
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base=''
+        extra_base='_waccm'
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base=''
+        extra_base='_waccm'
     )
     F0 = somora.observation_frequency
+    ex='comparison'
 else:
     # Plotting part
     level2_dataset = instrument.read_level2(
@@ -228,7 +233,7 @@ if plot_cost:
             #axs[1].set_ylim(0,1)
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
-                        instrument.datestr+'_end_cost.pdf', dpi=500)
+                        instrument.datestr+ex+'_end_cost.pdf', dpi=500)
 
 if compare:
 
@@ -536,7 +541,7 @@ if compare_MLS:
 
 if plot_selected:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
-        instrument.datestr + '_plot_sel_polyfit2'
+        instrument.datestr + ex + '_plot_sel_polyfit2'
     GROSOM_library.plot_O3_all(
         level2_dataset,
         outname,
@@ -546,7 +551,7 @@ if plot_selected:
 
 if plot_fshift:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
-        instrument.datestr + '_plot_fshift.pdf'
+        instrument.datestr + ex + '_plot_fshift.pdf'
     fshift = level2_dataset['AC240'].isel(freq_shift_grid1=0).freq_shift_x
 
     fshift = fshift*1e-3
@@ -556,6 +561,7 @@ if plot_fshift:
         ax=ax
     )
     ax.set_ylabel('fshift [kHz]')
+   # ax.set_ylim(0,300)
     ax.set_title('fshift '+instrument_name)
     plt.tight_layout()
     fig.savefig(outname)
