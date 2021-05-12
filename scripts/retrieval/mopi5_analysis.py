@@ -77,10 +77,10 @@ df_bins = 200e3
 plot_spectra_schematic = False
 
 plot_comparison = False
-compare_level2_mopi5 = False
+compare_level2_mopi5 = True
 
 plot_spectra_comparison_scaling_corr_paper = False
-plot_spectra_comparison_3_spectro_paper = True
+plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
 plot_bias_TOD = False
 plot_bias_TOD_full = False
@@ -787,6 +787,7 @@ if plot_o3:
     mopi5_library.plot_O3_all_mopi5(level2_data, outName)
 
 if compare_level2_mopi5:
+    from matplotlib import cm
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
@@ -796,7 +797,7 @@ if compare_level2_mopi5:
 
     reference_spectro = 'U5303'
 
-    o3_ref = level2_data[reference_spectro].o3_x.isel(o3_lat=0, o3_lon=0)
+    o3_ref = level2_data[reference_spectro].o3_x.isel(o3_lat=0, o3_lon=0).where(level2_data[reference_spectro].o3_mr.isel(o3_lat=0, o3_lon=0)>0.8)
     o3_z = level2_data[reference_spectro].o3_z
 
     # Corresponds to altitude range: 20-30km, 30-40km, 40-50km, 50-60km, 60-70km
@@ -806,14 +807,18 @@ if compare_level2_mopi5:
     p_range_full = np.arange(7, 23)
 
     bias_AC240 = dict()
+    mean_o3_alt_range = dict()
 
     for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
     #for s in ['AC240']:
         alt_bias = xr.DataArray()
-        o3_s1 = level2_data[s].o3_x.isel(o3_lat=0, o3_lon=0)
+        mean_o3 = xr.DataArray()
+
+        o3_s1 = level2_data[s].o3_x.isel(o3_lat=0, o3_lon=0).where(level2_data[s].o3_mr.isel(o3_lat=0, o3_lon=0)>0.8)
         diff = o3_s1 - o3_ref
         #alt_bias =1e6*np.mean(np.abs(diff.isel(o3_p=p_range[0])),1)
         alt_bias = 1e6*np.mean(diff.isel(o3_p=p_range[0]), 1)
+        mean_o3 = 1e6*np.mean(o3_ref.isel(o3_p=p_range[0]), 1)
 
         alt_bias_full = np.mean(1e6*np.mean(diff.isel(o3_p=p_range_full), 1))
         print('Full bias for ',  s)
@@ -824,25 +829,36 @@ if compare_level2_mopi5:
             #alt_bias = xr.concat([alt_bias, 1e6*np.mean(np.abs(diff.isel(o3_p=p_range[i])),1)], dim='altitude_range')
             alt_bias = xr.concat(
                 [alt_bias, 1e6*np.mean(diff.isel(o3_p=p_range[i]), 1)], dim='altitude_range')
+            mean_o3 = xr.concat(
+                [mean_o3, 1e6*np.mean(o3_ref.isel(o3_p=p_range[i]), 1)], dim='altitude_range')
 
         alt_bias.coords['altitude_range'] = [25, 35, 45, 55, 65]
-        alt_bias.coords['time'] = np.arange(0, 15)
+        alt_bias.coords['time'] = np.arange(0, 15) 
+        mean_o3.coords['altitude_range'] = [25, 35, 45, 55, 65]
+        mean_o3.coords['time'] = np.arange(0, 15)         
         bias_AC240[s] = alt_bias
+        mean_o3_alt_range[s] = mean_o3
 
 
         plt.fill_betweenx(
             [25, 35, 45, 55, 65], 
-            alt_bias.mean(dim='time')- alt_bias.std(dim='time'),
+            alt_bias.mean(dim='time')-alt_bias.std(dim='time'),
             alt_bias.mean(dim='time')+alt_bias.std(dim='time'), 
             alpha=0.5
         )
 
         print('mean bias of '+s+' compared to '+reference_spectro +' :', alt_bias.mean(dim='time').data)
+        print('corresponding to :',100*alt_bias.mean(dim='time').data / mean_o3.mean(dim='time').data, '%')
         print('std dev of bias of '+s+' compared to '+reference_spectro +' :', alt_bias.std(dim='time').data)
 
+    np.savetxt(outfolder + 'o3_bias_USRP.txt',[bias_AC240['USRP-A'].mean(dim='time').data, bias_AC240['USRP-A'].std(dim='time').data],fmt='%.3f')
+    np.savetxt(outfolder + 'o3_bias_AC240.txt',[bias_AC240['AC240'].mean(dim='time').data,bias_AC240['AC240'].std(dim='time').data],fmt='%.3f')
+    np.savetxt(outfolder + 'o3_bias_AC240corr.txt',[bias_AC240['AC240_unbiased'].mean(dim='time').data,bias_AC240['AC240_unbiased'].std(dim='time').data],fmt='%.3f')
     toplim = 0.8
     colormap = 'coolwarm'#cmap_crameri#'bwr'
-    fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True, figsize=(9, 6))
+    colormap = cm.get_cmap('coolwarm')
+    colormap.set_bad(color='black')
+    fig, axs = plt.subplots(nrows=2, ncols=1, sharex=False, sharey=True, figsize=(8, 6))
     pl = bias_AC240['AC240'].plot(
         ax=axs[0],
         cmap=colormap,
@@ -851,7 +867,7 @@ if compare_level2_mopi5:
         vmax=toplim,
         # linewidth=0,
         # rasterized=True,
-        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+        cbar_kwargs={"label": r"$\Delta$O$_3$ [ppmv]"}
     )
     pl2 = bias_AC240['AC240_unbiased'].plot(
         ax=axs[1],
@@ -861,7 +877,7 @@ if compare_level2_mopi5:
         vmax=toplim,
         # linewidth=0,
         # rasterized=True,
-        cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
+        cbar_kwargs={"label": r"$\Delta$O$_3$ [ppmv]"}
     )
     # pl3 = bias_AC240['USRP-A'].plot(
     #     ax=axs[2],
@@ -874,14 +890,14 @@ if compare_level2_mopi5:
     #     cbar_kwargs={"label": r"$\Delta$ O3 [ppm]"}
     # )
     for i in [0,1]:
-        axs[i].set_xlabel('Tb chunks [-]')
-        axs[i].set_ylabel('altitude [km]')
+        axs[i].set_xlabel(r'Chunk \#')
+        axs[i].set_ylabel('Altitude [km]')
     axs[0].set_title('AC240')
     axs[1].set_title('AC240 corrected')
     #axs[1].set_title('USRP-A')
     pl.set_edgecolor('face')
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.99])
     fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_all_feb_paper.pdf')
 
 if plot_o3_sel:
@@ -909,6 +925,7 @@ if plot_o3_sel:
     )
 # %%
 if plot_sel_paper:
+    cycles = [0]#np.arange(0,15)
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
@@ -917,5 +934,13 @@ if plot_sel_paper:
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= np.arange(0,15)
+        cycles= cycles
     )
+    outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_avks_'+integration.datestr + '_plot'
+    mopi5_library.plot_O3_3on1_avks_paper(
+        level2_data,
+        outname,
+        spectrometer=spectro_lvl2,
+        cycles= cycles
+    )
+    

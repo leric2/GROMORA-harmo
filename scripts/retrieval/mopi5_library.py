@@ -2319,7 +2319,7 @@ def plot_O3_3on1_paper(level2_data, outName, spectrometer, cycles=[0]):
 
     for i in cycles:
         fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
-
+        
         for spectro in spectrometer:
             o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
             o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
@@ -2366,7 +2366,6 @@ def plot_O3_3on1_paper(level2_data, outName, spectrometer, cycles=[0]):
             #axs[1].legend([''])
             axs[1].grid(which='both',  axis='x', linewidth=0.5)
         
-
             axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_z / 1e3, '--', color=color_spectro[spectro], label="smoothing")
             axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_z / 1e3, '-', color=color_spectro[spectro], label="observation")
             axs[2].xaxis.set_major_locator(MultipleLocator(0.2))
@@ -2388,6 +2387,70 @@ def plot_O3_3on1_paper(level2_data, outName, spectrometer, cycles=[0]):
                 #a.set_ylim(10,80)
                 a.grid(which='both', axis='y', linewidth=0.5)
         fig.suptitle('Ozone retrievals for ' + ' chunk: '+str(i))
+        figure_o3_sel.append(fig)
+
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
+
+def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3      
+    
+    figure_o3_sel=list()
+    
+    # plt.rcParams['pdf.fonttype'] = 42
+    # plt.rcParams['ps.fonttype'] = 42
+    #plt.rcParams['text.usetex'] = True
+
+    for i in cycles:
+        fig, axs = plt.subplots(nrows=1, ncols=len(spectrometer), sharex=True, sharey=True, figsize=(9,6))
+        pl = 0
+        for spectro in spectrometer:
+            o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+            offset = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_offset
+
+            #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+       #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+            counter=0
+            for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+                if 0.6 <= np.sum(avk) <= 1.4:
+                    counter=counter+1
+                    if np.mod(counter,5)==0:
+                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color='r')
+                    else:
+                        axs[pl].plot(avk, o3_z / 1e3, color='k')
+            
+            axs[pl].plot(mr/2, o3_z/1e3, color='b', label='MR/2')
+
+       #     axs[0].set_title('$O_3$ VMR')
+            #axs[pl].set_xlim(-0.5,11)
+            axs[pl].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+            axs[pl].set_xlabel('Averaging Kernels')
+            axs[pl].yaxis.set_major_locator(MultipleLocator(10))
+            axs[pl].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[pl].xaxis.set_major_locator(MultipleLocator(0.25))
+            axs[pl].xaxis.set_minor_locator(MultipleLocator(0.1))
+            axs[pl].grid(which='both',  axis='x', linewidth=0.5)
+            axs[pl].set_ylabel('Altitude [km]')
+            axs[pl].set_title(spectro)
+
+            axs[pl].legend()
+
+            for a in axs:
+                #a.set_ylim(10,80)
+                a.grid(which='both', axis='y', linewidth=0.5)
+
+            pl=pl+1
+        #fig.suptitle('Ozone retrievals for ' + ' chunk: '+str(i))
         figure_o3_sel.append(fig)
 
     save_single_pdf(outName+'.pdf',figure_o3_sel)
