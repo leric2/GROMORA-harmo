@@ -14,6 +14,7 @@ Including :
 """
 import os
 import numpy as np
+import retrievals
 import xarray as xr
 import pandas as pd
 import math
@@ -474,6 +475,32 @@ def read_waccm(filename, datetime, extra_day=0):
     else:
         ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
     return ds_waccm
+
+def solar_zenith_angle(datetime,retrieval_param):
+    sec_after_midnight = pd.to_datetime(datetime).hour*3600 + pd.to_datetime(datetime).minute*60 + pd.to_datetime(datetime).second 
+    sec_to_noon = sec_after_midnight - 12*3600
+    cos_solar_hour_angle = np.cos(np.deg2rad((sec_to_noon/3600)*15))
+
+    # sun declination
+    declination = -23.44*np.cos(np.deg2rad((pd.to_datetime(datetime).dayofyear+10)*360/365))
+    cos_declination = np.cos(np.deg2rad(declination))
+    sin_declination = np.sin(np.deg2rad(declination))
+
+    # Sunrise/Sunset:
+    cos_hour_angle_night= -np.tan(np.deg2rad(retrieval_param['lat']))*np.tan(np.deg2rad(declination))
+
+    if cos_solar_hour_angle < cos_hour_angle_night:
+        night = True
+    else:
+        night = False
+    cos_sza = sin_declination*np.sin(np.deg2rad(retrieval_param['lat'])) + np.cos(np.deg2rad(retrieval_param['lat']))*cos_declination*cos_solar_hour_angle
+    sza = np.rad2deg(np.arccos(cos_sza))
+    if sza > 90:
+        day = False
+    else:
+        day = True
+    
+    return sza, day, night
 
 def read_waccm_monthly(filename, datetime):
     ds_waccm = xr.open_dataset(
