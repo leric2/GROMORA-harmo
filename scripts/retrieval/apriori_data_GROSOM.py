@@ -373,7 +373,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         )
     elif retrieval_param['o3_apriori'] == 'waccm':
         print('Ozone apriori from : WACCM climatology')
-        ds_waccm = read_waccm(retrieval_param['waccm_file'], retrieval_param['time'])
+        ds_waccm = read_waccm(retrieval_param)
         atm.set_vmr_field(
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
@@ -453,7 +453,10 @@ def read_mls(filename):
     mls_o3['o3'] = mls_o3['o3']*1e-6
     return mls_o3
 
-def read_waccm(filename, datetime, extra_day=0):
+def read_waccm(retrieval_param, extra_day=0):
+    filename = retrieval_param['waccm_file']
+    datetime = retrieval_param['time']
+
     ds_waccm = xr.open_dataset(
         filename,
         mask_and_scale=True,
@@ -461,7 +464,10 @@ def read_waccm(filename, datetime, extra_day=0):
         decode_coords=True,
         )
 
-    if pd.to_datetime(datetime).hour < 8 or pd.to_datetime(datetime).hour > 20:
+    # Introduce the solar zenith angle to decide for the apriori:
+    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+
+    if night:
         tod = 'night'
     else:
         tod = 'day' 
@@ -502,7 +508,10 @@ def solar_zenith_angle(datetime,retrieval_param):
     
     return sza, day, night
 
-def read_waccm_monthly(filename, datetime):
+def read_waccm_monthly(retrieval_param):
+    filename = retrieval_param['waccm_file']
+    datetime = retrieval_param['time']
+
     ds_waccm = xr.open_dataset(
         filename,
         mask_and_scale=True,
@@ -510,7 +519,10 @@ def read_waccm_monthly(filename, datetime):
         decode_coords=True,
         )
 
-    if pd.to_datetime(datetime).hour < 8 or pd.to_datetime(datetime).hour > 20:
+    # Introduce the solar zenith angle to decide for the apriori:
+    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+
+    if night:
         tod = 'night'
     else:
         tod = 'day' 
