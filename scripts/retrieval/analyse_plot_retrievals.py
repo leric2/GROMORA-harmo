@@ -57,7 +57,7 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "compare"
+instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -65,7 +65,7 @@ instrument_name = "compare"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-07-15', end='2018-08-15')
+date = pd.date_range(start='2015-01-01', end='2015-12-31')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -77,14 +77,14 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = False
-save_o3 = False
+plot_o3_ts = True
+save_o3 = True
 plot_selected = False
 plot_fshift = False
 plot_cost = False
 plot_o3_diff_waccm = False
 read_waccm_clim = False
-compare = True
+compare = False
 
 compare_MERRA2 = False
 compare_ECMWF = False
@@ -101,7 +101,7 @@ spectros = ['AC240']
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 ex = '_waccm_cov_yearly'
-#ex = '_waccm'
+# ex = '_waccm'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -193,13 +193,14 @@ elif instrument_name == "compare":
     )
 
 if instrument_name == "compare":
+    ex='_waccm'
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_cov_yearly'
+        extra_base=ex
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_cov_yearly'
+        extra_base=ex
     )
     F0 = somora.observation_frequency
 else:
@@ -252,6 +253,8 @@ if compare:
 
     mls = read_mls(date[0].strftime('%Y-%m-%d'), date[-1].strftime('%Y-%m-%d'))
     o3_mls = mls.o3
+
+
 
     rel_diff = 100*(ozone_somora.mean(dim='time') -
                     ozone_gromos.mean(dim='time'))/ozone_somora.mean(dim='time')
@@ -315,7 +318,7 @@ if compare:
         somora.level2_folder+'/'+'somora_mean_o3_'+date.mean().strftime('%Y-%m-%d')+'.nc')
 
     fig.savefig(somora.level2_folder+'/'+'ozone_comparison_' +
-                pd.to_datetime(ozone_somora.time.mean().data).strftime('%Y-%m-%d')+'.pdf')
+                pd.to_datetime(ozone_somora.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
 
 if plot_all:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
@@ -372,7 +375,7 @@ if plot_o3_ts:
             'o3_x','o3_xa','o3_mr','o3_eo','o3_es','o3_avkm','o3_z','o3_fwhm', 'o3_offset',
             'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
             ) 
-        o3_ds.to_netcdf(instrument.level2_folder+'/'+instrument.datestr+ex+'_ozone_ts_mr.nc')
+        o3_ds.to_netcdf(instrument.level2_folder+'/'+instrument_name+instrument.datestr+ex+'_ozone.nc')
 
 if plot_o3_diff_waccm:
     # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
@@ -548,7 +551,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1,6,9]
+        cycles=[1,6,9,12,16,20]
     )
 
 if plot_fshift:
