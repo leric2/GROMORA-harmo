@@ -321,8 +321,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     if retrieval_param['o3_apriori_covariance']=='waccm':
         ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=1)
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
-        plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        plt.gca().invert_yaxis()
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='constant':
         sigma_o3 = retrieval_param["apriori_O3_cov"]*np.ones_like(p_grid_retrieval)
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
@@ -346,8 +346,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         #sigma_o3[p_grid_retrieval<100] = 0.8e-6
         #sigma_o3[p_grid_retrieval<1] = 0.2e-6
         #sigma_o3[p_grid_retrieval<p_grid_retrieval[np.where(sigma_o3 == max(sigma_o3))]] = 1e-6
-        plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        plt.gca().invert_yaxis()
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
         ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
         smoothed_std = ds_waccm.o3_std.data
@@ -357,8 +357,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
         sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
-        plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        plt.gca().invert_yaxis()
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_yearly_scaled':
         ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
         smoothed_std = ds_waccm.o3_std.data
@@ -368,8 +368,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
         sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
-        plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        plt.gca().invert_yaxis()
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
 
 
     sx = covmat.covmat_1d_sparse(
@@ -380,8 +380,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         cutoff=0.1
     )
 
-    plt.matshow(sx.todense())
-    plt.colorbar()
+    #plt.matshow(sx.todense())
+    #plt.colorbar()
     ozone_ret = arts.AbsSpecies(
         species='O3',
         p_grid=p_grid_retrieval,
@@ -490,7 +490,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.checked_calc(bad_partition_functions_ok=True)
     ac.oem(
         method='gn',
-        max_iter=20,
+        max_iter=10,
         stop_dx=0.05,
         display_progress=1,
         lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],

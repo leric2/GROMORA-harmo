@@ -56,6 +56,7 @@ try
         meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
         %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');
         meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
+        meteoData(i).air_temperature = meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
     end
 catch ME
     warning(ME.message)

@@ -182,11 +182,11 @@ if __name__ == "__main__":
     # %%
     #
     spectrometers = instrument.spectrometers
-    spectrometers = ['AC240_unbiased','AC240']
+    #spectrometers = ['AC240_unbiased','AC240']
     
     # spectrometers = ['USRP-A']
-    # spectrometers = ['U5303']
-    spectrometers = ['U5303','AC240','USRP-A','AC240_unbiased']
+    spectrometers = ['U5303']
+    #spectrometers = ['U5303','AC240','USRP-A','AC240_unbiased']
    # spectrometers = ['AC240']
 
     if retrieval_param["retrieval_type"] == 1:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     #var_factor = {'U5303':9, 'AC240':15, 'USRP-A':1.1}
     #var_factor = {'U5303':0.05, 'AC240':0.05, 'USRP-A':0.002}
     #[450 , 450, 350]
-   # cycles=[4]
+    #cycles=[4]
     level2 = dict()
     add_on = 'fascod_paper'
 
@@ -293,7 +293,8 @@ if __name__ == "__main__":
         if spectro == 'AC240_unbiased':
             spectro = 'AC240'
             corr = True
-
+        if spectro == 'U5303':
+            retrieval_param['sensor'] = False
         spectro_dataset = instrument.integrated_data[spectro]
         retrieval_param["spectro"] = spectro
         if spectro == 'USRP-A':
