@@ -50,9 +50,6 @@ plt.rcParams.update({
     "text.usetex": False,
     "font.family": "serif",
     "font.sans-serif": ["Times New Roman"]})
-plt.rcParams['axes.unicode_minus'] = False
-# %%
-load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.4')
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
@@ -99,7 +96,6 @@ cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
-
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
@@ -196,6 +192,7 @@ elif instrument_name == "compare":
     )
 
 if instrument_name == "compare":
+    ex='_waccm'
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
         extra_base='_waccm'
@@ -256,6 +253,8 @@ if compare:
 
     mls = read_mls(date[0].strftime('%Y-%m-%d'), date[-1].strftime('%Y-%m-%d'))
     o3_mls = mls.o3
+
+
 
     rel_diff = 100*(ozone_somora.mean(dim='time') -
                     ozone_gromos.mean(dim='time'))/ozone_somora.mean(dim='time')
@@ -319,7 +318,7 @@ if compare:
         somora.level2_folder+'/'+'somora_mean_o3_'+date.mean().strftime('%Y-%m-%d')+'.nc')
 
     fig.savefig(somora.level2_folder+'/'+'ozone_comparison_' +
-                pd.to_datetime(ozone_somora.time.mean().data).strftime('%Y-%m-%d')+'.pdf')
+                pd.to_datetime(ozone_somora.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
 
 if plot_all:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
@@ -371,6 +370,12 @@ if plot_o3_ts:
     # o3.plot.imshow(x='time')
     fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                 instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
+    if save_o3:
+        o3_ds = ozone.get([
+            'o3_x','o3_xa','o3_mr','o3_eo','o3_es','o3_avkm','o3_z','o3_fwhm', 'o3_offset',
+            'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
+            ) 
+        o3_ds.to_netcdf(instrument.level2_folder+'/'+instrument_name+instrument.datestr+ex+'_ozone.nc')
 
 if plot_o3_diff_waccm:
     # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
@@ -546,7 +551,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1,6,9]
+        cycles=[1,6,9,12,16,20]
     )
 
 if plot_fshift:

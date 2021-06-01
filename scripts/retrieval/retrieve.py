@@ -39,8 +39,8 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
+load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -48,13 +48,13 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "SOMORA"
-    date = datetime.date(2018, 1, 2)
+    date = datetime.date(2018, 3, 2)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
 
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/"
-    
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(11,12)
+    cycles = np.arange(10,11)
 
 
     # type of retrieval to do:
@@ -136,9 +136,9 @@ if __name__ == "__main__":
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS/'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-
+   
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
@@ -148,9 +148,9 @@ if __name__ == "__main__":
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='gromos'   
-    retrieval_param['o3_apriori_covariance'] = 'constant'
-    retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
+    retrieval_param['o3_apriori']='waccm'   
+    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
+    retrieval_param['waccm_file'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
     retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4 12e-4
 
@@ -385,7 +385,7 @@ if __name__ == "__main__":
 
     if retrieval_param["retrieval_type"] == 1 or retrieval_param["retrieval_type"] == 2:
         save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-       # level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
 
 
     # for d in [8]:
