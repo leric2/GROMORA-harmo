@@ -40,7 +40,6 @@ from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
 load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -48,7 +47,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "SOMORA"
-    date = datetime.date(2018, 3, 2)
+    date = datetime.date(2017, 9, 10)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -98,7 +97,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(10,11)
+    cycles = np.arange(19,20)
 
 
     # type of retrieval to do:
@@ -136,8 +135,8 @@ if __name__ == "__main__":
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS/'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS/'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
    
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
@@ -150,7 +149,7 @@ if __name__ == "__main__":
 
     retrieval_param['o3_apriori']='waccm'   
     retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
-    retrieval_param['waccm_file'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/waccm_o3_climatology.nc'
+    retrieval_param['waccm_file'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
     retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4 12e-4
 

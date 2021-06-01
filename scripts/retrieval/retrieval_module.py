@@ -114,8 +114,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         else:
             f_grid = make_f_grid(retrieval_param)
 
-        print('Minimum of the frequency grid spacing [kHz]: ', min(
-            np.diff(f_grid))/1e3)
+        #print('Minimum of the frequency grid spacing [kHz]: ', min(
+        #    np.diff(f_grid))/1e3)
     else:
         print("Retrieval of Ozone and H20 providing measurement vector")
         ds_freq = ac_FM.ws.f_backend.value
@@ -162,7 +162,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # altitude for the retrieval
     # ac.set_surface(level1b_ds.alt.values[cycle])
     # ac.set_surface(retrieval_param["surface_altitude"])
-    print('Zenith angle is: ', retrieval_param["zenith_angle"])
+    print('Time of the measurement : ',retrieval_param["time"])
+    #print('Zenith angle is: ', retrieval_param["zenith_angle"])
 
     # spectroscopy
     # abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"]

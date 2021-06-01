@@ -466,12 +466,11 @@ def read_waccm(retrieval_param, extra_day=0):
 
     # Introduce the solar zenith angle to decide for the apriori:
     (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
-
     if night:
         tod = 'night'
     else:
         tod = 'day' 
-    
+    print('Solar elevation angle = ',90-sza, ', using ',tod,'time apriori profile !')
     # As a function of datetime, select appropriate day and time from climatology:
     if extra_day:
         ds_waccm = ds_waccm.sel(
@@ -494,7 +493,6 @@ def solar_zenith_angle(datetime,retrieval_param):
 
     # Sunrise/Sunset:
     cos_hour_angle_night= -np.tan(np.deg2rad(retrieval_param['lat']))*np.tan(np.deg2rad(declination))
-
     if cos_solar_hour_angle < cos_hour_angle_night:
         night = True
     else:
