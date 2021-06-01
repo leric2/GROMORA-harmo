@@ -27,10 +27,6 @@ import datetime
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 
-plt.rcParams.update({
-    "text.usetex": True,
-    "font.family": "serif",
-    "font.sans-serif": ["Times New Roman"]})
 
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
 F0 = 110.836e9

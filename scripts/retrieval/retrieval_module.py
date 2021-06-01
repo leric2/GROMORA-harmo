@@ -319,7 +319,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     #plt.colorbar()
 
     if retrieval_param['o3_apriori_covariance']=='waccm':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param['waccm_file'] , retrieval_param["time"], extra_day=1)
+        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=1)
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
@@ -333,7 +333,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         # plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_smooth_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param['waccm_file'] , retrieval_param["time"], extra_day=10)
+        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=10)
         #smoothed_std = np.convolve(ds_waccm.o3_std.data, np.ones(8)/8, mode ='same')
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 1e-6
@@ -349,7 +349,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 1e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
