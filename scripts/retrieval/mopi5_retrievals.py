@@ -263,7 +263,10 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
     if retrieval_param['sensor']: 
         sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
     else: 
-        sensor = arts.SensorOff()
+        #sensor = arts.SensorOff()
+        print('Gaussian Sensor Response')
+        sensor = arts.SensorGaussian(ds_freq, np.ones_like(ds_freq)*ds_df)
+
     ac.set_sensor(sensor)
 
     # doing the checks
