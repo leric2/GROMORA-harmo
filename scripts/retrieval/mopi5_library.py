@@ -27,19 +27,8 @@ import datetime
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
-=======
-color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'black'}
->>>>>>> 377b999 (update mopi5 processing)
-=======
-color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
->>>>>>> c85af08 (added plots for outline)
-=======
-color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
->>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
 F0 = 110.836e9
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
@@ -73,7 +62,7 @@ def compare_Tb_mopi5(self, ds_dict, calibration_cycle):
         axs.grid()
         axs.legend(fontsize='xx-small')
         #ax3.legend()
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
 
     return fig
@@ -300,7 +289,7 @@ def compare_spectra_mopi5_new(cal_int_obj, ds_dict, spectrometers, calibration_c
         if not np.isnan(ymax):
             ax4.set_ylim(ymax-5,ymax+0.5)
         ax4.grid()
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -327,9 +316,9 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, spectrometers, calibration_
         ax1.set_xlim(110.25, 111.3)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[calibration_cycle].data)-10,np.median(ds_dict[s].Tb[id].data)+calibration_cycle)
         ax1.set_xlabel("Frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_ylabel(r"Brightness Temperature [K]")
         ax1.yaxis.set_major_locator(MultipleLocator(2))
-        ax1.set_title(title)
+        #ax1.set_title(title)
         
        #s ax1.legend(fontsize='small',loc=1)
         if corr_band:
@@ -364,7 +353,7 @@ def compare_spectra_only_mopi5(cal_int_obj, ds_dict, spectrometers, calibration_
         #ax2.legend(fontsize='xx-small')
     ax1.grid()
     # ax2.grid(which='both')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -406,13 +395,14 @@ def compare_binned_spectra_only_mopi5(cal_int_obj, ds_dict, calibration_cycle=0,
         ax3.legend(fontsize='xx-small')
         ax3.grid()
 
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
 
 def plot_ts_mopi5(calibration, title):
     import matplotlib.dates as mdates
+    
     fig = plt.figure()
     ax = fig.subplots(nrows=3, ncols=1, sharex=True)
     #ax2 = fig.add_subplot(412, sharex=True)
@@ -479,7 +469,7 @@ def plot_ts_mopi5(calibration, title):
     #ax[1].xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
     
     ax[0].yaxis.set_major_locator(MultipleLocator(50))
-    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(25))
     ax[0].xaxis.set_major_locator(days)
     ax[0].xaxis.set_minor_locator(hours)   
 
@@ -491,12 +481,14 @@ def plot_ts_mopi5(calibration, title):
         ax[i].grid(which='minor', linewidth=0.2)
     fig.tight_layout(rect=[0, 0.01, 1, 1])
     #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_04.png', dpi=600, facecolor='w', edgecolor='w')
-    
+
     return fig
 
-
 def plot_ts_mopi5_Feb_paper(calibration, title):
-    fig = plt.figure()
+    figures = list()
+    fs = 20
+    fs_ticks = 18
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.subplots(nrows=3, ncols=1, sharex=True)
     #ax2 = fig.add_subplot(412, sharex=True)
     ax31 = ax[1]
@@ -513,22 +505,23 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     for a, spectro in enumerate(calibration.spectrometers):
         #dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
         dates =calibration.calibrated_data[spectro].time.data
-        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', ax=ax[0], marker=marker[a], s=2, label=spectro)
+        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', ax=ax[0], marker=marker[a], s=4, label=spectro)
         # ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
         #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
         #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
         #ax.legend()
     ax[0].set_xlim([start,stop])
     ax[0].set_ylim(60,260)
-    ax[0].set_ylabel('$T_B$ [K]')
+    ax[0].set_ylabel(r'$T_B$ [K]', fontsize=fs)
     ax[0].set_xlabel('')
+    ax[0].tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
 
-    ax[0].legend(fontsize='small', loc='upper left', bbox_to_anchor=(0.75, 0.99))
+    ax[0].legend(fontsize=fs-2, loc='upper left', bbox_to_anchor=(0.65, 0.99))
     s = 'AC240'
 
     #ts1 = calibration.meteo_data[s].where(calibration.meteo_data[s].time < pd.to_datetime('2019-02-02'), drop=True)
     ts1 = calibration.meteo_data[s].sel(time=slice('2019-01-30','2019-02-22'), drop=True)
-
+    ts1 = ts1.rename_vars({'air_temperature':'airt', 'air_pressure':'airp','relative_humidity':'relH'})
     # ts2 = calibration.meteo_data[s].sel(time=slice('2019-02-03','2019-02-10'),drop=True)
 
     # #ts2 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-02'), drop=True)
@@ -537,19 +530,18 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     # #ts3 = calibration.meteo_data[s].where(calibration.meteo_data[s].time > pd.to_datetime('2019-02-11'), drop=True)
     # ts3 = calibration.meteo_data[s].sel(time=slice('2019-02-11','2019-02-22'),drop=True)
     
-    (ts1.air_temperature-273.15).resample(time='1H', skipna=True).mean().plot.line(
+    (ts1['airt']-273.15).resample(time='1H', skipna=True).mean().plot.line(
         'red',
         ax=ax31,
         xticks=[],
-        lw=meteo_lw
+        lw=meteo_lw,
     )
-    ts1.air_pressure.resample(time='1H', skipna=True).mean().plot.line(
+    ts1['airp'].resample(time='1H', skipna=True).mean().plot.line(
         'k',
         ax=ax32,
         xticks=[],
         lw=meteo_lw
     )
-    
 
     # ax31.plot(ts1.time, ts1.air_temperature-273.15,'r-', lw=meteo_lw) 
     # ax31.plot(ts2.time, ts2.air_temperature-273.15,'r-', lw=meteo_lw) 
@@ -558,12 +550,15 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     # ax32.plot(ts1.time, ts1.air_pressure,'k-', lw=meteo_lw)  
     # ax32.plot(ts2.time, ts2.air_pressure,'k-', lw=meteo_lw)  
     # ax32.plot(ts3.time, ts3.air_pressure,'k-', lw=meteo_lw)  
-    ax31.set_ylabel('$T_{air}$ [$\degree C$]', color='r')
+    #ax31.set_ylabel(r'$T_{air}$ [$\degree C$]', color='r')
+    ax31.set_ylabel(r'Air Temperature [$^\circ$C]', color='r', fontsize=fs)
     ax31.set_ylim(-10, 20)
-    ax31.tick_params(axis='y', labelcolor='r')
+    ax31.tick_params(axis='y', labelcolor='r', labelsize=fs_ticks)
 
-    ax32.set_ylabel('$P_{air}$ [hPa]', color='k')
+    #ax32.set_ylabel(r'$P_{air}$ [hPa]', color='k')
+    ax32.set_ylabel(r'Air Pressure [hPa]', color='k', fontsize=fs)
     ax32.set_ylim(910, 970)
+    ax32.tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
 
     ax31.set_xlabel('')
     ax32.set_xlabel('')
@@ -577,7 +572,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     #rain_serie = calibration.meteo_data[s].precipitation.resample(time='2H', skipna=True).sum().to_series()
     #rain_serie.plot.bar(ax=ax41, x='time', width=0.1, color='k',xticks=[])
 
-    ts1.relative_humidity.resample(time='1H', skipna=True).mean().plot.line(
+    ts1['relH'].resample(time='1H', skipna=True).mean().plot.line(
         'b-',
         ax=ax42,
         xticks=[],
@@ -587,13 +582,13 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     rain = calibration.meteo_data[s].precipitation.resample(time='1H', skipna=True).sum()
     ax41.bar(rain.time.data, rain.data, width=0.08, color='k')
     
-    ax42.set_ylabel('$RH$ [%]', color='b')
-    ax42.tick_params(axis='y', labelcolor='b')
+    ax42.set_ylabel(r'Relative Humidity [\%]', color='b', fontsize=fs)
+    ax42.tick_params(axis='y', labelcolor='b', labelsize=fs_ticks)
     ax42.set_ylim(20, 100)
     ax42.yaxis.set_major_locator(MultipleLocator(20))
-
-    ax41.set_ylabel('Prec [mm]', color='k')
-    ax41.tick_params(axis='y', labelcolor='k')
+    ax[2].tick_params(axis='x', labelsize=fs_ticks)
+    ax41.set_ylabel('Precipitation [mm]', color='k', fontsize=fs)
+    ax41.tick_params(axis='y', labelcolor='k', labelsize=fs_ticks)
     ax41.set_ylim(0, 2)
     ax41.yaxis.set_major_locator(MultipleLocator(0.5))
     #ax41.yaxis.set_minor_locator(MultipleLocator(10))
@@ -618,7 +613,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     ax[1].xaxis.set_major_locator(mdates.DayLocator(interval=5))
     
     ax[0].yaxis.set_major_locator(MultipleLocator(50))
-    ax[0].yaxis.set_minor_locator(MultipleLocator(10))
+    ax[0].yaxis.set_minor_locator(MultipleLocator(25))
     
     #ax[1].xaxis.set_major_locator(midmonth)
     ax[1].xaxis.set_minor_locator(days)
@@ -628,7 +623,9 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
         ax[i].grid(which='minor', linewidth=0.2)
     fig.tight_layout(rect=[0, 0.01, 1, 1])
     #fig.savefig('/scratch/MOPI5/Level1/time_series_2019_02_22.png', dpi=600, facecolor='w', edgecolor='w')
-
+    figures.append(fig)
+    
+    save_single_pdf('/home/eric/Documents/PhD/MOPI/'+'time_series_paper'+calibration.datestr+'.pdf', figures)
     return fig
 
 
@@ -772,7 +769,7 @@ def compare_spectra_diff_mopi5(cal_int_obj, ds_dict, calibration_cycle=0, spectr
         ax3.set_ylim(-0.5,1.5)
         ax3.grid()
         ax3.legend(fontsize='xx-small')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -812,7 +809,7 @@ def compare_spectra_binned_interp_mopi5(cal_int_obj, ds_dict, calibration_cycle=
         ax3.set_ylim(-1.5,0.5)
         ax3.grid()
         ax3.legend(fontsize='xx-small')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -882,7 +879,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
         ax2.legend()
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -922,25 +919,28 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
         a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.0f}%'
+        lab = r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'
 
         #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
         
         # 
         mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
         Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
+        new_corr_U5303 = (1-a)*Tb_U303_cut.data + a* (np.nanmean(Tb_U303_cut.data) + broadband_bias[calibration_cycle])
 
         U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
+        AC240_Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
+        AC240_Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
 
         #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
         #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
 
         #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
-        Tb_diff_corrected = Tb-mod_U5303
+        Tb_diff_corrected = AC240_Tb_corr-Tb_U303_cut.data
         Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
         #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
-        Tb_diff_corrected_non_lin_1 = Tb-Tb_corrected_factor_non_lin
-
+        Tb_diff_corrected_non_lin_1 = AC240_Tb_corr_all-Tb_U303_cut.data
+        Tb_diff_corrected_new = Tb-new_corr_U5303
         #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
         ax1.legend()
 
@@ -952,13 +952,14 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
         smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
         smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
+        smoothed_diff_new = np.convolve(Tb_diff_corrected_new, np.ones((binning,))/binning, mode='full') 
+
         
-        
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
+        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_new , lw=0.8, color='k',label='new')
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha$ = 8%, with $\Delta T_{B,nonlin}$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'+', with non-lin')
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
 
 
@@ -973,7 +974,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
         ax2.legend(loc=4)
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -985,6 +986,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
     color_alpha = ['tab:orange','red','green','blue']
+    fs=14
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -996,10 +998,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
+        ax1.set_ylabel(r"Brightness Temperature [K]", fontsize=fs)
         ax1.yaxis.set_major_locator(MultipleLocator(2))
-        ax1.set_title(title)
+        ax1.tick_params(axis='both', which='major', labelsize=fs)
+        #ax1.set_title(title)
         ax1.grid()
         
         ymax = np.nanmax(ds_dict[s].interpolated_Tb_corr[calibration_cycle].data)
@@ -1014,7 +1017,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
         a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha$ = '+f'{alpha[calibration_cycle]:.0f}%'
+        lab = r'$ \alpha = 8\%$'#+f'{alpha[calibration_cycle]:.0f}'+'\%'
 
         #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
         
@@ -1041,7 +1044,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
 
 
         #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
-        ax1.legend()
+        ax1.legend(fontsize=fs)
 
         #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
 
@@ -1053,26 +1056,27 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full') 
         
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha$ = 0%')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha$ = 8%, with $\Delta T_{B,nonlin}$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
 
 
         ax2.axhline(0,lw=0.6, color='k', ls='--')
-        ax2.set_title(title2)
+        ax2.set_title(title2, fontsize=fs)
         ax2.set_ylim(-1,0.4)
         ax2.yaxis.set_major_locator(MultipleLocator(0.2))
         ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
-        ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("frequency [GHz]")
+        ax2.set_ylabel('$\Delta T_B$ [K]',fontsize=fs)
+        ax2.set_xlabel("Frequency [GHz]",fontsize=fs)
         ax2.set_xlim(110.25, 111.4)
         #ax23.set_ylabel('[%]')
         ax2.grid(which='both')
-        ax2.legend(loc=4)
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        ax2.legend(loc=4,fontsize=fs)
+        ax2.tick_params(axis='both', which='major', labelsize=fs)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -1127,7 +1131,7 @@ def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibra
         #ax3.set_ylabel('[%]')
         ax3.grid(which='both')
         #ax3.legend(fontsize='xx-small')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -1204,7 +1208,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ax.set_ylabel("$T_B$ [K]")
         ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
     fig.suptitle(title)
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     figures.append(fig)
 
     fig, axs = plt.subplots(1, 2, sharey=True)
@@ -1245,7 +1249,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     axs[0].grid(True)
 
     fig.suptitle(title + " Ozone")
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     figures.append(fig)
 
     #print('Atmospheric opacity :')
@@ -1300,7 +1304,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     #axs[1][0].grid(True)
 
         fig.suptitle(" Water vapor retrieval (v{})".format(1))
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        fig.tight_layout(rect=[0, 0.01, 1, 0.99])
         figures.append(fig)
     
         temp = ac.ws.t_field_raw.value.to_xarray()
@@ -1331,7 +1335,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
     ax3 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].binned_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    fs=14
     for s in cal_int_obj.spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -1341,13 +1345,13 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
-        ax1.set_xlabel("frequency [GHz]")
-        ax1.set_ylabel(r"$T_B$ [K]")
+        ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
+        ax1.set_ylabel(r"Brightness Temperature [K]", fontsize=fs)
         ax1.yaxis.set_major_locator(MultipleLocator(4))
-        ax1.set_title(title)
+        #ax1.set_title(title)
         ax1.grid()
-        ax1.legend()
-        #ax3.legend()
+        ax1.legend(fontsize=fs)
+        ax1.tick_params(axis='both', which='major', labelsize=fs)
         ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.2, color=color_spectro[s])
         ax2.set_xlim(-10, 10)
         #ax2.set_xlabel('[MHz]')
@@ -1359,8 +1363,8 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
             ax2.yaxis.set_major_locator(MultipleLocator(2))
             ax2.yaxis.set_minor_locator(MultipleLocator(1))
             ax2.xaxis.set_minor_locator(MultipleLocator(5))
-            ax2.tick_params(axis='both', which='major', labelsize=10)
-        ax2.set_xlabel('[MHz]',fontsize='medium')
+            ax2.tick_params(axis='both', which='major', labelsize=fs-2)
+        ax2.set_xlabel('[MHz]', fontsize=fs-2)
         ax2.grid(which='both')
 
         if s in spectrometers:
@@ -1368,16 +1372,17 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
             # print('$T_b$ differences, '+s)
             # print(np.nanmean(Tb_diff))
             ax3.axhline(0,lw=0.6, color='k', ls='--')
-        ax3.set_title('$T_b$ differences with: '+use_basis)
+        ax3.set_title('Differences with: '+use_basis, fontsize=fs)
         ax3.set_ylim(-1.5,0.5)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
-        ax3.set_ylabel('$\Delta T_B$ [K]')
-        ax3.set_xlabel("frequency [GHz]")
+        ax3.set_ylabel('$\Delta T_B$ [K]', fontsize=fs)
+        ax3.set_xlabel("Frequency [GHz]", fontsize=fs)
         ax3.set_xlim(110.25, 111.4)
         #ax3.set_ylabel('[%]')
         ax3.grid(which='both')
         #ax3.legend(fontsize='xx-small')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        ax3.tick_params(axis='both', which='major', labelsize=fs)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -1418,7 +1423,7 @@ def compare_spectra_binned_interp_mopi5_corrected(cal_int_obj, ds_dict, calibrat
         ax3.set_xlabel("f [GHz]")
         ax3.grid()
         ax3.legend(fontsize='xx-small')
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
     return fig
@@ -1519,7 +1524,7 @@ def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title
         ax.set_ylabel("$T_B$ [K]")
         ax.set_xlim([min((f_backend - retrieval_param['obs_freq']) / 1e6), max((f_backend - retrieval_param['obs_freq']) / 1e6)])
     fig.suptitle(title + " - Spectrum")
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     figures.append(fig)
 
     fig, axs = plt.subplots(1, 2, sharey=True)
@@ -1554,7 +1559,7 @@ def plot_level2_from_tropospheric_corrected_mopi5(ds, ac, retrieval_param, title
 
 
     fig.suptitle(title + " - Ozone")
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     figures.append(fig)
 
     # temp = ac.ws.t_field_raw.value.to_xarray()
@@ -1777,33 +1782,19 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
             error_frac = error/o3
             o3_good = o3.where(mr>0.8).data
             axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c85af08 (added plots for outline)
-=======
->>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
+
+
             #axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
 
             axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1.1, label=spectro,color=color_spectro[spectro])
             axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.4, label=spectro,color='k')
             axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.1)
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
-            axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
+            # axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
 
-            axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1, label=spectro,color=color_spectro[spectro])
-            axs[0].plot(o3_apriori*1e6, o3_z/1e3, '--', linewidth=0.2, label=spectro,color='r')
->>>>>>> 377b999 (update mopi5 processing)
-=======
+            # axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1, label=spectro,color=color_spectro[spectro])
+            # axs[0].plot(o3_apriori*1e6, o3_z/1e3, '--', linewidth=0.2, label=spectro,color='r')
 
->>>>>>> c85af08 (added plots for outline)
-=======
-
->>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
             axs[0].set_title('$O_3$ VMR')
             axs[0].set_xlim(-0.5,11)
             axs[0].set_xlabel('$O_3$ VMR [ppm]')
@@ -1860,27 +1851,13 @@ def plot_O3_sel_mopi5(level2_data, spectro, outName):
         Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
         Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
         Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         Line2D([0], [0], linestyle='--', color='k', label='a priori')
-=======
-        Line2D([0], [0], linestyle='--', color='r', label='a priori')
->>>>>>> 377b999 (update mopi5 processing)
-=======
-        Line2D([0], [0], linestyle='--', color='k', label='a priori')
->>>>>>> c85af08 (added plots for outline)
-=======
-        Line2D([0], [0], linestyle='--', color='k', label='a priori')
->>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
         ]
         axs[0].legend(handles=legend_elements)
         axs[2].axvline(x=0, linewidth=0.6,color='k')
         fig.suptitle('$O_3$ retrievals with chunks '+str(i))
         figure_o3_sel.append(fig)
     save_single_pdf(outName+'.pdf',figure_o3_sel)
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     # fig = plt.figure(figsize=(9,6))
@@ -1890,7 +1867,8 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     spectro_lvl2 = spectro
     figure_o3_sel=list()
     #for i in range(len(level2_data['AC240'].observation)):
-    fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+    fs=16
+    fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(10,7))
     for spectro in spectro_lvl2:
         o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
         o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
@@ -1902,20 +1880,20 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
         error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
         error_frac = error/o3
         o3_good = o3.where(mr>0.8).data
-        axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
+        axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro])
         #axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
         axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1.1, label=spectro,color=color_spectro[spectro])
-        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.4, label=spectro,color='k')
-        axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.1)
-        axs[0].set_title('$O_3$ VMR')
+        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label=spectro,color='k')
+        axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.2)
+        axs[0].set_title(r'O$_3$ Volume Mixing Ratio', fontsize=fs+1)
         axs[0].set_xlim(-0.5,11)
-        axs[0].set_xlabel('$O_3$ VMR [ppm]')
+        axs[0].set_xlabel(r'VMR [ppmv]', fontsize=fs)
         axs[0].yaxis.set_major_locator(MultipleLocator(10))
         axs[0].yaxis.set_minor_locator(MultipleLocator(5))
         axs[0].xaxis.set_major_locator(MultipleLocator(5))
         axs[0].xaxis.set_minor_locator(MultipleLocator(1))
         axs[0].grid(which='both',  axis='x', linewidth=0.5)
-        axs[0].set_ylabel('Altitude [km]')
+        axs[0].set_ylabel('Altitude [km]', fontsize=fs)
         mr_basis = level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
         axs[1].plot(mr, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
         axs[1].set_xlim(-0.1,1.2)
@@ -1923,25 +1901,32 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
         axs[1].yaxis.set_minor_locator(MultipleLocator(5))
         axs[1].xaxis.set_major_locator(MultipleLocator(0.4))
         axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
-        axs[1].set_xlabel('MR [-]')
+        axs[1].set_xlabel('MR [-]', fontsize=fs)
+        axs[1].set_ylabel('Altitude [km]', fontsize=fs)
         axs[1].grid(which='both',  axis='x', linewidth=0.5)
-        axs[1].set_title('Measurement response') 
+        axs[1].set_title('Measurement response', fontsize=fs+1)
         o3_diff = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x
         o3_good_diff = o3_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
         if not spectro=='U5303':
-            axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
-            axs[2].plot(o3_good_diff*1e6, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
-        axs[2].set_title('$O_3$ VMR difference with U5303')
-        axs[2].set_xlim(-2,2)
-        axs[2].set_xlabel('$\Delta O_3$ [ppm]')
+            #axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
+            #axs[2].plot(o3_good_diff*1e6, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
+            axs[2].plot(1e2*o3_diff/level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x, o3_z/1e3, '--', linewidth=0.6, color=color_spectro[spectro], label=spectro)
+            axs[2].plot(1e2*o3_good_diff/level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x, o3_z/1e3, linewidth=1.1, color=color_spectro[spectro], label=spectro)
+        axs[2].set_title(r'O$_3$ bias with U5303', fontsize=fs+1)
+        axs[2].set_xlim(-20,8)
+        axs[2].set_xlabel(r'$\Delta$O$_3$ [\%]', fontsize=fs)
         axs[2].yaxis.set_major_locator(MultipleLocator(10))
         axs[2].yaxis.set_minor_locator(MultipleLocator(5))
-        axs[2].xaxis.set_major_locator(MultipleLocator(1))
-        axs[2].xaxis.set_minor_locator(MultipleLocator(0.5))
+        #axs[2].xaxis.set_major_locator(MultipleLocator(1))
+        #axs[2].xaxis.set_minor_locator(MultipleLocator(0.5))
+        axs[2].xaxis.set_major_locator(MultipleLocator(10))
+        axs[2].xaxis.set_minor_locator(MultipleLocator(2.5))
+        axs[2].set_ylabel('Altitude [km]', fontsize=fs)
         axs[2].grid(which='both',  axis='x', linewidth=0.5) 
         for a in axs:
-            a.set_ylim(10,80)
+            a.set_ylim(15,75)
             a.grid(which='both', axis='y', linewidth=0.5)
+            a.tick_params(axis='both', which='major', labelsize=fs)
         # #ax2.set_xticklabels([])
         # if i==0 or i==5 or i==10:
         #     ax.set_ylabel('alt [km]', fontsize='small')
@@ -1958,104 +1943,14 @@ def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
     legend_elements = [
     Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
     Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
-    Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
-    Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
-    Line2D([0], [0], linestyle='--', color='k', label='a priori')
+    #Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
+    Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240 corrected'),
+    Line2D([0], [0], linestyle='-', color='k', label='a priori')
     ]
-    axs[0].legend(handles=legend_elements)
+    axs[0].legend(handles=legend_elements, fontsize=fs-2)
     axs[2].axvline(x=0, linewidth=0.6,color='k')
-    fig.suptitle(title)
-    #figure_o3_sel.append(fig)
-    #save_single_pdf(outName+'.pdf',figure_o3_sel)
-    return fig
-=======
->>>>>>> 377b999 (update mopi5 processing)
-=======
->>>>>>> 712708260d32d6ab56839ba8ca0e12547a104ea4
-
-def plot_O3_chunk_mopi5(level2_data, spectro, i, title):
-    # fig = plt.figure(figsize=(9,6))
-    # ax1 = fig.add_subplot(1,3,1)
-    # ax2 = fig.add_subplot(1,3,2)
-    # ax3 = fig.add_subplot(1,3,3   
-    spectro_lvl2 = spectro
-    figure_o3_sel=list()
-    #for i in range(len(level2_data['AC240'].observation)):
-    fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
-    for spectro in spectro_lvl2:
-        o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
-        o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
-        o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
-        o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
-        mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
-        eo = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo
-        #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
-        error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
-        error_frac = error/o3
-        o3_good = o3.where(mr>0.8).data
-        axs[0].plot(o3*1e6, o3_z/1e3, '--', linewidth=0.2, color=color_spectro[spectro])
-        #axs[0].errorbar(o3*1e6, o3_z/1e3, xerr=error.values*1e6, ls='--', elinewidth=0.2, capsize=2, ecolor=color_spectro[spectro], linewidth=0.2, color=color_spectro[spectro])
-        axs[0].plot(o3_good*1e6, o3_z/1e3, linewidth=1.1, label=spectro,color=color_spectro[spectro])
-        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.4, label=spectro,color='k')
-        axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.1)
-        axs[0].set_title('$O_3$ VMR')
-        axs[0].set_xlim(-0.5,11)
-        axs[0].set_xlabel('$O_3$ VMR [ppm]')
-        axs[0].yaxis.set_major_locator(MultipleLocator(10))
-        axs[0].yaxis.set_minor_locator(MultipleLocator(5))
-        axs[0].xaxis.set_major_locator(MultipleLocator(5))
-        axs[0].xaxis.set_minor_locator(MultipleLocator(1))
-        axs[0].grid(which='both',  axis='x', linewidth=0.5)
-        axs[0].set_ylabel('Altitude [km]')
-        mr_basis = level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
-        axs[1].plot(mr, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
-        axs[1].set_xlim(-0.1,1.2)
-        axs[1].yaxis.set_major_locator(MultipleLocator(10))
-        axs[1].yaxis.set_minor_locator(MultipleLocator(5))
-        axs[1].xaxis.set_major_locator(MultipleLocator(0.4))
-        axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
-        axs[1].set_xlabel('MR [-]')
-        axs[1].grid(which='both',  axis='x', linewidth=0.5)
-        axs[1].set_title('Measurement response') 
-        o3_diff = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x - level2_data['U5303'].isel(time=i, o3_lat=0, o3_lon=0).o3_x
-        o3_good_diff = o3_diff.where((mr.data >0.8) & (mr_basis.data>0.8))
-        if not spectro=='U5303':
-            axs[2].plot(o3_diff*1e6, o3_z/1e3, '--', linewidth=0.4, color=color_spectro[spectro], label=spectro)
-            axs[2].plot(o3_good_diff*1e6, o3_z/1e3, linewidth=1, color=color_spectro[spectro], label=spectro)
-        axs[2].set_title('$O_3$ VMR difference with U5303')
-        axs[2].set_xlim(-2,2)
-        axs[2].set_xlabel('$\Delta O_3$ [ppm]')
-        axs[2].yaxis.set_major_locator(MultipleLocator(10))
-        axs[2].yaxis.set_minor_locator(MultipleLocator(5))
-        axs[2].xaxis.set_major_locator(MultipleLocator(1))
-        axs[2].xaxis.set_minor_locator(MultipleLocator(0.5))
-        axs[2].grid(which='both',  axis='x', linewidth=0.5) 
-        for a in axs:
-            a.set_ylim(10,80)
-            a.grid(which='both', axis='y', linewidth=0.5)
-        # #ax2.set_xticklabels([])
-        # if i==0 or i==5 or i==10:
-        #     ax.set_ylabel('alt [km]', fontsize='small')
-        #     ax2.set_ylabel('alt [km]', fontsize='small')
-        # else: 
-        #     ax.set_yticklabels([])
-        #     ax2.set_yticklabels([])
-        # if i in [10, 11, 12, 13, 14]:
-        #     ax.set_xlabel('$O_3$ [ppm]', fontsize='small')
-        #     ax2.set_xlabel('MR', fontsize='small') 
-        # else: 
-        #     ax.set_xticklabels([])
-        #     ax2.set_xticklabels([])
-    legend_elements = [
-    Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
-    Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
-    Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
-    Line2D([0], [0], color=color_spectro['AC240_unbiased'], label='AC240_unbiased'),
-    Line2D([0], [0], linestyle='--', color='k', label='a priori')
-    ]
-    axs[0].legend(handles=legend_elements)
-    axs[2].axvline(x=0, linewidth=0.6,color='k')
-    fig.suptitle(title)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.99])
+    #fig.suptitle(title)
     #figure_o3_sel.append(fig)
     #save_single_pdf(outName+'.pdf',figure_o3_sel)
     return fig
@@ -2113,7 +2008,7 @@ def plot_O3_all(level2_data, outName, spectro, cycles=None):
             ax.set_ylabel("$T_B$ [K]")
             ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
         fig.suptitle('$O_3$ retrievals for '+spectro+ ' chunk: '+str(i))
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        fig.tight_layout(rect=[0, 0.01, 1, 0.99])
         figure_o3_sel.append(fig)
 
         fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
@@ -2248,7 +2143,7 @@ def plot_O3_sel_paper(level2_data, outName, spectro, cycles=None):
             ax.set_ylabel("$T_B$ [K]")
             ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
         fig.suptitle('$O_3$ retrievals for '+spectro+ ' chunk: '+str(i))
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        fig.tight_layout(rect=[0, 0.01, 1, 0.99])
         figure_o3_sel.append(fig)
 
         fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
@@ -2331,4 +2226,158 @@ def plot_O3_sel_paper(level2_data, outName, spectro, cycles=None):
         
         # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
         # figure_o3_sel.append(fig)
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
+
+def plot_O3_3on1_paper(level2_data, outName, spectrometer, cycles=[0]):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3      
+    
+    figure_o3_sel=list()
+    
+    # plt.rcParams['pdf.fonttype'] = 42
+    # plt.rcParams['ps.fonttype'] = 42
+    #plt.rcParams['text.usetex'] = True
+    fs = 16
+    for i in cycles:
+        fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(10,7))
+        
+        for spectro in spectrometer:
+            o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+            #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+       #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+            axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='k')       
+            axs[0].plot(o3*1e6, o3_z/1e3,'-', linewidth=1, label='retrieved',color=color_spectro[spectro])
+            axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=color_spectro[spectro], alpha=0.5)
+
+       #     axs[0].set_title('$O_3$ VMR')
+            axs[0].set_xlim(-0.5,11)
+            axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+            axs[0].set_xlabel('Ozone VMR [ppmv]', fontsize=fs)
+            axs[0].yaxis.set_major_locator(MultipleLocator(10))
+            axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[0].xaxis.set_major_locator(MultipleLocator(5))
+            axs[0].xaxis.set_minor_locator(MultipleLocator(1))
+            axs[0].grid(which='both',  axis='x', linewidth=0.5)
+            axs[0].set_ylabel('Altitude [km]', fontsize=fs)
+
+            legend_elements = [
+                Line2D([0], [0], color='k', label='apriori'),
+                Line2D([0], [0], color=color_spectro['U5303'], label='U5303'),
+                Line2D([0], [0], color=color_spectro['AC240'], label='AC240'),
+                Line2D([0], [0], color=color_spectro['USRP-A'], label='USRP-A'),
+            ]
+
+            #axs[0].legend()
+            axs[0].legend(handles=legend_elements, fontsize=fs, loc='upper right')
+            
+            axs[1].plot(mr, o3_z/1e3, color=color_spectro[spectro], label=spectro)
+            axs[1].set_xlabel("Measurement response", fontsize=fs)
+            axs[1].set_ylabel("Altitude [km]", fontsize=fs)
+            axs[1].set_xlim(-0.05,1.2)
+            axs[1].xaxis.set_major_locator(MultipleLocator(0.2))
+            axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
+            #axs[1].legend([''])
+            axs[1].grid(which='both',  axis='x', linewidth=0.5)
+        
+            axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_z / 1e3, '--', color=color_spectro[spectro], label="smoothing")
+            axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_z / 1e3, '-', color=color_spectro[spectro], label="observation")
+            axs[2].xaxis.set_major_locator(MultipleLocator(0.2))
+            axs[2].xaxis.set_minor_locator(MultipleLocator(0.1))
+            axs[2].set_xlabel("Errors [ppmv]", fontsize=fs)
+            axs[2].set_ylabel("Altitude [km]", fontsize=fs)
+            axs[2].grid(which='both',  axis='x', linewidth=0.5)
+
+
+            legend_elements2 = [
+                Line2D([0], [0], color='k', ls='--', label='smoothing'),
+                Line2D([0], [0], color='k', ls='-',label='observation'),
+            ]
+            #axs[2].legend(loc='upper center')
+            axs[2].legend(handles=legend_elements2, fontsize=fs, loc='upper right')
+
+
+            for a in axs:
+                #a.set_ylim(10,80)
+                a.grid(which='both', axis='y', linewidth=0.5)
+                a.tick_params(axis='both', which='major', labelsize=fs)
+        #fig.suptitle('Ozone retrievals for ' + ' chunk: '+str(i))
+        fig.tight_layout(rect=[0, 0.01, 1, 0.99])
+        figure_o3_sel.append(fig)
+
+    save_single_pdf(outName+'.pdf',figure_o3_sel)
+
+def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
+    # fig = plt.figure(figsize=(9,6))
+    # ax1 = fig.add_subplot(1,3,1)
+    # ax2 = fig.add_subplot(1,3,2)
+    # ax3 = fig.add_subplot(1,3,3      
+    
+    figure_o3_sel=list()
+    
+    # plt.rcParams['pdf.fonttype'] = 42
+    # plt.rcParams['ps.fonttype'] = 42
+    #plt.rcParams['text.usetex'] = True
+    fs = 16
+    for i in cycles:
+        fig, axs = plt.subplots(nrows=1, ncols=len(spectrometer), sharex=True, sharey=True, figsize=(10,7))
+        pl = 0
+        for spectro in spectrometer:
+            o3 = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_x
+            o3_apriori = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_xa
+            o3_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_z
+            o3_p = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_p
+            mr = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_mr
+            offset = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_offset
+
+            #error = lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo +  lvl2[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es
+            error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+       #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+            counter=0
+            for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+                if 0.6 <= np.sum(avk) <= 1.4:
+                    counter=counter+1
+                    if np.mod(counter,6)==0:
+                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color='r')
+                    else:
+                        axs[pl].plot(avk, o3_z / 1e3, color='k')
+            
+            axs[pl].plot(mr/2, o3_z/1e3, color='b', label='MR/2')
+
+       #     axs[0].set_title('$O_3$ VMR')
+            #axs[pl].set_xlim(-0.5,11)
+            axs[pl].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+            axs[pl].set_xlabel('Averaging Kernels', fontsize=fs)
+            axs[pl].yaxis.set_major_locator(MultipleLocator(10))
+            axs[pl].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[pl].xaxis.set_major_locator(MultipleLocator(0.2))
+            axs[pl].xaxis.set_minor_locator(MultipleLocator(0.1))
+            axs[pl].grid(which='both',  axis='x', linewidth=0.5)
+            axs[pl].set_ylabel('Altitude [km]', fontsize=fs)
+            axs[pl].set_title(spectro, fontsize=fs+4)
+
+            axs[pl].legend(fontsize=fs)
+            axs[pl].tick_params(axis='both', which='major', labelsize=fs)
+
+            for a in axs:
+                #a.set_ylim(10,80)
+                a.grid(which='both', axis='y', linewidth=0.5)
+
+            pl=pl+1
+        #fig.suptitle('Ozone retrievals for ' + ' chunk: '+str(i))
+        fig.tight_layout(rect=[0, 0.01, 1, 0.99])
+        figure_o3_sel.append(fig)
+
     save_single_pdf(outName+'.pdf',figure_o3_sel)

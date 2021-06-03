@@ -14,17 +14,22 @@ Including :
 """
 import os
 import numpy as np
+import retrievals
 import xarray as xr
 import pandas as pd
 import math
 import netCDF4
 import matplotlib.pyplot as plt
+import datetime as dt
+from pytz import timezone
 
 from retrievals import arts
 from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
+
+from pysolar import *
 
 
 #from typhon.arts.xml import load
@@ -61,12 +66,35 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
 
     return ds_ecmwf
 
-def read_o3_apriori_ecmwf_mls_gromosOG(filename):
+def read_o3_apriori_ecmwf_mls_gromosOG_old(filename):
     '''
     read the apriori o3 used in gromos retrieval
     
     just for fun, no idea where that file come from...
     '''
+    ds = pd.read_csv(
+        filename,
+        sep=' ',
+        skiprows=6,
+        header=None,
+        usecols=[0,1]
+        )
+
+    o3_apriori_ds = xr.Dataset({'o3': ('p', ds.iloc[:,1])},
+                            coords = {
+                                'p' : ('p', ds.iloc[:,0]),
+                            }
+    )
+    return o3_apriori_ds
+
+def read_o3_apriori_ecmwf_mls_gromosOG(folder_name, month_num):
+    '''
+    read the apriori o3 used in gromos retrieval
+    
+    Combined ECMWF and MLS climatology, described in:
+    Studer et al. 2013, AMTD
+    '''
+    filename = folder_name + 'apriori_gromos_new_' + str(month_num) + '.aa'
     ds = pd.read_csv(
         filename,
         sep=' ',
@@ -140,7 +168,7 @@ def get_apriori_fascod(retrieval_param):
         print('Set altitude and Temperature fields to CIRA86 !')
         
     if retrieval_param['o3_apriori']=='gromos':
-        o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+        o3_apriori = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         fascod_atm.set_vmr_field(
             "o3", o3_apriori["p"].values, o3_apriori['o3'].values
         )
@@ -342,14 +370,14 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             "O3", pressure_atm, o3_apriori_h
         )       
     elif retrieval_param['o3_apriori'] == 'gromos':
-        o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'])
+        o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         print('Ozone apriori from : old GROMOS retrievals')
         atm.set_vmr_field(
             "O3", o3_apriori_GROMOS["p"].values, o3_apriori_GROMOS['o3'].values
         )
     elif retrieval_param['o3_apriori'] == 'waccm':
         print('Ozone apriori from : WACCM climatology')
-        ds_waccm = read_waccm(retrieval_param['waccm_file'], retrieval_param['time'])
+        ds_waccm = read_waccm(retrieval_param)
         atm.set_vmr_field(
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
@@ -429,7 +457,10 @@ def read_mls(filename):
     mls_o3['o3'] = mls_o3['o3']*1e-6
     return mls_o3
 
-def read_waccm(filename, datetime, extra_day=0):
+def read_waccm(retrieval_param, extra_day=0):
+    filename = retrieval_param['waccm_file']
+    datetime = retrieval_param['time']
+
     ds_waccm = xr.open_dataset(
         filename,
         mask_and_scale=True,
@@ -437,7 +468,10 @@ def read_waccm(filename, datetime, extra_day=0):
         decode_coords=True,
         )
 
-    if pd.to_datetime(datetime).hour < 8 or pd.to_datetime(datetime).hour > 20:
+    # Introduce the solar zenith angle to decide for the apriori:
+    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+
+    if night:
         tod = 'night'
     else:
         tod = 'day' 
@@ -452,6 +486,92 @@ def read_waccm(filename, datetime, extra_day=0):
         ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
     return ds_waccm
 
+def solar_zenith_angle(time,retrieval_param):
+    sec_after_midnight = pd.to_datetime(time).hour*3600 + pd.to_datetime(time).minute*60 + pd.to_datetime(time).second 
+    sec_to_noon = sec_after_midnight - 12*3600
+    cos_solar_hour_angle = np.cos(np.deg2rad((sec_to_noon/3600)*15))
+
+    # sun declination
+    declination = -23.44*np.cos(np.deg2rad((pd.to_datetime(time).dayofyear+10)*360/365))
+    cos_declination = np.cos(np.deg2rad(declination))
+    sin_declination = np.sin(np.deg2rad(declination))
+
+    # Sunrise/Sunset:
+    cos_hour_angle_night= -np.tan(np.deg2rad(retrieval_param['lat']))*np.tan(np.deg2rad(declination))
+
+    if cos_solar_hour_angle < cos_hour_angle_night:
+        night = True
+    else:
+        night = False
+    cos_sza = sin_declination*np.sin(np.deg2rad(retrieval_param['lat'])) + np.cos(np.deg2rad(retrieval_param['lat']))*cos_declination*cos_solar_hour_angle
+    sza = np.rad2deg(np.arccos(cos_sza))
+    if sza > 90:
+        day = False
+    else:
+        day = True
+
+    date = dt.datetime(
+        pd.to_datetime(time).year,
+        pd.to_datetime(time).month,
+        pd.to_datetime(time).day,
+        pd.to_datetime(time).hour,
+        pd.to_datetime(time).minute,
+        pd.to_datetime(time).second,
+        tzinfo=timezone('Europe/Zurich')
+        )
+    
+    #date = date.tz_localize('Europe/Zurich')
+    # Using pysolar package:
+    sza_pysolar = solar.get_altitude(retrieval_param['lat'], retrieval_param['lon'], date)
+    print('solar elevation angle = ', sza_pysolar)
+    return sza, day, night
+
+def read_waccm_monthly(retrieval_param):
+    filename = retrieval_param['waccm_file']
+    datetime = retrieval_param['time']
+
+    ds_waccm = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    # Introduce the solar zenith angle to decide for the apriori:
+    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+
+    if night:
+        tod = 'night'
+    else:
+        tod = 'day' 
+    
+    month = pd.to_datetime(datetime).month
+    month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    # As a function of datetime, select appropriate month from climatology:
+    ds_waccm_monthly = ds_waccm.sel(
+        time=slice(month_start[month-1],month_stop[month-1]), 
+        tod=tod
+    ).mean(dim='time')
+
+    return ds_waccm_monthly
+
+def read_waccm_yearly(filename, datetime):
+    ds_waccm = xr.open_dataset(
+        filename,
+        mask_and_scale=True,
+        decode_times=True,
+        decode_coords=True,
+        )
+
+    tod = 'day' 
+    
+    # As a function of datetime, select appropriate month from climatology:
+    ds_waccm_yearly = ds_waccm.sel(
+        tod=tod
+    ).mean(dim='time')
+
+    return ds_waccm_yearly
 def read_retrieved(filename):
     retrieved_o3 = xr.open_dataset(
         filename,

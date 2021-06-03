@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_all.xml'
-
     basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
     basename_lvl2 = "/home/es19m597/Documents/MOPI5/Data/"
 
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     retrieval_param = instrument.import_standard_retrieval_params_mopi5()
 
     cycles = np.arange(0,15)
-    cycles = np.arange(0,9)
+   # cycles = np.arange(0,9)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -121,6 +120,7 @@ if __name__ == "__main__":
 
     retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS.O3.aa'
     retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/es19m597/Documents/GROMORA/InputsRetrievals/apriori_ECMWF_MLS/'
 
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
@@ -182,12 +182,12 @@ if __name__ == "__main__":
     # %%
     #
     spectrometers = instrument.spectrometers
-    spectrometers = ['AC240_unbiased','AC240']
+    #spectrometers = ['AC240_unbiased','AC240']
     
     # spectrometers = ['USRP-A']
-    # spectrometers = ['U5303']
-    spectrometers = ['U5303','AC240','USRP-A','AC240_unbiased']
-    #spectrometers = ['AC240']
+    spectrometers = ['U5303']
+    #spectrometers = ['U5303','AC240','USRP-A','AC240_unbiased']
+   # spectrometers = ['AC240']
 
     if retrieval_param["retrieval_type"] == 1:
         var_fac_U5303_feb = np.ones((15,1))*18
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     #[450 , 450, 350]
     #cycles=[4]
     level2 = dict()
-    add_on = '-test'
+    add_on = 'fascod_paper'
 
     THot = instrument.integrated_data['U5303'].THot.data.mean()
     # AC240 bias:
@@ -293,7 +293,8 @@ if __name__ == "__main__":
         if spectro == 'AC240_unbiased':
             spectro = 'AC240'
             corr = True
-
+        if spectro == 'U5303':
+            retrieval_param['sensor'] = False
         spectro_dataset = instrument.integrated_data[spectro]
         retrieval_param["spectro"] = spectro
         if spectro == 'USRP-A':

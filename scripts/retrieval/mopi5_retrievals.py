@@ -173,7 +173,7 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
         retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
         retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycle].values
     except:
-        retrieval_param["time"] = 0
+        retrieval_param["time"] = instrument.date# 0
 
     retrieval_param["f_max"] = max(ds_freq)
     retrieval_param["f_min"] = min(ds_freq)
@@ -221,7 +221,7 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
 
         ecmwf_prefix = f'ecmwf_oper_v{2}_{instrument.location}_%Y%m%d.nc'
         retrieval_param['ecmwf_prefix'] = ecmwf_prefix
-
+        retrieval_param["time"] = instrument.date
         atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
             retrieval_param,
             ecmwf_store,
@@ -254,7 +254,7 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
         lat=retrieval_param["lat"],
         lon=retrieval_param["lon"],
         alt=retrieval_param["observation_altitude"],
-        time=retrieval_param["time"]
+        time=cycle
     )
 
     ac.set_observations([obs])
@@ -263,7 +263,10 @@ def retrieve_cycle_mopi5(instrument, spectro_dataset, retrieval_param, ac_FM=Non
     if retrieval_param['sensor']: 
         sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
     else: 
-        sensor = arts.SensorOff()
+        #sensor = arts.SensorOff()
+        print('Gaussian Sensor Response')
+        sensor = arts.SensorGaussian(ds_freq, np.ones_like(ds_freq)*ds_df)
+
     ac.set_sensor(sensor)
 
     # doing the checks

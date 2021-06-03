@@ -596,6 +596,64 @@ class Integration(ABC):
 
         return self.integrated_data
 
+    def add_bias_characterization_shifted(self, spectrometers, dim, param_slope, around_center_value):
+        '''
+        Try a bias shifted away from the line center
+        Parameters
+        ----------
+        level1b_dataset : TYPE
+            DESCRIPTION.
+        retrieval_param : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        ''' 
+
+        # For each spectrometer individually
+        for s in spectrometers:
+            #meanTb_lc = self.integrated_data[s].Tb.where(abs(self.integrated_data[s].bin_freq_interp-self.observation_frequency)<around_center_value,drop=True).mean(dim='bin_freq_interp')
+            # bias_lc = meanTb_lc-meanTb_lc_basis
+            # bias_lc_fract = bias_lc/meanTb_lc_basis
+
+            # #self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc)
+            # self.integrated_data[s] = self.integrated_data[s].assign(bias_Tb_lc = bias_lc_fract)
+
+            cleanTb = self.integrated_data[s].Tb.where(self.integrated_data[s].good_channels==1)
+            # Tb_diff = cleanTb-cleanTb_basis
+            # Tb_diff_fract = Tb_diff/cleanTb_basis
+            right_wing_center = param_slope[s][0]
+            right_wing_interval = param_slope[s][1]
+            left_wing_center = param_slope[s][2]
+            left_wing_interval = param_slope[s][3]
+
+            mean_Tb_right_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-right_wing_center)<right_wing_interval,drop=True).mean(dim='channel_idx')
+            mean_Tb_left_wing = cleanTb.where(abs(self.integrated_data[s].frequencies[0]-left_wing_center)<left_wing_interval,drop=True).mean(dim='channel_idx')
+
+            #mean_diff_right_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-right_wing_center)<right_wing_interval,drop=True).mean(dim='bin_freq_interp')
+            #mean_diff_left_wing = Tb_diff_fract.where(abs(Tb_diff_fract.bin_freq_interp-left_wing_center)<left_wing_interval,drop=True).mean(dim='bin_freq_interp')
+
+            slope = (mean_Tb_right_wing - mean_Tb_left_wing) / (right_wing_center - left_wing_center)
+
+            self.integrated_data[s] = self.integrated_data[s].assign(slope_indiv = slope)
+            
+            self.integrated_data[s].slope_indiv.attrs['left_f']=left_wing_center
+            self.integrated_data[s].slope_indiv.attrs['right_f']=right_wing_center
+            
+            Tb0 = mean_Tb_left_wing-slope*left_wing_center
+
+            continuum_value_line_center = 110.88e9 * slope + Tb0
+
+            self.integrated_data[s] = self.integrated_data[s].assign(continuum_value_line_center = continuum_value_line_center)
+
+            line_center_amplitude = cleanTb.where(abs(self.integrated_data[s].frequencies- 110.87e9)<around_center_value,drop=True).mean(dim='channel_idx')
+            diff_lc_continuum = line_center_amplitude - continuum_value_line_center
+            self.integrated_data[s] = self.integrated_data[s].assign(line_amplitude = diff_lc_continuum)
+
+        return self.integrated_data
+
     def add_bias_characterization(self, spectrometers, use_basis, dim, param_slope, around_center_value):
         '''
         Parameters
@@ -1200,7 +1258,7 @@ class DataRetrieval(ABC):
                             s + "_" + self.datestr
                             )
             else:
-                self.datestr = self.date[0].strftime('%Y_%m_%d')
+                self.datestr = self.date.strftime('%Y_%m_%d')
                 if self.integration_strategy == 'classic':
                     if self.int_time == 1:
                         self.filename_level1b[s].append(os.path.join(
@@ -1215,6 +1273,7 @@ class DataRetrieval(ABC):
                         s + "_" + self.datestr
                         ))
                 else:
+                    self.datestr = self.date.strftime('%Y_%m_%d')
                     self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
