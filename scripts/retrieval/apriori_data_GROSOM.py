@@ -20,12 +20,16 @@ import pandas as pd
 import math
 import netCDF4
 import matplotlib.pyplot as plt
+import datetime as dt
+from pytz import timezone
 
 from retrievals import arts
 from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
+
+from pysolar import *
 
 
 #from typhon.arts.xml import load
@@ -481,13 +485,13 @@ def read_waccm(retrieval_param, extra_day=0):
         ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
     return ds_waccm
 
-def solar_zenith_angle(datetime,retrieval_param):
-    sec_after_midnight = pd.to_datetime(datetime).hour*3600 + pd.to_datetime(datetime).minute*60 + pd.to_datetime(datetime).second 
+def solar_zenith_angle(time,retrieval_param):
+    sec_after_midnight = pd.to_datetime(time).hour*3600 + pd.to_datetime(time).minute*60 + pd.to_datetime(time).second 
     sec_to_noon = sec_after_midnight - 12*3600
     cos_solar_hour_angle = np.cos(np.deg2rad((sec_to_noon/3600)*15))
 
     # sun declination
-    declination = -23.44*np.cos(np.deg2rad((pd.to_datetime(datetime).dayofyear+10)*360/365))
+    declination = -23.44*np.cos(np.deg2rad((pd.to_datetime(time).dayofyear+10)*360/365))
     cos_declination = np.cos(np.deg2rad(declination))
     sin_declination = np.sin(np.deg2rad(declination))
 
@@ -503,7 +507,21 @@ def solar_zenith_angle(datetime,retrieval_param):
         day = False
     else:
         day = True
+
+    date = dt.datetime(
+        pd.to_datetime(time).year,
+        pd.to_datetime(time).month,
+        pd.to_datetime(time).day,
+        pd.to_datetime(time).hour,
+        pd.to_datetime(time).minute,
+        pd.to_datetime(time).second,
+        tzinfo=timezone('Europe/Zurich')
+        )
     
+    #date = date.tz_localize('Europe/Zurich')
+    # Using pysolar package:
+    sza_pysolar = solar.get_altitude(retrieval_param['lat'], retrieval_param['lon'], date)
+    print('solar elevation angle = ', sza_pysolar)
     return sza, day, night
 
 def read_waccm_monthly(retrieval_param):
