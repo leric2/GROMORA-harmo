@@ -1547,7 +1547,17 @@ class DataRetrieval(ABC):
         retrieval_param['ref_elevation_angle'] =  90
 
         return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
-    
+
+    def retrieve_daily(self, spectro_dataset, retrieval_param):
+        ''' 
+        Trying parallel retrievals for the cycles defined in retrieval_param
+        '''
+        retrieval_param["binned_ch"] = False
+
+        retrieval_param['ref_elevation_angle'] =  90
+
+        return retrieval_module.retrieve_daily(self, spectro_dataset, retrieval_param)
+
     def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
         ''' 
         Performing single retrieval for a given calibration cycle uncluding a tropospheric correction

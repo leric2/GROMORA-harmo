@@ -517,9 +517,10 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ozone_ret,  = ac.retrieval_quantities
     
     good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
-    f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
-    y = ds.Tb[retrieval_param['integration_cycle']].values[good_channels]
-    #y = ac.y[0]
+   # f_backend = ds.frequencies[retrieval_param['integration_cycle']].values[good_channels]
+    f_backend = ozone_ret.ws.f_backend.value
+   # y = ds.Tb[retrieval_param['integration_cycle']].values[good_channels]
+    y = ozone_ret.ws.y.value
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
@@ -541,7 +542,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend- retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
-    #axs[1].set_ylim(np.median(r[good_channels])-5, np.median(r[good_channels]+5))
+    axs[1].set_ylim(np.median(r)-2.5, np.median(r+2.5))
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
 
@@ -1072,7 +1073,8 @@ def plot_O3_all(level2_data, outName, spectro, cycles=None):
         yf = level2_data[spectro].yf[i].data
         bl = level2_data[spectro].y_baseline[i].data 
         r = y - yf
-        r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
+        r_interp = np.interp(f_backend,f_backend[~np.isnan(r)],r[~np.isnan(r)] )
+        r_smooth = np.convolve(r_interp, np.ones(128) / 128, mode="same")
         fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
         axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
         axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
