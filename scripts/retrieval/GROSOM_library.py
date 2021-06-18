@@ -504,6 +504,9 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ozone_ret, h2o_ret, fshift_ret = ac.retrieval_quantities
         #print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
         print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
+        ozone_ret, h2o_ret, polyfit_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
     elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
         ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
         print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
@@ -558,7 +561,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ozone_ret.x * 1e6, ozone_ret.p_grid / 1e2, label="retrieved", marker="x"
     )
     axs[0].plot(ozone_ret.xa * 1e6, ozone_ret.p_grid / 1e2, label="apriori")
-    #axs[0].set_xlim(-2,9)
+    axs[0].set_xlim(-0.1,8.5)
     axs[0].invert_yaxis()
     axs[0].set_yscale('log')
     axs[0].set_xlabel("Ozone VMR [ppm]")
@@ -617,20 +620,20 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     if (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift') or (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit'):
 
         fig, axs = plt.subplots(2, 2, sharey=True)
-        axs[0][0].semilogx(
-            h2o_ret.x*1e6, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+        axs[0][0].plot(
+            h2o_ret.x*h2o_ret.xa, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
         )
-        axs[0][0].semilogx(h2o_ret.xa*1e6, h2o_ret.z_grid / 1e3, label="apriori")
-        axs[0][0].set_xlabel("Water VMR [ppm]")
+        axs[0][0].plot(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori", marker="x")
+        axs[0][0].set_xlabel("Water vapor [rel]")
         axs[0][0].set_ylabel("Altitude [km]")
         axs[0][0].legend()
 
-        axs[0][1].plot(h2o_ret.mr, h2o_ret.z_grid / 1e3)
+        axs[0][1].plot(h2o_ret.mr, h2o_ret.z_grid / 1e3, marker="x")
         axs[0][1].set_xlabel("Measurement response")
 
-        axs[1][0].semilogx(h2o_ret.es*1e6, h2o_ret.z_grid / 1e3, label="smoothing error")
-        axs[1][0].semilogx(h2o_ret.eo*1e6, h2o_ret.z_grid / 1e3, label="obs error")
-        axs[1][0].set_xlabel("$e$ [ppm]")
+        axs[1][0].plot(h2o_ret.es, h2o_ret.z_grid / 1e3, label="smoothing error", marker="x")
+        axs[1][0].plot(h2o_ret.eo, h2o_ret.z_grid / 1e3, label="obs error", marker="x")
+        axs[1][0].set_xlabel("$e$ [rel]")
         axs[1][0].set_ylabel("Altitude [km]")
         axs[1][0].legend()
 
@@ -645,10 +648,10 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         axs[1][1].grid(True)
         axs[1][0].grid(True)
 
-        axs[0][0].set_ylim(-0.5, 30)
-        axs[0][1].set_ylim(-0.5, 30)
-        axs[1][1].set_ylim(-0.5, 30)
-        axs[1][0].set_ylim(-0.5, 30)
+        # axs[0][0].set_ylim(-0.5, 30)
+        # axs[0][1].set_ylim(-0.5, 30)
+        # axs[1][1].set_ylim(-0.5, 30)
+        # axs[1][0].set_ylim(-0.5, 30)
 
     #axs[0][0].grid(True)
     #axs[0][1].grid(True)
@@ -963,7 +966,7 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
     )
     axs[0].plot(ozone_ret.xa * 1e6, ozone_ret.z_grid / 1e3, label="apriori")
     axs[0].plot(og_ozone*1e6, z_og / 1e3, label="og")
-    axs[0].set_xlim(-0.5,8)
+    axs[0].set_xlim(-0.1,9.5)
     axs[0].set_xlabel("Ozone VMR [ppm]")
     axs[0].set_ylabel("Altitude [km]")
     axs[0].legend()
