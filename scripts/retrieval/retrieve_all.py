@@ -130,7 +130,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 3e3 
+    retrieval_param["z_top_ret_grid_h2o"] = 20e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
 
@@ -340,7 +340,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_monthly_continuum2.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_monthly_profile20km.nc')
 
         return level2
     else:
