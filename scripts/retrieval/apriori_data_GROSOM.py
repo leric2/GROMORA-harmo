@@ -381,6 +381,12 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
+    elif retrieval_param['o3_apriori'] == 'waccm_monthly':
+        print('Ozone apriori from : WACCM climatology')
+        ds_waccm = read_waccm_monthly(retrieval_param)
+        atm.set_vmr_field(
+            "O3", ds_waccm["p"].values, ds_waccm['o3'].values
+        )
     elif retrieval_param['o3_apriori'] == 'mls':
         o3_apriori = read_mls(retrieval_param['o3_apriori_file'])
         print('Ozone apriori from : mean MLS profile')
@@ -417,11 +423,9 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         h2o_apriori = merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm)
     elif retrieval_param['h2o_apriori']=='ecmwf_extended':
         #plot_apriori_ptz(h2o_apriori)
-        h2o_apriori = p_interpolate(
-            pressure_atm, 
-            ds_ecmwf["pressure"].values,
-            ds_ecmwf['specific_humidity'].values,
-            )  
+        atm.set_vmr_field(
+        "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
+        )
         print('h2o taken from ecmwf (extended)')
     elif retrieval_param['h2o_apriori']=='fascod_extended':
         fascod_atm = arts.Atmosphere.from_arts_xml(
@@ -434,14 +438,13 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             fascod_atm.z_field.to_xarray().coords['Pressure'].data, 
             fascod_h2o.data,
             )  
+        atm.set_vmr_field(
+        "H2O", pressure_atm, h2o_apriori
+        )
         print('h2o taken from fascod (extended)')
     else:
         print('select apriori for h2o')
 
-    atm.set_vmr_field(
-        "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
-    )
-    
     print('Atmospheric state defined with : ECMWF oper v2, CIRA86')
     
     return atm
@@ -545,7 +548,7 @@ def read_waccm_monthly(retrieval_param):
     
     month = pd.to_datetime(datetime).month
     month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-    month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
     # As a function of datetime, select appropriate month from climatology:
     ds_waccm_monthly = ds_waccm.sel(
         time=slice(month_start[month-1],month_stop[month-1]), 

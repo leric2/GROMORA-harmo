@@ -114,8 +114,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         else:
             f_grid = make_f_grid(retrieval_param)
 
-        #print('Minimum of the frequency grid spacing [kHz]: ', min(
-        #    np.diff(f_grid))/1e3)
+        #print('Minimum of the frequency grid spacing [kHz]: ', min(np.diff(f_grid))/1e3)
     else:
         print("Retrieval of Ozone and H20 providing measurement vector")
         ds_freq = ac_FM.ws.f_backend.value
@@ -134,7 +133,6 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # Iniializing ArtsController object
     ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
     ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
-
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
         spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
@@ -205,7 +203,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
             z_grid
         )
         ac.set_atmosphere(atm, vmr_zeropadding=True)
-        retrieval_param['test_apriori'] = ac.ws.vmr_field.value[1,:,0]
+        retrieval_param['test_apriori'] = ac.ws.vmr_field.value[0,:,0]
     else:
         ValueError('atmosphere type not recognized')
 
@@ -245,7 +243,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     start_FM_time = time.time()
     print("Setup time: %s seconds" % (start_FM_time - start_time))
     # FM + noise --> to retrieve as test !
-    ac.ws.iy_aux_vars = ["Optical depth"]
+    #ac.ws.iy_aux_vars = ["Optical depth"]
+    #sprint('Compute Optical Depth')
 
     if retrieval_param['FM_only']:
         # try to create lookup tables
@@ -280,6 +279,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
         p_grid_retrieval = z2p_simple(z_grid_retrieval)
 
+    print('Retrieval p_grid from '+str(p_grid_retrieval[0])+' to '+str(p_grid_retrieval[-1]))
     z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
     z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
     z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
@@ -328,6 +328,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         sigma_o3 = retrieval_param["apriori_O3_cov"]*np.ones_like(p_grid_retrieval)
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         # plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='constant_ratio':
+        sigma_o3 = retrieval_param["apriori_O3_cov"]*retrieval_param['test_apriori'][:,0]
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='jump':
         sigma_o3 = retrieval_param["apriori_O3_cov"]*np.ones_like(p_grid_retrieval)
         sigma_o3[0:4] = 1e-7
@@ -337,7 +341,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=10)
         #smoothed_std = np.convolve(ds_waccm.o3_std.data, np.ones(8)/8, mode ='same')
         smoothed_std = ds_waccm.o3_std.data
-        smoothed_std[ds_waccm.p.data<100] = 1e-6
+        smoothed_std[ds_waccm.p.data<100] = 0.8e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
         smoothed_std = np.convolve(smoothed_std, np.ones(12)/12, mode ='same')
 
@@ -389,7 +393,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         lat_grid=lat_ret_grid,
         lon_grid=lon_ret_grid,
         covmat=sx,
-        unit='vmr'
+        unit='vmr',
     )
 
     h2o_ret = arts.AbsSpecies(
@@ -398,25 +402,25 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         lat_grid=lat_ret_grid,
         lon_grid=lon_ret_grid,
         covmat=sx_water,
-        unit='q'
+        unit='rel',
     )
 
-    o2_ret = arts.AbsSpecies(
-        species=retrieval_param['o2_model'],
-        p_grid=p_grid_retrieval,
-        lat_grid=lat_ret_grid,
-        lon_grid=lon_ret_grid,
-        covmat=sx_o2,
-        unit='rel'
-    )
-    n2_ref = arts.AbsSpecies(
-        species=retrieval_param['n2_model'],
-        p_grid=p_grid_retrieval,
-        lat_grid=lat_ret_grid,
-        lon_grid=lon_ret_grid,
-        covmat=sx_n2,
-        unit='rel'
-    )
+    # o2_ret = arts.AbsSpecies(
+    #     species=retrieval_param['o2_model'],
+    #     p_grid=p_grid_retrieval,
+    #     lat_grid=lat_ret_grid,
+    #     lon_grid=lon_ret_grid,
+    #     covmat=sx_o2,
+    #     unit='rel'
+    # )
+    # n2_ref = arts.AbsSpecies(
+    #     species=retrieval_param['n2_model'],
+    #     p_grid=p_grid_retrieval,
+    #     lat_grid=lat_ret_grid,
+    #     lon_grid=lon_ret_grid,
+    #     covmat=sx_n2,
+    #     unit='rel'
+    # )
     #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
 
     # increase variance for spurious spectra by factor
@@ -444,10 +448,13 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     polyfit_ret = arts.Polyfit(
-        poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
+        poly_order=2, covmats=[np.array([[0.1]]), np.array([[0.5]]), np.array([[0.5]])]
     )
     # polyfit_ret = arts.Polyfit(
-    #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    #     poly_order=1, covmats=[np.array([[0.01]]), np.array([[0.1]])]
+    # )
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=0, covmats=[np.array([[0.01]])]
     # )
     # polyfit_ret = arts.Polyfit(
     #     poly_order=3, covmats=[np.array([[20]]), np.array([[10]]), np.array([[5]]), np.array([[1]])]
@@ -468,6 +475,9 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
         ac.define_retrieval(retrieval_quantities=[
                             ozone_ret, h2o_ret, fshift_ret],  y_vars=y_var)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
+        ac.define_retrieval(retrieval_quantities=[
+                            ozone_ret, h2o_ret, polyfit_ret],  y_vars=y_var)
     elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
         ac.define_retrieval(retrieval_quantities=[
                             ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=y_var)
@@ -492,9 +502,9 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     ac.oem(
         method='gn',
         max_iter=10,
-        stop_dx=0.05,
+        stop_dx=0.1,
         display_progress=1,
-        lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
+        lm_ga_settings=[10, 2.0, 2.0, 100, 1, 99],
         inversion_iterate_agenda=inversion_iterate_agenda,
     )
     retrievals_time = time.time()
@@ -503,6 +513,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     print("OEM diagnostics: " + str(ac.oem_diagnostics))
     print('###########')
     print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
+    #retrieval_param['opt_depth_ARTS'] = np.median(ac.ws.y_aux.value[0])
     if not ac.oem_converged:
         print("OEM did not converge.")
         print("OEM diagnostics: " + str(ac.oem_diagnostics))
