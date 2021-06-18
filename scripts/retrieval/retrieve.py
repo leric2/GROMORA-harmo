@@ -40,7 +40,6 @@ from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
 load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -48,7 +47,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "SOMORA"
-    date = datetime.date(2018, 3, 2)
+    date = datetime.date(2017, 4, 16)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -98,8 +97,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(10,11)
-
+    cycles = np.arange(11,12)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -117,8 +115,8 @@ if __name__ == "__main__":
 
     retrieval_param["show_f_grid"] = False
     retrieval_param['plot_opacities'] = False
-    retrieval_param["f_shift"] =  0#+1500e3
-    retrieval_param["number_of_freq_points"] = 1601
+    retrieval_param["f_shift"] = 0#-405e3# -324.992e3#+1500e3
+    retrieval_param["number_of_freq_points"] = 1201
     retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 112e3
     retrieval_param["z_bottom_sim_grid"] = 600
@@ -127,37 +125,37 @@ if __name__ == "__main__":
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
     retrieval_param["z_bottom_ret_grid"] = 1e3
-    retrieval_param["z_resolution_ret_grid"] = 3e3
+    retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 40e3 
-    retrieval_param["z_bottom_ret_grid_h2o"] = 600
+    retrieval_param["z_top_ret_grid_h2o"] = 20e3
+    retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
     
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/apriori_ECMWF_MLS/'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
+    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
    
     #retrieval_param['obs_freq'] = 1.4217504e11
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
-    retrieval_param['h2o_apriori']='ecmwf_extended' # 'fascod_extended'
+    retrieval_param['h2o_apriori']=  'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern' #  /tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='waccm'   
-    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
-    retrieval_param['waccm_file'] = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/waccm_o3_climatology.nc'
+    retrieval_param['o3_apriori']='waccm_monthly'   
+    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'#'waccm_yearly_scaled'
+    retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 12e-4 #6e-4 12e-4
+    retrieval_param["apriori_H2O_stdDev"] = 1 #6e-4 12e-4 0.5 16e-4
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8
 
-    retrieval_param['water_vapor_model'] = 'H2O-PWR98, H2O' #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
+    retrieval_param['water_vapor_model'] = 'H2O-PWR98' #'H2O-PWR98' #H2O-ContMPM93 'H2O-PWR98, H2O' #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
     retrieval_param['o2_model'] = 'O2-PWR93' #'O2-MPM93'
     retrieval_param['n2_model'] = 'N2-SelfContStandardType' #'N2-SelfContMPM93'
     
@@ -241,7 +239,7 @@ if __name__ == "__main__":
         retrieval_param['T_surface'] = integrated_meteo[spectro].air_temperature[c].data
         
         if retrieval_param["retrieval_type"] == 1:
-            retrieval_param["surface_altitude"] = 10e3
+            retrieval_param["surface_altitude"] = 1e3
             retrieval_param["observation_altitude"] =  15e3
             ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
             figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(
@@ -295,7 +293,7 @@ if __name__ == "__main__":
             retrieval_param['FM_only'] = False
             #retrieval_param['atm']='fascod_gromos_o3'
             #retrieval_param['atm']='fascod_somora_o3'
-            retrieval_param['o3_apriori']='somora'
+            retrieval_param['o3_apriori']='waccm_monthly'
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_FM)
             level2_cycle = ac.get_level2_xarray()
             import GROSOM_library
