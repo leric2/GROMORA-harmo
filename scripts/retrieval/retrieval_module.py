@@ -98,7 +98,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         good_channels = spectro_dataset.good_channels[cycle].data == 1
         bad_channels = spectro_dataset.good_channels[cycle].data == 0
         ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
-        ds_y = spectro_dataset.Tb[cycle].values[good_channels]
+        ds_y = spectro_dataset.Tb[cycle].values[good_channels]  
 
         ds_num_of_channel = len(ds_freq)
         #ds_Tb = Tb[cycle].values
@@ -110,7 +110,17 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         retrieval_param["bandwidth"] = instrument.bandwidth[0]
         # defining simulation grids
         if retrieval_param["binned_ch"]:
-            f_grid = ds_freq
+            f_grid = make_f_grid(retrieval_param)
+            ds_y = ds_y[np.arange(0,len(ds_y),18)]
+            ds_freq = ds_freq[np.arange(0,len(ds_freq),18)]
+            ds_num_of_channel = len(ds_freq)
+            #ds_Tb = Tb[cycle].values
+
+            ds_bw = max(ds_freq) - min(ds_freq)
+
+            ds_df = ds_bw/(ds_num_of_channel-1)
+
+            retrieval_param["bandwidth"] = instrument.bandwidth[0]
         else:
             f_grid = make_f_grid(retrieval_param)
 
@@ -535,6 +545,394 @@ def inversion_iterate_agenda(ws):
     # right for iterative solutions. No need to call this WSM for linear inversions.
     ws.jacobianAdjustAndTransform()
 
+def retrieve_daily(instrument, spectro_dataset, retrieval_param):
+    '''
+    Retrieval of a single integration cycle defined in retrieval_param
+
+    Parameters
+    ----------
+    level1b : TYPE
+        DESCRIPTION.
+    retrieval_param : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    start_time = time.time()
+    cycles = retrieval_param['integration_cycle'] 
+    ds_freq = list()
+    ds_y = list()
+    y_vars = list()
+
+    print("Retrieval of Ozone and H20")
+   # 
+   #  bad_channels = spectro_dataset.good_channels[cycle].data == 0
+    retrieval_param["bandwidth"] = instrument.bandwidth[0]
+    for cycle in cycles:
+        
+        ds_freq.append(spectro_dataset.frequencies[cycle].values)
+        y = spectro_dataset.Tb[cycle].values  
+        ds_y.append(y)
+
+    ds_num_of_channel = len(spectro_dataset.frequencies[0]) 
+    ds_bw = retrieval_param["bandwidth"]
+    ds_df = ds_bw/(ds_num_of_channel-1)
+
+
+    
+    f_grid = make_f_grid(retrieval_param)
+
+    print('Minimum of the frequency grid spacing [kHz]: ', min(np.diff(f_grid))/1e3)
+
+
+    # Iniializing ArtsController object
+    ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
+    ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
+
+
+   # retrieval_param["f_max"] = max(ds_freq)
+   # retrieval_param["f_min"] = min(ds_freq)
+   # To define atmosphere, we need these: 
+    retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycles[0]].values
+    retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycles[-1]].values
+    retrieval_param["lat"] = spectro_dataset.lat[cycles[0]].values  
+    retrieval_param["time"] = spectro_dataset.time[cycles[0]].values
+    retrieval_param["lon"] = spectro_dataset.lon[cycles[0]].values
+
+    z_bottom = retrieval_param["z_bottom_sim_grid"]
+    z_top = retrieval_param["z_top_sim_grid"]
+    z_res = retrieval_param["z_resolution_sim_grid"]
+    z_grid = np.arange(z_bottom, z_top, z_res)
+    p_grid = z2p_simple(z_grid)
+
+    ac.set_grids(f_grid, p_grid)
+
+    # spectroscopy
+    # abs_species = ["O3","H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252", "O2-PWR93","N2-SelfContStandardType"]
+    water_vapor_model = retrieval_param['water_vapor_model']
+
+    ac.set_spectroscopy_from_file(
+        abs_lines_file=retrieval_param['line_file'],
+        abs_species=retrieval_param['selected_species'],
+        format='Arts',
+        line_shape=["VVH", 750e9],
+    )
+
+    # apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
+    if retrieval_param['atm'][0:6] == 'fascod':
+        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        ac.set_atmosphere(atm, vmr_zeropadding=True)
+    elif retrieval_param['atm'] == 'fascod_2':
+        ac.ws.AtmRawRead(
+            basename="planets/Earth/Fascod/{}/{}".format('midlatitude-winter', 'midlatitude-winter'))
+        ac.ws.AtmFieldsCalc()
+    elif retrieval_param['atm'] == 'ecmwf_cira86':
+        t1 = pd.to_datetime(retrieval_param['time_start'])
+        t2 = pd.to_datetime(retrieval_param['time_stop'])
+
+        #ecmwf_store = '/home/eric/Documents/PhD/GROSOM/ECMWF'
+        ecmwf_store = retrieval_param['ecmwf_store_location']
+        cira86_path = retrieval_param['cira86_path']
+
+        ecmwf_prefix = f'ecmwf_oper_v{2}_{instrument.location}_%Y%m%d.nc'
+        retrieval_param['ecmwf_prefix'] = ecmwf_prefix
+
+        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+            retrieval_param,
+            ecmwf_store,
+            cira86_path,
+            t1,
+            t2,
+            retrieval_param['extra_time_ecmwf'],
+            z_grid
+        )
+        ac.set_atmosphere(atm, vmr_zeropadding=True)
+        retrieval_param['test_apriori'] = ac.ws.vmr_field.value[1,:,0]
+    else:
+        ValueError('atmosphere type not recognized')
+
+    if retrieval_param["surface_altitude"] < min(ac.ws.z_field.value[:, 0, 0]):
+        retrieval_param["surface_altitude"] = min(ac.ws.z_field.value[:, 0, 0])
+        print('Surface altitude has been changed to min of z_field : ',
+              retrieval_param["surface_altitude"])
+
+    ac.set_surface(retrieval_param["surface_altitude"])
+    # Apply HSE, only allowed after setup of the atmosphere, when z is already on simulation grid
+    # ac.apply_hse(100e2, 0.5)  # value taken from GROMOS retrieval
+    ac.apply_hse(ac.ws.p_grid.value[0], 0.5)
+
+    # create an observation:
+    # only one for now, but then the whole day ?
+    observations = list()
+    for cycle in cycles:
+        retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
+        spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
+        retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
+        retrieval_param["lat"] = spectro_dataset.lat[cycle].values
+        retrieval_param["lon"] = spectro_dataset.lon[cycle].values
+        retrieval_param["time"] = spectro_dataset.time[cycle].values
+        
+
+        obs = arts.Observation(
+            za=retrieval_param["zenith_angle"],
+            aa=retrieval_param["azimuth_angle"],
+            lat=retrieval_param["lat"],
+            lon=retrieval_param["lon"],
+            alt=retrieval_param["observation_altitude"],
+            time=retrieval_param["time"]
+        )
+        observations.append(obs)
+
+    ac.set_observations(observations)
+
+    # Defining our sensors
+    if retrieval_param['sensor']: 
+        sensor = arts.SensorFFT(spectro_dataset.frequencies[0].values+retrieval_param["f_shift"], ds_df)
+    else: 
+        sensor = arts.SensorOff()
+    ac.set_sensor(sensor)
+
+    # doing the checks
+    ac.checked_calc(negative_vmr_ok=False, bad_partition_functions_ok=False)
+
+    start_FM_time = time.time()
+    print("Setup time: %s seconds" % (start_FM_time - start_time))
+    # FM + noise --> to retrieve as test !
+    ac.ws.iy_aux_vars = ["Optical depth"]
+
+    if retrieval_param['show_FM']:
+        y_FM = ac.y_calc()
+        plot_FM_comparison(ds_freq[0] , y_FM[0], ds_y)
+    #FM_time = time.time()
+    #print("FM_time: %s seconds" % (FM_time - start_FM_time))
+
+    ac.set_y(ds_y)
+
+    # if len(ds_y) < 1000:
+    #     ac.oem_converged = False
+    #     return ac, retrieval_param
+
+    # Setup the retrieval
+
+    if retrieval_param["retrieval_grid_type"] == 'pressure':
+        p_grid_retrieval = np.logspace(5, -1, 61)
+    else:
+        z_bottom_ret = retrieval_param["z_bottom_ret_grid"]
+        z_top_ret = retrieval_param["z_top_ret_grid"]
+        z_res_ret = retrieval_param["z_resolution_ret_grid"]
+        z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
+        p_grid_retrieval = z2p_simple(z_grid_retrieval)
+
+    z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
+    z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
+    z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
+    z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
+    p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
+
+    lat_ret_grid = np.array([retrieval_param["lat"]])
+    lon_ret_grid = np.array([retrieval_param["lon"]])
+
+    #sx = covmat.covmat_diagonal_sparse(retrieval_param["apriori_O3_cov"] * np.ones_like(p_grid_retrieval))
+
+    sx_water = covmat.covmat_diagonal_sparse(
+        retrieval_param["apriori_H2O_stdDev"] * np.ones_like(p_grid_retrieval_h2o))
+    #sx_water = covmat.covmat_diagonal_sparse((z_grid_retrieval_h2o/z_grid_retrieval_h2o[0])*retrieval_param["apriori_H2O_stdDev"])
+
+    sx_o2 = covmat.covmat_diagonal_sparse(
+        retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
+    sx_n2 = covmat.covmat_diagonal_sparse(
+        retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
+    sx_water = covmat.covmat_1d_sparse(
+        grid1=np.log10(p_grid_retrieval_h2o),
+        sigma1=retrieval_param["apriori_H2O_stdDev"] *
+        np.ones_like(p_grid_retrieval_h2o),
+        cl1=0.2*np.ones_like(p_grid_retrieval_h2o),
+        fname="lin",
+        cutoff=0
+    )
+    # std_h2o = 0.3*retrieval_param['test_apriori'][:,0]
+    # plt.plot(std_h2o)
+    # sx_water = covmat.covmat_1d_sparse(
+    #     grid1=np.log10(p_grid_retrieval),
+    #     sigma1=std_h2o,
+    #     cl1=np.ones_like(p_grid_retrieval),
+    #     fname="lin",
+    #     cutoff=0
+    # )
+    #plt.matshow(sx_water.todense())
+    #plt.colorbar()
+
+    if retrieval_param['o3_apriori_covariance']=='waccm':
+        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=1)
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='constant':
+        sigma_o3 = retrieval_param["apriori_O3_cov"]*np.ones_like(p_grid_retrieval)
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='jump':
+        sigma_o3 = retrieval_param["apriori_O3_cov"]*np.ones_like(p_grid_retrieval)
+        sigma_o3[0:4] = 1e-7
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='waccm_smooth_scaled':
+        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=10)
+        #smoothed_std = np.convolve(ds_waccm.o3_std.data, np.ones(8)/8, mode ='same')
+        smoothed_std = ds_waccm.o3_std.data
+        smoothed_std[ds_waccm.p.data<100] = 1e-6
+        smoothed_std[ds_waccm.p.data<1] = 0.4e-6
+        smoothed_std = np.convolve(smoothed_std, np.ones(12)/12, mode ='same')
+
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
+        #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
+        
+        #sigma_o3[p_grid_retrieval<100] = 0.8e-6
+        #sigma_o3[p_grid_retrieval<1] = 0.2e-6
+        #sigma_o3[p_grid_retrieval<p_grid_retrieval[np.where(sigma_o3 == max(sigma_o3))]] = 1e-6
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
+        ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
+        smoothed_std = ds_waccm.o3_std.data
+        smoothed_std[ds_waccm.p.data<100] = 1e-6
+        smoothed_std[ds_waccm.p.data<1] = 0.4e-6
+        smoothed_std = np.convolve(smoothed_std, np.ones(15)/15, mode ='same')
+
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
+        sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
+    elif retrieval_param['o3_apriori_covariance']=='waccm_yearly_scaled':
+        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        smoothed_std = ds_waccm.o3_std.data
+        smoothed_std[ds_waccm.p.data<2000] = 0.8e-6
+        smoothed_std[ds_waccm.p.data<1] = 0.4e-6
+        smoothed_std = np.convolve(smoothed_std, np.ones(12)/12, mode ='same')
+
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
+        sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
+        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        #plt.gca().invert_yaxis()
+
+
+    sx = covmat.covmat_1d_sparse(
+        grid1=np.log10(p_grid_retrieval),
+        sigma1= sigma_o3,
+        cl1=1* np.ones_like(p_grid_retrieval),
+        fname="exp",
+        cutoff=0.1
+    )
+
+    #plt.matshow(sx.todense())
+    #plt.colorbar()
+    ozone_ret = arts.AbsSpecies(
+        species='O3',
+        p_grid=p_grid_retrieval,
+        lat_grid=lat_ret_grid,
+        lon_grid=lon_ret_grid,
+        covmat=sx,
+        unit='vmr'
+    )
+
+    h2o_ret = arts.AbsSpecies(
+        species=water_vapor_model,
+        p_grid=p_grid_retrieval_h2o,
+        lat_grid=lat_ret_grid,
+        lon_grid=lon_ret_grid,
+        covmat=sx_water,
+        unit='q'
+    )
+
+    #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
+
+    # increase variance for spurious spectra by factor
+    #factor = retrieval_param['increased_var_factor']
+
+    #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
+    all_vars = list()
+    for cycle in cycles:
+        good_channels = spectro_dataset.good_channels[cycle].data == 1
+        y_var = retrieval_param['increased_var_factor']*np.square(
+            spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_freq[0])
+        y_var[good_channels == 0] = 100
+        all_vars.append(y_var)
+
+    print('Measurement std dev : ', np.sqrt(np.median(y_var)))
+    ac.noise_variance_vector = all_vars
+    #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
+
+    #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
+    polyfit_ret = arts.Polyfit(
+        poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
+    )
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
+    # )
+    # polyfit_ret = arts.Polyfit(
+    #     poly_order=3, covmats=[np.array([[20]]), np.array([[10]]), np.array([[5]]), np.array([[1]])]
+    # )
+    fshift_ret = arts.FreqShift(100e3, df=50e3)
+
+   # periods = np.array([319e6])
+    periods = retrieval_param['sinefit_periods']
+    covmat_sinefit = covmat.covmat_diagonal_sparse(
+        np.ones_like([0.04, 0.0016])*1)
+    sinefit_ret = arts.RetrievalQuantity(
+        'Sinefit', covmat_sinefit, period_lengths=periods)
+    #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
+    #ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+        ac.define_retrieval(retrieval_quantities=[
+                            ozone_ret, h2o_ret],  y_vars=all_vars)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+        ac.define_retrieval(retrieval_quantities=[
+                            ozone_ret, h2o_ret, fshift_ret],  y_vars=all_vars)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+        ac.define_retrieval(retrieval_quantities=[
+                            ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=all_vars)
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
+        ac.define_retrieval(retrieval_quantities=[
+                            ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret],  y_vars=all_vars)
+    else:
+        print('retrieval_param[retrieval_quantities] not recognized !')
+
+    # Let a priori be off by 0.5 ppm (testing purpose)
+    #vmr_offset = -0.5e-6
+    #ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
+    retrievals_setup_time = time.time()
+    print("retrievals_setup_time: %s seconds" %
+          (retrievals_setup_time - start_FM_time))
+    # Run retrieval (parameter taken from MOPI)
+    # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
+
+   # ac.checked_calc(bad_partition_functions_ok=True)
+   # setting from gromosc
+    ac.checked_calc(bad_partition_functions_ok=True)
+    ac.oem(
+        method='gn',
+        max_iter=10,
+        stop_dx=0.05,
+        display_progress=1,
+        lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
+        inversion_iterate_agenda=inversion_iterate_agenda,
+    )
+    retrievals_time = time.time()
+    print("retrievals_time: %s seconds" %
+          (retrievals_time - retrievals_setup_time))
+    print("OEM diagnostics: " + str(ac.oem_diagnostics))
+    print('###########')
+    print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
+    if not ac.oem_converged:
+        print("OEM did not converge.")
+        print("OEM diagnostics: " + str(ac.oem_diagnostics))
+        for e in ac.oem_errors:
+            print("OEM error: " + e)
+            continue
+    return ac, retrieval_param
 
 def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     '''

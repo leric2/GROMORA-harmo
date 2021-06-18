@@ -65,7 +65,7 @@ instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-01-09', end='2018-01-10')
+date = pd.date_range(start='2018-01-01', end='2018-12-31')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -77,13 +77,16 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = False
-plot_selected = True
-plot_fshift = False
+plot_o3_ts = True
+save_o3= False
+plot_selected = False
+plot_fshift = True
+save_fshift = False
 plot_cost = False
 plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
+plot_polyfit = False
 
 compare_MERRA2 = False
 compare_ECMWF = False
@@ -99,8 +102,11 @@ spectros = ['AC240']
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
-ex = '_newcorr'
-ex = '_waccm'
+ex = '_waccm_continuum'
+
+ex=''
+ex = '_waccm_cov_yearly_sza' #
+ex = '_waccm_monthly_continuum'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -192,17 +198,17 @@ elif instrument_name == "compare":
     )
 
 if instrument_name == "compare":
-    ex='_waccm'
+    ex='_waccm_monthly_continuum'
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm'
+        extra_base='_waccm_monthly_continuum'
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm'
+        extra_base='_waccm_monthly_continuum'
     )
     F0 = somora.observation_frequency
-    ex='comparison'
+    ex='comparison_'
 else:
     # Plotting part
     level2_dataset = instrument.read_level2(
@@ -211,29 +217,62 @@ else:
     )
     F0 = instrument.observation_frequency
 
-
 if plot_cost:
     if instrument_name == 'mopi5':
         for s in spectros:
-            fig, axs = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-            axs.plot(end_cost)
+            axes.plot(end_cost)
             fig.savefig(instrument.level2_folder+'/' +
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
-            end_cost.plot(marker='.', ax=axs[0])
-            noise_input.plot(marker='.',ax=axs[1])
+            end_cost.plot(marker='.', ax=axes[0])
+            noise_input.plot(marker='.',ax=axes[1])
             #axs[1].set_ylim(0,1)
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'_end_cost.pdf', dpi=500)
 
-if compare:
+if plot_polyfit:
+    if instrument_name=='compare':
+        s = 'AC240'
+        fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(9, 6))
+        polyfit_1 = level2_somora[s].poly_fit_x
+        polyfit_2 = level2_gromos[s].poly_fit_x
 
+        polyfit_1[0].plot(marker='.', ax=axes[0])
+        polyfit_2[0].plot(marker='.', ax=axes[0])
+        polyfit_1[1].plot(marker='.',ax=axes[1])
+        polyfit_2[1].plot(marker='.', ax=axes[1])
+        polyfit_1[2].plot(marker='.',ax=axes[2])
+        polyfit_2[2].plot(marker='.', ax=axes[2])
+            #axs[1].set_ylim(0,1)
+          #  end_cost.plot(ax=axs, ylim=(0.75,8))
+
+      #  perc=100*(polyfit_1[0]-polyfit_2[0])/polyfit_1[0]
+       # perc.plot(marker='.', ax=axes[3])
+        axes[0].legend(('profile', 'continuum')) 
+        axes[0].set_xlabel('')
+        axes[1].set_xlabel('')
+        fig.savefig(gromos.level2_folder+'/'+gromos.basename_plot_level2 +
+                        gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
+    else:
+        for s in spectros:
+            fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 6))
+            polyfit = level2_dataset[s].poly_fit_x
+            polyfit[0].plot(marker='.', ax=axes[0])
+            polyfit[1].plot(marker='.',ax=axes[1])
+            polyfit[2].plot(marker='.',ax=axes[2])
+            #axs[1].set_ylim(0,1)
+          #  end_cost.plot(ax=axs, ylim=(0.75,8))
+            fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+                        instrument.datestr+ex+'polyfit.pdf', dpi=500)
+
+if compare:
     mr_somora = level2_somora['AC240'].isel(o3_lat=0, o3_lon=0).o3_mr.data
     mr_gromos = level2_gromos['AC240'].isel(o3_lat=0, o3_lon=0).o3_mr.data
     mr_mean_gromos = level2_somora['AC240'].isel(
@@ -562,7 +601,7 @@ if plot_fshift:
     fshift = fshift*1e-3
     fig = plt.figure(num=1)
     ax = fig.subplots(1)
-    fshift.resample(time='4H', skipna=True).mean().plot(
+    fshift.plot(
         ax=ax
     )
     ax.set_ylabel('fshift [kHz]')
@@ -570,6 +609,9 @@ if plot_fshift:
     ax.set_title('fshift '+instrument_name)
     plt.tight_layout()
     fig.savefig(outname)
+
+    if save_fshift:
+        fshift.to_netcdf(instrument.level2_folder+'/'+instrument_name+'_'+instrument.datestr[0:4]+'_fshift.nc')
 
 if compare_MERRA2:
     merra2_basename = '/storage/tub/atmosphere/MERRA2/BRN/'
@@ -640,7 +682,7 @@ if compare_MERRA2:
 
     fig, ax = plt.subplots(1, 1)
     o3_merra2_tot.plot(x='datetime', y='altitude', ax=ax, vmin=0, vmax=15, cmap=colormap)
-    ax.set_ylim(5, 65)
+    ax.set_ylim(5, 75)
     # o3_merra2.assign_coords({'altitude':merra2_info.alt.isel(phony_dim_1=0)})
     plt.tight_layout()
     fig.savefig(instrument.level2_folder+'/ozone_ts_17_merra2.pdf')
