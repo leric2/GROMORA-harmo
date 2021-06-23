@@ -136,7 +136,7 @@ calibrationTool.flip_spectra=@(rawSpectra, calibrationTool) flip_spectra_gromos(
 calibrationTool.numberOfTippingCurveExpected=48;
 calibrationTool.toleranceTippingCurves=2;
 
-calibrationTool.goodFlagLN2Above = 1;
+calibrationTool.goodFlagLN2Above = 0;
 calibrationTool.goodFlagLN2Below = 0;
 
 % Considering the expected number of tipping curve:

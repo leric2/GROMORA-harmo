@@ -31,20 +31,21 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='mopi5';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
 calibrate = true;
 integrate = true;
-readLabviewLog = false;
+readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
+%dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
+dates=datenum(datetime('yesterday')) : datenum(datetime('yesterday'));
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -68,7 +69,7 @@ dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
-    labviewLogFolder = '/home/esauvageat/Documents/GROMORA/Analysis/InputsCalibration/';
+    labviewLogFolder = '/storage/tub/instruments/gromos/level1/GROMORA/InputsCalibration/';
     labviewLog = read_labview_log_generic(instrumentName, labviewLogFolder);
 else
     labviewLog = struct();
