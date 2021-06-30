@@ -47,12 +47,12 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "GROMOS"
-    date = datetime.date(2019, 2, 2)
+    date = datetime.date(2017, 7, 20)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
 
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
@@ -97,13 +97,13 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(11,12)
+    cycles = np.arange(1,2)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param["retrieval_type"] = 20
+    retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
     retrieval_param['sensor'] = True
@@ -127,10 +127,13 @@ if __name__ == "__main__":
     retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 20e3
-    retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
-    retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
-    
+    retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
+    # retrieval_param["z_top_ret_grid_h2o"] = 20e3
+    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
+    # retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
+
+    retrieval_param["h2o_pressure"] = [500e2]
+
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
@@ -141,7 +144,7 @@ if __name__ == "__main__":
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
-    retrieval_param['h2o_apriori']=  'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
+    retrieval_param['h2o_apriori']= 'ecmwf' #'ecmwf' # 'fascod_extended'
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern' #  /tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
@@ -298,6 +301,7 @@ if __name__ == "__main__":
             #retrieval_param['atm']='fascod_somora_o3'
             #retrieval_param['atm']='fascod_gromos_o3'
             retrieval_param['atm']='ecmwf_cira86'
+            retrieval_param['h2o_apriori']= 'fascod'
             retrieval_param['o3_apriori']='gromos'
             retrieval_param['ref_elevation_angle']=90
             retrieval_param['FM_only'] = True
@@ -306,11 +310,27 @@ if __name__ == "__main__":
             #retrieval_param['atm']='fascod_gromos_o3'
             #retrieval_param['atm']='fascod_somora_o3'
             retrieval_param['o3_apriori']='waccm_monthly'
+            retrieval_param['h2o_apriori']= 'ecmwf'
+            retrieval_param["number_of_freq_points"] = 5201
+            retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
+            retrieval_param["h2o_pressure"] = [500e2]
             ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_FM)
             level2_cycle = ac.get_level2_xarray()
             import GROSOM_library
-            figure_list = GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_gromos_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
-            save_single_pdf(instrument.filename_level2[spectro]+'_test'+retrieval_param['water_vapor_model']+'_GN_somora_og'+'.pdf', figure_list)
+            figure_list1 = GROSOM_library.plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
+            save_single_pdf(instrument.filename_level2[spectro]+'_'+str(c)+'h'+'ecmwf_finer_fgrid'+'.pdf', figure_list1)
+
+            # retrieval_param['h2o_apriori']= 'fascod_extended'
+            # ac3, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_FM)
+            # level2_cycle = ac3.get_level2_xarray()
+            # figure_list3 = GROSOM_library.plot_level2_test_retrieval(ac3, ac_FM, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
+            # save_single_pdf(instrument.filename_level2[spectro]+'_'+str(c)+'h'+'_fascod_extended'+'.pdf', figure_list3)
+
+            # ac2, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_FM)
+            # level2_cycle = ac2.get_level2_xarray()
+            # figure_list2 = GROSOM_library.plot_level2_test_retrieval(ac2, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
+            # save_single_pdf(instrument.filename_level2[spectro]+'_'+str(c)+'h'+'_H2O-ContMPM93'+'.pdf', figure_list2)
+
         elif retrieval_param["retrieval_type"] == 5:
             retrieval_param["surface_altitude"] = 1200
             retrieval_param["observation_altitude"] =  15e3
