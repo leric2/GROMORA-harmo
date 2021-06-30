@@ -618,12 +618,15 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         ax.legend()
 
     if (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift') or (retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit'):
+        h2o_apriori = ac.ws.vmr_field.value[1,:,0,0]
+        h2o_profile = h2o_ret.x[0]*ac.ws.vmr_field.value[1,:,0,0]
+        z_h2o = ac.ws.z_field.value[:,0,0]
 
         fig, axs = plt.subplots(2, 2, sharey=True)
-        axs[0][0].plot(
-            h2o_ret.x*h2o_ret.xa, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+        axs[0][0].semilogx(
+            h2o_profile, z_h2o / 1e3, label="retrieved", marker="x"
         )
-        axs[0][0].plot(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori", marker="x")
+        axs[0][0].semilogx(h2o_apriori, z_h2o / 1e3, label="apriori")
         axs[0][0].set_xlabel("Water vapor [rel]")
         axs[0][0].set_ylabel("Altitude [km]")
         axs[0][0].legend()
@@ -642,7 +645,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
             axs[1][1].plot(avk, h2o_ret.z_grid / 1e3)
         axs[1][1].set_xlabel("AVKM")
 
-
+        axs[1][1].set_ylim((0,20))
         axs[0][0].grid(True)
         axs[0][1].grid(True)
         axs[1][1].grid(True)
@@ -900,7 +903,7 @@ def plot_level2_test_retrieval_tropo_corr(ac, retrieval_param, title="", og_ozon
     
     return figures
 
-def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=[]):
+def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og_ozone=[]):
     '''
     Plotting function directly taken from Jonas ;)
     OG can be found in retrieval.py in MOPI retrievals
@@ -933,7 +936,7 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
         ozone_ret,  = ac.retrieval_quantities
 
     #good_channels = ds.good_channels[retrieval_param['integration_cycle']].data == 1
-    f_backend = ac.ws.y_f.value
+    f_backend = ozone_ret.ws.f_backend.value
     y = ac.y[0]
     #y = ac.y[0]
     yf = ac.yf[0]
@@ -1002,12 +1005,25 @@ def plot_level2_test_retrieval(ac, retrieval_param, title="", z_og=[], og_ozone=
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
 
-    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+ 
+        if retrieval_param["retrieval_h2o_grid_type"] == 'pressure':
+            h2o_apriori = ac.ws.vmr_field.value[1,:,0,0]
+            h2o_profile = h2o_ret.x[0]*ac.ws.vmr_field.value[1,:,0,0]
+            z_h2o = ac.ws.z_field.value[:,0,0]
+        else:
+            h2o_apriori = h2o_ret.xa
+            h2o_profile = h2o_ret.x
+            z_h2o = h2o_ret.z_grid
+
         fig, axs = plt.subplots(2, 2, sharey=True)
         axs[0][0].semilogx(
-            h2o_ret.x, h2o_ret.z_grid / 1e3, label="retrieved", marker="x"
+            h2o_profile, z_h2o / 1e3, label="retrieved", marker="x"
         )
-        axs[0][0].semilogx(h2o_ret.xa, h2o_ret.z_grid / 1e3, label="apriori")
+        axs[0][0].semilogx(h2o_apriori,z_h2o / 1e3, label="apriori")
+        axs[0][0].semilogx(
+            ac_FM.ws.vmr_field.value[1,:,0,0], ac_FM.ws.z_field.value[:,0,0] / 1e3, label="og"
+        )
         axs[0][0].set_xlabel("Water VMR []")
         axs[0][0].set_ylabel("Altitude [km]")
         axs[0][0].legend()

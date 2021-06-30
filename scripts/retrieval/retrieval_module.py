@@ -128,7 +128,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     else:
         print("Retrieval of Ozone and H20 providing measurement vector")
         ds_freq = ac_FM.ws.f_backend.value
-        ds_y = ac_FM.ws.y.value + np.random.normal(0, 2, len(ds_freq)) + 0 + 1e-9*(
+        ds_y = ac_FM.ws.y.value + np.random.normal(0, 0.2, len(ds_freq)) + 0 + 1e-9*(
             ds_freq-ds_freq[0])*(0)  # Gaussian noise + linear baseline possible
         ds_num_of_channel = len(ds_freq)
         #ds_Tb = Tb[cycle].values
@@ -289,12 +289,16 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
         p_grid_retrieval = z2p_simple(z_grid_retrieval)
 
-    print('Retrieval p_grid from '+str(p_grid_retrieval[0])+' to '+str(p_grid_retrieval[-1]))
-    z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
-    z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
-    z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
-    z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
-    p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
+    if retrieval_param["retrieval_h2o_grid_type"] == 'pressure':
+        print('Retrieval p_grid for water defined by pressure')
+        p_grid_retrieval_h2o = np.array(retrieval_param["h2o_pressure"])
+    else:
+        print('Retrieval p_grid from '+str(p_grid_retrieval[0])+' to '+str(p_grid_retrieval[-1]))
+        z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
+        z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
+        z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
+        z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
+        p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
 
     lat_ret_grid = np.array([retrieval_param["lat"]])
     lon_ret_grid = np.array([retrieval_param["lon"]])
@@ -450,7 +454,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
             #y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
     else:
         print('Using standard y var')
-        y_var = 4 * np.ones_like(ds_y)
+        y_var = 0.04 * np.ones_like(ds_y)
 
     print('Measurement std dev : ', np.sqrt(np.median(y_var)))
     ac.noise_variance_vector = y_var

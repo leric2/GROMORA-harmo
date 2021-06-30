@@ -186,6 +186,7 @@ nccreate(filename,'/meteo/precipitation','Dimensions',{'time',Inf},'Datatype','d
 ncwrite(filename,'/spectrometer1/time',[calibratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/time','timezone',calibrationTool.timeZone);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time recorded at the beginning of all sky measurements during this calibration cycle');
 
 if isfield(calibratedSpectra, 'meanDatetimeMJD2K')
@@ -298,7 +299,7 @@ ncwrite(filename,'/flags/time',[calibratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/flags/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/flags/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
-
+ncwriteatt(filename,'/flags/time','timezone',calibrationTool.timeZone);
 if isfield(calibratedSpectra,'errorVector')
     ncwrite(filename,'/flags/flags',1:length(calibratedSpectra(1).errorVector));
     ncwrite(filename,'/flags/calibration_flags',vertcat(calibratedSpectra.errorVector)');
@@ -312,7 +313,7 @@ end
 ncwriteatt(filename,'/tipping_curve/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/tipping_curve/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/tipping_curve/time','description','mean time of the sky observation for this tc');
-
+ncwriteatt(filename,'/tipping_curve/time','timezone',calibrationTool.timeZone);
 if isfield(logFile,'TC')
     ncwrite(filename,'/tipping_curve/time',[logFile.TC.meanDateNum]);
     ncwrite(filename,'/tipping_curve/channel_idx_tc',logFile.TC(1).channels);
@@ -378,6 +379,7 @@ end
 ncwriteatt(filename,'/meteo/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/meteo/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/meteo/time','description','time from the meteo stations');
+ncwriteatt(filename,'/meteo/time','timezone',calibrationTool.timeZone);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global Attributes

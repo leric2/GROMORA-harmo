@@ -116,6 +116,8 @@ for h = 1:length(timeThresh)-1
     %StdTNoise...
     
     integratedSpectra(h).TWindow=nanmean([calibratedSpectra(indSpectra).TWindow]);
+    integratedSpectra(h).TRoom=nanmean([calibratedSpectra(indSpectra).TRoom]);
+
     if isfield(calibratedSpectra,'TOut')
         integratedSpectra(h).TOut=nanmean([calibratedSpectra(indSpectra).TOut]);
     else
