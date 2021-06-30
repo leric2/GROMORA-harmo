@@ -133,7 +133,12 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_top_ret_grid_h2o"] = 20e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
+    retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
+    # retrieval_param["z_top_ret_grid_h2o"] = 20e3
+    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
+    # retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
 
+    retrieval_param["h2o_pressure"] = [500e2]
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
@@ -204,7 +209,7 @@ def retrieve_day(date, instrument_name):
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
     #cycles = [1,2]
-    cycles = [1,7,15,21]
+    #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -340,13 +345,13 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_monthly_profile20km.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_monthly_scaled_h2o.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    dates = pd.date_range(start='2018-01-01', end='2018-01-10')
+    dates = pd.date_range(start='2014-01-01', end='2014-03-31')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -357,7 +362,7 @@ if __name__ == "__main__":
             print('problem retrieving day : ',d)
         print('######################################################################################')
         print('######################################################################################')
-        # try:
-        #     level2 = retrieve_day(d, 'SOMORA')
-        # except:
-        #     print('problem retrieving day : ',d)
+        try:
+            level2 = retrieve_day(d, 'SOMORA')
+        except:
+            print('problem retrieving day : ',d)
