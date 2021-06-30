@@ -155,6 +155,7 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,
 ncwrite(filename,'/spectrometer1/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/spectrometer1/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/spectrometer1/time','calendar',calibrationTool.calendar);
+ncwriteatt(filename,'/spectrometer1/time','timezone',calibrationTool.timeZone);
 ncwriteatt(filename,'/spectrometer1/time','description','mean time recorded at the beginning of all sky measurements during this integration cycle');
 if isfield(integratedSpectra, 'MJD2K')
     ncwrite(filename,'/spectrometer1/MJD2K',[integratedSpectra.MJD2K]);
@@ -241,9 +242,9 @@ else
 end
 
 % Data that are not present for every instrument
-if isfield(integratedSpectra,'TempRoom')
-    ncwrite(filename,'/spectrometer1/TRoom',[integratedSpectra.TempRoom]);
-    ncwrite(filename,'/spectrometer1/stdTRoom',[integratedSpectra.stdTempRoom]);
+if isfield(integratedSpectra,'TRoom')
+    ncwrite(filename,'/spectrometer1/TRoom',[integratedSpectra.TRoom]);
+    ncwrite(filename,'/spectrometer1/stdTRoom',-9999*ones(length(integratedSpectra),1));
 else
     ncwrite(filename,'/spectrometer1/TRoom',-9999*ones(length(integratedSpectra),1));
     ncwrite(filename,'/spectrometer1/stdTRoom',-9999*ones(length(integratedSpectra),1));
@@ -271,6 +272,7 @@ ncwrite(filename,'/meteo/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/meteo/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/meteo/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/meteo/time','description','mean time recorded at the beginning of all sky measurements during this calibration cycle');
+ncwriteatt(filename,'/meteo/time','timezone',calibrationTool.timeZone);
 
 ncwrite(filename,'/meteo/air_temperature',[integratedSpectra.mean_air_temperature]);
 ncwrite(filename,'/meteo/air_pressure',[integratedSpectra.mean_air_pressure]);
@@ -284,6 +286,7 @@ ncwrite(filename,'/flags/time',[integratedSpectra.meanDatetime]);
 ncwriteatt(filename,'/flags/time','units',calibrationTool.meanDatetimeUnit);
 ncwriteatt(filename,'/flags/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/flags/time','description','mean time of the measurements for this cycle');
+ncwriteatt(filename,'/flags/time','timezone',calibrationTool.timeZone);
 
 if isfield(integratedSpectra,'errorVector')
     ncwrite(filename,'/flags/flags',1:length(integratedSpectra(1).errorVector));

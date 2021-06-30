@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='mopi5';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -44,7 +44,7 @@ readLabviewLog = false;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
+dates=datenum('2016_05_01','yyyy_mm_dd'):datenum('2016_05_10','yyyy_mm_dd');
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -142,14 +142,14 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
-        calibrationTool.transmittanceThreshold = 0.2;
+        calibrationTool.transmittanceThreshold = 0.05;
         calibrationTool.filterByFlags = true;
         
         %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
         % transmittance threshold for flagging level 1b:
-        calibrationTool.troposphericTransmittanceFlag = 0.2;
+        calibrationTool.troposphericTransmittanceFlag = 0.15;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -166,14 +166,14 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
-        calibrationTool.transmittanceThreshold = 0.2;
+        calibrationTool.transmittanceThreshold = 0.05;
         calibrationTool.filterByFlags = true;
         
         %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
         % transmittance threshold for flagging level 1b:
-        calibrationTool.troposphericTransmittanceFlag = 0.2;
+        calibrationTool.troposphericTransmittanceFlag = 0.15;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;

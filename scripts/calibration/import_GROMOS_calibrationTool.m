@@ -317,6 +317,9 @@ if calibrationTool.timeNumber < datenum(2012,01,01) %TOCHECK
     calibrationTool.goodFlagLN2Below = 1;
     
     calibrationTool.stdTNoiseThresh = 15;
+elseif calibrationTool.timeNumber > datenum(2020,06,19)
+    calibrationTool.goodFlagLN2Above = 0;
+    calibrationTool.goodFlagLN2Below = 0;
 end
 % window transmission
 if calibrationTool.timeNumber < datenum(2018,11,12)
