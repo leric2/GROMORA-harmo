@@ -40,6 +40,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
                                MultipleLocator)
+from xarray.backends import file_manager
 
 import GROSOM_library
 import mopi5_library
@@ -57,7 +58,7 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "GROMOS"
+instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -65,7 +66,7 @@ instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2018-01-01', end='2018-12-31')
+date = pd.date_range(start='2016-01-01', end='2016-03-31')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -77,10 +78,10 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = True
+plot_o3_ts = False
 save_o3= False
-plot_selected = False
-plot_fshift = True
+plot_selected = True
+plot_fshift = False
 save_fshift = False
 plot_cost = False
 plot_o3_diff_waccm = False
@@ -88,8 +89,11 @@ read_waccm_clim = False
 compare = False
 plot_polyfit = False
 
+
+filename_opacity = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/SOMORA_opacity_2014.nc'
+
 compare_MERRA2 = False
-compare_ECMWF = False
+compare_ECMWF = True
 compare_MLS = False
 
 integration_strategy = 'classic'
@@ -102,15 +106,28 @@ spectros = ['AC240']
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
-ex = '_waccm_continuum'
 
 ex=''
-ex = '_waccm_cov_yearly_sza' #
+
 ex = '_waccm_monthly_continuum'
+ex = '_waccm_cov_yearly_sza' #
+ex = '_waccm_continuum'
+ex = '_waccm_monthly_scaled_h2o'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
 
+def read_opacity(filename, date):
+    ds_opacity = xr.open_dataset(
+        filename,
+        group='spectrometer1',
+        decode_times=True,
+        decode_coords=True,
+        # use_cftime=True,
+    )
+
+    ds_opacity = ds_opacity.sel(time=slice(date[0].strftime('%Y-%m-%d'), date[-1].strftime('%Y-%m-%d')))
+    return ds_opacity
 
 def read_mls(d1, d2):
     MLS_basename = '/home/esauvageat/Documents/AuraMLS/'
@@ -198,17 +215,17 @@ elif instrument_name == "compare":
     )
 
 if instrument_name == "compare":
-    ex='_waccm_monthly_continuum'
+    ex='_waccm_monthly_scaled_h2o'
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_monthly_continuum'
+        extra_base='_waccm_monthly_scaled_h2o'
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_monthly_continuum'
+        extra_base='_waccm_monthly_scaled_h2o'
     )
     F0 = somora.observation_frequency
-    ex='comparison_'
+
 else:
     # Plotting part
     level2_dataset = instrument.read_level2(
@@ -218,6 +235,8 @@ else:
     F0 = instrument.observation_frequency
 
 if plot_cost:
+    ds_opacity = read_opacity(filename_opacity, date)
+
     if instrument_name == 'mopi5':
         for s in spectros:
             fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
@@ -227,17 +246,23 @@ if plot_cost:
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 6))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
             end_cost.plot(marker='.', ax=axes[0])
             noise_input.plot(marker='.',ax=axes[1])
+            ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[2])
             #axs[1].set_ylim(0,1)
+            axes[0].set_xticks([])
+            axes[1].set_xticks([])
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'_end_cost.pdf', dpi=500)
 
+
 if plot_polyfit:
+    ds_opacity = read_opacity(filename_opacity, date)
+
     if instrument_name=='compare':
         s = 'AC240'
         fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(9, 6))
@@ -255,22 +280,45 @@ if plot_polyfit:
 
       #  perc=100*(polyfit_1[0]-polyfit_2[0])/polyfit_1[0]
        # perc.plot(marker='.', ax=axes[3])
-        axes[0].legend(('profile', 'continuum')) 
+        axes[0].legend(('', '')) 
         axes[0].set_xlabel('')
         axes[1].set_xlabel('')
         fig.savefig(gromos.level2_folder+'/'+gromos.basename_plot_level2 +
                         gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(9, 6))
             polyfit = level2_dataset[s].poly_fit_x
             polyfit[0].plot(marker='.', ax=axes[0])
             polyfit[1].plot(marker='.',ax=axes[1])
             polyfit[2].plot(marker='.',ax=axes[2])
+            level2_dataset[s].h2o_pwr98_x.plot(ax=axes[3])
+
+            # axes[0].set_ylim((-0.01,0.15))
+            for i in [0,1,2,3]:
+                axes[i].set_xlabel('')
+                axes[i].set_xticks([])
+            ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[4])
+            #ds_opacity.tropospheric_opacity_tc.plot(marker='.',ax=axes[3])
+            #axes[3].set_ylim(0,20)
             #axs[1].set_ylim(0,1)
-          #  end_cost.plot(ax=axs, ylim=(0.75,8))
+            #  end_cost.plot(ax=axs, ylim=(0.75,8))
+            axes[4].set_ylabel('opacity')
+            plt.tight_layout()
             fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'polyfit.pdf', dpi=500)
+
+def avk_smooth_mls(ds, o3_mls_mean):
+    avkm=ds.o3_avkm.mean(dim='time').values
+    o3_p = ds.o3_p.values
+    o3_p_mls = o3_mls_mean.p.values*100
+    idx = np.argsort(o3_p_mls, kind='heapsort')
+    o3_p_mls_sorted = o3_p_mls[idx]  
+    o3_mls_sorted = o3_mls_mean[idx]
+
+    interpolated_mls = np.interp(np.log(o3_p), np.log(o3_p_mls_sorted),o3_mls_sorted.values*1e-6)
+    o3_convolved = ds.o3_xa.mean(dim='time').values  + np.matmul(avkm,(interpolated_mls - ds.o3_xa.mean(dim='time').values))
+    return o3_convolved
 
 if compare:
     mr_somora = level2_somora['AC240'].isel(o3_lat=0, o3_lon=0).o3_mr.data
@@ -292,8 +340,10 @@ if compare:
 
     mls = read_mls(date[0].strftime('%Y-%m-%d'), date[-1].strftime('%Y-%m-%d'))
     o3_mls = mls.o3
-
-
+    o3_mls_mean = o3_mls.mean(dim='time')
+    ds = level2_gromos['AC240'].isel(o3_lat=0, o3_lon=0)
+    
+    o3_mls_convolved = avk_smooth_mls(ds, o3_mls_mean)
 
     rel_diff = 100*(ozone_somora.mean(dim='time') -
                     ozone_gromos.mean(dim='time'))/ozone_somora.mean(dim='time')
@@ -307,6 +357,8 @@ if compare:
     ozone_gromos.where(mr_gromos > 0.8, drop=False).mean(dim='time').plot(
         y='o3_p', ax=axs[0], color='blue', label='GROMOS')
     o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
+
+    axs[0].plot(o3_mls_convolved*1e6, ozone_gromos.o3_p.values, '--', color='black', label='MLS, convolved')
 
     gromos_plus = ozone_gromos.mean(dim='time') + gromos_error.mean(dim='time')
     gromos_minus = ozone_gromos.mean(
@@ -337,7 +389,7 @@ if compare:
         y='o3_p', ax=axs[1], color='green', label='(red-blue)/red')
   #  rel_diff_gromos_mls.plot(y='o3_p',ax=axs[1], color='blue', label='(MLS-GRO)/MLS')
   #  rel_diff_somora_mls.plot(y='o3_p',ax=axs[1], color='red', label='(MLS-SOM)/MLS')
-    axs[1].set_xlim(-60, 60)
+    #axs[1].set_xlim(-60, 60)
     axs[1].set_xlabel('relative difference [%]')
     axs[1].legend()
     axs[1].grid(axis='x', linewidth=0.5)
@@ -356,8 +408,7 @@ if compare:
     ozone_somora.mean(dim='time').to_netcdf(
         somora.level2_folder+'/'+'somora_mean_o3_'+date.mean().strftime('%Y-%m-%d')+'.nc')
 
-    fig.savefig(somora.level2_folder+'/'+'ozone_comparison_' +
-                pd.to_datetime(ozone_somora.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
+    fig.savefig(somora.level2_folder+'/'+'ozone_comparison_'+pd.to_datetime(ozone_gromos.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
 
 if plot_all:
     outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
@@ -689,6 +740,9 @@ if compare_MERRA2:
 # %%
 
 if compare_ECMWF:
+    Mair = 28.9644
+    Mozone= 47.9982
+
     ECMWF_folder = '/scratch/ECMWF/'
     counter = 0
     for d in date:
@@ -712,7 +766,7 @@ if compare_ECMWF:
 
         counter = counter + 1
 
-    o3_ecmwf = ecmwf_ts.isel(loc=0).ozone_mass_mixing_ratio
+    o3_ecmwf = ecmwf_ts.isel(loc=0).ozone_mass_mixing_ratio*Mair/Mozone
     o3_ecmwf['pressure'] = ecmwf_ts['pressure'].isel(loc=0)/100
     o3_ecmwf.data = o3_ecmwf.data * 1e6
 
@@ -723,8 +777,8 @@ if compare_ECMWF:
         x='time',
         y='pressure',
         vmin=0,
-        vmax=15,
-        cmap='viridis',
+        vmax=9,
+        cmap=colormap,
         cbar_kwargs={"label": "ozone [PPM]"}
     )
     ax.invert_yaxis()
@@ -734,16 +788,16 @@ if compare_ECMWF:
     # o3.plot.imshow(x='time')
     fig2.savefig(instrument.level2_folder+'/'+'ozone_ts_16_ecmwf_payerne.pdf')
 
-    from retrievals.data.ecmwf import ECMWFLocationFileStore, levels
+    # from retrievals.data.ecmwf import ECMWFLocationFileStore, levels
 
-    ecmwf_prefix = 'ecmwf_oper_v2_BERN_%Y%m%d.nc'
-    t1 = date[0]
-    t2 = date[2]
-    ecmwf_store = ECMWFLocationFileStore(ECMWF_folder, ecmwf_prefix)
-    ds_ecmwf = (
-        ecmwf_store.select_time(t1, t2, combine='by_coords')
-        .mean(dim='time')
-        .swap_dims({"level": "pressure"})
-    )
+    # ecmwf_prefix = 'ecmwf_oper_v2_BERN_%Y%m%d.nc'
+    # t1 = date[0]
+    # t2 = date[2]
+    # ecmwf_store = ECMWFLocationFileStore(ECMWF_folder, ecmwf_prefix)
+    # ds_ecmwf = (
+    #     ecmwf_store.select_time(t1, t2, combine='by_coords')
+    #     .mean(dim='time')
+    #     .swap_dims({"level": "pressure"})
+    # )
 
-    ds_ecmwf = read_add_geopotential_altitude(ds_ecmwf)
+    # ds_ecmwf = read_add_geopotential_altitude(ds_ecmwf)
