@@ -31,6 +31,8 @@ from retrievals.data import p_interpolate
 
 from pysolar import *
 
+from GROMORA_time import pysolar_sza, get_LST_from_UTC
+
 
 #from typhon.arts.xml import load
 from pyarts.xml import load
@@ -421,12 +423,15 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
         )
         h2o_apriori = merge_ecmwf_Fascod_atm(ds_ecmwf, fascod_atm)
-    elif retrieval_param['h2o_apriori']=='ecmwf_extended':
+        atm.set_vmr_field(
+        "H2O", pressure_atm, h2o_apriori
+        )
+    elif retrieval_param['h2o_apriori']=='ecmwf':
         #plot_apriori_ptz(h2o_apriori)
         atm.set_vmr_field(
         "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
         )
-        print('h2o taken from ecmwf (extended)')
+        print('h2o taken from ecmwf')
     elif retrieval_param['h2o_apriori']=='fascod_extended':
         fascod_atm = arts.Atmosphere.from_arts_xml(
             ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
@@ -472,7 +477,8 @@ def read_waccm(retrieval_param, extra_day=0):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+    lst, ha, sza, night = get_LST_from_UTC(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    #(sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
     if night:
         tod = 'night'
     else:
@@ -488,7 +494,7 @@ def read_waccm(retrieval_param, extra_day=0):
         ds_waccm = ds_waccm.sel(time=pd.to_datetime(datetime).dayofyear, tod=tod)
     return ds_waccm
 
-def solar_zenith_angle(time,retrieval_param):
+def solar_zenith_angle_old(time,retrieval_param):
     sec_after_midnight = pd.to_datetime(time).hour*3600 + pd.to_datetime(time).minute*60 + pd.to_datetime(time).second 
     sec_to_noon = sec_after_midnight - 12*3600
     cos_solar_hour_angle = np.cos(np.deg2rad((sec_to_noon/3600)*15))
@@ -518,7 +524,7 @@ def solar_zenith_angle(time,retrieval_param):
         pd.to_datetime(time).hour,
         pd.to_datetime(time).minute,
         pd.to_datetime(time).second,
-        tzinfo=timezone('Europe/Zurich')
+        tzinfo=timezone('UTC')
         )
     
     #date = date.tz_localize('Europe/Zurich')
@@ -539,13 +545,14 @@ def read_waccm_monthly(retrieval_param):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    (sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
+    lst, ha, sza, night = get_LST_from_UTC(datetime, retrieval_param['lat'], retrieval_param['lon'])
 
     if night:
         tod = 'night'
     else:
         tod = 'day' 
     
+    print('Solar elevation angle = ',90-sza, ', using ',tod,'time apriori profile !')
     month = pd.to_datetime(datetime).month
     month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
     month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
