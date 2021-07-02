@@ -45,6 +45,15 @@ def solar_zenith_angle(ha, lst, lat):
     sza = np.rad2deg(np.arccos(cos_sza))
     return sza, night
 
+def hour_angle_sunset(lst, lat):
+    declination = -23.44*np.cos(np.deg2rad((pd.to_datetime(lst).dayofyear+10)*360/365))
+    cos_declination = np.cos(np.deg2rad(declination))
+    sin_declination = np.sin(np.deg2rad(declination))
+
+    # Sunrise/Sunset:
+    cos_hour_angle_sunset = -np.tan(np.deg2rad(lat))*np.tan(np.deg2rad(declination))    
+    return np.rad2deg(np.arccos(cos_hour_angle_sunset))
+
 def pysolar_sza(date, lat, lon):
     # Using pysolar package:
     time = utc.localize(datetime64_2_datetime(date))
@@ -74,11 +83,25 @@ def hour_angle(lst):
     hours_from_midnight = (lst - lst.replace(hour=0, minute=0,second=0, microsecond=0)).total_seconds()/3600
     return 15*(hours_from_midnight-12)
 
+def lst_sunset_from_hour_angle(sunset_ha, midnight_lst):
+    sunrise = midnight_lst + timedelta(hours=12) + timedelta(hours=-np.abs(sunset_ha)/15)
+    sunset = midnight_lst + timedelta(hours=12) + timedelta(hours=np.abs(sunset_ha)/15)
+    return sunrise, sunset
+
+def get_sunset_lst_from_lst(lst, lat):
+    sunset_ha = hour_angle_sunset(lst,lat)
+
+    sunrise_lst, sunset_lst = lst_sunset_from_hour_angle(
+        sunset_ha, 
+        midnight_lst = lst.replace(hour=0, minute=0,second=0, microsecond=0)
+    )
+    return sunrise_lst, sunset_lst
+
 def get_LST_from_UTC(date, lat, lon):
     dt = utc.localize(datetime64_2_datetime(date))
-    print('UTC time: ',dt) 
+    #print('UTC time: ',dt) 
     local_time =  dt.astimezone(gromora_tz)
-    print('Local time: ',local_time)
+    #print('Local time: ',local_time)
 
     doy = pd.to_datetime(dt).dayofyear
 
@@ -104,7 +127,7 @@ def get_LST_from_UTC(date, lat, lon):
 
 if __name__ == "__main__":
     #date = spectro_dataset.time.data[0]
-    date = np.datetime64('2017-12-30 08:12:20.123456')
+    date = np.datetime64('2017-07-20 09:29:20.123456')
 
     lat = np.array(46.95)
     lon = np.array(7.44)
@@ -112,8 +135,24 @@ if __name__ == "__main__":
     sza_pysolar = pysolar_sza(date, lat, lon)
 
     lst, ha, sza, night = get_LST_from_UTC(date, lat, lon)
+    lst_simone = datetime64_2_datetime(date).astimezone(gromora_tz) + timedelta(hours=lon*24/360)
 
+    print('LST diff:', (lst-lst_simone).total_seconds()/60, 'min')
     if night:
+        print('Night !')
+    else:
+        print('Day !')
+
+    sunset_ha = hour_angle_sunset(lst,lat)
+
+    sunrise_lst, sunset_lst = lst_sunset_from_hour_angle(
+        sunset_ha, 
+        midnight_lst = lst.replace(hour=0, minute=0,second=0, microsecond=0)
+    )
+    
+    print('Sunrise: ',sunrise_lst, ' and sunset: ', sunset_lst)
+    print('Daylight hours: ',(sunset_lst-sunrise_lst).total_seconds()/3600, 'hours')
+    if np.abs(ha) > sunset_ha:
         print('Night !')
     else:
         print('Day !')
