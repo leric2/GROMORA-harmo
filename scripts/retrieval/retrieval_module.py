@@ -43,13 +43,40 @@ def make_f_grid(retrieval_param):
     f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
     f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
         retrieval_param['obs_freq']
-    #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
 
+    #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+    #f_grid = np.concatenate((f_grid,np.arange(148.975e9,149.975e9,1e6)))
+    #f_grid = np.arange(141e9,150e9,1e6)
     if retrieval_param["show_f_grid"]:
         fig = plt.figure()
         plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
         plt.xlim((retrieval_param['obs_freq']-200e6) /
                  1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+        # plt.ylim(0,300)
+        plt.ylabel(r'$\Delta f$ [kHz]')
+        plt.suptitle('Frequency grid spacing')
+        plt.show()
+    return f_grid
+
+def make_f_grid_double_sideband(retrieval_param, usb_grid): 
+    '''
+    create simulation frequency grid
+
+    '''
+    n_f = retrieval_param["number_of_freq_points"]  # Number of points
+    bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+    x = np.linspace(-1, 1, n_f)
+    f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+    f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+        retrieval_param['obs_freq']
+
+    #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+    f_grid = np.concatenate((f_grid, usb_grid))
+    if retrieval_param["show_f_grid"]:
+        fig = plt.figure()
+        plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+        # plt.xlim((retrieval_param['obs_freq']-200e6) /
+        #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
         # plt.ylim(0,300)
         plt.ylabel(r'$\Delta f$ [kHz]')
         plt.suptitle('Frequency grid spacing')
@@ -74,8 +101,13 @@ def plot_FM_comparison(ds_freq, y_FM, y_obs):
     plt.show()
     pass
 
+def sideband_response_theory(RF, delta_z, polarisation_change=True):
+    if polarisation_change:
+        return np.sin(np.pi*delta_z*RF/3e8)**2
+    else:
+        return np.cos(np.pi*delta_z*RF/3e8)**2
 
-def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
+def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sensor = None):
     '''
     Retrieval of a single integration cycle defined in retrieval_param
 
@@ -122,7 +154,14 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
             retrieval_param["bandwidth"] = instrument.bandwidth[0]
         else:
-            f_grid = make_f_grid(retrieval_param)
+            if retrieval_param['sensor'] == 'FFT_SB':
+                if instrument.instrument_name=='GROMOS':
+                    f_grid = make_f_grid_double_sideband(retrieval_param, usb_grid= np.arange(148.975e9,150.175e9,100e6))
+                else:
+                    f_grid = make_f_grid_double_sideband(retrieval_param, usb_grid= np.arange(155.875e9,157.075e9,100e6))
+
+            else:
+                f_grid = make_f_grid(retrieval_param)
 
         #print('Minimum of the frequency grid spacing [kHz]: ', min(np.diff(f_grid))/1e3)
     else:
@@ -142,7 +181,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     # Iniializing ArtsController object
     ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
-    ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
+    ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=5e3, stokes_dim=1)
+
     retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
         spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
     retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
@@ -240,11 +280,89 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
     ac.set_observations([obs])
 
-    # Defining our sensors
-    if retrieval_param['sensor']: 
-        sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
-    else: 
-        sensor = arts.SensorOff()
+    if sensor is None:
+        # Defining our sensors
+        if retrieval_param['sensor']=='FFT': 
+            sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+        elif retrieval_param['sensor']=='FFT_SB': #np.concatenate((ds_freq,np.arange(148.974e9,149.977e9,1e6)))
+            #intermediate_freq = 1e9*np.array([-4.101, -3.7,-3.1,3.1, 3.7,4.101])
+            lo = instrument.lo
+
+            if instrument.instrument_name == 'GROMOS':
+                deltaZ = 20.043e-3 #- 0.1e-3
+                #deltaZ1 = 20.95e-3
+                lsb = 1e9*np.array([-4.101, -3.7,-3.1])
+                usb= -np.flip(lsb)
+                lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
+                usb_all = -np.flip(lsb_all)
+                plot_freq = np.arange(-4.101e9, +4.101e9, 10e6)
+            elif instrument.instrument_name == 'SOMORA':
+                deltaZ = 11.5e-3
+                #deltaZ1 = 20.95e-3
+                lsb = 1e9*np.array([-7.601, -7.1 ,-6.6])
+                usb= -np.flip(lsb)
+                lsb_all = np.arange(-7.601e9, -6.6e9, 10e6)
+                usb_all = -np.flip(lsb_all)
+                plot_freq = np.arange(-7.601e9, +6.6e9, 10e6)
+            else:
+                print('SB ratio not implement for this instrument !')
+
+            if retrieval_param['sideband_response']=='constant':
+                lsb_response = np.array([1,1,1])
+                usb_response = np.array([0.05,0.05,0.05])
+                intermediate_freq = np.concatenate((lsb,usb))
+                sideband_response = np.concatenate((lsb_response,usb_response))
+            elif retrieval_param['sideband_response']=='constant_normalized':
+                lsb_response = np.array([1,1,1])
+                usb_response = np.array([0.05,0.05,0.05])
+                lsb_response = lsb_response / (usb_response+lsb_response)
+                usb_response = usb_response / (usb_response+lsb_response)
+
+                intermediate_freq = np.concatenate((lsb,usb))
+                sideband_response = np.concatenate((lsb_response,usb_response))
+            elif retrieval_param['sideband_response']=='quad':
+                lsb_coeff= np.polyfit(lsb, np.array([1,1,1]), deg=1)
+                lsb_response = np.polyval(lsb_coeff, lsb_all)
+                usb_coeff = np.polyfit(usb, np.array([0.01,0.01,0.01]), deg=1)
+                usb_response = np.polyval(usb_coeff, usb_all)
+                intermediate_freq = np.concatenate((lsb_all,usb_all))
+                sideband_response = np.concatenate((lsb_response,usb_response))
+            elif retrieval_param['sideband_response']=='theory':          
+                intermediate_freq = np.concatenate((lsb_all,usb_all))
+                sideband_response = sideband_response_theory(deltaZ, lo + intermediate_freq, polarisation_change=True)
+            elif retrieval_param['sideband_response']=='theory_normalized':
+                lower_sideband_response = sideband_response_theory(deltaZ, lo + lsb_all, polarisation_change=True)
+                upper_sideband_response = sideband_response_theory(deltaZ, lo + usb_all, polarisation_change=True)
+                lower_sideband_response = lower_sideband_response/(lower_sideband_response+upper_sideband_response)
+                upper_sideband_response = upper_sideband_response/(lower_sideband_response+upper_sideband_response)
+                intermediate_freq = np.concatenate((lsb_all,usb_all))
+                sideband_response = np.concatenate((lower_sideband_response,upper_sideband_response))
+            else: 
+                print('select SB response type')
+
+            #sideband_response =  np.array([1,1,1,0,0,0])
+            #
+            plt.plot(1e-9*(lo+plot_freq), 100*sideband_response_theory(deltaZ, lo + plot_freq, polarisation_change=True))
+            #plt.plot(plot_freq, sideband_response_theory(deltaZ1, lo + plot_freq))
+            plt.plot(1e-9*(lo+intermediate_freq), 100*sideband_response,'x')
+            plt.xlabel('RF [GHz]')
+            plt.ylabel('MPI transmission [%]')
+            plt.grid()
+            plt.title('MPI transmission, '+retrieval_param['sideband_response']+', '+instrument.instrument_name)
+
+            sensor = arts.SensorFFT_Sideband(ds_freq,
+                ds_df, 
+                num_channels=10,
+                lo_freq = lo, 
+                sideband_mode='lower', 
+                intermediate_freq= intermediate_freq,
+                sideband_response=sideband_response
+            )
+        elif retrieval_param['sensor']=='OFF':
+            sensor = arts.SensorOff()
+        else:
+            print('Please specify a sensor type')
+    
     ac.set_sensor(sensor)
 
     # doing the checks
@@ -255,28 +373,27 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
     # FM + noise --> to retrieve as test !
     #ac.ws.iy_aux_vars = ["Optical depth"]
     #sprint('Compute Optical Depth')
-
-    if retrieval_param['FM_only']:
-        # try to create lookup tables
-        ac.ws.abs_lookupSetupWide(
-            abs_p=ac.ws.p_grid.value[0],
-        )
-       # ac.ws.abs_lookupCalc()
-        y_FM = ac.y_calc()
-       # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
-        return ac, retrieval_param
-
     if retrieval_param['show_FM']:
         y_FM = ac.y_calc()
         plot_FM_comparison(ds_freq, y_FM[0], ds_y)
     #FM_time = time.time()
     #print("FM_time: %s seconds" % (FM_time - start_FM_time))
 
+    if retrieval_param['FM_only']:
+        # try to create lookup tables
+        # ac.ws.abs_lookupSetupWide(
+        #     abs_p=ac.ws.p_grid.value[0],
+        # )
+       # ac.ws.abs_lookupCalc()
+        y_FM = ac.y_calc()
+       # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
+        return ac, retrieval_param,sensor
+
     ac.set_y([ds_y])
 
     if len(ds_y) < 1000:
         ac.oem_converged = False
-        return ac, retrieval_param
+        return ac, retrieval_param, sensor
 
     # Setup the retrieval
 
@@ -365,8 +482,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         #sigma_o3[p_grid_retrieval<100] = 0.8e-6
         #sigma_o3[p_grid_retrieval<1] = 0.2e-6
         #sigma_o3[p_grid_retrieval<p_grid_retrieval[np.where(sigma_o3 == max(sigma_o3))]] = 1e-6
-        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        #plt.gca().invert_yaxis()
+        plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
         ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
         smoothed_std = ds_waccm.o3_std.data
@@ -387,8 +504,11 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
 
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
         sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
-        #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
-        #plt.gca().invert_yaxis()
+        
+        # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
+        # plt.gca().invert_yaxis()
+        # plt.semilogy(0.1*1e6*ds_waccm.o3.data, 1e-2*ds_waccm.p.data)
+        
 
 
     sx = covmat.covmat_1d_sparse(
@@ -534,7 +654,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None):
         for e in ac.oem_errors:
             print("OEM error: " + e)
             continue
-    return ac, retrieval_param
+    return ac, retrieval_param, sensor
 
 
 @arts_agenda
@@ -579,38 +699,21 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
     '''
     start_time = time.time()
     cycles = retrieval_param['integration_cycle'] 
-    ds_freq = list()
-    ds_y = list()
-    y_vars = list()
 
     print("Retrieval of Ozone and H20")
-   # 
-   #  bad_channels = spectro_dataset.good_channels[cycle].data == 0
     retrieval_param["bandwidth"] = instrument.bandwidth[0]
-    for cycle in cycles:
-        
-        ds_freq.append(spectro_dataset.frequencies[cycle].values)
-        y = spectro_dataset.Tb[cycle].values  
-        ds_y.append(y)
 
     ds_num_of_channel = len(spectro_dataset.frequencies[0]) 
     ds_bw = retrieval_param["bandwidth"]
     ds_df = ds_bw/(ds_num_of_channel-1)
 
-
-    
     f_grid = make_f_grid(retrieval_param)
 
     print('Minimum of the frequency grid spacing [kHz]: ', min(np.diff(f_grid))/1e3)
 
-
     # Iniializing ArtsController object
     ac = arts.ArtsController(verbosity=0, agenda_verbosity=0)
     ac.setup(atmosphere_dim=1, iy_unit='PlanckBT', ppath_lmax=-1, stokes_dim=1)
-
-
-   # retrieval_param["f_max"] = max(ds_freq)
-   # retrieval_param["f_min"] = min(ds_freq)
    # To define atmosphere, we need these: 
     retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycles[0]].values
     retrieval_param['time_stop'] = spectro_dataset.last_sky_time[cycles[-1]].values
@@ -680,53 +783,12 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
     # ac.apply_hse(100e2, 0.5)  # value taken from GROMOS retrieval
     ac.apply_hse(ac.ws.p_grid.value[0], 0.5)
 
-    # create an observation:
-    # only one for now, but then the whole day ?
-    observations = list()
-    for cycle in cycles:
-        retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
-        spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
-        retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
-        retrieval_param["lat"] = spectro_dataset.lat[cycle].values
-        retrieval_param["lon"] = spectro_dataset.lon[cycle].values
-        retrieval_param["time"] = spectro_dataset.time[cycle].values
-        
-
-        obs = arts.Observation(
-            za=retrieval_param["zenith_angle"],
-            aa=retrieval_param["azimuth_angle"],
-            lat=retrieval_param["lat"],
-            lon=retrieval_param["lon"],
-            alt=retrieval_param["observation_altitude"],
-            time=retrieval_param["time"]
-        )
-        observations.append(obs)
-
-    ac.set_observations(observations)
-
     # Defining our sensors
     if retrieval_param['sensor']: 
         sensor = arts.SensorFFT(spectro_dataset.frequencies[0].values+retrieval_param["f_shift"], ds_df)
     else: 
         sensor = arts.SensorOff()
     ac.set_sensor(sensor)
-
-    # doing the checks
-    ac.checked_calc(negative_vmr_ok=False, bad_partition_functions_ok=False)
-
-    start_FM_time = time.time()
-    print("Setup time: %s seconds" % (start_FM_time - start_time))
-    # FM + noise --> to retrieve as test !
-    ac.ws.iy_aux_vars = ["Optical depth"]
-
-    if retrieval_param['show_FM']:
-        y_FM = ac.y_calc()
-        plot_FM_comparison(ds_freq[0] , y_FM[0], ds_y)
-    #FM_time = time.time()
-    #print("FM_time: %s seconds" % (FM_time - start_FM_time))
-
-    ac.set_y(ds_y)
-
     # if len(ds_y) < 1000:
     #     ac.oem_converged = False
     #     return ac, retrieval_param
@@ -742,11 +804,16 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
         p_grid_retrieval = z2p_simple(z_grid_retrieval)
 
-    z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
-    z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
-    z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
-    z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
-    p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
+    if retrieval_param["retrieval_h2o_grid_type"] == 'pressure':
+        print('Retrieval p_grid for water defined by pressure')
+        p_grid_retrieval_h2o = np.array(retrieval_param["h2o_pressure"])
+    else:
+        print('Retrieval p_grid from '+str(p_grid_retrieval[0])+' to '+str(p_grid_retrieval[-1]))
+        z_bottom_ret_h2o = retrieval_param["z_bottom_ret_grid_h2o"]
+        z_top_ret = retrieval_param["z_top_ret_grid_h2o"]
+        z_res_ret = retrieval_param["z_resolution_ret_grid_h2o"]
+        z_grid_retrieval_h2o = np.arange(z_bottom_ret_h2o, z_top_ret, z_res_ret)
+        p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
 
     lat_ret_grid = np.array([retrieval_param["lat"]])
     lon_ret_grid = np.array([retrieval_param["lon"]])
@@ -834,7 +901,6 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
 
-
     sx = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval),
         sigma1= sigma_o3,
@@ -851,7 +917,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         lat_grid=lat_ret_grid,
         lon_grid=lon_ret_grid,
         covmat=sx,
-        unit='vmr'
+        unit='vmr',
     )
 
     h2o_ret = arts.AbsSpecies(
@@ -860,94 +926,103 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         lat_grid=lat_ret_grid,
         lon_grid=lon_ret_grid,
         covmat=sx_water,
-        unit='q'
+        unit='rel',
     )
 
-    #polyfit_ret = arts.Polyfit(poly_order=1, covmats=[np.array([[0.5]]), np.array([[1.4]])])
-
-    # increase variance for spurious spectra by factor
-    #factor = retrieval_param['increased_var_factor']
-
-    #y_var = retrieval_param['unit_var_y'] * np.ones_like(ds_freq)
-    all_vars = list()
-    for cycle in cycles:
-        good_channels = spectro_dataset.good_channels[cycle].data == 1
-        y_var = retrieval_param['increased_var_factor']*np.square(
-            spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_freq[0])
-        y_var[good_channels == 0] = 100
-        all_vars.append(y_var)
-
-    print('Measurement std dev : ', np.sqrt(np.median(y_var)))
-    ac.noise_variance_vector = all_vars
-    #y_var[(level1b_ds.good_channels[cycle].values==0)] = factor*retrieval_param['unit_var_y']
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     polyfit_ret = arts.Polyfit(
-        poly_order=2, covmats=[np.array([[10]]), np.array([[5]]), np.array([[1]])]
+        poly_order=2, covmats=[np.array([[0.1]]), np.array([[0.5]]), np.array([[0.5]])]
     )
-    # polyfit_ret = arts.Polyfit(
-    #     poly_order=1, covmats=[np.array([[5]]), np.array([[1]])]
-    # )
-    # polyfit_ret = arts.Polyfit(
-    #     poly_order=3, covmats=[np.array([[20]]), np.array([[10]]), np.array([[5]]), np.array([[1]])]
-    # )
+
     fshift_ret = arts.FreqShift(100e3, df=50e3)
+    counter = 0
+    for cycle in cycles:
+        ds_freq = spectro_dataset.frequencies[cycle].values
+        ds_y = spectro_dataset.Tb[cycle].values
 
-   # periods = np.array([319e6])
-    periods = retrieval_param['sinefit_periods']
-    covmat_sinefit = covmat.covmat_diagonal_sparse(
-        np.ones_like([0.04, 0.0016])*1)
-    sinefit_ret = arts.RetrievalQuantity(
-        'Sinefit', covmat_sinefit, period_lengths=periods)
-    #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
-    #ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
-    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
-        ac.define_retrieval(retrieval_quantities=[
-                            ozone_ret, h2o_ret],  y_vars=all_vars)
-    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
-        ac.define_retrieval(retrieval_quantities=[
-                            ozone_ret, h2o_ret, fshift_ret],  y_vars=all_vars)
-    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
-        ac.define_retrieval(retrieval_quantities=[
-                            ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=all_vars)
-    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
-        ac.define_retrieval(retrieval_quantities=[
-                            ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret],  y_vars=all_vars)
-    else:
-        print('retrieval_param[retrieval_quantities] not recognized !')
+        retrieval_param["zenith_angle"] = retrieval_param['ref_elevation_angle'] - \
+        spectro_dataset.mean_sky_elevation_angle.values[cycle] + retrieval_param['pointing_angle_corr']
+        retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
+        retrieval_param["lat"] = spectro_dataset.lat[cycle].values
+        retrieval_param["lon"] = spectro_dataset.lon[cycle].values
+        retrieval_param["time"] = spectro_dataset.time[cycle].values
 
-    # Let a priori be off by 0.5 ppm (testing purpose)
-    #vmr_offset = -0.5e-6
-    #ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
-    retrievals_setup_time = time.time()
-    print("retrievals_setup_time: %s seconds" %
-          (retrievals_setup_time - start_FM_time))
-    # Run retrieval (parameter taken from MOPI)
-    # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
+        obs = arts.Observation(
+            za=retrieval_param["zenith_angle"],
+            aa=retrieval_param["azimuth_angle"],
+            lat=retrieval_param["lat"],
+            lon=retrieval_param["lon"],
+            alt=retrieval_param["observation_altitude"],
+            time=retrieval_param["time"]
+        )
 
-   # ac.checked_calc(bad_partition_functions_ok=True)
-   # setting from gromosc
-    ac.checked_calc(bad_partition_functions_ok=True)
-    ac.oem(
-        method='gn',
-        max_iter=10,
-        stop_dx=0.05,
-        display_progress=1,
-        lm_ga_settings=[100.0, 3.0, 5.0, 10.0, 1.0, 10.0],
-        inversion_iterate_agenda=inversion_iterate_agenda,
-    )
-    retrievals_time = time.time()
-    print("retrievals_time: %s seconds" %
-          (retrievals_time - retrievals_setup_time))
-    print("OEM diagnostics: " + str(ac.oem_diagnostics))
-    print('###########')
-    print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
-    if not ac.oem_converged:
-        print("OEM did not converge.")
+        ac.set_observations([obs])
+
+        start_FM_time = time.time()
+
+        ac.set_y([ds_y])
+        # doing the checks
+        ac.checked_calc(negative_vmr_ok=False, bad_partition_functions_ok=False)
+
+        good_channels = spectro_dataset.good_channels[cycle].data == 1
+
+        y_var = retrieval_param['increased_var_factor']*np.square(
+            spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+
+        if counter == 0:
+            ac.noise_variance_vector = y_var
+            print('Measurement std dev constant for the day: ', np.sqrt(np.median(y_var)))
+            if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+                ac.define_retrieval(retrieval_quantities=[
+                                    ozone_ret, h2o_ret], y_vars=y_var)
+            elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+                ac.define_retrieval(retrieval_quantities=[
+                                    ozone_ret, h2o_ret, fshift_ret],  y_vars=y_var)
+            elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
+                ac.define_retrieval(retrieval_quantities=[
+                                    ozone_ret, h2o_ret, polyfit_ret],  y_vars=y_var)
+            elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+                ac.define_retrieval(retrieval_quantities=[
+                                    ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=y_var)
+            else:
+                print('retrieval_param[retrieval_quantities] not recognized !')
+
+        # Let a priori be off by 0.5 ppm (testing purpose)
+        #vmr_offset = -0.5e-6
+        #ac.ws.Tensor4AddScalar(ac.ws.vmr_field, ac.ws.vmr_field, vmr_offset)
+        retrievals_setup_time = time.time()
+        # Run retrieval (parameter taken from MOPI)
+        # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
+
+   #     ac.checked_calc(bad_partition_functions_ok=True)
+
+        ac.checked_calc(bad_partition_functions_ok=True)
+        ac.oem(
+            method='gn',
+            max_iter=10,
+            stop_dx=0.1,
+            display_progress=1,
+            lm_ga_settings=[10, 2.0, 2.0, 100, 1, 99],
+            inversion_iterate_agenda=inversion_iterate_agenda,
+        )
+        retrievals_time = time.time()
+        print("retrievals_time: %s seconds" %
+              (retrievals_time - retrievals_setup_time))
         print("OEM diagnostics: " + str(ac.oem_diagnostics))
-        for e in ac.oem_errors:
-            print("OEM error: " + e)
-            continue
+        print('###########')
+        print("End value of the cost function : " + str(ac.oem_diagnostics[2]))
+        #retrieval_param['opt_depth_ARTS'] = np.median(ac.ws.y_aux.value[0])
+        if not ac.oem_converged:
+            print("OEM did not converge.")
+            print("OEM diagnostics: " + str(ac.oem_diagnostics))
+            for e in ac.oem_errors:
+                print("OEM error: " + e)
+                continue
+
+        counter = counter+1
+        figure_list = []
+        figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='retrieval_o3',figure_list=figure_list)
     return ac, retrieval_param
 
 def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval_param, ac_FM=None):
