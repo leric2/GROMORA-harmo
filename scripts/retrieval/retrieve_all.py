@@ -152,8 +152,8 @@ def retrieve_day(date, instrument_name):
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='gromos'   
-    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
+    retrieval_param['o3_apriori']='waccm_monthly'   
+    retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
     #retrieval_param['o3_apriori']='gromos'   
     retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
 
@@ -206,7 +206,7 @@ def retrieve_day(date, instrument_name):
     spectro_dataset = instrument.integrated_data[spectro]
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-    #cycles = [1,2]
+    cycles = [1,15]
     #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
@@ -343,7 +343,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_gromosAP_scaled_h2o.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
 
         return level2
     else:
@@ -351,7 +351,7 @@ def retrieve_day(date, instrument_name):
 if __name__ == "__main__":
     void_date_problem = [ datetime.date(2018,5,5),datetime.date(2018,12,24),datetime.date(2018,12,25), datetime.date(2018,12,26), datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2018-01-03', end='2018-03-31')
+    dates = pd.date_range(start='2018-01-01', end='2018-01-02')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')

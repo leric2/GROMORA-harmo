@@ -404,6 +404,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         z_top_ret = retrieval_param["z_top_ret_grid"]
         z_res_ret = retrieval_param["z_resolution_ret_grid"]
         z_grid_retrieval = np.arange(z_bottom_ret, z_top_ret, z_res_ret)
+        #z_grid_retrieval = np.concatenate((np.arange(10e3, 50e3, 2e3),np.arange(50e3, 100e3, 4e3)))
         p_grid_retrieval = z2p_simple(z_grid_retrieval)
 
     if retrieval_param["retrieval_h2o_grid_type"] == 'pressure':
@@ -508,8 +509,26 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         # plt.gca().invert_yaxis()
         # plt.semilogy(0.1*1e6*ds_waccm.o3.data, 1e-2*ds_waccm.p.data)
+    elif retrieval_param['o3_apriori_covariance']=='low_alt_ratio':
+        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        smoothed_std = ds_waccm.o3_std.data
         
+        smoothed_std[ds_waccm.p.data>1000] = 0.15*ds_waccm.o3.where(ds_waccm.p>1000, drop=True).data
+        smoothed_std[ds_waccm.p.data>4000] = 0.1*ds_waccm.o3.where(ds_waccm.p>4000, drop=True).data
+        #smoothed_std[ds_waccm.p.data<4000] = 0.5e-6
+        smoothed_std[ds_waccm.p.data<1000] = 1e-6
+        smoothed_std[ds_waccm.p.data<5] = 1e-6#0.8e-6
+        smoothed_std[ds_waccm.p.data<1] = 1e-6#0.6e-6
+        smoothed_std = np.convolve(smoothed_std, np.ones(16)/16, mode ='same')
 
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
+        #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
+        
+        # plt.semilogy(1e6*sigma_o3, p_grid_retrieval)
+        # plt.gca().invert_yaxis()
+        # #plt.ylim((100000,100))
+        # plt.semilogy(0.1*1e6*ds_waccm.o3.data, ds_waccm.p.data)
+        
 
     sx = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval),

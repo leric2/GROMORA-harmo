@@ -47,7 +47,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "SOMORA"
-    date = datetime.date(2018, 10, 10)
+    date = datetime.date(2018, 2, 10)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             integration_time=int_time
         )
     
-    cycles = np.arange(5,6)
+    cycles = np.arange(15,16)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -149,8 +149,8 @@ if __name__ == "__main__":
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='gromos'   
-    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'#'waccm_yearly_scaled'
+    retrieval_param['o3_apriori']='waccm_monthly'   
+    retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'#'waccm_yearly_scaled'low_alt_ratio
     retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
     retrieval_param["apriori_O3_cov"] = 1e-6 #1e-6
     retrieval_param["apriori_H2O_stdDev"] = 1 #6e-4 12e-4 0.5 16e-4
