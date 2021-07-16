@@ -58,7 +58,8 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "SOMORA"
+
+instrument_name = "compare"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
@@ -66,7 +67,7 @@ instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-30', end='2019-06-18')
 
-date = pd.date_range(start='2016-01-01', end='2016-03-31')
+date = pd.date_range(start='2018-02-01', end='2018-02-15')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -80,20 +81,20 @@ plot_all = False
 plot_all_mopi5 = False
 plot_o3_ts = False
 save_o3= False
-plot_selected = True
+plot_selected = False
 plot_fshift = False
 save_fshift = False
 plot_cost = False
 plot_o3_diff_waccm = False
 read_waccm_clim = False
-compare = False
+compare = True
 plot_polyfit = False
+plot_MLS = False
 
-
-filename_opacity = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/SOMORA_opacity_2014.nc'
+filename_opacity = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/GROMOS_opacity_2018.nc'
 
 compare_MERRA2 = False
-compare_ECMWF = True
+compare_ECMWF = False
 compare_MLS = False
 
 integration_strategy = 'classic'
@@ -113,6 +114,8 @@ ex = '_waccm_monthly_continuum'
 ex = '_waccm_cov_yearly_sza' #
 ex = '_waccm_continuum'
 ex = '_waccm_monthly_scaled_h2o'
+ex = '_gromosAP_scaled_h2o'
+ex = '_waccm_low_alt'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -239,14 +242,14 @@ if plot_cost:
 
     if instrument_name == 'mopi5':
         for s in spectros:
-            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             axes.plot(end_cost)
             fig.savefig(instrument.level2_folder+'/' +
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=3, ncols=1,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
             end_cost.plot(marker='.', ax=axes[0])
@@ -265,7 +268,7 @@ if plot_polyfit:
 
     if instrument_name=='compare':
         s = 'AC240'
-        fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(9, 6))
+        fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(15, 10))
         polyfit_1 = level2_somora[s].poly_fit_x
         polyfit_2 = level2_gromos[s].poly_fit_x
 
@@ -280,14 +283,14 @@ if plot_polyfit:
 
       #  perc=100*(polyfit_1[0]-polyfit_2[0])/polyfit_1[0]
        # perc.plot(marker='.', ax=axes[3])
-        axes[0].legend(('', '')) 
+        axes[0].legend(('sb normalized', 'no sb')) 
         axes[0].set_xlabel('')
         axes[1].set_xlabel('')
         fig.savefig(gromos.level2_folder+'/'+gromos.basename_plot_level2 +
                         gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(15, 10))
             polyfit = level2_dataset[s].poly_fit_x
             polyfit[0].plot(marker='.', ax=axes[0])
             polyfit[1].plot(marker='.',ax=axes[1])
@@ -350,15 +353,29 @@ if compare:
    # rel_diff_gromos_mls = 100*(o3_mls.mean(dim='time') - ozone_gromos.mean(dim='time'))/o3_mls.mean(dim='time')
    # rel_diff_somora_mls = 100*(o3_mls.mean(dim='time') - ozone_somora.mean(dim='time'))/o3_mls.mean(dim='time')
 
+    p_somora_mr = 1e-2*level2_somora['AC240'].isel(o3_lat=0, o3_lon=0).o3_p.data[np.mean(mr_somora,0)>=0.8]
+    p_gromos_mr = 1e-2*level2_gromos['AC240'].isel(o3_lat=0, o3_lon=0).o3_p.data[np.mean(mr_gromos,0)>=0.8]
+
     fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True, figsize=(9, 6))
 
-    ozone_somora.where(mr_somora > 0.8, drop=False).mean(dim='time').plot(
-        y='o3_p', ax=axs[0], color='red', label='SOMORA')
-    ozone_gromos.where(mr_gromos > 0.8, drop=False).mean(dim='time').plot(
-        y='o3_p', ax=axs[0], color='blue', label='GROMOS')
-    o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
+    # ozone_somora.where(mr_somora > 0.8).mean(dim='time').plot(
+    #     y='o3_p', ax=axs[0], color='red', label='waccm')
+    # ozone_gromos.where(mr_gromos > 0.8).mean(dim='time').plot(
+    #     y='o3_p', ax=axs[0], color='blue', label='gromosAP')
+    ozone_somora.mean(dim='time').plot(
+        y='o3_p', ax=axs[0], color='red', ls='-', label='SOMORA')
+    ozone_gromos.mean(dim='time').plot(
+        y='o3_p', ax=axs[0], color='blue', ls='-', label='GROMOS')
 
-    axs[0].plot(o3_mls_convolved*1e6, ozone_gromos.o3_p.values, '--', color='black', label='MLS, convolved')
+    if plot_MLS:
+        o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
+
+        axs[0].plot(o3_mls_convolved*1e6, ozone_gromos.o3_p.values, '--', color='black', label='MLS, convolved')
+
+    axs[0].axhline(y=p_somora_mr[0],ls=':' ,color='r', lw=1)
+    axs[0].axhline(y=p_somora_mr[-1],ls=':', color='r', lw=1)
+    axs[0].axhline(y=p_gromos_mr[0],ls=':', color='b', lw=1)
+    axs[0].axhline(y=p_gromos_mr[-1],ls=':', color='b', lw=1)
 
     gromos_plus = ozone_gromos.mean(dim='time') + gromos_error.mean(dim='time')
     gromos_minus = ozone_gromos.mean(
@@ -389,7 +406,7 @@ if compare:
         y='o3_p', ax=axs[1], color='green', label='(red-blue)/red')
   #  rel_diff_gromos_mls.plot(y='o3_p',ax=axs[1], color='blue', label='(MLS-GRO)/MLS')
   #  rel_diff_somora_mls.plot(y='o3_p',ax=axs[1], color='red', label='(MLS-SOM)/MLS')
-    #axs[1].set_xlim(-60, 60)
+    axs[1].set_xlim(-25, 25)
     axs[1].set_xlabel('relative difference [%]')
     axs[1].legend()
     axs[1].grid(axis='x', linewidth=0.5)
@@ -641,7 +658,7 @@ if plot_selected:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1,6,9,12,16,20]
+        cycles=[1,6,9,12,16]
     )
 
 if plot_fshift:
