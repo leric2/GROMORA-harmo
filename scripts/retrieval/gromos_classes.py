@@ -74,6 +74,8 @@ class IntegrationGROMOS(Integration):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
         
+        self.lo = 1.45875e11
+
         level1_folder = os.path.join(basename_lvl1, instrument_name)
 
         #integration_strategy = 'simple'
@@ -120,6 +122,8 @@ class GROMOS_LvL2(DataRetrieval):
 
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
+
+        self.lo = 1.45875e11
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
