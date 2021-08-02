@@ -29,6 +29,7 @@ from matplotlib.lines import Line2D
 
 
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
+color_spectro = {'AC240':'red', 'USRP-A':'lime', 'U5303':'blue', 'AC240_unbiased':'yellow'}
 F0 = 110.836e9
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
@@ -820,7 +821,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    #color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
     color_alpha = ['tab:orange','red','green','blue']
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -985,7 +986,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_alpha = ['tab:orange','red','green','blue']
+    color_alpha = ['red','cyan','magenta']
     fs=14
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -1057,7 +1058,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         
         
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='y', label=lab)
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
         ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
@@ -1088,7 +1089,7 @@ def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibra
     ax3 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb_corr[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    #color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
     for s in cal_int_obj.spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -1342,7 +1343,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
         #Tb_diff = (Tb-clean_Tb)/clean_Tb
         Tb_diff = Tb-clean_Tb
-        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
+        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s, color=color_spectro[s])
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
@@ -2323,6 +2324,8 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
     # ax3 = fig.add_subplot(1,3,3      
     
     figure_o3_sel=list()
+
+    #avk_color = ['']
     
     # plt.rcParams['pdf.fonttype'] = 42
     # plt.rcParams['ps.fonttype'] = 42
@@ -2346,15 +2349,15 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
             #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
        #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
             counter=0
-            for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+            for j, avk in enumerate(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm):
                 if 0.6 <= np.sum(avk) <= 1.4:
                     counter=counter+1
                     if np.mod(counter,6)==0:
-                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color='r')
+                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km')#,color=avk_color[j])
                     else:
-                        axs[pl].plot(avk, o3_z / 1e3, color='k')
+                        axs[pl].plot(avk, o3_z / 1e3, color='silver')
             
-            axs[pl].plot(mr/2, o3_z/1e3, color='b', label='MR/2')
+            axs[pl].plot(mr/2, o3_z/1e3, color='k', label='MR/2')
 
        #     axs[0].set_title('$O_3$ VMR')
             #axs[pl].set_xlim(-0.5,11)

@@ -20,7 +20,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 plt.rcParams.update({
-    "text.usetex": True,
+    "text.usetex": False,
     "font.family": "serif",
     "font.sans-serif": ["Times New Roman"]})
 
@@ -84,13 +84,14 @@ plot_comparison = False
 compare_level2_mopi5 = False
 compare_alpha = False
 plot_spectra_comparison_scaling_corr_paper = False
-plot_spectra_comparison_3_spectro_paper = True
+plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
 plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
 plot_o3_sel = False
 plot_sel_paper = False
+plot_avks_paper = True
 
 plot_bias_spectra_monthly = False
 
@@ -105,6 +106,7 @@ classic = np.arange(1, 24)
 
 # %%
 outfolder = '/home/eric/Documents/PhD/MOPI/Data/Level3/'
+outfolder = '/home/esauvageat/Documents/MOPI5/Level3/'
 basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
@@ -1005,17 +1007,23 @@ if plot_sel_paper:
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
     outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
+    outname = '/home/esauvageat/Documents/MOPI5/Level3'+'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
         cycles= cycles
     )
-    outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
+
+if plot_avks_paper:
+    spectro_lvl2 = integration.spectrometers
+    level2_data = integration.read_level2(
+        spectrometers=spectro_lvl2, extra_base='fascod_paper')
+    outname ='/home/esauvageat/Documents/MOPI5/Level3' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_avks_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= cycles
+        cycles= [0,11]
     )
     
