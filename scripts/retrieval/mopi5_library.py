@@ -27,10 +27,24 @@ import datetime
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 
+import matplotlib
+# import matplotlib.style as style  
+# style.use('tableau-colorblind10')
+
+cmap = matplotlib.cm.get_cmap('Dark2') # YlGnBu, inferno
+
 
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
 color_spectro = {'AC240':'red', 'USRP-A':'lime', 'U5303':'blue', 'AC240_unbiased':'yellow'}
+color_spectro = {'AC240':cmap(0.01), 'USRP-A':cmap(0.26), 'U5303':cmap(0.15), 'AC240_unbiased':cmap(0.25)}
+color_corr1 = cmap(0.97)
+color_corr2 = cmap(0.48)
 F0 = 110.836e9
+
+# print('AC240: ', matplotlib.colors.to_hex(color_spectro['AC240']))
+# print('U5303: ', matplotlib.colors.to_hex(color_spectro['U5303']))
+print('color_corr1: ', matplotlib.colors.to_hex(color_corr1))
+print('color_corr2: ', matplotlib.colors.to_hex(color_corr2))
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
     '''
@@ -1057,11 +1071,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full') 
         
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='y', label=lab)
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_spectro['AC240'], label=r'$ \alpha = 0\%$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_corr1, label=lab)
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color=color_corr2, label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
 
 
@@ -2324,8 +2338,7 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
     # ax3 = fig.add_subplot(1,3,3      
     
     figure_o3_sel=list()
-
-    #avk_color = ['']
+    
     
     # plt.rcParams['pdf.fonttype'] = 42
     # plt.rcParams['ps.fonttype'] = 42
@@ -2349,11 +2362,13 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
             #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
        #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
             counter=0
+            color_count = 0
             for j, avk in enumerate(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm):
                 if 0.6 <= np.sum(avk) <= 1.4:
                     counter=counter+1
-                    if np.mod(counter,6)==0:
-                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km')#,color=avk_color[j])
+                    if np.mod(counter,5)==0:
+                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color=cmap(color_count*0.125+0.01))
+                        color_count = color_count +1
                     else:
                         axs[pl].plot(avk, o3_z / 1e3, color='silver')
             
