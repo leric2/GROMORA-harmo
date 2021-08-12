@@ -20,7 +20,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 plt.rcParams.update({
-    "text.usetex": False,
+    "text.usetex": True,
     "font.family": "serif",
     "font.sans-serif": ["Times New Roman"]})
 
@@ -86,12 +86,13 @@ compare_alpha = False
 plot_spectra_comparison_scaling_corr_paper = False
 plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
-plot_bias_TOD = False
+plot_bias_TOD = True
 plot_bias_TOD_full = False
 plot_o3 = False
 plot_o3_sel = False
 plot_sel_paper = False
-plot_avks_paper = True
+plot_avks_paper = False
+plot_non_lin = False
 
 plot_bias_spectra_monthly = False
 
@@ -106,7 +107,7 @@ classic = np.arange(1, 24)
 
 # %%
 outfolder = '/home/eric/Documents/PhD/MOPI/Data/Level3/'
-outfolder = '/home/esauvageat/Documents/MOPI5/Level3/'
+#outfolder = '/home/esauvageat/Documents/MOPI5/Level3/'
 basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
@@ -193,7 +194,7 @@ if plot_spectra_comparison_3_spectro_paper:
     integrated_data['U5303'].frequencies 
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
-        idx=[11],#np.arange(0,15),
+        idx=[0,11],#np.arange(0,15),
         spectrometers=['AC240', 'USRP-A'],
         save_plot=True,
         use_basis='U5303',
@@ -203,6 +204,14 @@ if plot_spectra_comparison_3_spectro_paper:
         corrected=False,
         outfolder=outfolder
     )
+if plot_non_lin:
+    continuum_amplitude_diff = integrated_data['AC240'].continuum_value_line_center - \
+        integrated_data['U5303'].continuum_value_line_center
+    fitted_factor_continuum = np.polyfit(
+        integrated_data['AC240'].mean_Tb, continuum_amplitude_diff, deg=2)
+    fitted_poly_continuum = np.poly1d(fitted_factor_continuum)
+    plt.plot(fitted_poly_theoretical_nonlinearities(integrated_data['U5303'].interpolated_Tb[10].data))
+
 
 if plot_bias_spectra_monthly:
 #%%
@@ -317,7 +326,7 @@ if plot_bias_spectra_monthly:
 if plot_spectra_comparison_scaling_corr_paper:
     integration.compare_spectra_binned_interp_mopi5_factor(
         dim=dimension[0],
-        idx=idx_all,
+        idx=[0,11],
         spectrometers=['AC240'],
         save_plot=True,
         use_basis='U5303',
@@ -325,7 +334,7 @@ if plot_spectra_comparison_scaling_corr_paper:
         identifier=identifier_plot,
         # alpha=-100*line_amplitude_diff.data,
         alpha=8*np.ones(15),
-        binning=4,
+        binning=2,
         lowerBound=lowerBound,
         variable=True,
         broadband_bias=fitted_poly_theoretical_nonlinearities(integrated_data['AC240'].interpolated_Tb.data),
@@ -336,7 +345,7 @@ if plot_spectra_comparison_scaling_corr_paper:
 if compare_alpha:
     integration.compare_spectra_binned_interp_mopi5_factor(
         dim=dimension[0],
-        idx=idx_all,
+        idx=[0,11],
         spectrometers=['AC240'],
         save_plot = True,
         use_basis='U5303',
@@ -638,10 +647,12 @@ if plot_bias_TOD:
     size = 8
     figures2 = list()
     end_dates = pd.date_range(start='2019-01-03', end='2019-04-30')
-    fig2 = plt.figure(figsize=(12,4))
-    ax1 = fig2.add_subplot(1, 3, 1)
-    ax2 = fig2.add_subplot(1, 3, 3)
-    ax3 = fig2.add_subplot(1, 3, 2)
+    fig5a = plt.figure(figsize=(4,4))
+    fig5b = plt.figure(figsize=(4,4))
+    fig5c = plt.figure(figsize=(4,4))
+    ax1 = fig5a.add_subplot(1, 1, 1)
+    ax2 = fig5b.add_subplot(1, 1, 1)
+    ax3 = fig5c.add_subplot(1, 1, 1)
     count = 0
     fs = 14
     for d in end_dates:
@@ -705,7 +716,7 @@ if plot_bias_TOD:
     # ax2.legend(['U5303','AC240'], fontsize='small')
     # ax2.text(85, -0.23, '$T_{cold}$', fontsize=12, color='b')
     # ax2.text(250, -0.23, '$T_{hot}$', fontsize=12, color='r')
-    for ax in fig2.axes:
+    for ax in [ax1,ax2,ax3]:
         ax.grid()
         #ax.set_xlim(80,)
         ax.tick_params(axis='both', which='major', labelsize=14)
@@ -714,9 +725,14 @@ if plot_bias_TOD:
 
     #fig2.suptitle('Difference : '+s+' - U5303')
     # fig.suptitle('Mean hot counts')
-    fig2.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5a.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5b.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5c.tight_layout(rect=[0, 0.01, 1, 0.95])
+
     plt.show()
-    figures2.append(fig2)
+    figures2.append(fig5a)
+    figures2.append(fig5b)
+    figures2.append(fig5c)
     save_single_pdf('/home/eric/Documents/PhD/MOPI/Data/Level3/'+'bias_all_rel' +
                     integration_strategy+'_2021.pdf', figures2)
 if plot_bias_TOD_full:
@@ -1007,23 +1023,23 @@ if plot_sel_paper:
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
     outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
-    outname = '/home/esauvageat/Documents/MOPI5/Level3'+'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
+    #outname = '/home/esauvageat/Documents/MOPI5/Level3'+'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= cycles
+        cycles= [0]
     )
 
 if plot_avks_paper:
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
-    outname ='/home/esauvageat/Documents/MOPI5/Level3' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
+    outname ='/home/eric/Documents/PhD/MOPI/Data/Level3' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_avks_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= [0,11]
+        cycles= [0]
     )
     
