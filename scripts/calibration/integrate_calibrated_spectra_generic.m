@@ -42,7 +42,7 @@ for h = 1:length(timeThresh)-1
     % Selecting only spectra with:
     
     % transmission > 0.2 in the integration:
-    if calibrationTool.filterByTransmittance
+    if calibrationTool.filterByTransmittance & ~calibrationTool.missing_meteo
         goodSpectra=indSpectra([calibratedSpectra(indSpectra).troposphericTransmittance] >= calibrationTool.transmittanceThreshold);
     else
         goodSpectra = indSpectra;
