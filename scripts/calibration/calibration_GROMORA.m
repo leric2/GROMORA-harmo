@@ -143,14 +143,14 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
-        calibrationTool.transmittanceThreshold = 0.2;
+        calibrationTool.transmittanceThreshold = 0.05;
         calibrationTool.filterByFlags = true;
         
         %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
         % transmittance threshold for flagging level 1b:
-        calibrationTool.troposphericTransmittanceFlag = 0.2;
+        calibrationTool.troposphericTransmittanceFlag = 0.15;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;
@@ -167,14 +167,14 @@ for d = 1:numel(dates)
         
         % Filtering options of level 1a
         calibrationTool.filterByTransmittance = true;
-        calibrationTool.transmittanceThreshold = 0.2;
+        calibrationTool.transmittanceThreshold = 0.05;
         calibrationTool.filterByFlags = true;
         
         %%% Flags level 1b:
         % Minimum number of averaged spectra needed for the level 1b
         calibrationTool.minNumberOfAvgSpectra = 3;
         % transmittance threshold for flagging level 1b:
-        calibrationTool.troposphericTransmittanceFlag = 0.2;
+        calibrationTool.troposphericTransmittanceFlag = 0.15;
 
         % Temperature of the cold load
         calibrationTool.TCold=80;

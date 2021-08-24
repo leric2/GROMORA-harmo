@@ -1535,7 +1535,7 @@ class DataRetrieval(ABC):
         '''
         return retrieval_module.forward_model(retrieval_param)
     
-    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None, sensor = None):
         ''' 
         Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
         '''
@@ -1546,7 +1546,7 @@ class DataRetrieval(ABC):
 
         retrieval_param['ref_elevation_angle'] =  90
 
-        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac)
+        return retrieval_module.retrieve_cycle(self, spectro_dataset, retrieval_param, ac_FM=ac, sensor=sensor)
 
     def retrieve_daily(self, spectro_dataset, retrieval_param):
         ''' 

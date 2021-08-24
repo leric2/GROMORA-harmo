@@ -13,6 +13,7 @@ function logFile = harmonize_log_gromos(calibrationTool,logFile)
 %               |           - elevationAngleCold
 %               |           - goodFlagLN2Below
 %               |           - goodFlagLN2Above
+%               |           - 
 %               |           
 %               |         2. logFile: original raw log file read
 %               |
@@ -62,19 +63,22 @@ if isfield(logFile,'TExt0')
     logFile.T_Reserved=logFile.TExt7;
 else
     %TODO
-    logFile.T_Ceiling=logFile.AI_0;
-    logFile.T_Floor=logFile.AI_0;
-    logFile.T_Aircon_Out=logFile.AI_0;
-    logFile.T_Window=logFile.AI_0;
-    logFile.T_Amp1=logFile.AI_0;
-    logFile.T_Amp2=logFile.AI_0;
-    logFile.T_Mirror_View=logFile.AI_0;
-    logFile.T_Reserved=logFile.AI_0;
+    disp('Error with log file parameters')
+%     logFile.T_Ceiling=logFile.AI_0;
+%     logFile.T_Floor=logFile.AI_0;
+%     logFile.T_Aircon_Out=logFile.AI_0;
+%     logFile.T_Window=logFile.AI_0;
+%     logFile.T_Amp1=logFile.AI_0;
+%     logFile.T_Amp2=logFile.AI_0;
+%     logFile.T_Mirror_View=logFile.AI_0;
+%     logFile.T_Reserved=logFile.AI_0;
 end
 logFile.LN2_Sensors_OK = ~logFile.LN2_Relay;
 
 logFile.LN2_Level_OK = (logFile.LN2_above_High == calibrationTool.goodFlagLN2Above) & (logFile.LN2_above_Low == calibrationTool.goodFlagLN2Below);
-    
-% log.T_Room;
+
+logFile.Freq_Lock = (logFile.PLL_Lock & logFile.Ferranti_Lock);
+
+logFile.T_Room = logFile.T_Ceiling;
 
 end

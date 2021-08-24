@@ -39,9 +39,7 @@ from utils_GROSOM import save_single_pdf
 from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
-#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.5')
-load_dotenv('/home/es19m597/Documents/ARTS/.env.birg-arts24')
-#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/opt/anaconda/.env.birg-arts24')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -109,11 +107,11 @@ def retrieve_day(date, instrument_name):
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
-    retrieval_param['sensor'] = True
+    retrieval_param['sensor'] = 'FFT'
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
-    
+    retrieval_param['sideband_response']='theory'
     retrieval_param["plot_meteo_ds"] = False
 
     retrieval_param["show_f_grid"] = False
@@ -133,7 +131,12 @@ def retrieve_day(date, instrument_name):
     retrieval_param["z_top_ret_grid_h2o"] = 20e3 
     retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
     retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
+    retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
+    # retrieval_param["z_top_ret_grid_h2o"] = 20e3
+    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
+    # retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
 
+    retrieval_param["h2o_pressure"] = [500e2]
     #retrieval_param['unit_var_y']  = 3**2
     retrieval_param['pointing_angle_corr'] = 0
 
@@ -150,7 +153,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['extra_time_ecmwf'] = 3.5
 
     retrieval_param['o3_apriori']='waccm_monthly'   
-    retrieval_param['o3_apriori_covariance'] = 'waccm_yearly_scaled'
+    retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
     #retrieval_param['o3_apriori']='gromos'   
     retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
 
@@ -203,8 +206,8 @@ def retrieve_day(date, instrument_name):
     spectro_dataset = instrument.integrated_data[spectro]
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-    #cycles = [1,2]
-    cycles = [1,7,15,21]
+    cycles = [1,15]
+    #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -264,7 +267,7 @@ def retrieve_day(date, instrument_name):
             elif retrieval_param["retrieval_type"] == 2:
                 retrieval_param["surface_altitude"] = 1000
                 retrieval_param["observation_altitude"] =  1000   
-                ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                ac, retrieval_param, sensor = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, sensor=None)
                 if ac.oem_converged:
                     #figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='ozone retrieval cycle' + str(c),figure_list=figure_list)
                     level2_cycle = ac.get_level2_xarray()
@@ -296,12 +299,12 @@ def retrieve_day(date, instrument_name):
                 retrieval_param['o3_apriori']='somora'
                 retrieval_param['ref_elevation_angle']=90
                 retrieval_param['FM_only'] = True
-                ac_FM, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                ac_FM, retrieval_param, sensor = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
                 retrieval_param['FM_only'] = False
                 #retrieval_param['atm']='fascod_gromos_o3'
                 #retrieval_param['atm']='fascod_somora_o3'
                 retrieval_param['o3_apriori']='gromos'
-                ac, retrieval_param = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac =ac_FM)
+                ac, retrieval_param, sensor = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac =ac_FM)
                 level2_cycle = ac.get_level2_xarray()
                 import GROSOM_library
                 figure_list = GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title ='test_retrieval_o3', z_og=ac_FM.ws.z_field.value[:,0,0], og_ozone=ac_FM.ws.vmr_field.value[0,:,0,0])
@@ -340,24 +343,29 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_monthly_profile20km.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    dates = pd.date_range(start='2018-01-01', end='2018-01-10')
+    void_date_problem = [ datetime.date(2018,5,5),datetime.date(2018,12,24),datetime.date(2018,12,25), datetime.date(2018,12,26), datetime.date(2019,1,3)]
+
+    dates = pd.date_range(start='2018-01-01', end='2018-01-02')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
     for d in dates:
-        try:
-            level2 = retrieve_day(d, 'GROMOS')
-        except:
-            print('problem retrieving day : ',d)
-        print('######################################################################################')
-        print('######################################################################################')
-        # try:
-        #     level2 = retrieve_day(d, 'SOMORA')
-        # except:
-        #     print('problem retrieving day : ',d)
+        if d in void_date_problem :
+            print('abort core problem with this day : ',d ,' --> skipping')
+        else:
+            try:
+                level2 = retrieve_day(d, 'GROMOS')
+            except:
+                print('problem retrieving day : ',d)
+            print('######################################################################################')
+            # print('######################################################################################')
+            # try:
+            #     level2 = retrieve_day(d, 'SOMORA')
+            # except:
+            #     print('problem retrieving day : ',d)

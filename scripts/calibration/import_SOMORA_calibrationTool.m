@@ -82,7 +82,7 @@ calibrationTool.binaryType='ieee-be';
 
 %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
 calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
-calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+%calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
@@ -158,6 +158,9 @@ calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
 calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.3;
 calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
+
+% Frequency lock flag
+calibrationTool.maxProportionFreqLockError = 0.1;
 
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25;

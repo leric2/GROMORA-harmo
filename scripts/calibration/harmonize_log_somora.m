@@ -48,4 +48,7 @@ logFile.T_Hot_Absorber=logFile.AI_0*100;
 logFile.T_Window=logFile.AI_3*100;
 logFile.T_Out=logFile.AI_7*100;
 logFile.T_Room=logFile.AI_1*100;
+
+logFile.Freq_Lock = (logFile.IF_LO1_Lock & logFile.IF_LO2_Lock);
+
 end

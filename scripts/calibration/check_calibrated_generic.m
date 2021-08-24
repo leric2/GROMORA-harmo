@@ -149,6 +149,14 @@ for i = 1:size(calibratedSpectra,2)
         FFT_adc_overload_OK=1;
     end
     
+    %%%%%%%%%% Flag 6 %%%%%%%%%%%
+    % Frequency lock flag
+    if sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)
+        freq_lock_OK=0;
+    else
+        freq_lock_OK=1;
+    end
+    
     %%%%%%%%%%% Flag ... %%%%%%%%%%%    NOT USED 
     % FFTS number of aquisition
     if ((all(logFile.FFT_Nr_of_acq(ia))==calibrationTool.numberOfAquisitionSpectraAntenna) & (all(logFile.FFT_Nr_of_acq(ih))==calibrationTool.numberOfAquisitionSpectraHot) & (all(logFile.FFT_Nr_of_acq(ih))==calibrationTool.numberOfAquisitionSpectraCold))
@@ -345,7 +353,8 @@ for i = 1:size(calibratedSpectra,2)
         LN2SensorsOK,...
         LN2LevelOK,...
         hotLoadOK,...
-        PointingAngleOK];
+        PointingAngleOK,...
+        freq_lock_OK];
     
     % Error vector description:
     calibratedSpectra(i).errorVectorDescription=[
@@ -354,7 +363,8 @@ for i = 1:size(calibratedSpectra,2)
         "LN2SensorsOK",...
         "LN2LevelOK",...
         "hotLoadOK",...
-        "pointingAngleOK"];
+        "pointingAngleOK",...
+        "FreqLockOK"];
     
     calibratedSpectra(i).outlierCalib = NaN;
     warning('off','backtrace')
