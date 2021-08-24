@@ -13,6 +13,7 @@ function logFile = harmonize_log_gromos(calibrationTool,logFile)
 %               |           - elevationAngleCold
 %               |           - goodFlagLN2Below
 %               |           - goodFlagLN2Above
+%               |           - 
 %               |           
 %               |         2. logFile: original raw log file read
 %               |
@@ -75,7 +76,9 @@ end
 logFile.LN2_Sensors_OK = ~logFile.LN2_Relay;
 
 logFile.LN2_Level_OK = (logFile.LN2_above_High == calibrationTool.goodFlagLN2Above) & (logFile.LN2_above_Low == calibrationTool.goodFlagLN2Below);
-    
+
+logFile.Freq_Lock = (logFile.PLL_Lock & logFile.Ferranti_Lock);
+
 logFile.T_Room = logFile.T_Ceiling;
 
 end

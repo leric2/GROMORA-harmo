@@ -170,6 +170,9 @@ calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
 
 calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
+% Frequency lock flag
+calibrationTool.maxProportionFreqLockError = 0.1;
+
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25; %TODO
 calibrationTool.maxStdDevTbInt = 10;
