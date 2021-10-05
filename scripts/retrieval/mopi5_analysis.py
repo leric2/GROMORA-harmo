@@ -81,12 +81,12 @@ df_bins = 200e3
 plot_spectra_schematic = False
 
 plot_comparison = False
-compare_level2_mopi5 = False
+compare_level2_mopi5 = True
 compare_alpha = False
 plot_spectra_comparison_scaling_corr_paper = False
 plot_spectra_comparison_3_spectro_paper = False
 plot_bias = False
-plot_bias_TOD = True
+plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
 plot_o3_sel = False
@@ -351,8 +351,8 @@ if compare_alpha:
         use_basis='U5303',
         #identifier=TOD,
         identifier=identifier_plot,
-        alpha=8*np.ones(15),
-        #alpha=[0,7,8,9],
+        #alpha=8*np.ones(15),
+        alpha=[7,8,9],
         binning=4,
         lowerBound=lowerBound,
         variable=True,
@@ -640,7 +640,10 @@ if plot_bias:
 
 # %%
 if plot_bias_TOD:
-    monthly_color = ['indigo', 'green', 'darkorange', 'gold', 'red']
+    import matplotlib
+    cmap = matplotlib.cm.get_cmap('Dark2') 
+    #monthly_color = ['indigo', 'green', 'darkorange', 'gold', 'red']
+    monthly_color = [cmap(0.01), cmap(0.28),cmap(0.97), cmap(0.63),  'red']
     integration_strategy = 'TOD_harmo'
     month_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
     symbols = ['v','<','^','>','v']
@@ -700,13 +703,13 @@ if plot_bias_TOD:
             print('no data for :', d)
             pass
     legend_elements = [
-        Line2D([0], [0], marker='v', color='w', markerfacecolor='indigo',
+        Line2D([0], [0], marker='v', color='w', markerfacecolor=monthly_color[0],
                label=month_name[0], markersize=size+2),
-        Line2D([0], [0], marker='<', color='w', markerfacecolor='green',
+        Line2D([0], [0], marker='<', color='w', markerfacecolor=monthly_color[1],
                label=month_name[1], markersize=size+2),
-        Line2D([0], [0], marker='^', color='w', markerfacecolor='darkorange',
+        Line2D([0], [0], marker='^', color='w', markerfacecolor=monthly_color[2],
                label=month_name[2], markersize=size+2),
-        Line2D([0], [0], marker='>', color='w', markerfacecolor='gold',
+        Line2D([0], [0], marker='>', color='w', markerfacecolor=monthly_color[3],
                label=month_name[3], markersize=size+2)
     ]
     ax2.text(85, -0.23, '$T_{cold}$', fontsize=fs, color='b')
@@ -885,7 +888,7 @@ if compare_level2_mopi5:
     mean_o3_alt_range = dict()
 
     for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
-    #for s in ['AC240']:
+    #for s in ['USRP-A']:
         alt_bias = xr.DataArray()
         mean_o3 = xr.DataArray()
         rel_bias = xr.DataArray()
@@ -982,16 +985,18 @@ if compare_level2_mopi5:
     cb.ax.tick_params(labelsize=fs)
 
     for i in [0,1]:
-        axs[i].set_xlabel(r'Brightness Temperature Bands \#',fontsize=fs)
+        axs[i].set_xlabel(r'Mean Brightness Temperature [K]',fontsize=fs)
         axs[i].set_ylabel('Altitude [km]',fontsize=fs)
         axs[i].tick_params(axis='both', which='major', labelsize=fs)
+        axs[i].set_xticklabels(['',r'$77$',r'$88$',r'$98$',r'$107$',r'$117$',r'$135$',r'$159$',r'$209$'])
+
     axs[0].set_title('AC240')
     axs[1].set_title('AC240 corrected')
     #axs[1].set_title('USRP-A')
     pl.set_edgecolor('face')
 
     plt.tight_layout(rect=[0, 0.03, 0.87, 1])
-    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_all_rel_feb_paper_gaussian_approx.pdf')
+    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_all_rel_feb_tblabel.pdf')
 
 if plot_o3_sel:
     spectro_lvl2 = integration.spectrometers

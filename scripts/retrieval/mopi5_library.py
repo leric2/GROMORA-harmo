@@ -39,12 +39,13 @@ color_spectro = {'AC240':'red', 'USRP-A':'lime', 'U5303':'blue', 'AC240_unbiased
 color_spectro = {'AC240':cmap(0.01), 'USRP-A':cmap(0.26), 'U5303':cmap(0.15), 'AC240_unbiased':cmap(0.25)}
 color_corr1 = cmap(0.97)
 color_corr2 = cmap(0.48)
+color_corr3 = 'b'
 F0 = 110.836e9
 
 # print('AC240: ', matplotlib.colors.to_hex(color_spectro['AC240']))
 # print('U5303: ', matplotlib.colors.to_hex(color_spectro['U5303']))
-print('color_corr1: ', matplotlib.colors.to_hex(color_corr1))
-print('color_corr2: ', matplotlib.colors.to_hex(color_corr2))
+# print('color_corr1: ', matplotlib.colors.to_hex(color_corr1))
+# print('color_corr2: ', matplotlib.colors.to_hex(color_corr2))
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
     '''
@@ -513,6 +514,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     #ax2 = fig.add_subplot(3,1,3)
     meteo_lw = 0.75
     marker = ['x','*','.']
+    marker = ['^','v','>']
 
     start = datetime.date(2019,1,30)
     stop = datetime.date(2019,2,23)
@@ -520,7 +522,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     for a, spectro in enumerate(calibration.spectrometers):
         #dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
         dates =calibration.calibrated_data[spectro].time.data
-        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', ax=ax[0], marker=marker[a], s=4, label=spectro)
+        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', color=color_spectro[spectro], ax=ax[0], marker=marker[a], s=5, label=spectro)
         # ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
         #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
         #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
@@ -900,12 +902,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',broadband_bias=[]):
-    fig = plt.figure(figsize=(8, 7))
+    fig = plt.figure(figsize=(12, 10))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_alpha = ['green','blue']
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -933,62 +934,65 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         # ax2.grid(which='both')
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
-        a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'
 
-        #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
-        
-        # 
-        mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
-        Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
-        new_corr_U5303 = (1-a)*Tb_U303_cut.data + a* (np.nanmean(Tb_U303_cut.data) + broadband_bias[calibration_cycle])
+        for i, a in enumerate(alpha):
+            #a = alpha[calibration_cycle]/100
+            
+            lab = r'$ \alpha =$ '+f'{a:.0f}'+r'\%'
+            a = a/100
 
-        U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
-        AC240_Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
-        AC240_Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
+            mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
+            Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
+            new_corr_U5303 = (1-a)*Tb_U303_cut.data + a* (np.nanmean(Tb_U303_cut.data) + broadband_bias[calibration_cycle])
 
-        #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
-        #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
+            U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
+            AC240_Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
+            AC240_Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
 
-        #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
-        Tb_diff_corrected = AC240_Tb_corr-Tb_U303_cut.data
-        Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
-        #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
-        Tb_diff_corrected_non_lin_1 = AC240_Tb_corr_all-Tb_U303_cut.data
-        Tb_diff_corrected_new = Tb-new_corr_U5303
-        #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
-        ax1.legend()
+            #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
+            #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
 
-        #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
+            #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
+            Tb_diff_corrected = AC240_Tb_corr-Tb_U303_cut.data
+            Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
+            #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+            Tb_diff_corrected_non_lin_1 = AC240_Tb_corr_all-Tb_U303_cut.data
+            Tb_diff_corrected_new = Tb-new_corr_U5303
+            #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
+            ax1.legend()
 
-        clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
-        smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
-        smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
-        #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
-        smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
-        smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
-        smoothed_diff_new = np.convolve(Tb_diff_corrected_new, np.ones((binning,))/binning, mode='full') 
+            #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
 
-        
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color='red', label=r'$ \alpha = 0\%$')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='b', label=lab)
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_new , lw=0.8, color='k',label='new')
-        
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'+', with non-lin')
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
-        ax2.plot(clean_f/1e9, broadband_bias[calibration_cycle], lw=1.5, color='orange', label='non-lin alone')
+            clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
+            smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
+            smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
+            #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
+            smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
+            smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
+            smoothed_diff_new = np.convolve(Tb_diff_corrected_new, np.ones((binning,))/binning, mode='full') 
 
-        ax2.axhline(0,lw=0.6, color='k', ls='--')
-        ax2.set_title(title2)
-        ax2.set_ylim(-1,0.4)
-        ax2.yaxis.set_major_locator(MultipleLocator(0.2))
-        ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
-        ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("frequency [GHz]")
-        ax2.set_xlim(110.25, 111.4)
-        #ax23.set_ylabel('[%]')
-        ax2.grid(which='both')
-        ax2.legend(loc=4)
+            if i==0:
+                ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_spectro[s], label=r'$ \alpha = 0\%$')
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_corr1, label=lab)
+            ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=cmap(0.4+i*0.13), label=lab)
+
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_new , lw=0.8, color='k',label='new')
+
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color=color_corr2, label=r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'+', with non-lin')
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
+            #ax2.plot(clean_f/1e9, broadband_bias[calibration_cycle], lw=1.5, color=color_corr3, label='non-lin alone')
+
+            ax2.axhline(0,lw=0.6, color='k', ls='--')
+            ax2.set_title(title2)
+            ax2.set_ylim(-1,0.4)
+            ax2.yaxis.set_major_locator(MultipleLocator(0.2))
+            ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
+            ax2.set_ylabel('$\Delta T_B$ [K]')
+            ax2.set_xlabel("frequency [GHz]")
+            ax2.set_xlim(110.25, 111.4)
+            #ax23.set_ylabel('[%]')
+            ax2.grid(which='both')
+            ax2.legend(loc=4)
     fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
@@ -1000,7 +1004,6 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_alpha = ['red','cyan','magenta']
     fs=14
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -1009,8 +1012,8 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         #Tb_OG = ds_dict[s].interpolated_Tb[calibration_cycle].data
         #Tb_diff = (Tb-clean_Tb)/clean_Tb
         Tb_diff = Tb-clean_Tb
-        ax1.plot(clean_f/1e9, Tb, color=color_spectro[s], lw=0.5, label=s)
-        ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
+        ax1.plot(clean_f/1e9, Tb, color=color_spectro[s], lw=0.7, label=s)
+        ax1.plot(clean_f/1e9, clean_Tb, lw=0.8, color=color_spectro[use_basis], label=use_basis)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
@@ -1364,7 +1367,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         Tb_plot = np.convolve(Tb, np.ones((2,))/2, mode='full')
         #clean_Tb_plot = np.convolve(clean_Tb, np.ones((4,))/4, mode='full')
 
-        ax1.plot(clean_f/1e9, Tb_plot, lw=0.5, label=s, color=color_spectro[s])
+        ax1.plot(clean_f/1e9, Tb_plot, lw=0.8, label=s, color=color_spectro[s])
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
@@ -1374,7 +1377,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax1.grid()
         ax1.legend(fontsize=fs)
         ax1.tick_params(axis='both', which='major', labelsize=fs)
-        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, Tb_plot, lw=0.2, color=color_spectro[s])
+        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, Tb_plot, lw=0.4, color=color_spectro[s])
         ax2.set_xlim(-10, 10)
         #ax2.set_xlabel('[MHz]')
         #ax2.set_yticklabels([])
@@ -1390,7 +1393,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax2.grid(which='both')
 
         if s in spectrometers:
-            ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s, color=color_spectro[s])
+            ax3.plot(clean_f/1e9, Tb_diff, lw=0.8, label=s, color=color_spectro[s])
             # print('$T_b$ differences, '+s)
             # print(np.nanmean(Tb_diff))
             ax3.axhline(0,lw=0.6, color='k', ls='--')
