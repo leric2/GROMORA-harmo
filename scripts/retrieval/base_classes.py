@@ -1501,7 +1501,7 @@ class DataRetrieval(ABC):
 
         return self.integrated_data
 
-    def plot_level1b_TB_all(self, title='', save=False, save_name='int_spectra', idx=None):
+    def plot_level1b_TB(self, title='', save=False, outfolder='', save_name='int_spectra', idx=None):
         figures = list()
         
         if idx is None:
@@ -1510,18 +1510,15 @@ class DataRetrieval(ABC):
             figures.append(GROSOM_library.plot_Tb_selected(self, self.integrated_data, title=title, idx=idx)) 
 
         if save:
-            save_single_pdf(self.level1_folder+'/'+save_name+self.datestr+'.pdf', figures)
-            #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
-    
-
-        if save:
-            save_single_pdf(self.level1_folder+'/'+save_name+self.datestr+'.pdf', figures)
+            save_single_pdf(outfolder+self.instrument_name+'/'+save_name+self.datestr+'.pdf', figures)
+            print('saved in '+outfolder+self.instrument_name+'/'+save_name+self.datestr+'.pdf')
             #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
-    def plot_level1b_TB(self, level1b_dataset, calibration_cycle):
-        plt.plot(level1b_dataset.frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
-        plt.ylim((0,200))
-        pass
+
+    # def plot_level1b_TB(self, calibration_cycle):
+    #     plt.plot(self.integrated_data[self.spectrometers].frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
+    #     plt.ylim((0,200))
+    #     pass
     
     def plot_meteo_ds_level1b_dataset(self):
         GROSOM_library.plot_meteo_level1b(self.meteo_ds)

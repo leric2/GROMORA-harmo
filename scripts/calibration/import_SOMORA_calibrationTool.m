@@ -86,7 +86,7 @@ calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibration
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v1/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v2/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -158,6 +158,12 @@ calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
 calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.3;
 calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
+
+% Frequency lock flag
+calibrationTool.maxProportionFreqLockError = 0.1;
+
+% Max std dev of Gunn voltage
+calibrationTool.maxStdV_Gun = 1e-3;
 
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25;
@@ -324,6 +330,7 @@ if calibrationTool.timeNumber>datenum(2009,09,22) && calibrationTool.timeNumber<
     calibrationTool.elevationAngleHot=180;
     calibrationTool.elevationAngleHotTol = 1;
     calibrationTool.elevationAngleColdTol = 1;
+    calibrationTool.TNoiseCenterTh=3100;
 elseif calibrationTool.timeNumber>datenum(2012,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
 %     calibrationTool.elevationAngleAntenna=38;
 %     calibrationTool.elevationAngleCold=-92;
