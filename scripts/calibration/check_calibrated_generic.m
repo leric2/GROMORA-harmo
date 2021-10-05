@@ -157,6 +157,15 @@ for i = 1:size(calibratedSpectra,2)
         freq_lock_OK=1;
     end
     
+    %%%%%%%%%% Flag 6 %%%%%%%%%%%
+    calibratedSpectra(i).stdVGun = std(logFile.V_Gunn(ind));
+    if calibratedSpectra(i).stdVGun > calibrationTool.maxStdV_Gun
+        freq_lock_OK=0;
+    else
+        freq_lock_OK=1;
+    end
+    
+    
     %%%%%%%%%%% Flag ... %%%%%%%%%%%    NOT USED 
     % FFTS number of aquisition
     if ((all(logFile.FFT_Nr_of_acq(ia))==calibrationTool.numberOfAquisitionSpectraAntenna) & (all(logFile.FFT_Nr_of_acq(ih))==calibrationTool.numberOfAquisitionSpectraHot) & (all(logFile.FFT_Nr_of_acq(ih))==calibrationTool.numberOfAquisitionSpectraCold))
