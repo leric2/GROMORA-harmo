@@ -77,7 +77,7 @@ if strcmp(calibrationTool.instrumentName,'MIAWARA-C')
     
 else
     %% For instruments using hot-cold calibration scheme
-    if length(find(logFile.Tipping_Curve_active)) ~= length(find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC))
+    if ~isempty(fieldnames(TC_data)) && length(find(logFile.Tipping_Curve_active)) ~= length(find(logFile.Tipping_Curve_active & logFile.Position == calibrationTool.indiceTC))
         if isfield(logFile.meteo,'air_temperature')
             Teff = nanmean([logFile.meteo.air_temperature])-calibrationTool.TC.deltaT;
         else

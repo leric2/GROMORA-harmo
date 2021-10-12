@@ -464,7 +464,7 @@ switch calType
             
             % Mean clean sky FFT counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
-
+            calibratedSpectra(i).meanSkySpectra = rsAntenna;
             % Calibration
             
             % For all antenna measurement (to get the stddev of Tb on the
@@ -598,7 +598,7 @@ switch calType
             
             % Mean Antenna counts for this cycle
             rsAntenna=nanmean(rawSpectra(calibratedSpectra(i).antennaIndCleanAngle,:),1);
-            
+            calibratedSpectra(i).meanSkySpectra = rsAntenna;
             % Calibration 1. "standard"
             calibratedSpectra(i).Tb = calibrationTool.TCold + (calibratedSpectra(i).THot-calibrationTool.TCold).*(rsAntenna-calibratedSpectra(i).meanColdSpectra)./(calibratedSpectra(i).meanHotSpectra-calibratedSpectra(i).meanColdSpectra); 
             

@@ -248,7 +248,7 @@ calibrationTool.troposphericCorrection.deltaT = 10.4;
 % calibration
 
 % Reading routine to use for the raw data
-calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_generic(calibrationTool, readRawFile);
+calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_old_FFTS_GROMOS(calibrationTool, readRawFile);
 
 % Quality check for the raw data
 calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
@@ -316,11 +316,23 @@ if calibrationTool.timeNumber < datenum(2010,03,10)
     calibrationTool.nameHotIndice = 'Hot';
     calibrationTool.nameAntennaIndice = 'Antenna';
     calibrationTool.otherName = 'Reference';
+
+    % Not working for now before 2010-03-10
+    calibrationTool.doTippingCurve = false;
+
+
+
+    % Plot some calibrated spectra:
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
+
 end
 
-if calibrationTool.timeNumber < datenum(2012,01,01) %TOCHECK
+if calibrationTool.timeNumber <= datenum(2010,08,18)
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 1;
+elseif (calibrationTool.timeNumber > datenum(2010,08,18) && calibrationTool.timeNumber < datenum(2012,07,23)) %TOCHECK
+    calibrationTool.goodFlagLN2Above = 1;
+    calibrationTool.goodFlagLN2Below = 0;
     
     calibrationTool.stdTNoiseThresh = 15;
 elseif calibrationTool.timeNumber > datenum(2020,06,19)

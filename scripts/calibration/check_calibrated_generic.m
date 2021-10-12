@@ -105,6 +105,9 @@ for i = 1:size(calibratedSpectra,2)
     
     diff_Tb = diff(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     calibratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)))/sqrt(2);
+
+    % Mean calibrated Tb for this cycle:
+    calibratedSpectra(i).meanTb = nanmean(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Cold and Hot spectra variation among this cycle
@@ -112,8 +115,10 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
         
-    % Mean hot counts
+    % Mean counts
     calibratedSpectra(i).meanHotCounts = nanmean(calibratedSpectra(i).meanHotSpectra);
+    calibratedSpectra(i).meanColdCounts = nanmean(calibratedSpectra(i).meanColdSpectra);
+    calibratedSpectra(i).meanSkyCounts = nanmean(calibratedSpectra(i).meanSkySpectra);
     
     %%%%%%%%%%% Flag 3 %%%%%%%%%%%    
     % Liquid Nitrogen sensors
