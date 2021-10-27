@@ -88,6 +88,7 @@ nccreate(filename,'/spectrometer1/stdTb','Dimensions',{'channel_idx',calibration
 nccreate(filename,'/spectrometer1/frequencies','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/intermediate_freq','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/meanTb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_std_Tb','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/THot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/stdTHot','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -106,7 +107,10 @@ nccreate(filename,'/spectrometer1/number_of_hot_spectra','Dimensions',{'time',In
 nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/mean_cold_counts','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_hot_counts','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_sky_counts','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
 %if calibrationTool.savePlanckIntensity
     %nccreate(filename,'/spectrometer1/intensity_planck','Dimensions',{'channel_idx',calibrationTool.numberOfChannels,'time',Inf},'Datatype','double','FillValue',-9999);
 %end  
@@ -240,6 +244,7 @@ if calibrationTool.savePlanckIntensity
 end  
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+ncwrite(filename,'/spectrometer1/meanTb',[calibratedSpectra.meanTb]);
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
@@ -291,7 +296,9 @@ ncwrite(filename,'/spectrometer1/number_of_hot_spectra',numInd(:,1));
 ncwrite(filename,'/spectrometer1/number_of_cold_spectra',numInd(:,2));
 ncwrite(filename,'/spectrometer1/number_of_sky_spectra',numInd(:,3));
 
+ncwrite(filename,'/spectrometer1/mean_cold_counts',[calibratedSpectra.meanColdCounts]);
 ncwrite(filename,'/spectrometer1/mean_hot_counts',[calibratedSpectra.meanHotCounts]);
+ncwrite(filename,'/spectrometer1/mean_sky_counts',[calibratedSpectra.meanSkyCounts]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Writing the flags variables 
@@ -515,6 +522,11 @@ attrVal.meanStdTb = {'mean standard variation of Tb',...
     'K',...
     'mean standard deviation of brightness temperature for this cycle (without bad channel)'};
 
+attrVal.meanTb = {'mean Tb',...
+    'meanTb',...
+    'K',...
+    'mean brightness temperature for this cycle (without bad channel)'};
+
 attrVal.if = {'intermediate frequency vector',...
     'intermediate_frequency',...
     'Hz',...
@@ -611,10 +623,20 @@ attrVal.numSSpectra = {'number of sky spectra',...
     '1',...
     'number of sky spectra averaged together in this cycle'};
 
+attrVal.meanColdCounts = {'mean FFTS cold counts',...
+    'mean_cold_counts',...
+    '1',...
+    'mean raw FFTS counts on cold load during this cycle'};
+
 attrVal.meanHotCounts = {'mean FFTS hot counts',...
     'mean_hot_counts',...
     '1',...
     'mean raw FFTS counts on hot load during this cycle'};
+
+attrVal.meanSkyCounts = {'mean FFTS sky counts',...
+    'mean_sky_counts',...
+    '1',...
+    'mean raw FFTS counts for sky observation during this cycle'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % attrs or TC group
@@ -704,6 +726,7 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/stdTb',attrName{i},attrVal.stdTb{i});
     ncwriteatt(filename,'/spectrometer1/mean_std_Tb',attrName{i},attrVal.meanStdTb{i});
+    ncwriteatt(filename,'/spectrometer1/meanTb',attrName{i},attrVal.meanTb{i});
     ncwriteatt(filename,'/spectrometer1/frequencies',attrName{i},attrVal.freq{i});
     ncwriteatt(filename,'/spectrometer1/intermediate_freq',attrName{i},attrVal.if{i});
     ncwriteatt(filename,'/spectrometer1/THot',attrName{i},attrVal.THot{i});
@@ -720,7 +743,11 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/number_of_hot_spectra',attrName{i},attrVal.numHSpectra{i});
     ncwriteatt(filename,'/spectrometer1/number_of_cold_spectra',attrName{i},attrVal.numCSpectra{i});
     ncwriteatt(filename,'/spectrometer1/number_of_sky_spectra',attrName{i},attrVal.numSSpectra{i});
+    ncwriteatt(filename,'/spectrometer1/mean_cold_counts',attrName{i},attrVal.meanColdCounts{i});
     ncwriteatt(filename,'/spectrometer1/mean_hot_counts',attrName{i},attrVal.meanHotCounts{i});
+    ncwriteatt(filename,'/spectrometer1/mean_sky_counts',attrName{i},attrVal.meanSkyCounts{i});
+
+
     
     % Meteo attr
     ncwriteatt(filename,'/meteo/air_pressure',attrName{i},attrVal.airP{i});
