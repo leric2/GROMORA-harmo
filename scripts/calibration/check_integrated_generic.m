@@ -123,7 +123,7 @@ for i = 1:size(integratedSpectra,2)
     
     %%%%%%%%%%% flag  %%%%%%%%%%
     % Transmittance
-    if (integratedSpectra(i).troposphericTransmittance >= calibrationTool.troposphericTransmittanceFlag)
+    if (integratedSpectra(i).troposphericTransmittance >= calibrationTool.troposphericTransmittanceFlag) | calibrationTool.missing_meteo
         tropospheric_transmittance_OK=1;
     else
         tropospheric_transmittance_OK=0;
