@@ -114,7 +114,6 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
-        
     % Mean counts
     calibratedSpectra(i).meanHotCounts = nanmean(calibratedSpectra(i).meanHotSpectra);
     calibratedSpectra(i).meanColdCounts = nanmean(calibratedSpectra(i).meanColdSpectra);
@@ -379,7 +378,8 @@ for i = 1:size(calibratedSpectra,2)
         "hotLoadOK",...
         "pointingAngleOK",...
         "FreqLockOK"];
-    
+
+
     calibratedSpectra(i).outlierCalib = NaN;
     warning('off','backtrace')
     if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
@@ -389,6 +389,13 @@ for i = 1:size(calibratedSpectra,2)
         disp(['Problem with calibration n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS') ', error: ']);
         disp(errorV)
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
+    end
+    if strcmp(calibrationTool.outlierDectectionType,'RFI')
+        if sum(calibratedSpectra(i).outlierRFI) > 8
+            disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
+            figure()
+            plot(calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI)
+        end
     end
    
 end

@@ -269,7 +269,10 @@ for i=1:nCalibrationCycles
     % calibration, we use the identified outliers to remove the spurious
     % hot and cold individual spectra 
     switch calibrationTool.outlierDectectionType
-        case 'standard'
+        case 'standard' 
+            outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
+            outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
+        case 'RFI' 
             outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
             outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
         case 'noFFT'
@@ -438,12 +441,27 @@ switch calType
             switch calibrationTool.outlierDectectionType
                 case 'standard'
                     outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+                case 'RFI'
+                    % problematic channel
+                    RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
+                    % Using the cycle median and stddev to check for spurious sky
+                    % spectra during this cycle:   
+                    
+                    calibratedSpectra(i).AntSpectraRFI = movmean(rawSpectra(ia,RFI_bad_channels)-medianSpectra(RFI_bad_channels),100,2);
+                    mean_smoothed_diff_to_median = abs(mean(calibratedSpectra(i).AntSpectraRFI,2));
+                    if mean_smoothed_diff_to_median < 3
+                        mean_smoothed_diff_to_median = 3;
+                    end
+                    calibratedSpectra(i).freqRFI = calibratedSpectra(i).if(RFI_bad_channels) + 3300;
+                    outlierRFI = reshape(sum(abs(calibratedSpectra(i).AntSpectraRFI) > 4*mean_smoothed_diff_to_median,2) > 100,[],1);
+                    %calibratedSpectra(i).outlierRFI = sum(calibratedSpectra(i).stdAntSpectraRFI  > 10) > 100;
+                    outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
                 case 'noFFT'
                     outlierSky = (outlierDetectSky | skyAngleCheck);
                 case 'none'
                     outlierSky = zeros(size(ia));
             end
-            
+            calibratedSpectra(i).outlierRFI=sum(outlierRFI);
             calibratedSpectra(i).outlierDetectSky=sum(outlierDetectSky);
             calibratedSpectra(i).skyAngleCheck=sum(skyAngleCheck);
             calibratedSpectra(i).FFT_adc_overload_sky=sum(FFT_adc_overload_sky);
