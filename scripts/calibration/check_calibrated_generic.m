@@ -153,17 +153,11 @@ for i = 1:size(calibratedSpectra,2)
         FFT_adc_overload_OK=1;
     end
     
+   
     %%%%%%%%%% Flag 6 %%%%%%%%%%%
-    % Frequency lock flag
-    if sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)
-        freq_lock_OK=0;
-    else
-        freq_lock_OK=1;
-    end
-    
-    %%%%%%%%%% Flag 6 %%%%%%%%%%%
-    calibratedSpectra(i).stdVGun = std(logFile.V_Gunn(ind));
-    if calibratedSpectra(i).stdVGun > calibrationTool.maxStdV_Gun
+    calibratedSpectra(i).stdVGunn = std(logFile.V_Gunn(ind),'omitnan');
+    calibratedSpectra(i).VGunn = mean(logFile.V_Gunn(ind),'omitnan');
+    if (calibratedSpectra(i).stdVGunn > calibrationTool.maxStdV_Gun) | (sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)) 
         freq_lock_OK=0;
     else
         freq_lock_OK=1;
@@ -391,10 +385,16 @@ for i = 1:size(calibratedSpectra,2)
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
     end
     if strcmp(calibrationTool.outlierDectectionType,'RFI')
-        if sum(calibratedSpectra(i).outlierRFI) > 8
+        if sum(calibratedSpectra(i).outlierRFI) > 0
             disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
-            figure()
-            plot(calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI)
+            fig=figure(Visible="off");
+            ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
+            ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
+            ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
+            
+            print(fig,['/home/esauvageat/Desktop/RFI/GROMOS_RFI_' calibrationTool.dateStr '_' num2str(i)],'-dpdf','-fillpage')
+            xlabel('IF [MHz]')
+            ylabel('count difference')
         end
     end
    

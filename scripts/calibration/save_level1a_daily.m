@@ -103,6 +103,9 @@ nccreate(filename,'/spectrometer1/stdTRoom','Dimensions',{'time',Inf},'Datatype'
 nccreate(filename,'/spectrometer1/TOut','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/noise_level','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
+nccreate(filename,'/spectrometer1/VGunn','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/stdVGunn','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+
 nccreate(filename,'/spectrometer1/number_of_hot_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 nccreate(filename,'/spectrometer1/number_of_cold_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
 nccreate(filename,'/spectrometer1/number_of_sky_spectra','Dimensions',{'time',Inf},'Datatype','int64','FillValue',-9999)
@@ -290,6 +293,9 @@ if isfield(calibratedSpectra,'noiseLevel')
 else
     ncwrite(filename,'/spectrometer1/noise_level',-9999*ones(length(calibratedSpectra),1));
 end
+
+ncwrite(filename,'/spectrometer1/VGunn',[calibratedSpectra.VGunn]);
+ncwrite(filename,'/spectrometer1/stdVGunn',[calibratedSpectra.stdVGunn]);
 
 numInd=vertcat(calibratedSpectra.numberOfIndices);
 ncwrite(filename,'/spectrometer1/number_of_hot_spectra',numInd(:,1));
@@ -587,6 +593,16 @@ attrVal.TWindow = {'TWindow',...
     'K',...
     'mean window temperature'};
 
+attrVal.VGunn = {'VGunn',...
+    'gunn_voltage',...
+    'V',...
+    'mean Gunn voltage'};
+
+attrVal.stdVGunn = {'stdVGunn',...
+    'standard_gunn_voltage',...
+    'V',...
+    'standard deviation of Gunn voltage'};
+
 % for Meteo data:
 attrVal.airP = {'air pressure',...
     'air_pressure',...
@@ -737,6 +753,8 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
+    ncwriteatt(filename,'/spectrometer1/VGunn',attrName{i},attrVal.VGunn{i});
+    ncwriteatt(filename,'/spectrometer1/stdVGunn',attrName{i},attrVal.stdVGunn{i});
     ncwriteatt(filename,'/spectrometer1/TWindow',attrName{i},attrVal.TWindow{i});
     ncwriteatt(filename,'/spectrometer1/TOut',attrName{i},attrVal.TOut{i});
     ncwriteatt(filename,'/spectrometer1/noise_level',attrName{i},attrVal.noiseLevel{i});
