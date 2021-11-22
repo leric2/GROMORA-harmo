@@ -91,6 +91,17 @@ for i = 1:nTippingCurve
         TC_data(i).skyMeanDatetime = mean(TC_data(i).datetime);
         TC_data(i).meanDateNum = datenum(TC_data(i).skyMeanDatetime)-calibrationTool.referenceTime;
     end
+
+    if i==1
+        lenTC = length(TC_data(i).skyAngle);
+    else
+        if length(TC_data(i).skyAngle) ~= lenTC
+            %TC_data(i) = [];
+            % If the number of angles is not constant, we just don't do any
+            % tipping curve (problem when saving the data). 
+            error('Problem with tipping curve for this day, deactivating')
+        end
+    end
 end
 end  
 

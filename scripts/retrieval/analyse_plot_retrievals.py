@@ -47,10 +47,14 @@ import mopi5_library
 from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
-plt.rcParams.update({
-    "text.usetex": False,
-    "font.family": "serif",
-    "font.sans-serif": ["Times New Roman"]})
+# plt.rcParams.update({
+#     "text.usetex": False,
+#     "font.family": "serif",
+#     "font.sans-serif": ["Free sans"]})
+
+# plt.rcParams['xtick.labelsize'] = 24
+# plt.rcParams['ytick.labelsize'] = 24
+# plt.rcParams['axes.titlesize'] = 24
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
@@ -58,15 +62,15 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
+
 instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
-# date = pd.date_range(start='2019-01-30', end='2019-06-18')
-
-date = pd.date_range(start='2016-01-01', end='2016-03-31')
+# date = pd.date_range(start='2019-01-30', end='219-06-18')
+date = pd.date_range(start='2020-01-08', end='2020-01-09')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -79,8 +83,9 @@ df_bins = 200e3
 plot_all = False
 plot_all_mopi5 = False
 plot_o3_ts = False
-save_o3= False
+save_o3= True
 plot_selected = True
+plot_selected_nicer = False
 plot_fshift = False
 save_fshift = False
 plot_cost = False
@@ -88,12 +93,12 @@ plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
 plot_polyfit = False
+plot_MLS = False
 
-
-filename_opacity = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/SOMORA_opacity_2014.nc'
+filename_opacity = '/scratch/GROSOM/Level2/opacities/'+instrument_name+'/'+instrument_name+'_opacity_'+str(date[0].year)+'.nc'
 
 compare_MERRA2 = False
-compare_ECMWF = True
+compare_ECMWF = False
 compare_MLS = False
 
 integration_strategy = 'classic'
@@ -104,6 +109,8 @@ spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
+plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/'
+
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
 
@@ -113,6 +120,8 @@ ex = '_waccm_monthly_continuum'
 ex = '_waccm_cov_yearly_sza' #
 ex = '_waccm_continuum'
 ex = '_waccm_monthly_scaled_h2o'
+ex = '_gromosAP_scaled_h2o'
+ex = '_waccm_low_alt_dx10'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -162,7 +171,8 @@ def read_mls(d1, d2):
 if instrument_name == "GROMOS":
     import gromos_classes as gc
     basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -173,7 +183,8 @@ if instrument_name == "GROMOS":
 elif instrument_name == "SOMORA":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
-    basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -196,6 +207,7 @@ elif instrument_name == "compare":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
     somora = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -206,6 +218,7 @@ elif instrument_name == "compare":
     import gromos_classes as gc
     basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
+    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     gromos = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -215,14 +228,14 @@ elif instrument_name == "compare":
     )
 
 if instrument_name == "compare":
-    ex='_waccm_monthly_scaled_h2o'
+    ex='_waccm_low_alt'
     level2_somora = somora.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_monthly_scaled_h2o'
+        extra_base='_waccm_low_alt'
     )
     level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_monthly_scaled_h2o'
+        extra_base='_waccm_low_alt'
     )
     F0 = somora.observation_frequency
 
@@ -239,14 +252,14 @@ if plot_cost:
 
     if instrument_name == 'mopi5':
         for s in spectros:
-            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             axes.plot(end_cost)
-            fig.savefig(instrument.level2_folder+'/' +
+            fig.savefig(plotfolder+'/' +
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=3, ncols=1,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
             end_cost.plot(marker='.', ax=axes[0])
@@ -256,7 +269,7 @@ if plot_cost:
             axes[0].set_xticks([])
             axes[1].set_xticks([])
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
-            fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+            fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'_end_cost.pdf', dpi=500)
 
 
@@ -265,7 +278,7 @@ if plot_polyfit:
 
     if instrument_name=='compare':
         s = 'AC240'
-        fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(9, 6))
+        fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(15, 10))
         polyfit_1 = level2_somora[s].poly_fit_x
         polyfit_2 = level2_gromos[s].poly_fit_x
 
@@ -280,33 +293,41 @@ if plot_polyfit:
 
       #  perc=100*(polyfit_1[0]-polyfit_2[0])/polyfit_1[0]
        # perc.plot(marker='.', ax=axes[3])
-        axes[0].legend(('', '')) 
+        axes[0].legend(('SOMORA', 'GROMOS')) 
         axes[0].set_xlabel('')
         axes[1].set_xlabel('')
-        fig.savefig(gromos.level2_folder+'/'+gromos.basename_plot_level2 +
+        fig.savefig(plotfolder+'/'+gromos.basename_plot_level2 +
                         gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(9, 6))
+            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(15, 10))
             polyfit = level2_dataset[s].poly_fit_x
-            polyfit[0].plot(marker='.', ax=axes[0])
-            polyfit[1].plot(marker='.',ax=axes[1])
-            polyfit[2].plot(marker='.',ax=axes[2])
-            level2_dataset[s].h2o_pwr98_x.plot(ax=axes[3])
+            polyfit[0].plot(marker='.', ax=axes[0], color='k')
+            polyfit[1].plot(marker='.',ax=axes[1], color='k')
+            polyfit[2].plot(marker='.',ax=axes[2], color='k')
+            level2_dataset[s].h2o_pwr98_x.plot(ax=axes[3], color='k')
+            axes[0].set_ylabel('polyfit')
+            axes[1].set_ylabel('polyfit')
+            axes[2].set_ylabel('polyfit')
+            axes[3].set_ylabel(r'H$_2$O PWR98')
+            axes[3].set_title('Continuum (retrieved)')
 
             # axes[0].set_ylim((-0.01,0.15))
             for i in [0,1,2,3]:
                 axes[i].set_xlabel('')
                 axes[i].set_xticks([])
-            ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[4])
+            ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[4], color='k')
             #ds_opacity.tropospheric_opacity_tc.plot(marker='.',ax=axes[3])
             #axes[3].set_ylim(0,20)
             #axs[1].set_ylim(0,1)
             #  end_cost.plot(ax=axs, ylim=(0.75,8))
-            axes[4].set_ylabel('opacity')
-            plt.tight_layout()
-            fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+            axes[4].set_ylabel('opacity [-]')
+            axes[4].set_xlabel('')
+            axes[4].set_title('Tropospheric opacity (Ingold)')
+            fig.tight_layout(rect=[0, 0.03, 1, 0.99])
+            fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'polyfit.pdf', dpi=500)
+            
 
 def avk_smooth_mls(ds, o3_mls_mean):
     avkm=ds.o3_avkm.mean(dim='time').values
@@ -350,15 +371,29 @@ if compare:
    # rel_diff_gromos_mls = 100*(o3_mls.mean(dim='time') - ozone_gromos.mean(dim='time'))/o3_mls.mean(dim='time')
    # rel_diff_somora_mls = 100*(o3_mls.mean(dim='time') - ozone_somora.mean(dim='time'))/o3_mls.mean(dim='time')
 
+    p_somora_mr = 1e-2*level2_somora['AC240'].isel(o3_lat=0, o3_lon=0).o3_p.data[np.mean(mr_somora,0)>=0.8]
+    p_gromos_mr = 1e-2*level2_gromos['AC240'].isel(o3_lat=0, o3_lon=0).o3_p.data[np.mean(mr_gromos,0)>=0.8]
+
     fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True, figsize=(9, 6))
 
-    ozone_somora.where(mr_somora > 0.8, drop=False).mean(dim='time').plot(
-        y='o3_p', ax=axs[0], color='red', label='SOMORA')
-    ozone_gromos.where(mr_gromos > 0.8, drop=False).mean(dim='time').plot(
-        y='o3_p', ax=axs[0], color='blue', label='GROMOS')
-    o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
+    # ozone_somora.where(mr_somora > 0.8).mean(dim='time').plot(
+    #     y='o3_p', ax=axs[0], color='red', label='waccm')
+    # ozone_gromos.where(mr_gromos > 0.8).mean(dim='time').plot(
+    #     y='o3_p', ax=axs[0], color='blue', label='gromosAP')
+    ozone_somora.mean(dim='time').plot(
+        y='o3_p', ax=axs[0], color='red', ls='-', label='SOMORA')
+    ozone_gromos.mean(dim='time').plot(
+        y='o3_p', ax=axs[0], color='blue', ls='-', label='GROMOS')
 
-    axs[0].plot(o3_mls_convolved*1e6, ozone_gromos.o3_p.values, '--', color='black', label='MLS, convolved')
+    if plot_MLS:
+        o3_mls.mean(dim='time').plot(y='p', ax=axs[0], color='black', label='MLS')
+
+        axs[0].plot(o3_mls_convolved*1e6, ozone_gromos.o3_p.values, '--', color='black', label='MLS, convolved')
+
+    axs[0].axhline(y=p_somora_mr[0],ls=':' ,color='r', lw=1)
+    axs[0].axhline(y=p_somora_mr[-1],ls=':', color='r', lw=1)
+    axs[0].axhline(y=p_gromos_mr[0],ls=':', color='b', lw=1)
+    axs[0].axhline(y=p_gromos_mr[-1],ls=':', color='b', lw=1)
 
     gromos_plus = ozone_gromos.mean(dim='time') + gromos_error.mean(dim='time')
     gromos_minus = ozone_gromos.mean(
@@ -389,7 +424,7 @@ if compare:
         y='o3_p', ax=axs[1], color='green', label='(red-blue)/red')
   #  rel_diff_gromos_mls.plot(y='o3_p',ax=axs[1], color='blue', label='(MLS-GRO)/MLS')
   #  rel_diff_somora_mls.plot(y='o3_p',ax=axs[1], color='red', label='(MLS-SOM)/MLS')
-    #axs[1].set_xlim(-60, 60)
+    axs[1].set_xlim(-25, 25)
     axs[1].set_xlabel('relative difference [%]')
     axs[1].legend()
     axs[1].grid(axis='x', linewidth=0.5)
@@ -408,10 +443,10 @@ if compare:
     ozone_somora.mean(dim='time').to_netcdf(
         somora.level2_folder+'/'+'somora_mean_o3_'+date.mean().strftime('%Y-%m-%d')+'.nc')
 
-    fig.savefig(somora.level2_folder+'/'+'ozone_comparison_'+pd.to_datetime(ozone_gromos.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
+    fig.savefig(plotfolder+'/'+'ozone_comparison_'+pd.to_datetime(ozone_gromos.time.mean().data).strftime('%Y-%m-%d')+ex+'.pdf')
 
 if plot_all:
-    outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
+    outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + '_plot_all_test_polyfit2'
     GROSOM_library.plot_O3_all(level2_dataset, outname)
 
@@ -458,14 +493,14 @@ if plot_o3_ts:
     ax.set_ylabel('Pressure [hPa]')
     plt.tight_layout()
     # o3.plot.imshow(x='time')
-    fig.savefig(instrument.level2_folder+'/'+instrument.basename_plot_level2 +
+    fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                 instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
     if save_o3:
         o3_ds = ozone.get([
             'o3_x','o3_xa','o3_mr','o3_eo','o3_es','o3_avkm','o3_z','o3_fwhm', 'o3_offset',
             'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
             ) 
-        o3_ds.to_netcdf(instrument.level2_folder+'/'+instrument_name+instrument.datestr+ex+'_ozone.nc')
+        o3_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_ozone.nc')
 
 if plot_o3_diff_waccm:
     # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
@@ -635,17 +670,28 @@ if compare_MLS:
 
 
 if plot_selected:
-    outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
+    outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_sel_polyfit2'
     GROSOM_library.plot_O3_all(
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1,6,9,12,16,20]
+        cycles=[1,7,10,13,17,21]
     )
 
+if plot_selected_nicer:
+    outname = plotfolder+'/'+instrument.basename_plot_level2 + \
+        instrument.datestr + ex + '_plot_sel_polyfit2'
+    GROSOM_library.plot_O3_sel_nicer(
+        level2_dataset,
+        outname,
+        spectro='AC240',
+        cycles=[0]#cycles=[1,7,10,13,17,21]
+    )
+
+
 if plot_fshift:
-    outname = instrument.level2_folder+'/'+instrument.basename_plot_level2 + \
+    outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_fshift.pdf'
     fshift = level2_dataset['AC240'].isel(freq_shift_grid1=0).freq_shift_x
 
@@ -656,13 +702,13 @@ if plot_fshift:
         ax=ax
     )
     ax.set_ylabel('fshift [kHz]')
-   # ax.set_ylim(0,300)
+    #ax.set_ylim(-50,350)
     ax.set_title('fshift '+instrument_name)
     plt.tight_layout()
     fig.savefig(outname)
 
     if save_fshift:
-        fshift.to_netcdf(instrument.level2_folder+'/'+instrument_name+'_'+instrument.datestr[0:4]+'_fshift.nc')
+        fshift.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr[0:4]+'_fshift.nc')
 
 if compare_MERRA2:
     merra2_basename = '/storage/tub/atmosphere/MERRA2/BRN/'

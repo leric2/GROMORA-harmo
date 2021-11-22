@@ -53,10 +53,14 @@ level1 = struct();
 
 [level1.calibratedSpectra, meteoData, calibrationTool] = calibrationTool.read_level1a(calibrationTool);
 
-if isempty(meteoData)
+if isnan(meteoData.dateNum)
     %TODO
     disp('no meteo data for this day...')
+    disp('Deactivate tropospheric transmittance filtering')
+    calibrationTool.missing_meteo = true;
+    level1.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1.calibratedSpectra);
 else
+    calibrationTool.missing_meteo = false;
     level1.calibratedSpectra = calibrationTool.add_meteo_data(calibrationTool, meteoData, level1.calibratedSpectra);
 end
 
@@ -108,9 +112,9 @@ level1.integratedSpectra = calibrationTool.check_integrated(calibrationTool, lev
 % Plotting and saving level 1b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting integrated and corrected spectra
-if calibrationTool.integratedSpectraPlot && nansum([level1.integratedSpectra.outlierCalib])<length(level1.integratedSpectra)
+if calibrationTool.integratedSpectraPlot && nansum([level1.integratedSpectra.outlierCalib])<length(level1.integratedSpectra) && ~calibrationTool.missing_meteo
     calibrationTool.plot_integrated_spectra(calibrationTool,level1.integratedSpectra)
-elseif calibrationTool.integratedSpectraPlot && length(level1.integratedSpectra)==1
+elseif calibrationTool.integratedSpectraPlot && length(level1.integratedSpectra) > 0
     calibrationTool.plot_integrated_spectra(calibrationTool,level1.integratedSpectra)
 end
 

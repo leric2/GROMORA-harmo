@@ -87,7 +87,7 @@ calibrationTool.binaryType='ieee-be';
 calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
 calibrationTool.extraFileFolder='/storage/tub/instruments/gromos/level1/GROMORA/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder=['/storage/tub/instruments/gromos/level1/GROMORA/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.level1Folder=['/storage/tub/instruments/gromos/level1/GROMORA/v2/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
@@ -170,6 +170,12 @@ calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
 
 calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
+% Frequency lock flag
+calibrationTool.maxProportionFreqLockError = 0.1;
+
+% Max std dev of Gunn voltage
+calibrationTool.maxStdV_Gun = 1e-1;
+
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25; %TODO
 calibrationTool.maxStdDevTbInt = 10;
@@ -242,7 +248,7 @@ calibrationTool.troposphericCorrection.deltaT = 10.4;
 % calibration
 
 % Reading routine to use for the raw data
-calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_generic(calibrationTool, readRawFile);
+calibrationTool.read_level0=@(calibrationTool, readRawFile) read_level0_old_FFTS_GROMOS(calibrationTool, readRawFile);
 
 % Quality check for the raw data
 calibrationTool.check_level0=@(log,rawSpectra,calibrationTool) check_level0_generic(log,rawSpectra,calibrationTool);
@@ -310,11 +316,20 @@ if calibrationTool.timeNumber < datenum(2010,03,10)
     calibrationTool.nameHotIndice = 'Hot';
     calibrationTool.nameAntennaIndice = 'Antenna';
     calibrationTool.otherName = 'Reference';
+
+    % Not working for now before 2010-03-10
+    calibrationTool.doTippingCurve = false;
+
+
+
 end
 
-if calibrationTool.timeNumber < datenum(2012,01,01) %TOCHECK
+if calibrationTool.timeNumber <= datenum(2010,08,18)
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 1;
+elseif (calibrationTool.timeNumber > datenum(2010,08,18) && calibrationTool.timeNumber < datenum(2012,07,23)) %TOCHECK
+    calibrationTool.goodFlagLN2Above = 1;
+    calibrationTool.goodFlagLN2Below = 0;
     
     calibrationTool.stdTNoiseThresh = 15;
 elseif calibrationTool.timeNumber > datenum(2020,06,19)
@@ -330,6 +345,10 @@ end
 
 % Elevation angle of the cold load
 if  calibrationTool.timeNumber < datenum(2012,04,26)
+    % Before 26.04.12, no drift quantities because the order of the
+    % observation was not the same !
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
+
     % Before April 2012, same angle measured for the 3 position
     calibrationTool.elevationAngleAntenna=39.85;
     calibrationTool.elevationAngleCold=39.85;

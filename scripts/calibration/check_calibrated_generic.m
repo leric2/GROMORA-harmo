@@ -105,15 +105,19 @@ for i = 1:size(calibratedSpectra,2)
     
     diff_Tb = diff(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     calibratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)))/sqrt(2);
+
+    % Mean calibrated Tb for this cycle:
+    calibratedSpectra(i).meanTb = nanmean(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Cold and Hot spectra variation among this cycle
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
-        
-    % Mean hot counts
+    % Mean counts
     calibratedSpectra(i).meanHotCounts = nanmean(calibratedSpectra(i).meanHotSpectra);
+    calibratedSpectra(i).meanColdCounts = nanmean(calibratedSpectra(i).meanColdSpectra);
+    calibratedSpectra(i).meanSkyCounts = nanmean(calibratedSpectra(i).meanSkySpectra);
     
     %%%%%%%%%%% Flag 3 %%%%%%%%%%%    
     % Liquid Nitrogen sensors
@@ -148,6 +152,17 @@ for i = 1:size(calibratedSpectra,2)
     else
         FFT_adc_overload_OK=1;
     end
+    
+   
+    %%%%%%%%%% Flag 6 %%%%%%%%%%%
+    calibratedSpectra(i).stdVGunn = std(logFile.V_Gunn(ind),'omitnan');
+    calibratedSpectra(i).VGunn = mean(logFile.V_Gunn(ind),'omitnan');
+    if (calibratedSpectra(i).stdVGunn > calibrationTool.maxStdV_Gun) | (sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)) 
+        freq_lock_OK=0;
+    else
+        freq_lock_OK=1;
+    end
+    
     
     %%%%%%%%%%% Flag ... %%%%%%%%%%%    NOT USED 
     % FFTS number of aquisition
@@ -345,7 +360,8 @@ for i = 1:size(calibratedSpectra,2)
         LN2SensorsOK,...
         LN2LevelOK,...
         hotLoadOK,...
-        PointingAngleOK];
+        PointingAngleOK,...
+        freq_lock_OK];
     
     % Error vector description:
     calibratedSpectra(i).errorVectorDescription=[
@@ -354,8 +370,10 @@ for i = 1:size(calibratedSpectra,2)
         "LN2SensorsOK",...
         "LN2LevelOK",...
         "hotLoadOK",...
-        "pointingAngleOK"];
-    
+        "pointingAngleOK",...
+        "FreqLockOK"];
+
+
     calibratedSpectra(i).outlierCalib = NaN;
     warning('off','backtrace')
     if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
@@ -365,6 +383,19 @@ for i = 1:size(calibratedSpectra,2)
         disp(['Problem with calibration n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS') ', error: ']);
         disp(errorV)
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
+    end
+    if strcmp(calibrationTool.outlierDectectionType,'RFI')
+        if sum(calibratedSpectra(i).outlierRFI) > 0
+            disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
+            fig=figure(Visible="off");
+            ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
+            ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
+            ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
+            
+            print(fig,['/home/esauvageat/Desktop/RFI/GROMOS_RFI_' calibrationTool.dateStr '_' num2str(i)],'-dpdf','-fillpage')
+            xlabel('IF [MHz]')
+            ylabel('count difference')
+        end
     end
    
 end

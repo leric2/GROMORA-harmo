@@ -27,9 +27,25 @@ import datetime
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
 
+import matplotlib
+# import matplotlib.style as style  
+# style.use('tableau-colorblind10')
+
+cmap = matplotlib.cm.get_cmap('Dark2') # YlGnBu, inferno
+
 
 color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue', 'AC240_unbiased':'tab:red'}
+color_spectro = {'AC240':'red', 'USRP-A':'lime', 'U5303':'blue', 'AC240_unbiased':'yellow'}
+color_spectro = {'AC240':cmap(0.01), 'USRP-A':cmap(0.26), 'U5303':cmap(0.15), 'AC240_unbiased':cmap(0.25)}
+color_corr1 = cmap(0.97)
+color_corr2 = cmap(0.48)
+color_corr3 = 'b'
 F0 = 110.836e9
+
+# print('AC240: ', matplotlib.colors.to_hex(color_spectro['AC240']))
+# print('U5303: ', matplotlib.colors.to_hex(color_spectro['U5303']))
+# print('color_corr1: ', matplotlib.colors.to_hex(color_corr1))
+# print('color_corr2: ', matplotlib.colors.to_hex(color_corr2))
 
 def return_bad_channels_mopi5(number_of_channel, date, spectro):
     '''
@@ -498,6 +514,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     #ax2 = fig.add_subplot(3,1,3)
     meteo_lw = 0.75
     marker = ['x','*','.']
+    marker = ['^','v','>']
 
     start = datetime.date(2019,1,30)
     stop = datetime.date(2019,2,23)
@@ -505,7 +522,7 @@ def plot_ts_mopi5_Feb_paper(calibration, title):
     for a, spectro in enumerate(calibration.spectrometers):
         #dates = [pd.to_datetime(d) for d in calibration.calibrated_data[spectro].time.data]
         dates =calibration.calibrated_data[spectro].time.data
-        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', ax=ax[0], marker=marker[a], s=4, label=spectro)
+        xr.plot.scatter(calibration.calibrated_data[spectro], x= 'time', y='mean_Tb', color=color_spectro[spectro], ax=ax[0], marker=marker[a], s=5, label=spectro)
         # ax[0].scatter(dates, calibration.calibrated_data[spectro].mean_Tb, marker=marker[a], s=2, label=spectro)
         #ax[1].plot(calibration.calibrated_data[s].time, calibration.calibrated_data[s].TSys,'.',markersize=4,label=s)
         #ax2.plot(calibration.calibration_flags[s].time, calibration.calibration_flags[s].sum(dim='flags').to_array()[0,:],'.',markersize=4,label=s)
@@ -820,7 +837,7 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    #color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
     color_alpha = ['tab:orange','red','green','blue']
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -885,12 +902,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor(cal_int_obj, ds_dict, calib
     return fig
 
 def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_dict, calibration_cycle=0, spectrometers=['AC240','USRP-A'], use_basis='U5303', alpha=[6,7,8,9], binning=8, title='', title2='',broadband_bias=[]):
-    fig = plt.figure(figsize=(8, 7))
+    fig = plt.figure(figsize=(12, 10))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_alpha = ['tab:orange','red','green','blue']
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -918,62 +934,65 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable(cal_int_obj, ds_di
         # ax2.grid(which='both')
 
         Tb_U303_cut = ds_dict['U5303'].interpolated_Tb[calibration_cycle].where(~np.isnan(Tb))
-        a = alpha[calibration_cycle]/100
-        lab = r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'
 
-        #Tb_corrected_factor = Tb*(1+a) - np.nanmean(Tb.data)*(a) - broadband_bias[calibration_cycle]
-        
-        # 
-        mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
-        Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
-        new_corr_U5303 = (1-a)*Tb_U303_cut.data + a* (np.nanmean(Tb_U303_cut.data) + broadband_bias[calibration_cycle])
+        for i, a in enumerate(alpha):
+            #a = alpha[calibration_cycle]/100
+            
+            lab = r'$ \alpha =$ '+f'{a:.0f}'+r'\%'
+            a = a/100
 
-        U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
-        AC240_Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
-        AC240_Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
+            mod_U5303 = (1-a)*Tb_U303_cut.data + a*np.nanmean(Tb_U303_cut.data)
+            Tb_corrected_factor_non_lin = mod_U5303+broadband_bias[calibration_cycle]
+            new_corr_U5303 = (1-a)*Tb_U303_cut.data + a* (np.nanmean(Tb_U303_cut.data) + broadband_bias[calibration_cycle])
 
-        #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
-        #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
+            U5303_non_lin = Tb_U303_cut.data+broadband_bias[calibration_cycle]
+            AC240_Tb_corr = (1/(1-a))*(Tb - a*np.nanmean(Tb))
+            AC240_Tb_corr_all = (1/(1-a))*(Tb - a*np.nanmean(Tb) - broadband_bias[calibration_cycle])
 
-        #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
-        Tb_diff_corrected = AC240_Tb_corr-Tb_U303_cut.data
-        Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
-        #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
-        Tb_diff_corrected_non_lin_1 = AC240_Tb_corr_all-Tb_U303_cut.data
-        Tb_diff_corrected_new = Tb-new_corr_U5303
-        #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
-        ax1.legend()
+            #Tb_corrected_factor = U5303_non_lin*(1-a) + a*np.nanmean(U5303_non_lin)
+            #Tb_corrected_factor = Tb/(1-a) - (a/(1-a))*(np.nanmean(Tb.data) - broadband_bias[calibration_cycle])
 
-        #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
+            #Tb_diff_corrected = Tb_corrected_factor-clean_Tb
+            Tb_diff_corrected = AC240_Tb_corr-Tb_U303_cut.data
+            Tb_diff_corrected_non_lin_only = Tb-U5303_non_lin
+            #Tb_diff_corrected_non_lin = Tb-Tb_corrected_factor
+            Tb_diff_corrected_non_lin_1 = AC240_Tb_corr_all-Tb_U303_cut.data
+            Tb_diff_corrected_new = Tb-new_corr_U5303
+            #ax1.plot(clean_f/1e9, Tb_corrected_factor, lw=0.5, color='r', label='AC240 corrected')
+            ax1.legend()
 
-        clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
-        smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
-        smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
-        #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
-        smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
-        smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
-        smoothed_diff_new = np.convolve(Tb_diff_corrected_new, np.ones((binning,))/binning, mode='full') 
+            #(1-al)*Tb_U303_cut.data + al* np.nanmean(Tb_U303_cut.data)
 
-        
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_new , lw=0.8, color='k',label='new')
-        
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'+', with non-lin')
-        #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
+            clean_f_smoothed = np.convolve(clean_f, np.ones((binning,))/binning, mode='full')
+            smoothed_diff_simple = np.convolve(Tb_diff, np.ones((binning,))/binning, mode='full')
+            smoothed_diff = np.convolve(Tb_diff_corrected, np.ones((binning,))/binning, mode='full')
+            #smoothed_diff_corr_non_lin = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full')
+            smoothed_diff_only_non_lin = np.convolve(Tb_diff_corrected_non_lin_only, np.ones((binning,))/binning, mode='full') 
+            smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin_1, np.ones((binning,))/binning, mode='full') 
+            smoothed_diff_new = np.convolve(Tb_diff_corrected_new, np.ones((binning,))/binning, mode='full') 
 
+            if i==0:
+                ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_spectro[s], label=r'$ \alpha = 0\%$')
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_corr1, label=lab)
+            ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=cmap(0.4+i*0.13), label=lab)
 
-        ax2.axhline(0,lw=0.6, color='k', ls='--')
-        ax2.set_title(title2)
-        ax2.set_ylim(-1,0.4)
-        ax2.yaxis.set_major_locator(MultipleLocator(0.2))
-        ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
-        ax2.set_ylabel('$\Delta T_B$ [K]')
-        ax2.set_xlabel("frequency [GHz]")
-        ax2.set_xlim(110.25, 111.4)
-        #ax23.set_ylabel('[%]')
-        ax2.grid(which='both')
-        ax2.legend(loc=4)
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_new , lw=0.8, color='k',label='new')
+
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color=color_corr2, label=r'$ \alpha =$ '+f'{alpha[calibration_cycle]:.0f}'+r'\%'+', with non-lin')
+            #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
+            #ax2.plot(clean_f/1e9, broadband_bias[calibration_cycle], lw=1.5, color=color_corr3, label='non-lin alone')
+
+            ax2.axhline(0,lw=0.6, color='k', ls='--')
+            ax2.set_title(title2)
+            ax2.set_ylim(-1,0.4)
+            ax2.yaxis.set_major_locator(MultipleLocator(0.2))
+            ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
+            ax2.set_ylabel('$\Delta T_B$ [K]')
+            ax2.set_xlabel("frequency [GHz]")
+            ax2.set_xlim(110.25, 111.4)
+            #ax23.set_ylabel('[%]')
+            ax2.grid(which='both')
+            ax2.legend(loc=4)
     fig.tight_layout(rect=[0, 0.01, 1, 0.99])
     plt.show()
     
@@ -985,7 +1004,6 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
     ax2 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_alpha = ['tab:orange','red','green','blue']
     fs=14
     for s in spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -994,8 +1012,8 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         #Tb_OG = ds_dict[s].interpolated_Tb[calibration_cycle].data
         #Tb_diff = (Tb-clean_Tb)/clean_Tb
         Tb_diff = Tb-clean_Tb
-        ax1.plot(clean_f/1e9, Tb, color=color_spectro[s], lw=0.5, label=s)
-        ax1.plot(clean_f/1e9, clean_Tb, lw=0.5, color=color_spectro[use_basis], label=use_basis)
+        ax1.plot(clean_f/1e9, Tb, color=color_spectro[s], lw=0.7, label=s)
+        ax1.plot(clean_f/1e9, clean_Tb, lw=0.8, color=color_spectro[use_basis], label=use_basis)
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
@@ -1056,11 +1074,11 @@ def compare_spectra_binned_interp_mopi5_clean_factor_variable_paper(cal_int_obj,
         smoothed_diff_non_lin_corr = np.convolve(Tb_diff_corrected_non_lin, np.ones((binning,))/binning, mode='full') 
         
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_alpha[0], label=r'$ \alpha = 0\%$')
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color='r', label=lab)
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_simple, lw=0.8, color=color_spectro['AC240'], label=r'$ \alpha = 0\%$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff, lw=0.8, color=color_corr1, label=lab)
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_only_non_lin , lw=0.8, color=color_alpha[3], label=r'$ \alpha$ = 0%, with $\Delta T_{B,nonlin}$')
         
-        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color='g', label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
+        ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.8, color=color_corr2, label=r'$ \alpha = 8\%$, with $\Delta T_{B,c}$')
         #ax2.plot(clean_f_smoothed/1e9, smoothed_diff_non_lin_corr , lw=0.3, color='m', label=r'$ \alpha$ = 8%,')
 
 
@@ -1088,7 +1106,7 @@ def compare_spectra_binned_interp_mopi5_clean_corr(cal_int_obj, ds_dict, calibra
     ax3 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].interpolated_Tb_corr[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
-    color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
+    #color_spectro = {'AC240':'tab:orange', 'USRP-A':'tab:green', 'U5303':'tab:blue'}
     for s in cal_int_obj.spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
         #mask[mask==0]=np.nan
@@ -1335,6 +1353,7 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
     ax3 = fig.add_subplot(212)
     clean_Tb = ds_dict[use_basis].binned_Tb[calibration_cycle].data
     clean_f = ds_dict[use_basis].bin_freq.data
+    clean_f = np.convolve(clean_f, np.ones((2,))/2, mode='full')
     fs=14
     for s in cal_int_obj.spectrometers:
         #mask = ds_dict[s].good_channels[calibration_cycle].data
@@ -1342,22 +1361,28 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         Tb =  ds_dict[s].interpolated_Tb[calibration_cycle].data
         #Tb_diff = (Tb-clean_Tb)/clean_Tb
         Tb_diff = Tb-clean_Tb
-        ax1.plot(clean_f/1e9, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.5, label=s)
+
+        
+        Tb_diff = np.convolve(Tb_diff, np.ones((2,))/2, mode='full')
+        Tb_plot = np.convolve(Tb, np.ones((2,))/2, mode='full')
+        #clean_Tb_plot = np.convolve(clean_Tb, np.ones((4,))/4, mode='full')
+
+        ax1.plot(clean_f/1e9, Tb_plot, lw=0.8, label=s, color=color_spectro[s])
         ax1.set_xlim(110.25, 111.4)
         #ax1.set_ylim(np.median(ds_dict[s].Tb[id].data)-10,np.median(ds_dict[s].Tb[id].data)+15)
         ax1.set_xlabel("Frequency [GHz]", fontsize=fs)
         ax1.set_ylabel(r"Brightness Temperature [K]", fontsize=fs)
-        ax1.yaxis.set_major_locator(MultipleLocator(4))
+        ax1.yaxis.set_major_locator(MultipleLocator(2))
         #ax1.set_title(title)
         ax1.grid()
         ax1.legend(fontsize=fs)
         ax1.tick_params(axis='both', which='major', labelsize=fs)
-        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, ds_dict[s].interpolated_Tb[calibration_cycle].data, lw=0.2, color=color_spectro[s])
+        ax2.plot((clean_f-cal_int_obj.observation_frequency)/1e6, Tb_plot, lw=0.4, color=color_spectro[s])
         ax2.set_xlim(-10, 10)
         #ax2.set_xlabel('[MHz]')
         #ax2.set_yticklabels([])
         #ax2.set_xticklabels([])
-        ymax = np.nanmax(ds_dict[s].interpolated_Tb[calibration_cycle].data)
+        ymax = np.nanmax(Tb_plot)
         if not np.isnan(ymax):
             ax2.set_ylim(ymax-4,ymax+0.5)
             ax2.yaxis.set_major_locator(MultipleLocator(2))
@@ -1368,17 +1393,18 @@ def compare_spectra_binned_interp_mopi5_clean(cal_int_obj, ds_dict, calibration_
         ax2.grid(which='both')
 
         if s in spectrometers:
-            ax3.plot(clean_f/1e9, Tb_diff, lw=0.5, label=s, color=color_spectro[s])
+            ax3.plot(clean_f/1e9, Tb_diff, lw=0.8, label=s, color=color_spectro[s])
             # print('$T_b$ differences, '+s)
             # print(np.nanmean(Tb_diff))
             ax3.axhline(0,lw=0.6, color='k', ls='--')
         ax3.set_title('Differences with: '+use_basis, fontsize=fs)
-        ax3.set_ylim(-1.5,0.5)
+        ax3.set_ylim(-1,0.4)
         ax3.yaxis.set_minor_locator(MultipleLocator(0.5))
         ax3.set_ylabel('$\Delta T_B$ [K]', fontsize=fs)
         ax3.set_xlabel("Frequency [GHz]", fontsize=fs)
         ax3.set_xlim(110.25, 111.4)
-        #ax3.set_ylabel('[%]')
+        ax3.yaxis.set_major_locator(MultipleLocator(0.2))
+        ax3.yaxis.set_minor_locator(MultipleLocator(0.1))
         ax3.grid(which='both')
         #ax3.legend(fontsize='xx-small')
         ax3.tick_params(axis='both', which='major', labelsize=fs)
@@ -2299,11 +2325,11 @@ def plot_O3_3on1_paper(level2_data, outName, spectrometer, cycles=[0]):
 
 
             legend_elements2 = [
-                Line2D([0], [0], color='k', ls='--', label='smoothing'),
-                Line2D([0], [0], color='k', ls='-',label='observation'),
+                Line2D([0], [0], color='k', ls='--', label='smoothing error'),
+                Line2D([0], [0], color='k', ls='-',label='measurement error'),
             ]
             #axs[2].legend(loc='upper center')
-            axs[2].legend(handles=legend_elements2, fontsize=fs, loc='upper right')
+            axs[2].legend(handles=legend_elements2, fontsize=fs-2, loc='upper right')
 
 
             for a in axs:
@@ -2323,6 +2349,7 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
     # ax3 = fig.add_subplot(1,3,3      
     
     figure_o3_sel=list()
+    
     
     # plt.rcParams['pdf.fonttype'] = 42
     # plt.rcParams['ps.fonttype'] = 42
@@ -2346,15 +2373,17 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
             #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
        #     axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
             counter=0
-            for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
+            color_count = 0
+            for j, avk in enumerate(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm):
                 if 0.6 <= np.sum(avk) <= 1.4:
                     counter=counter+1
-                    if np.mod(counter,6)==0:
-                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color='r')
+                    if np.mod(counter,5)==0:
+                        axs[pl].plot(avk, o3_z / 1e3, label='z ='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km', color=cmap(color_count*0.125+0.01))
+                        color_count = color_count +1
                     else:
-                        axs[pl].plot(avk, o3_z / 1e3, color='k')
+                        axs[pl].plot(avk, o3_z / 1e3, color='silver')
             
-            axs[pl].plot(mr/2, o3_z/1e3, color='b', label='MR/2')
+            axs[pl].plot(mr/2, o3_z/1e3, color='k', label='MR/2')
 
        #     axs[0].set_title('$O_3$ VMR')
             #axs[pl].set_xlim(-0.5,11)
@@ -2368,7 +2397,7 @@ def plot_O3_3on1_avks_paper(level2_data, outName, spectrometer, cycles=[0]):
             axs[pl].set_ylabel('Altitude [km]', fontsize=fs)
             axs[pl].set_title(spectro, fontsize=fs+4)
 
-            axs[pl].legend(fontsize=fs)
+            axs[pl].legend(fontsize=fs-1)
             axs[pl].tick_params(axis='both', which='major', labelsize=fs)
 
             for a in axs:
