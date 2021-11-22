@@ -319,9 +319,13 @@ if calibrationTool.timeNumber < datenum(2010,03,10)
 
     % Not working for now before 2010-03-10
     calibrationTool.doTippingCurve = false;
+end
 
-
-
+% Noise Temperature
+if calibrationTool.timeNumber <= datenum(2013,11,07)
+    % Change in TNoise at that date
+    calibrationTool.TNoiseCenterTh = 2550;
+    calibrationTool.stdTNoiseThresh = 15;
 end
 
 if calibrationTool.timeNumber <= datenum(2010,08,18)
@@ -331,7 +335,7 @@ elseif (calibrationTool.timeNumber > datenum(2010,08,18) && calibrationTool.time
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 0;
     
-    calibrationTool.stdTNoiseThresh = 15;
+    
 elseif calibrationTool.timeNumber > datenum(2020,06,19)
     calibrationTool.goodFlagLN2Above = 0;
     calibrationTool.goodFlagLN2Below = 0;
@@ -348,6 +352,7 @@ if  calibrationTool.timeNumber < datenum(2012,04,26)
     % Before 26.04.12, no drift quantities because the order of the
     % observation was not the same !
     calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
+    calibrationTool.adcOverloadThresh = 10;
 
     % Before April 2012, same angle measured for the 3 position
     calibrationTool.elevationAngleAntenna=39.85;
