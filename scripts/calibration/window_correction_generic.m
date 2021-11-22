@@ -53,6 +53,7 @@ for t = 1:length(spectra)
             % Correcting with intensity:
             intensityWindow = planck_function(calibrationTool, TemperatureWindow, frequencies);
             spectra(t).intensityPlanckWinCorr = (spectra(t).intensity_planck -  intensityWindow*(1-calibrationTool.transmittanceWindow))./calibrationTool.transmittanceWindow;
+            spectra(t).intensityPlanckWinCorr(spectra(t).intensityPlanckWinCorr < 0) = nan;
             spectra(t).TbWinCorr = planck_Tb(calibrationTool, spectra(t).intensityPlanckWinCorr, frequencies);
             
             % Correcting with RJE Tb (should be the same)
