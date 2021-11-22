@@ -110,6 +110,8 @@ def get_sunset_lst_from_lst(lst, lat):
 
 def get_LST_from_GROMORA(dt, lat, lon):
     #dt = utc.localize(datetime64_2_datetime(date))
+    if np.issubdtype(dt.dtype, np.datetime64) :
+        dt = datetime64_2_datetime(dt).replace(tzinfo=gromora_tz)
     print('UTC time: ',dt) 
     local_time =  dt.astimezone(local_timezone)
     print('Local time: ',local_time)
@@ -144,6 +146,7 @@ def get_LST_from_GROMORA(dt, lat, lon):
 if __name__ == "__main__":
     #date = spectro_dataset.time.data[0]
     date = np.datetime64('2021-10-20 00:06:00.123456')
+    
     dt = datetime64_2_datetime(date).replace(tzinfo=gromora_tz)
     doy= pd.to_datetime(date).dayofyear
 
