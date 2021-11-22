@@ -96,7 +96,10 @@ for i = 1:nTippingCurve
         lenTC = length(TC_data(i).skyAngle);
     else
         if length(TC_data(i).skyAngle) ~= lenTC
-            TC_data(i) = [];
+            %TC_data(i) = [];
+            % If the number of angles is not constant, we just don't do any
+            % tipping curve (problem when saving the data). 
+            error('Problem with tipping curve for this day, deactivating')
         end
     end
 end

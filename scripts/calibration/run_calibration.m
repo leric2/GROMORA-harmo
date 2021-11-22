@@ -99,6 +99,8 @@ if calibrationTool.doTippingCurve
         calibrationTool);
     if ~isempty(fieldnames(TC))
         logFile.TC = TC;
+    else
+        calibrationTool.doTippingCurve = false;
     end
 end
 

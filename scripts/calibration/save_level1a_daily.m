@@ -141,7 +141,7 @@ nccreate(filename,'/flags/calibration_flags','Dimensions',{'flags',lenErrorVect,
 nccreate(filename,'/tipping_curve/time','Dimensions',{'time',Inf},'Datatype','double')
 
 % if the vector does not exist, we replace it with a scalar NaN
-if isfield(logFile,'TC')
+if isfield(logFile,'TC')  & calibrationTool.doTippingCurve
     lenTipping=length(logFile.TC(1).sky);
     lenFreqTC=length(logFile.TC(1).tippingCurveRawCounts);
 else
@@ -327,7 +327,7 @@ ncwriteatt(filename,'/tipping_curve/time','units',calibrationTool.meanDatetimeUn
 ncwriteatt(filename,'/tipping_curve/time','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/tipping_curve/time','description','mean time of the sky observation for this tc');
 ncwriteatt(filename,'/tipping_curve/time','timezone',calibrationTool.timeZone);
-if isfield(logFile,'TC')
+if isfield(logFile,'TC') & calibrationTool.doTippingCurve
     ncwrite(filename,'/tipping_curve/time',[logFile.TC.meanDateNum]);
     ncwrite(filename,'/tipping_curve/channel_idx_tc',logFile.TC(1).channels);
     ncwrite(filename,'/tipping_curve/tipping_angle',vertcat(logFile.TC.skyAngle)');
