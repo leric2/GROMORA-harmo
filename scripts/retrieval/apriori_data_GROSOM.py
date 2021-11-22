@@ -31,7 +31,7 @@ from retrievals.data import p_interpolate
 
 from pysolar import *
 
-from GROMORA_time import pysolar_sza, get_LST_from_UTC
+from GROMORA_time import pysolar_sza, get_LST_from_GROMORA
 
 
 #from typhon.arts.xml import load
@@ -477,7 +477,7 @@ def read_waccm(retrieval_param, extra_day=0):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    lst, ha, sza, night = get_LST_from_UTC(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    lst, ha, sza, night = get_LST_from_GROMORA(datetime, retrieval_param['lat'], retrieval_param['lon'])
     #(sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
     if night:
         tod = 'night'
@@ -545,7 +545,7 @@ def read_waccm_monthly(retrieval_param):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    lst, ha, sza, night = get_LST_from_UTC(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime, retrieval_param['lat'], retrieval_param['lon'])
 
     if night:
         tod = 'night'
