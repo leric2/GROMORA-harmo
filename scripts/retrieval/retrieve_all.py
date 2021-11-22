@@ -72,7 +72,7 @@ def retrieve_day(date, instrument_name):
             int_time)
         retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
-        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v2/',str(date.year))
         basename_lvl2 = os.path.join('/storage/tub/instruments/somora/level2/v1/',str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
@@ -107,7 +107,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
-    retrieval_param['sensor'] = 'FFT'
+    retrieval_param['sensor'] = 'FFT_SB'
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
@@ -121,16 +121,16 @@ def retrieve_day(date, instrument_name):
     retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 112e3
     retrieval_param["z_bottom_sim_grid"] = 600
-    retrieval_param["z_resolution_sim_grid"] = 1e3
+    retrieval_param["z_resolution_sim_grid"] = 2e3
 
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
     retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 20e3 
-    retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
-    retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
+    # retrieval_param["z_top_ret_grid_h2o"] = 20e3 
+    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
+    # retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
     retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
     # retrieval_param["z_top_ret_grid_h2o"] = 20e3
     # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
@@ -147,6 +147,8 @@ def retrieve_day(date, instrument_name):
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
+    retrieval_param['ptz_merge_method'] = 'max_diff' # max_diff, simple_stack_corr, simple
+    retrieval_param['ptz_merge_max_Tdiff'] = 5
     retrieval_param['h2o_apriori']= 'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
@@ -154,6 +156,7 @@ def retrieve_day(date, instrument_name):
 
     retrieval_param['o3_apriori']='waccm_monthly'   
     retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
+    retrieval_param['plot_o3_apriori_covariance'] = False
     #retrieval_param['o3_apriori']='gromos'   
     retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
 
@@ -162,6 +165,10 @@ def retrieve_day(date, instrument_name):
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8
+
+    retrieval_param['covmat_polyfit_0'] = 0.1
+    retrieval_param['covmat_polyfit_1'] = 0.5
+    retrieval_param['covmat_polyfit_2'] = 0.5
 
     retrieval_param['water_vapor_model'] = 'H2O-PWR98' #'H2O-PWR98, H2O'  #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
     retrieval_param['o2_model'] = 'O2-PWR93' #'O2-MPM93'
@@ -205,8 +212,9 @@ def retrieve_day(date, instrument_name):
     spectro = 'AC240'
     spectro_dataset = instrument.integrated_data[spectro]
 
-    cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-    cycles = [1,15]
+    cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
+    cycles= np.where((flags[spectro].calibration_flags.data[:,0]+ flags[spectro].calibration_flags.data[:,1])==2 )[0]
+    #cycles = [1,15]
     #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
@@ -343,15 +351,40 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt_dx10_winCorr_newF.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    void_date_problem = [ datetime.date(2018,5,5),datetime.date(2018,12,24),datetime.date(2018,12,25), datetime.date(2018,12,26), datetime.date(2019,1,3)]
+    void_date_problem = [
+        datetime.date(2009,11,3), 
+        datetime.date(2009,11,27),
+        datetime.date(2009,12,25),
+        datetime.date(2009,12,26), 
+        datetime.date(2010,1,6), 
+        datetime.date(2010,1,7), 
+        datetime.date(2010,1,13),
+        datetime.date(2010,1,31),
+        datetime.date(2010,2,2),
+        datetime.date(2010,3,3),
+        datetime.date(2010,5,31),
+        datetime.date(2010,7,5),
+        datetime.date(2010,7,12),
+        datetime.date(2010,7,29),
+        datetime.date(2010,8,12),
+        datetime.date(2010,9,7),
+        datetime.date(2010,9,16),
+        datetime.date(2010,9,18),
+        datetime.date(2010,9,19),
+        datetime.date(2017,5,26), 
+        datetime.date(2018,5,5),
+        datetime.date(2018,12,24),
+        datetime.date(2018,12,25), 
+        datetime.date(2018,12,26), 
+        datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2018-01-01', end='2018-01-02')
+    dates = pd.date_range(start='2018-01-01', end='2018-03-31')
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -359,13 +392,13 @@ if __name__ == "__main__":
         if d in void_date_problem :
             print('abort core problem with this day : ',d ,' --> skipping')
         else:
-            try:
-                level2 = retrieve_day(d, 'GROMOS')
-            except:
-                print('problem retrieving day : ',d)
-            print('######################################################################################')
-            # print('######################################################################################')
             # try:
-            #     level2 = retrieve_day(d, 'SOMORA')
+            #     level2 = retrieve_day(d, 'GROMOS')
             # except:
             #     print('problem retrieving day : ',d)
+            # print('######################################################################################')
+            print('######################################################################################')
+            try:
+                level2 = retrieve_day(d, 'SOMORA')
+            except:
+                print('problem retrieving day : ',d)
