@@ -129,8 +129,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         print("Retrieval of Ozone and H20")
         good_channels = spectro_dataset.good_channels[cycle].data == 1
         bad_channels = spectro_dataset.good_channels[cycle].data == 0
-        ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
-        ds_y = spectro_dataset.Tb[cycle].values[good_channels]  
+        ds_freq = spectro_dataset.frequencies[cycle].values#[good_channels]
+        ds_y = spectro_dataset.Tb_win_corr[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
+        #ds_y = spectro_dataset.Tb_win_corr[cycle].values#[good_channels]
+        #ds_y = spectro_dataset.intensity_planck_win_corr[cycle].values[good_channels]  
 
         ds_num_of_channel = len(ds_freq)
         #ds_Tb = Tb[cycle].values
@@ -204,7 +206,6 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
     z_res = retrieval_param["z_resolution_sim_grid"]
     z_grid = np.arange(z_bottom, z_top, z_res)
     p_grid = z2p_simple(z_grid)
-
     ac.set_grids(f_grid, p_grid)
 
     # altitude for the retrieval
@@ -259,6 +260,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
 
     if retrieval_param["surface_altitude"] < min(ac.ws.z_field.value[:, 0, 0]):
         retrieval_param["surface_altitude"] = min(ac.ws.z_field.value[:, 0, 0])
+        retrieval_param["observation_altitude"] = min(ac.ws.z_field.value[:, 0, 0])
         print('Surface altitude has been changed to min of z_field : ',
               retrieval_param["surface_altitude"])
 
@@ -289,7 +291,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
             lo = instrument.lo
 
             if instrument.instrument_name == 'GROMOS':
-                deltaZ = 20.043e-3 #- 0.1e-3
+                deltaZ = 20.04e-3 - 0.1e-3
                 #deltaZ1 = 20.95e-3
                 lsb = 1e9*np.array([-4.101, -3.7,-3.1])
                 usb= -np.flip(lsb)
@@ -342,13 +344,13 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
 
             #sideband_response =  np.array([1,1,1,0,0,0])
             #
-            plt.plot(1e-9*(lo+plot_freq), 100*sideband_response_theory(deltaZ, lo + plot_freq, polarisation_change=True))
-            #plt.plot(plot_freq, sideband_response_theory(deltaZ1, lo + plot_freq))
-            plt.plot(1e-9*(lo+intermediate_freq), 100*sideband_response,'x')
-            plt.xlabel('RF [GHz]')
-            plt.ylabel('MPI transmission [%]')
-            plt.grid()
-            plt.title('MPI transmission, '+retrieval_param['sideband_response']+', '+instrument.instrument_name)
+            # plt.plot(1e-9*(lo+plot_freq), 100*sideband_response_theory(deltaZ, lo + plot_freq, polarisation_change=True))
+            # #plt.plot(plot_freq, sideband_response_theory(deltaZ1, lo + plot_freq))
+            # plt.plot(1e-9*(lo+intermediate_freq), 100*sideband_response,'x')
+            # plt.xlabel('RF [GHz]')
+            # plt.ylabel('MPI transmission [%]')
+            # plt.grid()
+            # plt.title('MPI transmission, '+retrieval_param['sideband_response']+', '+instrument.instrument_name)
 
             sensor = arts.SensorFFT_Sideband(ds_freq,
                 ds_df, 
@@ -427,10 +429,10 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         retrieval_param["apriori_H2O_stdDev"] * np.ones_like(p_grid_retrieval_h2o))
     #sx_water = covmat.covmat_diagonal_sparse((z_grid_retrieval_h2o/z_grid_retrieval_h2o[0])*retrieval_param["apriori_H2O_stdDev"])
 
-    sx_o2 = covmat.covmat_diagonal_sparse(
-        retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
-    sx_n2 = covmat.covmat_diagonal_sparse(
-        retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
+    # sx_o2 = covmat.covmat_diagonal_sparse(
+    #     retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
+    # sx_n2 = covmat.covmat_diagonal_sparse(
+    #     retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
     sx_water = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval_h2o),
         sigma1=retrieval_param["apriori_H2O_stdDev"] *
@@ -523,12 +525,21 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
 
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
         #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
-        
-        # plt.semilogy(1e6*sigma_o3, p_grid_retrieval)
-        # plt.gca().invert_yaxis()
-        # #plt.ylim((100000,100))
-        # plt.semilogy(0.1*1e6*ds_waccm.o3.data, ds_waccm.p.data)
-        
+    
+    elif retrieval_param['o3_apriori_covariance']=='low_alt_ratio_optimized':
+        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        smoothed_std = ds_waccm.o3_std.data
+        max_o3_p = ds_waccm.p.where(ds_waccm.o3 == max(ds_waccm.o3), drop=True).data
+
+        smoothed_std[ds_waccm.p.data>max_o3_p] = 0.12*ds_waccm.o3.where(ds_waccm.p>max_o3_p, drop=True).data
+        smoothed_std = 1e-6*smoothed_std/max(smoothed_std)
+        #smoothed_std[ds_waccm.p.data>4000] = 0.1*ds_waccm.o3.where(ds_waccm.p>4000, drop=True).data
+        #smoothed_std[ds_waccm.p.data<4000] = 0.5e-6
+        smoothed_std[ds_waccm.p.data<=max_o3_p] = 1e-6
+        smoothed_std = np.convolve(smoothed_std, np.ones(16)/16, mode ='same')
+
+        sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
+        #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)        
 
     sx = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval),
@@ -538,8 +549,20 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         cutoff=0.1
     )
 
-    #plt.matshow(sx.todense())
-    #plt.colorbar()
+
+
+    if retrieval_param['plot_o3_apriori_covariance']:
+        plt.figure()
+        plt.semilogy(1e6*sigma_o3, p_grid_retrieval)
+        plt.gca().invert_yaxis()
+        # #plt.ylim((100000,100))
+        # plt.semilogy(0.1*1e6*ds_waccm.o3.data, ds_waccm.p.data)
+
+        plt.figure()
+        plt.matshow(sx.todense())
+        plt.colorbar()
+
+
     ozone_ret = arts.AbsSpecies(
         species='O3',
         p_grid=p_grid_retrieval,
@@ -590,7 +613,9 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         else:
             y_var = retrieval_param['increased_var_factor']*np.square(
                 spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
-            #y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
+            #y_var = retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
+            if len(y_var) == len(bad_channels):
+                y_var[bad_channels] = 1e3*np.square(spectro_dataset.noise_level[cycle].data)
     else:
         print('Using standard y var')
         y_var = 0.04 * np.ones_like(ds_y)
@@ -601,7 +626,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
 
     #y_var = retrieval_param['increased_var_factor']*np.square(spectro_dataset.stdTb[cycle].data[good_channels])
     polyfit_ret = arts.Polyfit(
-        poly_order=2, covmats=[np.array([[0.1]]), np.array([[0.5]]), np.array([[0.5]])]
+        poly_order=2, covmats=[np.array([[retrieval_param['covmat_polyfit_0']]]), np.array([[retrieval_param['covmat_polyfit_1']]]), np.array([[retrieval_param['covmat_polyfit_2']]])]
     )
     # polyfit_ret = arts.Polyfit(
     #     poly_order=1, covmats=[np.array([[0.01]]), np.array([[0.1]])]
@@ -617,9 +642,11 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
    # periods = np.array([319e6])
     periods = retrieval_param['sinefit_periods']
     covmat_sinefit = covmat.covmat_diagonal_sparse(
-        np.ones_like([0.04, 0.0016])*1)
+        np.ones_like([1, 1]))
+
     sinefit_ret = arts.RetrievalQuantity(
         'Sinefit', covmat_sinefit, period_lengths=periods)
+    #sinefit_ret = arts.SineFit(periods, covmats=[np.array([[1,1]]), np.array([[1,1]])])
     #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
     #ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
     if retrieval_param['retrieval_quantities'] == 'o3_h2o':
@@ -655,7 +682,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
     ac.oem(
         method='gn',
         max_iter=10,
-        stop_dx=0.1,
+        stop_dx=20.1,
         display_progress=1,
         lm_ga_settings=[10, 2.0, 2.0, 100, 1, 99],
         inversion_iterate_agenda=inversion_iterate_agenda,
@@ -843,10 +870,10 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         retrieval_param["apriori_H2O_stdDev"] * np.ones_like(p_grid_retrieval_h2o))
     #sx_water = covmat.covmat_diagonal_sparse((z_grid_retrieval_h2o/z_grid_retrieval_h2o[0])*retrieval_param["apriori_H2O_stdDev"])
 
-    sx_o2 = covmat.covmat_diagonal_sparse(
-        retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
-    sx_n2 = covmat.covmat_diagonal_sparse(
-        retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
+    # sx_o2 = covmat.covmat_diagonal_sparse(
+    #     retrieval_param["apriori_o2_stdDev"] * np.ones_like(p_grid_retrieval))
+    # sx_n2 = covmat.covmat_diagonal_sparse(
+    #     retrieval_param["apriori_n2_stdDev"] * np.ones_like(p_grid_retrieval))
     sx_water = covmat.covmat_1d_sparse(
         grid1=np.log10(p_grid_retrieval_h2o),
         sigma1=retrieval_param["apriori_H2O_stdDev"] *
