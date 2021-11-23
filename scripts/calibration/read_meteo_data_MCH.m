@@ -60,7 +60,35 @@ try
     end
 catch ME
     warning(ME.message)
-    disp('no MCH data loaded for this day')
-    meteoData = struct();
+    try 
+        dateStringMeteo=['meteo_' calibrationTool.anetzStnName '.csv'];
+    
+        meteoDataFile=[calibrationTool.meteoAnetzExtraFolder dateStringMeteo];
+    
+        % Transforming it into matlab structure
+        T=readtable(meteoDataFile,'HeaderLines',1 , 'FileType','text');
+        T.Properties.VariableNames = {'year' 'month' 'day' 'hour' 'minute',...
+            'second' 'stationid' 'air_pressure' 'rel_humidity' 'air_temperature' 'grass_temperature',...
+            'precipitation' 'wind_dirn'  'wind_speed' 'max_gust' 'distant_lightning' 'near_lightning' 'global_rad'};
+        dateN = datenum(T.year, T.month, T.day, T.hour, T.minute, T.second);
+
+        % For speed reason, we keep only the 2 days before and after
+        % (useless anyway)
+        T.dateNum = dateN;
+        T = T(T.dateNum > calibrationTool.timeNumber-2 & T.dateNum < calibrationTool.timeNumber+2, :);
+        meteoData=table2struct(T);
+        
+        
+        for i = 1:length(meteoData)
+            meteoData(i).dateNum=T.dateNum(i)-calibrationTool.referenceTime;
+            meteoData(i).dateTime=datetime(T.dateNum(i),'ConvertFrom','datenum');
+            meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
+            %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');
+            meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
+            meteoData(i).air_temperature = meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
+        end
+    catch ME
+        disp('no MCH data loaded for this day')
+        meteoData = struct();
 end
 end

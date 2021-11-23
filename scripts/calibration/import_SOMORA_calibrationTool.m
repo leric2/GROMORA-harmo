@@ -82,11 +82,11 @@ calibrationTool.binaryType='ieee-be';
 
 %calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/2019/' calibrationTool.dateStr(6:7) '/'];
 calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
-%calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
+calibrationTool.rawFileFolder=['/media/esauvageat/INTENSO/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v1/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v2/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -161,6 +161,9 @@ calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.3;
 
 % Frequency lock flag
 calibrationTool.maxProportionFreqLockError = 0.1;
+
+% Max std dev of Gunn voltage
+calibrationTool.maxStdV_Gun = 1e-3;
 
 % Filters for flagging "bad channels"
 calibrationTool.maxStdDevTbCal = 25;
@@ -327,6 +330,10 @@ if calibrationTool.timeNumber>datenum(2009,09,22) && calibrationTool.timeNumber<
     calibrationTool.elevationAngleHot=180;
     calibrationTool.elevationAngleHotTol = 1;
     calibrationTool.elevationAngleColdTol = 1;
+
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
+
+    
 elseif calibrationTool.timeNumber>datenum(2012,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
 %     calibrationTool.elevationAngleAntenna=38;
 %     calibrationTool.elevationAngleCold=-92;
@@ -339,6 +346,22 @@ if calibrationTool.timeNumber>datenum(2009,01,01) && calibrationTool.timeNumber<
     % 28.12.2012 08:47:15 Zij: Acq restarted after Windows Update
     calibrationTool.adcOverloadThresh = 20;
 end
+
+% Noise temperature
+if (calibrationTool.timeNumber>= datenum(2009,01,01) && calibrationTool.timeNumber<datenum(2010,01,28))
+    calibrationTool.TNoiseCenterTh=3000;
+elseif (calibrationTool.timeNumber>= datenum(2010,01,28) && calibrationTool.timeNumber<datenum(2016,11,04))
+   calibrationTool.TNoiseCenterTh=2900;
+elseif (calibrationTool.timeNumber>=datenum(2016,11,04) && calibrationTool.timeNumber<datenum(2020,01,24))
+    % Change of noise temperature at this date
+    calibrationTool.TNoiseCenterTh=2700;
+    
+elseif calibrationTool.timeNumber>datenum(2020,01,24)
+    calibrationTool.TNoiseCenterTh=2080;
+
+end
+
+
 
 % TC
 

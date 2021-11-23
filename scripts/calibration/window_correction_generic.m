@@ -37,15 +37,23 @@ for t = 1:length(spectra)
     else
         if ~isnan(spectra(t).TWindow) 
             TemperatureWindow = spectra(t).TWindow;
+        elseif ~isnan(spectra(t).TRoom)
+            TemperatureWindow = spectra(t).TRoom;
+            if t==1
+                warning('no temperature found, correcting using Room temperature')
+            end
         else
-            TemperatureWindow = calibrationTool.zeroDegInKelvin + 18;
-            warning('no temperature found, correcting using standard window temperature (18°C)')
+            TemperatureWindow = calibrationTool.zeroDegInKelvin + 20;
+            if t==1
+                warning('no temperature found, correcting using standard window temperature (20°C)')
+            end
         end
         
         if calibrationTool.savePlanckIntensity
             % Correcting with intensity:
             intensityWindow = planck_function(calibrationTool, TemperatureWindow, frequencies);
             spectra(t).intensityPlanckWinCorr = (spectra(t).intensity_planck -  intensityWindow*(1-calibrationTool.transmittanceWindow))./calibrationTool.transmittanceWindow;
+            spectra(t).intensityPlanckWinCorr(spectra(t).intensityPlanckWinCorr < 0) = nan;
             spectra(t).TbWinCorr = planck_Tb(calibrationTool, spectra(t).intensityPlanckWinCorr, frequencies);
             
             % Correcting with RJE Tb (should be the same)

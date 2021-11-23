@@ -20,7 +20,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 plt.rcParams.update({
-    "text.usetex": False,
+    "text.usetex": True,
     "font.family": "serif",
     "font.sans-serif": ["Times New Roman"]})
 
@@ -81,17 +81,19 @@ df_bins = 200e3
 plot_spectra_schematic = False
 
 plot_comparison = False
-compare_level2_mopi5 = False
+compare_level2_mopi5 = True
 compare_alpha = False
+
 plot_spectra_comparison_scaling_corr_paper = False
-plot_spectra_comparison_3_spectro_paper = False
+plot_spectra_comparison_3_spectro_paper = True
 plot_bias = False
 plot_bias_TOD = False
 plot_bias_TOD_full = False
 plot_o3 = False
 plot_o3_sel = False
 plot_sel_paper = False
-plot_avks_paper = True
+plot_avks_paper = False
+plot_non_lin = False
 
 plot_bias_spectra_monthly = False
 
@@ -106,7 +108,7 @@ classic = np.arange(1, 24)
 
 # %%
 outfolder = '/home/eric/Documents/PhD/MOPI/Data/Level3/'
-outfolder = '/home/esauvageat/Documents/MOPI5/Level3/'
+#outfolder = '/home/esauvageat/Documents/MOPI5/Level3/'
 basename_lvl1 = "/storage/tub/instruments/mopi5/level1/"
 basename_lvl2 = "/scratch/MOPI5/Level1/"
 basename_lvl2 = "/storage/tub/instruments/mopi5/level2/"
@@ -157,23 +159,100 @@ if plot_spectra_comparison_3_spectro_paper:
     theoretical_nonlinearities = np.polyfit(
         [80, 186, 292], [0, -0.20, 0], deg=2)
     fitted_poly_theoretical_nonlinearities = np.poly1d(theoretical_nonlinearities)
+    f_bands = 1e6*np.arange(-450,550,100)
+    f_band_width = 100e6
 
     # Mean comparison
-    df_around_line = 25e6
+    df_around_line = 10e6
     mean_bias_USRP = np.ones(len(idx_all))
     for i in idx_all:
         Tb_diff = integrated_data['USRP-A'].interpolated_Tb[i].data - integrated_data['U5303'].binned_Tb[i].data
         Tb_diff = Tb_diff[(integrated_data['USRP-A'].bin_freq_interp> integration.observation_frequency-df_around_line ) & (integrated_data['USRP-A'].bin_freq_interp< integration.observation_frequency+df_around_line )]
-        print('Mean bias around obs freq for USRP-A an cycle ',str(i),': ')
-        print(np.nanmean(Tb_diff))
+        # print('Mean bias around obs freq for USRP-A an cycle ',str(i),': ')
+        # print(np.nanmean(Tb_diff))
         mean_bias_USRP[i] = np.nanmean(Tb_diff)
+    
+    
     mean_bias_AC240 = np.ones(len(idx_all))
+    mean_Tb = np.ones(len(idx_all))
     for i in idx_all:
         Tb_diff = integrated_data['AC240'].interpolated_Tb[i].data - integrated_data['U5303'].binned_Tb[i].data
         Tb_diff = Tb_diff[(integrated_data['AC240'].bin_freq_interp> integration.observation_frequency-df_around_line ) & (integrated_data['AC240'].bin_freq_interp< integration.observation_frequency+df_around_line )]
-        print('Mean bias around obs freq for AC240 an cycle ',str(i),': ')
-        print(np.nanmean(Tb_diff))
+        # print('Mean bias around obs freq for AC240 an cycle ',str(i),': ')
+        # print(np.nanmean(Tb_diff))
         mean_bias_AC240[i] = np.nanmean(Tb_diff)
+        mean_Tb[i]= np.nanmean(integrated_data['U5303'].binned_Tb[i].data)
+
+    fig = plt.figure(figsize=(9, 6))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(mean_Tb, mean_bias_AC240, '-o')
+    ax.grid()
+    ax.set_title(r'Differences AC240-U5303 around line center ($\pm$ 10 MHz)')
+    ax.set_xlabel('Tb [K]',fontsize=12)
+    ax.set_ylabel('Tb differences [K]',fontsize=12)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig.savefig('/storage/nas/MW/scratch/sauvageat/MOPI5/ToDiscuss/' + 'Tb_diff_line_center.pdf')
+
+    rel_bias_freq_bands =  np.ones((len(idx_all), len(f_bands)))
+    mean_tb_bands = np.ones((len(idx_all), len(f_bands)))
+    a=0.08
+    for i in idx_all:
+        Tb_corr = (1/(1-a))*(integrated_data['AC240'].interpolated_Tb[i].data-a*np.nanmean(integrated_data['AC240'].interpolated_Tb[i].data))
+        #Tb_diff = integrated_data['AC240'].interpolated_Tb[i].data - integrated_data['U5303'].binned_Tb[i].data
+        Tb_diff = Tb_corr - integrated_data['U5303'].binned_Tb[i].data
+        Tb_ref = integrated_data['U5303'].binned_Tb[i].data
+        for j, f in enumerate(f_bands):
+            f_start = integration.observation_frequency+f-f_band_width/2
+            f_stop = integration.observation_frequency+f+f_band_width/2
+            diff = Tb_diff[(integrated_data['AC240'].bin_freq_interp> f_start ) & (integrated_data['AC240'].bin_freq_interp< f_stop )]
+            Tb_mean_band = Tb_ref[(integrated_data['AC240'].bin_freq_interp> f_start ) & (integrated_data['AC240'].bin_freq_interp< f_stop )]
+            rel_bias_freq_bands[i, j] = np.nanmean(diff)#/np.nanmean(Tb_mean_band)
+            mean_tb_bands[i, j] = np.nanmean(Tb_mean_band)
+    
+    fig = plt.figure(figsize=(9, 6))
+    ax = fig.add_subplot(1, 1, 1)
+    for m in range(len(idx_all)):
+        ax.plot(1e-9*(integration.observation_frequency+f_bands), rel_bias_freq_bands[m,:], '-o', label='Tb = '+str(identifier_plot[m])+' K')
+    ax.grid()
+    ax.legend(fontsize='small',loc='upper right', ncol=2)
+    ax.set_title('Differences AC240-U5303')
+    ax.set_xlabel('Frequency [GHz]',fontsize=12)
+    ax.set_ylabel('Tb differences [K]',fontsize=12)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig.savefig('/storage/nas/MW/scratch/sauvageat/MOPI5/ToDiscuss/' + 'Tb_diff_vs_freq_bands.pdf')
+
+    fig, axes = plt.subplots(nrows=2, ncols=5,figsize=(20, 15))
+    for fn in [0,1,2,3,4]:
+        axes[0,fn].plot(mean_tb_bands[:,fn], rel_bias_freq_bands[:,fn], '-o', label='Non-linearity term')
+        axes[0,fn].plot(np.arange(75,220,2), fitted_poly_theoretical_nonlinearities(np.arange(75,220,2)), label='broadband correction')
+        axes[0,fn].grid()
+        axes[0,fn].set_ylim(-0.35, 0.1)
+        axes[0,fn].set_title(f'f = {1e-9*(integration.observation_frequency+f_bands[fn]):.2f} GHz' )
+        fitted_non_lin_per_frequency_band = np.polyfit(mean_tb_bands[:,fn], rel_bias_freq_bands[:,fn], deg=2)
+        print(fitted_non_lin_per_frequency_band[0])
+        fitted_non_lin_freq_band_plot = np.poly1d(fitted_non_lin_per_frequency_band)
+        axes[0,fn].plot(np.arange(75,220,2), fitted_non_lin_freq_band_plot(np.arange(75,220,2)), label=f'fit, QuadTerm = {1e5*fitted_non_lin_per_frequency_band[0]:.1f}e-5')
+        axes[0,fn].legend()
+    for fn in [5,6,7,8,9]:
+        axes[1,fn-5].plot(mean_tb_bands[:,fn], rel_bias_freq_bands[:,fn], '-o', label='Non-linearity term')
+        axes[1,fn-5].plot(np.arange(75,220,2), fitted_poly_theoretical_nonlinearities(np.arange(75,220,2)), label='broadband correction')
+        axes[1,fn-5].grid()
+        axes[1,fn-5].set_xlabel('Tb [K]',fontsize=12)
+        axes[1,fn-5].set_ylim(-0.35, 0.1)
+        axes[1,fn-5].set_title(f'f = {1e-9*(integration.observation_frequency+f_bands[fn]):.2f} GHz' )
+        fitted_non_lin_per_frequency_band = np.polyfit(mean_tb_bands[:,fn], rel_bias_freq_bands[:,fn], deg=2)
+        print(fitted_non_lin_per_frequency_band[0])
+        fitted_non_lin_freq_band_plot = np.poly1d(fitted_non_lin_per_frequency_band)
+        axes[1,fn-5].plot(np.arange(75,220,2), fitted_non_lin_freq_band_plot(np.arange(75,220,2)), label=f'fit, QuadTerm = {1e5*fitted_non_lin_per_frequency_band[0]:.1f}e-5')
+        axes[1,fn-5].legend()
+    #ax.legend(fontsize='small',loc='upper right')
+    fig.suptitle('Differences AC240 (unscaled)-U5303 by 100 MHz frequency bands', fontsize=20)
+    axes[0,0].set_ylabel('Tb differences [K]',fontsize=16)
+    axes[1,0].set_ylabel('Tb differences [K]',fontsize=16)
+    fig.tight_layout(rect=[0, 0.01, 1, 0.95])
+
+    fig.savefig('/storage/nas/MW/scratch/sauvageat/MOPI5/ToDiscuss/' + 'Tb_diff_vs_Tb_with_non-lin_theory.pdf')
+
     mean_bias_AC240_corr = np.ones(len(idx_all))
     a = 0.08
     for i in idx_all:
@@ -193,7 +272,7 @@ if plot_spectra_comparison_3_spectro_paper:
     integrated_data['U5303'].frequencies 
     integration.compare_spectra_binned_interp_mopi5(
         dim=dimension[0],
-        idx=[11],#np.arange(0,15),
+        idx=[0,11],#np.arange(0,15),
         spectrometers=['AC240', 'USRP-A'],
         save_plot=True,
         use_basis='U5303',
@@ -203,6 +282,14 @@ if plot_spectra_comparison_3_spectro_paper:
         corrected=False,
         outfolder=outfolder
     )
+if plot_non_lin:
+    continuum_amplitude_diff = integrated_data['AC240'].continuum_value_line_center - \
+        integrated_data['U5303'].continuum_value_line_center
+    fitted_factor_continuum = np.polyfit(
+        integrated_data['AC240'].mean_Tb, continuum_amplitude_diff, deg=2)
+    fitted_poly_continuum = np.poly1d(fitted_factor_continuum)
+    plt.plot(fitted_poly_theoretical_nonlinearities(integrated_data['U5303'].interpolated_Tb[10].data))
+
 
 if plot_bias_spectra_monthly:
 #%%
@@ -314,10 +401,11 @@ if plot_bias_spectra_monthly:
     # plt.xlabel('Frequency [GHz]')
     # plt.legend((r'$T_B < 80K$', r'$T_B >140K$'))
 
+
 if plot_spectra_comparison_scaling_corr_paper:
     integration.compare_spectra_binned_interp_mopi5_factor(
         dim=dimension[0],
-        idx=idx_all,
+        idx=[0,11],
         spectrometers=['AC240'],
         save_plot=True,
         use_basis='U5303',
@@ -325,7 +413,7 @@ if plot_spectra_comparison_scaling_corr_paper:
         identifier=identifier_plot,
         # alpha=-100*line_amplitude_diff.data,
         alpha=8*np.ones(15),
-        binning=4,
+        binning=2,
         lowerBound=lowerBound,
         variable=True,
         broadband_bias=fitted_poly_theoretical_nonlinearities(integrated_data['AC240'].interpolated_Tb.data),
@@ -336,14 +424,14 @@ if plot_spectra_comparison_scaling_corr_paper:
 if compare_alpha:
     integration.compare_spectra_binned_interp_mopi5_factor(
         dim=dimension[0],
-        idx=idx_all,
+        idx=[0,11],
         spectrometers=['AC240'],
         save_plot = True,
         use_basis='U5303',
         #identifier=TOD,
         identifier=identifier_plot,
-        alpha=8*np.ones(15),
-        #alpha=[0,7,8,9],
+        #alpha=8*np.ones(15),
+        alpha=[7,8,9],
         binning=4,
         lowerBound=lowerBound,
         variable=True,
@@ -631,17 +719,22 @@ if plot_bias:
 
 # %%
 if plot_bias_TOD:
-    monthly_color = ['indigo', 'green', 'darkorange', 'gold', 'red']
+    import matplotlib
+    cmap = matplotlib.cm.get_cmap('Dark2') 
+    #monthly_color = ['indigo', 'green', 'darkorange', 'gold', 'red']
+    monthly_color = [cmap(0.01), cmap(0.28),cmap(0.97), cmap(0.63),  'red']
     integration_strategy = 'TOD_harmo'
     month_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
     symbols = ['v','<','^','>','v']
     size = 8
     figures2 = list()
     end_dates = pd.date_range(start='2019-01-03', end='2019-04-30')
-    fig2 = plt.figure(figsize=(12,4))
-    ax1 = fig2.add_subplot(1, 3, 1)
-    ax2 = fig2.add_subplot(1, 3, 3)
-    ax3 = fig2.add_subplot(1, 3, 2)
+    fig5a = plt.figure(figsize=(4,4))
+    fig5b = plt.figure(figsize=(4,4))
+    fig5c = plt.figure(figsize=(4,4))
+    ax1 = fig5a.add_subplot(1, 1, 1)
+    ax2 = fig5b.add_subplot(1, 1, 1)
+    ax3 = fig5c.add_subplot(1, 1, 1)
     count = 0
     fs = 14
     for d in end_dates:
@@ -689,13 +782,13 @@ if plot_bias_TOD:
             print('no data for :', d)
             pass
     legend_elements = [
-        Line2D([0], [0], marker='v', color='w', markerfacecolor='indigo',
+        Line2D([0], [0], marker='v', color='w', markerfacecolor=monthly_color[0],
                label=month_name[0], markersize=size+2),
-        Line2D([0], [0], marker='<', color='w', markerfacecolor='green',
+        Line2D([0], [0], marker='<', color='w', markerfacecolor=monthly_color[1],
                label=month_name[1], markersize=size+2),
-        Line2D([0], [0], marker='^', color='w', markerfacecolor='darkorange',
+        Line2D([0], [0], marker='^', color='w', markerfacecolor=monthly_color[2],
                label=month_name[2], markersize=size+2),
-        Line2D([0], [0], marker='>', color='w', markerfacecolor='gold',
+        Line2D([0], [0], marker='>', color='w', markerfacecolor=monthly_color[3],
                label=month_name[3], markersize=size+2)
     ]
     ax2.text(85, -0.23, '$T_{cold}$', fontsize=fs, color='b')
@@ -705,7 +798,7 @@ if plot_bias_TOD:
     # ax2.legend(['U5303','AC240'], fontsize='small')
     # ax2.text(85, -0.23, '$T_{cold}$', fontsize=12, color='b')
     # ax2.text(250, -0.23, '$T_{hot}$', fontsize=12, color='r')
-    for ax in fig2.axes:
+    for ax in [ax1,ax2,ax3]:
         ax.grid()
         #ax.set_xlim(80,)
         ax.tick_params(axis='both', which='major', labelsize=14)
@@ -714,9 +807,14 @@ if plot_bias_TOD:
 
     #fig2.suptitle('Difference : '+s+' - U5303')
     # fig.suptitle('Mean hot counts')
-    fig2.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5a.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5b.tight_layout(rect=[0, 0.01, 1, 0.95])
+    fig5c.tight_layout(rect=[0, 0.01, 1, 0.95])
+
     plt.show()
-    figures2.append(fig2)
+    figures2.append(fig5a)
+    figures2.append(fig5b)
+    figures2.append(fig5c)
     save_single_pdf('/home/eric/Documents/PhD/MOPI/Data/Level3/'+'bias_all_rel' +
                     integration_strategy+'_2021.pdf', figures2)
 if plot_bias_TOD_full:
@@ -869,7 +967,7 @@ if compare_level2_mopi5:
     mean_o3_alt_range = dict()
 
     for s in ['AC240', 'AC240_unbiased', 'USRP-A']:
-    #for s in ['AC240']:
+    #for s in ['USRP-A']:
         alt_bias = xr.DataArray()
         mean_o3 = xr.DataArray()
         rel_bias = xr.DataArray()
@@ -966,16 +1064,18 @@ if compare_level2_mopi5:
     cb.ax.tick_params(labelsize=fs)
 
     for i in [0,1]:
-        axs[i].set_xlabel(r'Brightness Temperature Bands \#',fontsize=fs)
+        axs[i].set_xlabel(r'Mean Brightness Temperature [K]',fontsize=fs)
         axs[i].set_ylabel('Altitude [km]',fontsize=fs)
         axs[i].tick_params(axis='both', which='major', labelsize=fs)
+        axs[i].set_xticklabels(['',r'$77$',r'$88$',r'$98$',r'$107$',r'$117$',r'$135$',r'$159$',r'$209$'])
+
     axs[0].set_title('AC240')
     axs[1].set_title('AC240 corrected')
     #axs[1].set_title('USRP-A')
     pl.set_edgecolor('face')
 
     plt.tight_layout(rect=[0, 0.03, 0.87, 1])
-    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_all_rel_feb_paper_gaussian_approx.pdf')
+    fig.savefig('/home/eric/Documents/PhD/MOPI/Data/Level3/' + 'o3_diff_all_rel_feb_tblabel.pdf')
 
 if plot_o3_sel:
     spectro_lvl2 = integration.spectrometers
@@ -1007,23 +1107,27 @@ if plot_sel_paper:
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
     outname = '/home/eric/Documents/PhD/MOPI/Data/Level3/' +'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
-    outname = '/home/esauvageat/Documents/MOPI5/Level3'+'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
+    #outname = '/home/esauvageat/Documents/MOPI5/Level3'+'/'+'o3_comp_3on1_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= cycles
+<<<<<<< HEAD
+        cycles= [0]
+=======
+        cycles= [0,11]
+>>>>>>> fc2bc5bccecf53d2d7eaa99460c6911f4047069e
     )
 
 if plot_avks_paper:
     spectro_lvl2 = integration.spectrometers
     level2_data = integration.read_level2(
         spectrometers=spectro_lvl2, extra_base='fascod_paper')
-    outname ='/home/esauvageat/Documents/MOPI5/Level3' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
+    outname ='/home/eric/Documents/PhD/MOPI/Data/Level3' +'/'+'o3_comp_avks_'+integration.datestr + '_plot_all'
     mopi5_library.plot_O3_3on1_avks_paper(
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-        cycles= [0,11]
+        cycles= [0]
     )
     

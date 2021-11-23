@@ -79,6 +79,7 @@ correctedSpectra.numColdSpectra=ncread(filename,'/spectrometer1/number_of_cold_s
 correctedSpectra.numAntSpectra=ncread(filename,'/spectrometer1/number_of_sky_spectra')';
 correctedSpectra.TWindow=ncread(filename,'/spectrometer1/TWindow')';
 correctedSpectra.TRoom=ncread(filename,'/spectrometer1/TRoom')';
+correctedSpectra.VGunn=ncread(filename,'/spectrometer1/VGunn')';
 correctedSpectra.calibrationTime=ncread(filename,'/spectrometer1/calibration_time')';
 try
     correctedSpectra.noiseLevel=ncread(filename,'/spectrometer1/noise_level')';
@@ -188,6 +189,7 @@ for i = 1:length(correctedSpectra.meanTime)
     calibratedSpectra(i).TNoise = correctedSpectra.TNoise(i);
     calibratedSpectra(i).TWindow = correctedSpectra.TWindow(i);
     calibratedSpectra(i).TRoom = correctedSpectra.TRoom(i);
+    calibratedSpectra(i).VGunn = correctedSpectra.VGunn(i);
     calibratedSpectra(i).meanStdTb = correctedSpectra.meanStdTb(i);
     calibratedSpectra(i).mean_sky_elevation_angle  =  correctedSpectra.meanAngleAntenna(i);
     calibratedSpectra(i).number_of_hot_spectra  =  correctedSpectra.numHotSpectra(i);
