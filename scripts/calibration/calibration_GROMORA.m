@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2021_11_03','yyyy_mm_dd'):datenum('2021_11_03','yyyy_mm_dd');
+dates=datenum('2020_10_31','yyyy_mm_dd'):datenum('2020_10_31','yyyy_mm_dd');
 % dates=[datenum('2020_07_18','yyyy_mm_dd'):datenum('2020_07_19','yyyy_mm_dd'),...
 %      datenum('2020_08_18','yyyy_mm_dd'):datenum('2020_08_19','yyyy_mm_dd'),...
 %      datenum('2020_09_18','yyyy_mm_dd'):datenum('2020_09_19','yyyy_mm_dd'),...
@@ -112,8 +112,8 @@ for d = 1:numel(dates)
     calibrationTool=import_default_calibrationTool(dateStr);
     
     calibrationTool.instrumentName=instrumentName;
-    calibrationTool.calibrationVersion = '1.0';
-    
+    calibrationTool.calibrationVersion = '2.0';
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
@@ -178,6 +178,9 @@ for d = 1:numel(dates)
         % Import specific parameter and functions for this instrument
         calibrationTool = import_GROMOS_calibrationTool(calibrationTool);
         
+        % an extra folder where we copy missing anetz data (from STARTWAVE)
+        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+
     elseif strcmp(instrumentName, 'SOMORA')
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
@@ -201,6 +204,9 @@ for d = 1:numel(dates)
         
         % Import specific parameter and functions for this instrument
         calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
+
+        % an extra folder where we copy missing anetz data (from STARTWAVE)
+        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
 
     elseif strcmp(instrumentName,'mopi5')
         % FOR MOPI:
