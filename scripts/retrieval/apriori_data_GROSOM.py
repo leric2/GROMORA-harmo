@@ -354,9 +354,15 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # extrapolate to p_grid ??
     if z_grid is not None:
         ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
-    
-    # Temperature
+    #
+    #  Temperature
     atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
+    
+    if retrieval_param["retrieval_type"] == 8:
+        if retrieval_param["test_type"] == 'Tprofile':
+            print('Adding bias on Tprofile !')
+            atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values+retrieval_param['Tprofile_bias'])
+
 
     # z field
     atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
