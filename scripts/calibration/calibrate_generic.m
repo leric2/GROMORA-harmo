@@ -265,7 +265,17 @@ for i=1:nCalibrationCycles
     outlierDetectHotShort = reshape(sum(medStdDevThreshHotShort,2)>calibrationTool.threshNumRawSpectraHot,[],1);
     outlierDetectColdShort = reshape(sum(medStdDevThreshColdShort,2)>calibrationTool.threshNumRawSpectraCold,[],1);
     
-    % RFI filtering (in progress)
+
+
+    % Depending on the defined outlier detection technique for this
+    % calibration, we use the identified outliers to remove the spurious
+    % hot and cold individual spectra 
+    switch calibrationTool.outlierDectectionType
+        case 'standard' 
+            outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
+            outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
+        case 'RFI' 
+               % RFI filtering (in progress)
     % problematic channel
     RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
     % Using the cycle median and stddev to check for spurious sky
@@ -286,15 +296,7 @@ for i=1:nCalibrationCycles
     calibratedSpectra(i).freqRFI = calibratedSpectra(i).if(RFI_bad_channels) + 3300;
     outlierRFICold = reshape(sum(abs(calibratedSpectra(i).ColdSpectraRFI) > 10*mean_smoothed_diff_to_median_cold,2) > 10,[],1);
     outlierRFIHot = reshape(sum(abs(calibratedSpectra(i).HotSpectraRFI) > 10*mean_smoothed_diff_to_median_hot,2) > 10,[],1);
-
-    % Depending on the defined outlier detection technique for this
-    % calibration, we use the identified outliers to remove the spurious
-    % hot and cold individual spectra 
-    switch calibrationTool.outlierDectectionType
-        case 'standard' 
-            outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
-            outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
-        case 'RFI' 
+    
             outlierHot = (outlierRFIHot | outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
             outlierCold = (outlierRFICold | outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
 %             outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
@@ -465,19 +467,6 @@ switch calType
             medStdDevThreshSky=abs((rawSpectra(ia,:)-medianSpectra))>calibrationTool.skySpectraNumberOfStdDev*stdAntSpectra;
             outlierDetectSky = reshape(sum(medStdDevThreshSky,2)>calibrationTool.threshNumRawSpectraAnt,[],1);
             
-            % RFI filtering (in progress)
-            % problematic channel
-            RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
-            % Using the cycle median and stddev to check for spurious sky
-            % spectra during this cycle:
-
-            calibratedSpectra(i).AntSpectraRFI = movmean(rawSpectra(ia,RFI_bad_channels)-medianSpectra(RFI_bad_channels),100,2);
-            mean_smoothed_diff_to_median = abs(median(calibratedSpectra(i).AntSpectraRFI,2));
-            mean_smoothed_diff_to_median(mean_smoothed_diff_to_median<0.5) = 1 ;
-
-            %calibratedSpectra(i).freqRFI = calibratedSpectra(i).if(RFI_bad_channels) + 3300;
-            outlierRFI = reshape(sum(abs(calibratedSpectra(i).AntSpectraRFI) > 10*mean_smoothed_diff_to_median,2) > 10,[],1);
-
             % Depending on the defined outlier detection technique for this
             % calibration, we use the identified outliers to remove the spurious
             % sky individual spectra
@@ -485,13 +474,26 @@ switch calType
                 case 'standard'
                     outlierSky = (outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
                 case 'RFI'
+                    % RFI filtering (in progress)
+                    % problematic channel
+                    RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
+                    % Using the cycle median and stddev to check for spurious sky
+                    % spectra during this cycle:
+                    
+                    calibratedSpectra(i).AntSpectraRFI = movmean(rawSpectra(ia,RFI_bad_channels)-medianSpectra(RFI_bad_channels),100,2);
+                    mean_smoothed_diff_to_median = abs(median(calibratedSpectra(i).AntSpectraRFI,2));
+                    mean_smoothed_diff_to_median(mean_smoothed_diff_to_median<0.5) = 1 ;
+                    
+                    %calibratedSpectra(i).freqRFI = calibratedSpectra(i).if(RFI_bad_channels) + 3300;
+                    outlierRFI = reshape(sum(abs(calibratedSpectra(i).AntSpectraRFI) > 10*mean_smoothed_diff_to_median,2) > 10,[],1);
                     outlierSky = (outlierRFI | outlierDetectSky | skyAngleCheck | FFT_adc_overload_sky);
+                    calibratedSpectra(i).outlierRFI=sum(outlierRFI);
                 case 'noFFT'
                     outlierSky = (outlierDetectSky | skyAngleCheck);
                 case 'none'
                     outlierSky = zeros(size(ia));
             end
-            calibratedSpectra(i).outlierRFI=sum(outlierRFI);
+            
             calibratedSpectra(i).outlierDetectSky=sum(outlierDetectSky);
             calibratedSpectra(i).skyAngleCheck=sum(skyAngleCheck);
             calibratedSpectra(i).FFT_adc_overload_sky=sum(FFT_adc_overload_sky);
