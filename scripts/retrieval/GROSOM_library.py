@@ -536,7 +536,11 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
     
-    fig, axs = plt.subplots(2, sharex=True)
+
+    # Modelling error:
+    e_mod = np.matmul(ozone_ret.ws.dxdy.value, r)[0:len(ozone_ret.p_grid)]
+
+    fig, axs = plt.subplots(2, sharex=True, figsize=(12,10))
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, y, label="observed")
     axs[0].plot((f_backend - retrieval_param['obs_freq']) / 1e6, yf, label="fitted")
     #axs[0].set_ylim(-5, 50)
@@ -564,7 +568,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
 
-    fig, axs = plt.subplots(1, 2, sharey=True)
+    fig, axs = plt.subplots(1, 2, sharey=True, figsize=(12,10))
     axs[0].plot(
         ozone_ret.x * 1e6, ozone_ret.p_grid / 1e2, label="retrieved", marker="x"
     )
@@ -584,13 +588,15 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     axs[1].grid(True)
     figures.append(fig)
 
-    fig, axs = plt.subplots(1, 2, sharey=True)    
+    fig, axs = plt.subplots(1, 2, sharey=True, figsize=(12,10))    
 
     axs[0].plot(ozone_ret.es * 1e6, ozone_ret.p_grid / 1e2, label="smoothing error")
     axs[0].plot(ozone_ret.eo * 1e6, ozone_ret.p_grid / 1e2, label="obs error")
+    axs[0].plot(e_mod * 1e6, ozone_ret.p_grid / 1e2, label="modelling error")
     axs[0].set_xlabel("$e$ [ppm]")
     axs[0].set_ylabel("Pressure [hPa]")
     axs[0].legend()
+    axs[0].set_xlim(-0.5,1)
 
     # axs[1].plot(100*(ozone_ret.x - og_ozone)/og_ozone, ozone_ret.z_grid / 1e3, label="retrieval-og")
     # axs[1].plot(100*(ozone_ret.xa - og_ozone)/og_ozone, z_og / 1e3, label="apriori-og")
@@ -630,7 +636,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
         h2o_profile = h2o_ret.x[0]*ac.ws.vmr_field.value[1,:,0,0]
         z_h2o = ac.ws.z_field.value[:,0,0]
 
-        fig, axs = plt.subplots(2, 2, sharey=True)
+        fig, axs = plt.subplots(2, 2, sharey=True, figsize=(12,10))
         axs[0][0].semilogx(
             h2o_profile, z_h2o / 1e3, label="retrieved", marker="x"
         )
@@ -675,7 +681,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     
         temp = ac.ws.t_field_raw.value.to_xarray()
         alt = ac.ws.z_field_raw.value.to_xarray()
-        fig, axs = plt.subplots(1, 2)
+        fig, axs = plt.subplots(1, 2, figsize=(12,10))
         axs[0].plot(temp.sel(Latitude=0, Longitude=0).data, temp.Pressure)
         axs[0].invert_yaxis()
         axs[0].set_yscale('log')

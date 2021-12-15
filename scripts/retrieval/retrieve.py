@@ -40,6 +40,8 @@ from dotenv import load_dotenv
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
