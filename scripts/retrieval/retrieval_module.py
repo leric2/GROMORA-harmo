@@ -131,7 +131,8 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         bad_channels = spectro_dataset.good_channels[cycle].data == 0
         ds_freq = spectro_dataset.frequencies[cycle].values#[good_channels]
         ds_y = spectro_dataset.Tb_win_corr[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
-        #ds_y = spectro_dataset.Tb_win_corr[cycle].values#[good_channels]
+        #ds_y = spectro_dataset.Tb_win_corr[cycle].values[good_channels]
+        #ds_y = spectro_dataset.Tb[cycle].values[good_channels]
         #ds_y = spectro_dataset.intensity_planck_win_corr[cycle].values[good_channels]  
 
         ds_num_of_channel = len(ds_freq)
@@ -291,7 +292,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
             lo = instrument.lo
 
             if instrument.instrument_name == 'GROMOS':
-                deltaZ = 20.04e-3 - 0.1e-3
+                deltaZ = (20.04e-3 - 0.1e-3) - retrieval_param['SB_bias']
                 #deltaZ1 = 20.95e-3
                 lsb = 1e9*np.array([-4.101, -3.7,-3.1])
                 usb= -np.flip(lsb)
@@ -299,7 +300,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
                 usb_all = -np.flip(lsb_all)
                 plot_freq = np.arange(-4.101e9, +4.101e9, 10e6)
             elif instrument.instrument_name == 'SOMORA':
-                deltaZ = 11.5e-3
+                deltaZ = 11.5e-3 - retrieval_param['SB_bias']
                 #deltaZ1 = 20.95e-3
                 lsb = 1e9*np.array([-7.601, -7.1 ,-6.6])
                 usb= -np.flip(lsb)
@@ -387,7 +388,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         #     abs_p=ac.ws.p_grid.value[0],
         # )
        # ac.ws.abs_lookupCalc()
-        y_FM = ac.y_calc()
+        y_FM = ac.y_calc(jacobian_do=True)
        # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
         return ac, retrieval_param,sensor
 
@@ -615,7 +616,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
                 spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
             #y_var = retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
             if len(y_var) == len(bad_channels):
-                y_var[bad_channels] = 1e3*np.square(spectro_dataset.noise_level[cycle].data)
+                y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
     else:
         print('Using standard y var')
         y_var = 0.04 * np.ones_like(ds_y)

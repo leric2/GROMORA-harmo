@@ -255,7 +255,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                         retrieval_param['o2_model'], retrieval_param['n2_model']]
                     save_str='sensitivity_test_continuum'
                 elif test=='SB':
-                    retrieval_param['SB_bias'] = 0.9975
+                    retrieval_param['SB_bias'] = 0.05 # in mm
                     save_str = 'sensitivity_test_SB'
                 elif test=='Tcold' or test=='tWindow':
                     extra = '_'+test

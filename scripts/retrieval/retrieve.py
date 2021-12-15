@@ -24,19 +24,19 @@ Attributes:
 Todo: all
 
 """
-from abc import ABC
-import os
 import datetime
+import os
 import time
+from abc import ABC
 
-import numpy as np
-import xarray as xr
-import pandas as pd
-import netCDF4
 import matplotlib.pyplot as plt
-from utils_GROSOM import save_single_pdf
-
+import netCDF4
+import numpy as np
+import pandas as pd
+import xarray as xr
 from dotenv import load_dotenv
+
+from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
@@ -46,8 +46,8 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "GROMOS"
-    date = datetime.date(2021, 11, 3)
+    instrument_name = "SOMORA"
+    date = datetime.date(2018, 2, 26)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
-    #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
+    #line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_f_modified.xml'
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
@@ -65,24 +65,27 @@ if __name__ == "__main__":
     if instrument_name == "GROMOS":
         import gromos_classes as gc
         basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/gromos/level1/GROMORA/', str(date.year))
+            '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
         instrument = gc.GROMOS_LvL2(
             date,
             basename_lvl1,
             basename_lvl2,
             integration_strategy,
-            int_time)
+            int_time,
+            extra_base=''
+            )
         retrieval_param['increased_var_factor'] = 1  # 15
     elif instrument_name == "SOMORA":
         basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/somora/level1/v1/', str(date.year))
+            '/storage/tub/instruments/somora/level1/v2/', str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
             basename_lvl1=basename_lvl1,
             basename_lvl2=basename_lvl2,
             integration_strategy=integration_strategy,
-            integration_time=int_time
+            integration_time=int_time,
+            extra_base=''
         )
         retrieval_param['increased_var_factor'] = 1  # 1.1 #15
     elif instrument_name == "mopi5":
@@ -99,7 +102,14 @@ if __name__ == "__main__":
             integration_time=int_time
         )
 
-    cycles = np.arange(3, 4)
+    if integration_strategy == 'classic':
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
+            no_flag=False, meta_data=True, extra_base='')
+    else:
+        raise NotImplementedError(
+            'TODO, implement reading level1b in non classical cases !')
+
+    cycles = np.arange(9, 10)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -108,8 +118,9 @@ if __name__ == "__main__":
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = True
-    retrieval_param['sensor'] = 'FFT'
-    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
+    retrieval_param['sensor'] = 'FFT_SB'
+    retrieval_param['SB_bias'] = 0
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
     retrieval_param['sideband_response'] = 'theory'
@@ -155,7 +166,7 @@ if __name__ == "__main__":
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori'] = 'waccm_monthly'
+    retrieval_param['o3_apriori'] = 'waccm_monthly'#'waccm_monthly'
     # 'waccm_yearly_scaled'low_alt_ratio
     retrieval_param['plot_o3_apriori_covariance'] = True
     retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio_optimized' #low_alt_ratio_optimized
@@ -190,12 +201,7 @@ if __name__ == "__main__":
    # Baseline retrievals
     retrieval_param['sinefit_periods'] = np.array([319e6]) #np.array([319e6])
 
-    if integration_strategy == 'classic':
-        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
-            no_flag=False, meta_data=True, extra_base=None)
-    else:
-        raise NotImplementedError(
-            'TODO, implement reading level1b in non classical cases !')
+
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -461,6 +467,3 @@ if __name__ == "__main__":
             instrument.filename_level2[spectro]+'_'+save_str, figure_list)
         level2.to_netcdf(
             path=instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
-
-    # for d in [8]:
-    #     retrieve_day(d)

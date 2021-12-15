@@ -72,7 +72,7 @@ def retrieve_day(date, instrument_name):
             int_time)
         retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
-        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v2/',str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
         basename_lvl2 = os.path.join('/storage/tub/instruments/somora/level2/v1/',str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
@@ -108,6 +108,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
     retrieval_param['sensor'] = 'FFT_SB'
+    retrieval_param['SB_bias'] = 0
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
@@ -154,7 +155,7 @@ def retrieve_day(date, instrument_name):
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='waccm_monthly'   
+    retrieval_param['o3_apriori']='waccm_monthly'
     retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
     retrieval_param['plot_o3_apriori_covariance'] = False
     #retrieval_param['o3_apriori']='gromos'   
@@ -351,7 +352,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt_dx10_winCorr_newF.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
 
         return level2
     else:
@@ -384,7 +385,7 @@ if __name__ == "__main__":
         datetime.date(2018,12,26), 
         datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2018-01-01', end='2018-03-31')
+    dates = pd.date_range(start='2017-07-01', end='2017-07-31').append(pd.date_range(start='2018-07-01', end='2018-07-31'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -392,11 +393,11 @@ if __name__ == "__main__":
         if d in void_date_problem :
             print('abort core problem with this day : ',d ,' --> skipping')
         else:
-            # try:
-            #     level2 = retrieve_day(d, 'GROMOS')
-            # except:
-            #     print('problem retrieving day : ',d)
-            # print('######################################################################################')
+            try:
+                level2 = retrieve_day(d, 'GROMOS')
+            except:
+                print('problem retrieving day : ',d)
+            print('######################################################################################')
             print('######################################################################################')
             try:
                 level2 = retrieve_day(d, 'SOMORA')
