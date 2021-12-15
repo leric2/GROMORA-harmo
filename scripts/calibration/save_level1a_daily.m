@@ -44,7 +44,7 @@ function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibrated
 if calibrationTool.calType=="debug"
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
 else
-    filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+    filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
 end
 calibrationTool.filenameLevel1a=filename;
 
