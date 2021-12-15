@@ -73,6 +73,7 @@ for i = 1:size(calibratedSpectra,2)
     centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTNoise & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTNoise);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
+    calibratedSpectra(i).mean_Yfactor = mean(calibratedSpectra(i).Yspectral(centerChannels));
     
     % Removing extreme outliers before computing TN:
     boxCarFilter=ones(100,1)/100;
@@ -297,7 +298,7 @@ for i = 1:size(calibratedSpectra,2)
                % just for estimation
                Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            else
-               disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+               %disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
                Teff = 283 - calibrationTool.TC.deltaT; 
            end
            logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);

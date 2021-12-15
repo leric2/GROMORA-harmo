@@ -590,9 +590,13 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     fig, axs = plt.subplots(1, 2, sharey=True, figsize=(12,10))    
 
+    # Modelling error:
+    error_mod = np.matmul(ozone_ret.ws.dxdy.value, r)[0:len(ozone_ret.p_grid)]
+
     axs[0].plot(ozone_ret.es * 1e6, ozone_ret.p_grid / 1e2, label="smoothing error")
     axs[0].plot(ozone_ret.eo * 1e6, ozone_ret.p_grid / 1e2, label="obs error")
-    axs[0].plot(e_mod * 1e6, ozone_ret.p_grid / 1e2, label="modelling error")
+    axs[0].plot(error_mod * 1e6, ozone_ret.p_grid / 1e2, label="modelling error")
+
     axs[0].set_xlabel("$e$ [ppm]")
     axs[0].set_ylabel("Pressure [hPa]")
     axs[0].legend()

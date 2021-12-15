@@ -94,8 +94,7 @@ calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
 % Defining level1a filename to read (to be adapted for other users)
-calibrationTool.filenameLevel1a = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
-
+% calibrationTool.filenameLevel1a = [calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_Tcold.nc'];
 
 calibrationTool.checkLevel0=true;
 
@@ -322,7 +321,10 @@ if calibrationTool.timeNumber < datenum(2010,03,10)
 end
 
 % Noise Temperature
-if calibrationTool.timeNumber <= datenum(2013,11,07)
+if calibrationTool.timeNumber <= datenum(2010,03,16)
+     calibrationTool.TNoiseCenterTh = 2800;
+    calibrationTool.stdTNoiseThresh = 15;
+elseif (calibrationTool.timeNumber > datenum(2010,03,16)) && (calibrationTool.timeNumber <= datenum(2013,11,07))
     % Change in TNoise at that date
     calibrationTool.TNoiseCenterTh = 2550;
     calibrationTool.stdTNoiseThresh = 15;
