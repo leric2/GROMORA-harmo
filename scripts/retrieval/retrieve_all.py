@@ -62,14 +62,16 @@ def retrieve_day(date, instrument_name):
     retrieval_param = dict()
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/',str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/v2/',str(date.year))
         basename_lvl2 = os.path.join('/storage/tub/instruments/gromos/level2/GROMORA/v1/',str(date.year))
         instrument = gc.GROMOS_LvL2(
-            date, 
-            basename_lvl1, 
-            basename_lvl2, 
-            integration_strategy, 
-            int_time)
+            date,
+            basename_lvl1,
+            basename_lvl2,
+            integration_strategy,
+            int_time,
+            extra_base=''
+            )
         retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
@@ -80,7 +82,8 @@ def retrieve_day(date, instrument_name):
             basename_lvl1=basename_lvl1,
             basename_lvl2=basename_lvl2,
             integration_strategy=integration_strategy,
-            integration_time=int_time
+            integration_time=int_time,
+            extra_base=''
         )
         retrieval_param['increased_var_factor'] = 1 # 1.1 for constant o3 cov 
     elif instrument_name=="mopi5":
@@ -97,6 +100,13 @@ def retrieve_day(date, instrument_name):
             integration_time=int_time
         )
     
+    if integration_strategy == 'classic':
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
+            no_flag=False, meta_data=True, extra_base='')
+    else:
+        raise NotImplementedError(
+            'TODO, implement reading level1b in non classical cases !')
+
    # cycles = np.arange(1,24)
     
     #cycles = [17]
@@ -152,6 +162,7 @@ def retrieve_day(date, instrument_name):
     retrieval_param['ptz_merge_max_Tdiff'] = 5
     retrieval_param['h2o_apriori']= 'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
+    retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(d.year)
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -187,11 +198,6 @@ def retrieve_day(date, instrument_name):
 
     # Baseline retrievals 
     retrieval_param['sinefit_periods'] = np.array([319e6])
-    
-    if integration_strategy == 'classic':
-        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
-    else:
-        raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -352,7 +358,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt_RFI.nc')
 
         return level2
     else:
@@ -385,7 +391,7 @@ if __name__ == "__main__":
         datetime.date(2018,12,26), 
         datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2017-07-01', end='2017-07-31').append(pd.date_range(start='2018-07-01', end='2018-07-31'))
+    dates = pd.date_range(start='2021-12-16', end='2021-12-20')#.append(pd.date_range(start='2021-12-16', end='2021-12-20'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -398,8 +404,8 @@ if __name__ == "__main__":
             except:
                 print('problem retrieving day : ',d)
             print('######################################################################################')
-            print('######################################################################################')
-            try:
-                level2 = retrieve_day(d, 'SOMORA')
-            except:
-                print('problem retrieving day : ',d)
+            # print('######################################################################################')
+            # try:
+            #     level2 = retrieve_day(d, 'SOMORA')
+            # except:
+            #     print('problem retrieving day : ',d)
