@@ -116,7 +116,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         retrieval_param['FM_only'] = False
         retrieval_param['show_FM'] = True
         retrieval_param['sensor'] = 'FFT_SB'
-        retrieval_param['SB_bias'] = 1
+        retrieval_param['SB_bias'] = 0
         retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
         retrieval_param["obs_freq"] = instrument.observation_frequency
@@ -159,7 +159,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         retrieval_param['ptz_merge_max_Tdiff'] = 5
         retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
         # /tub/instruments/gromos/ECMWF_Bern'
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/instruments/gromos/ECMWF_Bern'
+        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(date.year)
         #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
         retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -254,6 +254,9 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                     retrieval_param['selected_species'] = ['O3', retrieval_param['water_vapor_model'],
                         retrieval_param['o2_model'], retrieval_param['n2_model']]
                     save_str='sensitivity_test_continuum'
+                elif test=='noise':
+                    retrieval_param['increased_var_factor'] = 1.1
+                    save_str='sensitivity_test_noise'
                 elif test=='SB':
                     retrieval_param['SB_bias'] = 0.05 # in mm
                     save_str = 'sensitivity_test_SB'
@@ -313,6 +316,6 @@ if __name__=='__main__':
     cycle = np.arange(7, 8)
     #cycle = np.arange(9, 10)
 
-    tests = ['og', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
+    tests = ['og', 'noise'] #'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
     for radiometer in instrument_name:
         sensitivity_analysis(radiometer, date, param=tests, cycles=cycle)

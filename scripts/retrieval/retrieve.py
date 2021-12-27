@@ -48,8 +48,8 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
-    date = datetime.date(2018, 2, 26)
+    instrument_name = "GROMOS"
+    date = datetime.date(2021, 12, 17)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     retrieval_param['ptz_merge_max_Tdiff'] = 5
     retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
     # /tub/instruments/gromos/ECMWF_Bern'
-    retrieval_param['ecmwf_store_location'] = '/storage/tub/instruments/gromos/ECMWF_Bern'
+    retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(date.year)
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
