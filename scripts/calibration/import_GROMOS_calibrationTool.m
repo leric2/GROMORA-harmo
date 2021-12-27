@@ -328,6 +328,9 @@ elseif (calibrationTool.timeNumber > datenum(2010,03,16)) && (calibrationTool.ti
     % Change in TNoise at that date
     calibrationTool.TNoiseCenterTh = 2550;
     calibrationTool.stdTNoiseThresh = 15;
+elseif calibrationTool.timeNumber > datenum(2021,12,16)
+    calibrationTool.TNoiseCenterTh = 3600;
+    calibrationTool.stdTNoiseThresh = 15;
 end
 
 if calibrationTool.timeNumber <= datenum(2010,08,18)
