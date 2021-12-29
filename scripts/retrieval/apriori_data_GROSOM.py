@@ -14,7 +14,6 @@ Including :
 """
 import os
 import numpy as np
-import retrievals
 import xarray as xr
 import pandas as pd
 import math
@@ -29,8 +28,6 @@ from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
-from pysolar import *
-
 from GROMORA_time import pysolar_sza, get_LST_from_GROMORA
 
 
@@ -40,6 +37,9 @@ from pyarts.xml import load
 ARTS_DATA_PATH = os.environ.get("ARTS_DATA_PATH", None)
 
 summer_months = [4, 5, 6, 7, 8, 9]
+
+month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
 
 class APrioriDataGROSOM(arts.Atmosphere):
     '''
@@ -51,7 +51,7 @@ class APrioriDataGROSOM(arts.Atmosphere):
         pass
 
 def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
-    '''i
+    '''
     Building the ecmwf store for atmospheric state
     '''
     if t1 > dt.datetime(2013,6,24):
@@ -69,9 +69,8 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
     )
 
     ds_ecmwf = read_add_geopotential_altitude(ds_ecmwf)
-    
-    print('ECMWF min pressure: ', min(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=min(ds_ecmwf.pressure.values)).values)
-    print('ECMWF max pressure: ', max(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=max(ds_ecmwf.pressure.values)).values)
+    # print('ECMWF min pressure: ', min(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=min(ds_ecmwf.pressure.values)).values)
+    #  print('ECMWF max pressure: ', max(ds_ecmwf.pressure.values), ', corresponding to geometric_height = ', ds_ecmwf.geometric_height.sel(pressure=max(ds_ecmwf.pressure.values)).values)
 
     return ds_ecmwf
 
@@ -330,7 +329,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf, "h")
     ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf, "h")
 
-    print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
+    if retrieval_param['verbose'] > 1:
+        print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
 
     # Read EACMWF data (oper for now)
     ECMWF_store_path = ecmwf_store
@@ -349,7 +349,14 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
 
     # Merging ecmwf and CIRA86
     ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86, method=retrieval_param['ptz_merge_method'], max_T_diff=retrieval_param['ptz_merge_max_Tdiff'])
+    
     #plot_apriori_ptz(ds_ptz)
+    if retrieval_param['verbose'] > 1:
+        print('Min pressure of the new grid: ', min(ds_ptz.p.values))
+        print('Max pressure of the new grid: ', max(ds_ptz.p.values))
+
+        print('Min altitude of the new grid (interpolated from cira86 !!): ', min(ds_ptz.z.values))
+        print('Max altitude of the new grid (interpolated from cira86 !!): ', max(ds_ptz.z.values))
     
     # extrapolate to p_grid ??
     if z_grid is not None:
@@ -399,7 +406,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
     elif retrieval_param['o3_apriori'] == 'waccm_monthly':
-        print('Ozone apriori from : WACCM climatology')
+        print('Ozone apriori from : WACCM monthly (day/night) climatology')
         ds_waccm = read_waccm_monthly(retrieval_param)
         atm.set_vmr_field(
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
@@ -446,7 +453,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
         "H2O", ds_ecmwf["pressure"].values, ds_ecmwf['specific_humidity'].values
         )
-        print('h2o taken from ecmwf')
+        if retrieval_param['verbose'] > 1:
+            print('h2o taken from ecmwf')
     elif retrieval_param['h2o_apriori']=='fascod_extended':
         fascod_atm = arts.Atmosphere.from_arts_xml(
             ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
@@ -461,13 +469,15 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
         "H2O", pressure_atm, h2o_apriori
         )
-        print('h2o taken from fascod (extended)')
+        if retrieval_param['verbose'] > 1:
+            print('h2o taken from fascod (extended)')
     else:
-        print('select apriori for h2o')
+        raise ValueError('select valid apriori for h2o')
+        
+    print('Atmospheric state defined with: ECMWF oper v2, CIRA86')
 
-    print('Atmospheric state defined with : ECMWF oper v2, CIRA86')
-    
     return atm
+
 def read_mls(filename):
     mls_o3 = xr.open_dataset(
         filename,
@@ -493,6 +503,7 @@ def read_waccm(retrieval_param, extra_day=0):
 
     # Introduce the solar zenith angle to decide for the apriori:
     lst, ha, sza, night = get_LST_from_GROMORA(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    
     #(sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
     if night:
         tod = 'night'
@@ -566,16 +577,19 @@ def read_waccm_monthly(retrieval_param):
         tod = 'night'
     else:
         tod = 'day' 
-    
-    print('Solar elevation angle = ',90-sza, ', using ',tod,'time apriori profile !')
+
+
     month = pd.to_datetime(datetime).month
-    month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-    month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+    month_str = pd.to_datetime(datetime).strftime('%b')
+
     # As a function of datetime, select appropriate month from climatology:
     ds_waccm_monthly = ds_waccm.sel(
         time=slice(month_start[month-1],month_stop[month-1]), 
         tod=tod
     ).mean(dim='time')
+
+    if retrieval_param['verbose'] > 0:
+        print(f'WACCM {month_str} profile, sza = {sza:1f}, using {tod} time apriori profile !')
 
     return ds_waccm_monthly
 
@@ -691,66 +705,6 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86, method='simple_stack_corr', max_T_diff=
                             }
     )
 
-    print('Merging ECMWF and CIRA86 data')
-    print('Min pressure of the new grid: ', min(ds_merged.p.values))
-    print('Max pressure of the new grid: ', max(ds_merged.p.values))
-
-    print('Min altitude of the new grid (simple stacking based on altitude): ', min(ds_merged.z.values))
-    print('Max altitude of the new grid (simple stacking based on altitude): ', max(ds_merged.z.values))
-
-    return ds_merged
-
-def merge_ecmwf_cira86_old(ds_ecmwf, cira86):
-    '''
-    Merging profile from ECMWF oper and CIRA86 monthly climatology.
-
-    Start with a very simple scheme, we just take CIRA86 values when we reach the top
-    of the ECMWF ones.
-
-    Parameters
-        ----------
-        ds_ecmwf : xarray.Dataset
-            
-        cira86 : xarray.Dataset
-    
-    Returns
-        -------
-        TYPE
-            DESCRIPTION.
-    '''
-
-    upper_p_grid = cira86.Pressure.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
-    #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
-    
-    upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
-
-    p_grid = np.hstack((ds_ecmwf.pressure.data, upper_p_grid))
-
-    #ecmwf_t_i = p_interpolate(
-    #    p_grid, ds_ecmwf.pressure.data, ds_ecmwf.temperature.data, fill=np.nan
-    #)
-
-    temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
-
-    # interpolate CIRA86 altitude on p_grid
-    cira86_alt_i = p_interpolate(
-        p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
-    )
-
-    ds_merged = xr.Dataset({'t': ('p', temperature),
-                            'z': ('p', cira86_alt_i)},
-                            coords = {
-                                'p' : ('p', p_grid),
-                            }
-    )
-
-    print('Merging ECMWF and CIRA86 data')
-    print('Min pressure of the new grid: ', min(ds_merged.p.values))
-    print('Max pressure of the new grid: ', max(ds_merged.p.values))
-
-    print('Min altitude of the new grid (interpolated from cira86 !!): ', min(ds_merged.z.values))
-    print('Max altitude of the new grid (interpolated from cira86 !!): ', max(ds_merged.z.values))
-
     return ds_merged
 
 def get_ph_levs(sp, level):
@@ -848,11 +802,11 @@ def read_add_geopotential_altitude(ds_ecmwf):
 
     ds = xr.Dataset(
             {
-            'geometric_height': ('pressure', geometric_height),
-            'geopotential_ecmwf': ('pressure', geopotential)
+            'geometric_height': ('pressure', geometric_height.data),
+            'geopotential_ecmwf': ('pressure', geopotential.data)
             },
             coords = {
-            'pressure' : ('pressure', ds_ecmwf.pressure),
+            'pressure' : ('pressure', ds_ecmwf.pressure.data),
             }
     )
 

@@ -35,7 +35,9 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from base_classes import Integration, DataRetrieval
+from base_classes import Integration# , DataRetrieval
+
+from gromora_retrievals import DataRetrieval
 import GROSOM_library
 
 def return_bad_channels_gromos(date):
@@ -124,6 +126,7 @@ class GROMOS_LvL2(DataRetrieval):
         spectrometers = ["AC240"]
 
         self.lo = 1.45875e11
+        self.reference_elevation_angle = 90
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
@@ -144,24 +147,30 @@ class GROMOS_LvL2(DataRetrieval):
         Invidual correction for each spectrometers specified !
         '''
         return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+    
+    def make_f_grid_double_sideband(self, retrieval_param): 
+        '''
+        create simulation frequency grid
 
+        '''
+        usb_grid= np.arange(148.975e9,150.175e9,100e6)
 
-    # def find_bad_channels(self, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
-    #     '''
-    #     Parameters
-    #     ----------
-    #     level1b_dataset : TYPE
-    #         DESCRIPTION.
+        n_f = retrieval_param["number_of_freq_points"]  # Number of points
+        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+        x = np.linspace(-1, 1, n_f)
+        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+            retrieval_param['obs_freq']
 
-    #     Returns
-    #     -------
-    #     None.
-
-    #     '''
-    #     bad_channels = self.return_bad_channel_GROMOS(self.date)
-    #     #self.level1b_ds = super().find_bad_channels(bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
-    #     #
-
-    #     # ATTENTION, if we return directly the function, the self.level1b_ds is not updated ! TOTHINK !
-    #     self.level1b_ds = data_GROSOM.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
-    #    return self.level1b_ds
+        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+        f_grid = np.concatenate((f_grid, usb_grid))
+        if retrieval_param["show_f_grid"]:
+            fig = plt.figure()
+            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+            # plt.xlim((retrieval_param['obs_freq']-200e6) /
+            #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+            # plt.ylim(0,300)
+            plt.ylabel(r'$\Delta f$ [kHz]')
+            plt.suptitle('Frequency grid spacing')
+            plt.show()
+        return f_grid

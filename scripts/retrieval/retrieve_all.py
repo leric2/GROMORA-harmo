@@ -24,22 +24,30 @@ Attributes:
 Todo: all
 
 """
-from abc import ABC
-import os
+import sys
+
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
+
 import datetime
+import os
 import time
+from abc import ABC
 
-import numpy as np
-import xarray as xr
-import pandas as pd
-import netCDF4
 import matplotlib.pyplot as plt
-from utils_GROSOM import save_single_pdf
-
+import netCDF4
+import numpy as np
+import pandas as pd
+import xarray as xr
 from dotenv import load_dotenv
+
+from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+
+
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -51,15 +59,13 @@ def retrieve_day(date, instrument_name):
     integration_strategy = 'classic'
     recheck_channels = False
 
-    line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
-    #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
-    #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
-   # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
-   # line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all.xml'
-   # line_file = '/home/esauvageat/Documents/GROMORA/Analysis/InputsRetrievals/Hitran_all.xml'
-    
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
+    retrieval_param["ARTS_DATA_PATH"] = ARTS_DATA_PATH
+    retrieval_param["ARTS_BUILD_PATH"] = ARTS_BUILD_PATH
+    retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH
+
+
     if instrument_name=="GROMOS":
         import gromos_classes as gc
         basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/v2/',str(date.year))
@@ -114,90 +120,24 @@ def retrieve_day(date, instrument_name):
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
+    # type of retrieval to do:
+    # 1. tropospheric corrected
+    # 2. with h20
+    # 3. test retrieving the FM
+    retrieval_param['verbose'] = 1
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
-    retrieval_param['sensor'] = 'FFT_SB'
-    retrieval_param['SB_bias'] = 0
-    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+    retrieval_param['date'] = date
 
-    retrieval_param["obs_freq"] = instrument.observation_frequency
-    retrieval_param['sideband_response']='theory'
     retrieval_param["plot_meteo_ds"] = False
 
     retrieval_param["show_f_grid"] = False
     retrieval_param['plot_opacities'] = False
-    retrieval_param["f_shift"] =  0#+1500e3
-    retrieval_param["number_of_freq_points"] = 1201
-    retrieval_param["irregularity_f_grid"] = 45
-    retrieval_param["z_top_sim_grid"] = 112e3
-    retrieval_param["z_bottom_sim_grid"] = 600
-    retrieval_param["z_resolution_sim_grid"] = 2e3
 
-    retrieval_param["retrieval_grid_type"] = 'altitude'
-    retrieval_param["z_top_ret_grid"] = 95e3
-    retrieval_param["z_bottom_ret_grid"] = 1e3
-    retrieval_param["z_resolution_ret_grid"] = 2e3
-
-    # retrieval_param["z_top_ret_grid_h2o"] = 20e3 
-    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
-    # retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
-    retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
-    # retrieval_param["z_top_ret_grid_h2o"] = 20e3
-    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
-    # retrieval_param["z_resolution_ret_grid_h2o"] = 1e3
-
-    retrieval_param["h2o_pressure"] = [500e2]
-    #retrieval_param['unit_var_y']  = 3**2
-    retrieval_param['pointing_angle_corr'] = 0
-
-    retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
-    retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-   
-    #retrieval_param['obs_freq'] = 1.4217504e11
-    retrieval_param['spectroscopy_type'] = 'XML'
-    retrieval_param['line_file'] = line_file
-    retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
-    retrieval_param['ptz_merge_method'] = 'max_diff' # max_diff, simple_stack_corr, simple
-    retrieval_param['ptz_merge_max_Tdiff'] = 5
-    retrieval_param['h2o_apriori']= 'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
-    retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
-    retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(d.year)
-    #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
-    retrieval_param['extra_time_ecmwf'] = 3.5
-
-    retrieval_param['o3_apriori']='waccm_monthly'
-    retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
     retrieval_param['plot_o3_apriori_covariance'] = False
-    #retrieval_param['o3_apriori']='gromos'   
-    retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
 
-    retrieval_param["apriori_O3_cov"] = 1e-6
-    retrieval_param["apriori_H2O_stdDev"] = 1 #6e-4
-
-    retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
-    retrieval_param["apriori_n2_stdDev"] = 1e-8
-
-    retrieval_param['covmat_polyfit_0'] = 0.1
-    retrieval_param['covmat_polyfit_1'] = 0.5
-    retrieval_param['covmat_polyfit_2'] = 0.5
-
-    retrieval_param['water_vapor_model'] = 'H2O-PWR98' #'H2O-PWR98, H2O'  #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
-    retrieval_param['o2_model'] = 'O2-PWR93' #'O2-MPM93'
-    retrieval_param['n2_model'] = 'N2-SelfContStandardType' #'N2-SelfContMPM93'
-    
-    retrieval_param['selected_species']=['O3','H2O', retrieval_param['water_vapor_model'],retrieval_param['o2_model'],retrieval_param['n2_model']]
-
-    #retrieval_param['water_vapor_model'] = "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252"
-    #retrieval_param["azimuth_angle"]=32
-
-    retrieval_param['cira86_path'] = os.path.join(
-        ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly')
-    # Check the structure of the file and maybe use it ?
-    #print(netCDF4.Dataset(filename+".nc").groups.keys())
-
-    # Baseline retrievals 
-    retrieval_param['sinefit_periods'] = np.array([319e6])
+    retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -221,7 +161,7 @@ def retrieve_day(date, instrument_name):
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
     cycles= np.where((flags[spectro].calibration_flags.data[:,0]+ flags[spectro].calibration_flags.data[:,1])==2 )[0]
-    #cycles = [1,15]
+   # cycles = [1,4,10, 15]
     #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
@@ -282,7 +222,7 @@ def retrieve_day(date, instrument_name):
             elif retrieval_param["retrieval_type"] == 2:
                 retrieval_param["surface_altitude"] = 1000
                 retrieval_param["observation_altitude"] =  1000   
-                ac, retrieval_param, sensor = instrument.retrieve_cycle(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, sensor=None)
+                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_FM=None, sensor=None)
                 if ac.oem_converged:
                     #figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='ozone retrieval cycle' + str(c),figure_list=figure_list)
                     level2_cycle = ac.get_level2_xarray()
@@ -347,7 +287,6 @@ def retrieve_day(date, instrument_name):
             elif (counter>0) & (len(level2_cycle) > 0):
                 counter = counter + 1
                 level2 = xr.concat([level2, level2_cycle], dim='time')
-
         except:
            # print(e)
             # if counter==0:
@@ -358,7 +297,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt_RFI.nc')
+        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_waccm_low_alt_RFI2.nc')
 
         return level2
     else:
@@ -391,7 +330,7 @@ if __name__ == "__main__":
         datetime.date(2018,12,26), 
         datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2021-12-16', end='2021-12-20')#.append(pd.date_range(start='2021-12-16', end='2021-12-20'))
+    dates = pd.date_range(start='2021-12-18', end='2021-12-19')#.append(pd.date_range(start='2021-12-16', end='2021-12-20'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
