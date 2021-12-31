@@ -110,7 +110,7 @@ class SOMORA_LvL2(DataRetrieval):
         spectrometers = ["AC240"]
 
         self.lo = 1.49275e11
-        self.reference_elevation_angle
+        self.reference_elevation_angle = 90
         
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
@@ -124,14 +124,18 @@ class SOMORA_LvL2(DataRetrieval):
 
         return return_bad_channels_somora(date)  
     
-    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
-        '''
-        Correction function for the troposphere. 
-        
-        Invidual correction for each spectrometers specified !
-        '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method=method)
+
     
+    def baseline_period(self, retrieval_param):
+        '''
+        Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
+
+        ''' 
+        if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
+            baseline_periods = np.array([100e6])
+
+        return baseline_periods
+
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
         create simulation frequency grid

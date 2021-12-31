@@ -7,7 +7,8 @@ Created on 24.11.2021
 
 Main class definition for GROMORA retrieval.
 
-This file implements
+This file implements the abstract "DataRetrieval" class for GROMOS and SOMORA retrievals. 
+
 
 Example:
     E...
@@ -32,7 +33,6 @@ import os
 import datetime
 
 import numpy as np
-from retrievals.arts import retrieval
 import xarray as xr
 import pandas as pd
 import netCDF4
@@ -54,26 +54,20 @@ import apriori_data_GROSOM
 import GROSOM_library
 from GROMORA_time import get_LST_from_GROMORA
 
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.lines import Line2D
+
 from retrievals import arts
 from retrievals import covmat
 
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from retrievals.data import p_interpolate
 
-#from typhon.arts.workspace import arts_agenda
 from pyarts.workspace import arts_agenda
-
-# For ARTS, we need to specify some paths
-#load_dotenv('/home/eric/Documents/PhD/ARTS/arts-examples/.env.t490-arts2.3')
-# ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
-# ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
-# ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import GROSOM_library
 import retrieval_module
 #import mopi5_retrievals
-
-from retrievals import data
 
 from utils_GROSOM import sideband_response_theory
 
@@ -171,10 +165,13 @@ class DataRetrieval(ABC):
                         s + "_" + self.datestr + extra_base
                         ))
 
-    def get_hot_load_temperature(self, time):
-        ''' Get hot load temperature for a specific time.
+    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
         '''
-        raise NotImplementedError("abstract base class")
+        Correction function for the troposphere. 
+        
+        Invidual correction for each spectrometers specified !
+        '''
+        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method=method)
 
     def read_level1b(self, no_flag=False, meta_data=True, extra_base=None):
         ''' 
@@ -317,7 +314,7 @@ class DataRetrieval(ABC):
                         if counter == 0:
                             self.level2_data[s] = level2_data
                         else:
-                            self.level2_data[s] = xr.concat([self.level2_data[s],level2_data], dim='time')
+                            self.level2_data[s] = xr.merge([self.level2_data[s],level2_data])
                         print('Read : ', self.filename_level2[s])
                         counter = counter + 1
         else:
@@ -353,6 +350,120 @@ class DataRetrieval(ABC):
             print('saved in '+outfolder+self.instrument_name+'/'+save_name+self.datestr+'.pdf')
             #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
+    def plot_ozone_sel(self, level2_data, outName, spectro, cycles=None):
+        F0 = self.observation_frequency
+        figure_o3_sel=list()
+
+        if cycles is None:
+            cycles = np.arange(len(level2_data[spectro].time))
+
+        for i in cycles:
+            f_backend = level2_data[spectro].f.data
+            y = level2_data[spectro].y[i].data
+            yf = level2_data[spectro].yf[i].data
+            bl = level2_data[spectro].y_baseline[i].data 
+            r = y - yf
+            r_interp = np.interp(f_backend,f_backend[~np.isnan(r)],r[~np.isnan(r)] )
+            r_smooth = np.convolve(r_interp, np.ones(128) / 128, mode="same")
+            fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
+            axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
+            axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
+
+           # axs[0].set_xlim(-0.5,15)
+            axs[0].legend()
+            axs[1].plot((f_backend - F0) / 1e6, r, label="residuals")
+            axs[1].plot((f_backend - F0) / 1e6, r_smooth, label="residuals smooth")
+            axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
+
+           # axs[1].set_ylim(-4, 4)
+            axs[1].legend()
+            axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(F0 / 1e9))
+
+            for ax in axs:
+                ax.set_ylabel("$T_B$ [K]")
+                ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
+            fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
+            fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+            figure_o3_sel.append(fig)
+
+            fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+
+            o3 = level2_data[spectro].isel(time=i).o3_x
+            o3_apriori = level2_data[spectro].isel(time=i).o3_xa
+            o3_z = level2_data[spectro].isel(time=i).o3_z
+            o3_p = level2_data[spectro].isel(time=i).o3_p
+            mr = level2_data[spectro].isel(time=i).o3_mr
+            #error = lvl2[spectro].isel(time=i).o3_eo +  lvl2[spectro].isel(time=i).o3_es
+            error = np.sqrt(level2_data[spectro].isel(time=i).o3_eo**2 +  level2_data[spectro].isel(time=i).o3_es**2)
+            error_frac = error/o3
+            o3_good = o3.where(mr>0.8).data
+            #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
+            axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
+            axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='r')
+            axs[0].set_title('$O_3$ VMR')
+            axs[0].set_xlim(-0.5,11)
+            axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+            axs[0].set_xlabel('$O_3$ VMR [ppm]')
+            axs[0].yaxis.set_major_locator(MultipleLocator(10))
+            axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+            axs[0].xaxis.set_major_locator(MultipleLocator(5))
+            axs[0].xaxis.set_minor_locator(MultipleLocator(1))
+            axs[0].grid(which='both',  axis='x', linewidth=0.5)
+            axs[0].set_ylabel('Altitude [km]')
+            axs[0].legend()
+            axs[1].plot(mr/4, o3_z/1e3,color='k', label='MR/4')
+            counter=0
+            for avk in level2_data[spectro].isel(time=i).o3_avkm:
+                if 0.8 <= np.sum(avk) <= 1.2:
+                    counter=counter+1
+                    if np.mod(counter,5)==0:
+                        axs[1].plot(avk, o3_z / 1e3, label='z='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+'km', color='r')
+                    else:
+                        axs[1].plot(avk, o3_z / 1e3, color='k')
+            axs[1].set_xlabel("AVKM")
+            axs[1].set_xlim(-0.08,0.45)
+            axs[1].xaxis.set_major_locator(MultipleLocator(0.1))
+            axs[1].xaxis.set_minor_locator(MultipleLocator(0.05))
+            axs[1].legend()
+            axs[1].grid(which='both',  axis='x', linewidth=0.5)
+
+
+            axs[2].plot(level2_data[spectro].isel(time=i).o3_es * 1e6, o3_z / 1e3, label="smoothing error")
+            axs[2].plot(level2_data[spectro].isel(time=i).o3_eo * 1e6, o3_z / 1e3, label="obs error")
+            axs[2].set_xlabel("$e$ [ppm]")
+            axs[2].set_ylabel("Altitude [km]")
+            axs[2].legend()
+            axs[2].grid(axis='x', linewidth=0.5)
+
+            #axs[3].plot(level2_data[spectro].isel(time=i).h2o_x * 1e6, o3_z / 1e3, label="retrieved")
+            # axs[3].set_xlabel("$VMR$ [ppm]")
+            # axs[3].set_ylabel("Altitude [km]")
+            # axs[3].legend()
+            #axs[3].grid(axis='x', linewidth=0.5)
+
+            for a in axs:
+                #a.set_ylim(10,80)
+                a.grid(which='both', axis='y', linewidth=0.5)
+            fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
+            figure_o3_sel.append(fig)
+
+            # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+            # fig, axs = plt.subplots(1, 1, sharey=True)
+            # h2o_x = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_x
+            # h2o_xa = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_xa
+            # h2o_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_z
+
+            # axs[0].semilogx(
+            #     h2o_x, h2o_z / 1e3, label="retrieved", marker="x"
+            # )
+            # axs[0].semilogx(h2o_xa, h2o_z / 1e3, label="apriori")
+            # axs[0].set_xlabel("Water VMR []")
+            # axs[0].set_ylabel("Altitude [km]")
+            # axs[0].legend()
+
+            # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
+            # figure_o3_sel.append(fig)
+        save_single_pdf(outName+'.pdf',figure_o3_sel)
 
     # def plot_level1b_TB(self, calibration_cycle):
     #     plt.plot(self.integrated_data[self.spectrometers].frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
@@ -386,7 +497,7 @@ class DataRetrieval(ABC):
         
         retrieval_param['sensor'] = 'FFT_SB'
         retrieval_param['SB_bias'] = 0
-        retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+        
 
         retrieval_param["obs_freq"] = self.observation_frequency
         retrieval_param['sideband_response'] = 'theory'
@@ -433,7 +544,7 @@ class DataRetrieval(ABC):
         retrieval_param['o3_apriori'] = 'waccm_monthly'#'waccm_monthly'
         # 'waccm_yearly_scaled'low_alt_ratio
 
-        retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio_optimized' #low_alt_ratio_optimized
+        retrieval_param['o3_apriori_covariance'] = 'sinefit_optimized' # 'low_alt_ratio_optimized' #low_alt_ratio_optimized
         retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
         retrieval_param["apriori_O3_cov"] = 1e-6  # 1e-6
         retrieval_param["apriori_H2O_stdDev"] = 1  # 6e-4 12e-4 0.5 16e-4
@@ -467,8 +578,9 @@ class DataRetrieval(ABC):
         # Check the structure of the file and maybe use it ?
         # print(netCDF4.Dataset(filename+".nc").groups.keys())
         retrieval_param['line_file'] = line_file
-   #     Baseline retrievals
-        retrieval_param['sinefit_periods'] = np.array([319e6]) #np.array([319e6])
+        #  Baseline retrievals
+        retrieval_param['sinefit_periods'] = self.baseline_period(retrieval_param) # np.array([400e6]) #np.array([319e6]) 160e6 110e6 119e6 113.5, 66e6, 45e6
+        retrieval_param['sinefit_covmat'] = len(retrieval_param['sinefit_periods']) * [np.array([0.1, 0.1])] 
         retrieval_param["binned_ch"] = False
 
         # OEM parameters, see https://atmtools.github.io/arts-docs-2.4/docserver/methods/OEM.html 
@@ -480,6 +592,7 @@ class DataRetrieval(ABC):
        # retrieval_param['ref_elevation_angle'] =  self.reference_elevation_angle
 
         return retrieval_param
+    
     # def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None, sensor = None):
     #     ''' 
     #     Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
@@ -493,7 +606,7 @@ class DataRetrieval(ABC):
 
     def make_f_grid(self, retrieval_param): 
         '''
-        create simulation frequency grid
+        create simulation frequency grid for gromora retrievals
 
         '''
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
@@ -536,7 +649,7 @@ class DataRetrieval(ABC):
 
     def set_continuum_apriori_covariance(self, retrieval_param, p_grid_retrieval_h2o):
         '''
-        Function to built the continuum apriori covariance
+        Function to built the continuum apriori covariance matrix
 
         '''
         # sx_water = covmat.covmat_diagonal_sparse(
@@ -653,6 +766,20 @@ class DataRetrieval(ABC):
 
             sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
             #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)      
+        elif retrieval_param['o3_apriori_covariance']=='sinefit_optimized':
+            ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+            smoothed_std = ds_waccm.o3_std.data
+            max_o3_p = ds_waccm.p.where(ds_waccm.o3 == max(ds_waccm.o3), drop=True).data
+
+            smoothed_std[ds_waccm.p.data>max_o3_p] = 0.2*ds_waccm.o3.where(ds_waccm.p>max_o3_p, drop=True).data
+            smoothed_std = 1e-6*smoothed_std/max(smoothed_std)
+            #smoothed_std[ds_waccm.p.data>4000] = 0.1*ds_waccm.o3.where(ds_waccm.p>4000, drop=True).data
+            smoothed_std[ds_waccm.p.data<=max_o3_p] = 1e-6
+            smoothed_std[ds_waccm.p.data<0.1] = 0.8e-6
+            smoothed_std[ds_waccm.p.data<0.05] = 0.5e-6
+            smoothed_std = np.convolve(smoothed_std, np.ones(16)/16, mode ='same')
+
+            sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, smoothed_std)
         else:
             raise ValueError('Please select another option for o3 apriori covariance matrix !')
 
@@ -1087,12 +1214,13 @@ class DataRetrieval(ABC):
         # Sinefit
        # periods = np.array([319e6])
         periods = retrieval_param['sinefit_periods']
-        covmat_sinefit = covmat.covmat_diagonal_sparse(
-            np.ones_like([1, 1]))
+        covmat_sinefit = retrieval_param['sinefit_covmat']  
+        # covmat_sinefit = covmat.covmat_diagonal_sparse(
+        #     np.ones_like([1, 1]))
 
-        sinefit_ret = arts.RetrievalQuantity(
-            'Sinefit', covmat_sinefit, period_lengths=periods)
-        #sinefit_ret = arts.SineFit(periods, covmats=[np.array([[1,1]]), np.array([[1,1]])])
+        # sinefit_ret = arts.RetrievalQuantity(
+        #     'Sinefit', covmat_sinefit, period_lengths=periods)
+        sinefit_ret = arts.Sinefit(periods, covmats=covmat_sinefit )#  [np.array([1,1]), np.array([1,1])])
         #ac.define_retrieval(retrieval_quantities=[ozone_ret], y_vars=y_var)
         #ac.define_retrieval(retrieval_quantities=[ozone_ret, h2o_ret], y_vars=y_var)
 
@@ -1125,18 +1253,23 @@ class DataRetrieval(ABC):
         ##################################################################################################################### 
         # Apply the retrievals quantites: 
         if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+            print('Retrievals quantites: O3 and H2O continuum')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret], y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+            print('Retrievals quantites: O3, H2O continuum and Fshift')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, fshift_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
+            print('Retrievals quantites: O3, H2O continuum and Polyfit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+            print('Retrievals quantites: O3, H2O continuum, Fshift and Polyfit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
+            print('Retrievals quantites: O3, H2O continuum, Fshift, Polyfit and Sinefit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret],  y_vars=y_var)
         else:
@@ -1210,8 +1343,8 @@ class DataRetrieval(ABC):
 
     def write_level2_gromora(self, level2, retrieval_param, full_name):
         ''' 
-        Function to format and write level2 from GROMOS and SOMORA netCDF outputs.
-
+        Function to format and write level2 from GROMOS and SOMORA into netCDF files.
+        
 
         '''
         # Delete some useless variable
@@ -1460,7 +1593,22 @@ class DataRetrieval(ABC):
         level2.oem_diagnostics.attrs['diagnosticValue3'] = 'End value of y-part of cost function.'
         level2.oem_diagnostics.attrs['diagnosticValue4'] = 'Number of iterations used.'
 
-        
+        # Polyfit
+        if 'sine_grid' in list(level2.coords.keys()):
+            level2.sine_grid.attrs['standard_name'] = 'sine_grid'
+            level2.sine_grid.attrs['long_name'] = 'sine_grid'
+            level2.sine_grid.attrs['units'] = '1'
+            level2.sine_grid.attrs['description'] = 'the grid for the sinefit retrievals, first element is sine and second is cosine term'
+
+            for i, p in enumerate(retrieval_param['sinefit_periods']):
+                p_MHz = f'{p/1e6:.0f}'
+                varname = f'sine_fit_{i}_x'
+                level2[varname].attrs['standard_name'] = varname
+                level2[varname].attrs['long_name'] = 'sinefit_retrieval'
+                level2[varname].attrs['units'] = '1'
+                level2[varname].attrs['period MHz'] = p/1e6
+                level2[varname].attrs['description'] = 'Sinusoidal baseline retrieved for this period, first element is sine and second is cosine term'
+
         # Saving it as netCDF v4
         level2.to_netcdf(path=full_name, format='NETCDF4')
 

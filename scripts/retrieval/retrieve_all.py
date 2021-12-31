@@ -124,6 +124,7 @@ def retrieve_day(date, instrument_name):
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
     retrieval_param['verbose'] = 1
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
@@ -222,7 +223,7 @@ def retrieve_day(date, instrument_name):
             elif retrieval_param["retrieval_type"] == 2:
                 retrieval_param["surface_altitude"] = 1000
                 retrieval_param["observation_altitude"] =  1000   
-                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_FM=None, sensor=None)
+                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
                 if ac.oem_converged:
                     #figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='ozone retrieval cycle' + str(c),figure_list=figure_list)
                     level2_cycle = ac.get_level2_xarray()
@@ -297,7 +298,7 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_waccm_low_alt_RFI2.nc')
+        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_sinefit_optimized.nc')
 
         return level2
     else:
@@ -330,7 +331,7 @@ if __name__ == "__main__":
         datetime.date(2018,12,26), 
         datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2021-12-18', end='2021-12-19')#.append(pd.date_range(start='2021-12-16', end='2021-12-20'))
+    dates = pd.date_range(start='2019-01-10', end='2019-01-20').append(pd.date_range(start='2019-10-01', end='2019-10-20'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -339,12 +340,12 @@ if __name__ == "__main__":
             print('abort core problem with this day : ',d ,' --> skipping')
         else:
             try:
-                level2 = retrieve_day(d, 'GROMOS')
+                level2 = retrieve_day(d, 'SOMORA')
             except:
                 print('problem retrieving day : ',d)
             print('######################################################################################')
-            # print('######################################################################################')
-            # try:
-            #     level2 = retrieve_day(d, 'SOMORA')
-            # except:
-            #     print('problem retrieving day : ',d)
+            print('######################################################################################')
+            try:
+                level2 = retrieve_day(d, 'GROMOS')
+            except:
+                print('problem retrieving day : ',d)

@@ -54,8 +54,8 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "GROMOS"
-    date = datetime.date(2018, 10, 20)
+    instrument_name = "SOMORA"
+    date = datetime.date(2019, 1, 15)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -121,6 +121,7 @@ if __name__ == "__main__":
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
     retrieval_param['verbose'] = 1
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     retrieval_param["show_f_grid"] = False
     retrieval_param['plot_opacities'] = False
 
-    retrieval_param['plot_o3_apriori_covariance'] = False
+    retrieval_param['plot_o3_apriori_covariance'] = True
 
 
     retrieval_param = instrument.define_retrieval_param(retrieval_param)

@@ -535,7 +535,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
-    
+    bl = ac.ws.y_baseline.value 
 
     # Modelling error:
     e_mod = np.matmul(ozone_ret.ws.dxdy.value, r)[0:len(ozone_ret.p_grid)]
@@ -557,6 +557,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend- retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, bl, label="baseline")
     axs[1].set_ylim(np.median(r)-2.5, np.median(r+2.5))
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))

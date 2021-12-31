@@ -25,6 +25,12 @@ Attributes:
 Todo: all
 
 """
+
+import sys
+
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
+
 import datetime
 import os
 from abc import ABC
@@ -43,7 +49,7 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
 from xarray.backends import file_manager
 
 import GROSOM_library
-import mopi5_library
+# import mopi5_library
 from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
@@ -70,7 +76,7 @@ instrument_name = "GROMOS"
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2020-12-19', end='2020-12-20')
+date = pd.date_range(start='2019-10-16', end='2019-10-16')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -88,16 +94,16 @@ save_o3_only = False
 save_residuals=False
 plot_selected = False
 plot_selected_nicer = False
-plot_fshift = False
+plot_fshift = True
 save_fshift = False
-plot_cost = False
+plot_cost = True
 plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
-plot_polyfit = False
+plot_polyfit = True
 plot_MLS = False
 
-add_opacity=False
+add_opacity=True
 
 extract_fgrid = False
 
@@ -130,7 +136,15 @@ ex = '_waccm_monthly_scaled_h2o'
 ex = '_gromosAP_scaled_h2o'
 ex = '_waccm_low_alt_dx10_nonWinCorr'
 ex = '_gromosAP_low_alt'
-ex = '_waccm_low_alt_RFI'
+ex = '_sinefit_optimized'
+ex = '_waccm_low_alt_dx10'
+
+new_L2 = False
+
+if new_L2:
+    cont_name = 'h2o_continuum_x' 
+else:
+    cont_name = 'h2o_pwr98_x'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -293,23 +307,23 @@ if plot_cost:
 
     if instrument_name == 'mopi5':
         for s in spectros:
-            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True,figsize=(15, 10))
+            fig, axsco = plt.subplots(nrows=1, ncols=1, sharex=True,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-            axes.plot(end_cost)
+            axsco.plot(end_cost)
             fig.savefig(plotfolder+'/' +
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=3, ncols=1,figsize=(15, 10))
+            fig, axsco = plt.subplots(nrows=3, ncols=1,sharex=True, figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
-            end_cost.plot(marker='.', ax=axes[0])
-            noise_input.plot(marker='.',ax=axes[1])
+            end_cost.plot(marker='.', ax=axsco[0])
+            noise_input.plot(marker='.',ax=axsco[1])
             if add_opacity:
-                ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[2])
+                ds_opacity.tropospheric_opacity.plot(marker='.',ax=axsco[2])
             #axs[1].set_ylim(0,1)
-            axes[0].set_xticks([])
-            axes[1].set_xticks([])
+            axsco[0].set_xticks([])
+            axsco[1].set_xticks([])
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'_end_cost.pdf', dpi=500)
@@ -331,8 +345,8 @@ if plot_polyfit:
         polyfit_2[1].plot(marker='.', ax=axes[1])
         polyfit_1[2].plot(marker='.',ax=axes[2])
         polyfit_2[2].plot(marker='.', ax=axes[2])
-        level2_somora[s].h2o_pwr98_x.plot(ax=axes[3])
-        level2_gromos[s].h2o_pwr98_x.plot(ax=axes[3])
+        level2_somora[s][cont_name].plot(ax=axes[3])
+        level2_gromos[s][cont_name].plot(ax=axes[3])
         axes[0].set_ylabel('polyfit')
         axes[1].set_ylabel('polyfit')
         axes[2].set_ylabel('polyfit')
@@ -356,12 +370,17 @@ if plot_polyfit:
                         gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(15, 10))
+            fig, axes = plt.subplots(nrows=5, ncols=1,sharex=True, figsize=(15, 10))
             polyfit = level2_dataset[s].poly_fit_x
-            polyfit[0].plot(marker='.', ax=axes[0], color='k')
-            polyfit[1].plot(marker='.',ax=axes[1], color='k')
-            polyfit[2].plot(marker='.',ax=axes[2], color='k')
-            level2_dataset[s].h2o_pwr98_x.plot(ax=axes[3], color='k')
+            if new_L2:
+                polyfit[:,0].plot(marker='.', ax=axes[0], color='k')
+                polyfit[:,1].plot(marker='.',ax=axes[1], color='k')
+                polyfit[:,2].plot(marker='.',ax=axes[2], color='k')
+            else:
+                polyfit[0].plot(marker='.', ax=axes[0], color='k')
+                polyfit[1].plot(marker='.',ax=axes[1], color='k')
+                polyfit[2].plot(marker='.',ax=axes[2], color='k')
+            level2_dataset[s][cont_name].plot(ax=axes[3], color='k')
             axes[0].set_ylabel('polyfit')
             axes[1].set_ylabel('polyfit')
             axes[2].set_ylabel('polyfit')
@@ -508,7 +527,7 @@ if plot_all:
     GROSOM_library.plot_O3_all(level2_dataset, outname)
 
 if plot_o3_ts:
-    ozone = level2_dataset['AC240'].isel(o3_lat=0, o3_lon=0)
+    ozone = level2_dataset['AC240'] 
     o3 = ozone.o3_x
     mr = ozone.o3_mr.data
     o3['altitude'] = ozone.o3_z / 1e3
@@ -525,8 +544,8 @@ if plot_o3_ts:
     o3.coords['o3_p'] = o3.coords['o3_p']/100
     o3.data = o3.data*1e6
    # o3=o3.swap_dims({'o3_p':'altitude'})
-    fig = plt.figure(num=1)
-    ax = fig.subplots(1)
+    fig2, axs = plt.subplots(nrows=1, ncols=1, figsize=(9, 6))
+
   #  o3_hourly = o3_hourly.swap_dims({'o3_p':'geometric_height'})
    # o3_hourly['geometric_height'] = o3_hourly.o3_z
     #o3.plot(x='time', y='altitude')
@@ -542,15 +561,15 @@ if plot_o3_ts:
         cbar_kwargs={"label": "ozone [PPM]"}
     )
     pl.set_edgecolor('face')
-    ax.set_ylim(0.01, 500)
-    ax.set_yticks([])
-    ax.invert_yaxis()
-    ax.set_yscale('log')
+    axs.set_ylim(0.01, 500)
+    axs.set_yticks([])
+    axs.invert_yaxis()
+    axs.set_yscale('log')
 
-    ax.set_ylabel('Pressure [hPa]')
+    axs.set_ylabel('Pressure [hPa]')
     plt.tight_layout()
     # o3.plot.imshow(x='time')
-    fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
+    fig2.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                 instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
     if save_o3_only:
         o3_ds = ozone.get([
@@ -743,12 +762,21 @@ if compare_MLS:
 if plot_selected:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_sel_polyfit2'
-    GROSOM_library.plot_O3_all(
-        level2_dataset,
-        outname,
-        spectro='AC240',
-        cycles=[1,7,10,13,17,21]
-    )
+    
+    if new_L2:
+        instrument.plot_ozone_sel(
+            level2_dataset,
+            outname,
+            spectro='AC240',
+            cycles=[1,7,13,21]         
+        )
+    else:
+        GROSOM_library.plot_O3_all(
+            level2_dataset,
+            outname,
+            spectro='AC240',
+            cycles=[1,7,13,21]
+        )
 
 if plot_selected_nicer:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
@@ -767,8 +795,8 @@ if plot_fshift:
     fshift = level2_dataset['AC240'].isel(freq_shift_grid1=0).freq_shift_x
 
     fshift = fshift*1e-3
-    fig = plt.figure(num=1)
-    ax = fig.subplots(1)
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+
     fshift.plot(
         ax=ax
     )

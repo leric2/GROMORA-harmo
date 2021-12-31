@@ -34,6 +34,7 @@ import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from xarray.core import dataarray
 
 from base_classes import Integration# , DataRetrieval
 
@@ -140,14 +141,17 @@ class GROMOS_LvL2(DataRetrieval):
 
         return return_bad_channels_gromos(date)
 
-    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
-        '''
-        Correction function for the troposphere. 
-        
-        Invidual correction for each spectrometers specified !
-        '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
     
+    def baseline_period(self, retrieval_param):
+        '''
+        Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
+
+        ''' 
+        if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
+            baseline_periods = np.array([400e6])
+
+        return baseline_periods
+
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
         create simulation frequency grid
