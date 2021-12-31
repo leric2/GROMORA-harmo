@@ -59,7 +59,7 @@ try
 %     elseif  (calibrationTool.dateTime > datetime(2017,01,01, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime < datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone))
 %         disp('status of meteo data unkown between 01.01 and 09.08.2017')
 %         meteoData = struct();
-    else
+    elseif calibrationTool.dateTime < datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime >= datetime(2010,05,12, 'TimeZone', calibrationTool.timeZone)
         dateStringMeteo=[calibrationTool.dateStr(3:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
         dateStringMeteoPrec=[calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
         baseName = [calibrationTool.meteoFolder dateStringMeteo];
@@ -70,6 +70,7 @@ try
         % Transforming it into matlab structure
         precipitation=readtable(meteoDataFilePrecipitation,'FileType','text','TreatAsEmpty',{'//////'});
         precipitation.Properties.VariableNames = {'dateTime','p1','p2'};
+        precipitation.dateTime.TimeZone = calibrationTool.timeZone;
         %precipitation=table2struct(prec);
         
         pressure=readtable(meteoDataFilePressure,'FileType','text','TreatAsEmpty',{'//','///','////','/////','//////','//////'});
@@ -102,10 +103,62 @@ try
             
             %rowPrec = find(isbetween(precipitation.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt));
             %meteoData(i).precipitation = sum(precipitation(rowPrec,:).p1,'omitnan');
-            meteoData(i).precipitation = nan;
+            meteoData(i).precipitation = nanmean(precipitation.p1(isbetween(precipitation.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt),:));;
             meteoData(i).rel_humidity=meteoRow.Var8;
             
             meteoData(i).air_pressure=nanmean(pressure(isbetween(pressure.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt),:).mean);
+            %         % TODO Check units
+            %         if i>1
+            %             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
+            %         end
+        end
+       elseif calibrationTool.dateTime < datetime(2010,05,12, 'TimeZone', calibrationTool.timeZone) && calibrationTool.dateTime >= datetime(2008,05,22, 'TimeZone', calibrationTool.timeZone)
+        dateStringMeteo=[calibrationTool.dateStr(3:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
+        dateStringMeteoPrec=[calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
+        baseName = [calibrationTool.meteoFolder dateStringMeteo];
+        meteoDataFileLog=[baseName '.log'];
+        meteoDataFilePrecipitation=[calibrationTool.meteoFolder dateStringMeteoPrec '_rainsensor.txt'];
+        
+        % Transforming it into matlab structure
+        precipitation=readtable(meteoDataFilePrecipitation,'FileType','text','TreatAsEmpty',{'//////'});
+        precipitation.Properties.VariableNames = {'dateTime','p1','p2'};
+        precipitation.dateTime.TimeZone = calibrationTool.timeZone;
+        %precipitation=table2struct(prec);
+        
+        %pressure=readtable(meteoDataFilePressure,'FileType','text','TreatAsEmpty',{'//','///','////','/////','//////','//////'});
+        %pressure.Properties.VariableNames = {'dateTime' 'inst' 'mean' 'max','min'};
+        %pressure.dateTime.TimeZone = calibrationTool.timeZone;
+        %pressure=table2struct(p);
+        %     %fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %f  %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %f  %s  %s  %s  %*s %s  %s  %s  %s  %s  %s %*[^\n]';
+        %fmt = '%4d-%2d-%2d %2d:%2d %*s %f  %f  %f  %f  %f  %f  %f  %f  %f %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f %*[^\n]';
+        %     %fmt = '%4d-%2d-%2d %2d:%2d %*s %f %f %f %f %f %f %f %f %f %f %f %f %f %s %s %s %s %s %s %s %s %s %s %s %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %f %f %f %f %s %f %f %f %f %f %f';
+        %
+        %     %f  %f  %f  %f  %f  %f  %f  %f %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f  %f  %f  %f  %f  %f  %f  %f  %f  %f %f';
+        % %
+        % % %     % Transforming it into matlab structure
+        
+        meteoFile=readtable(meteoDataFileLog,'FileType','text','TreatAsEmpty',{'//','///','////','/////','//////'});
+        %fileID = fopen(meteoDataFileLog,'r');
+        %meteoFile.year = textscan(fileID,fmt,'Delimiter',' \b\t', 'EndOfLine','\n', 'TreatAsEmpty',{'/////' '//////'});
+        %      %'TreatAsEmpty',{'/////' '//////'}
+        % %
+        
+        dt = minutes(10);
+        meteoData=struct();
+        for i = 1:height(meteoFile)
+            meteoRow = meteoFile(i,:);
+            meteoData(i).dateTime=meteoRow.Var1;
+            meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
+            meteoData(i).dateNum=datenum(meteoData(i).dateTime)-calibrationTool.referenceTime;
+            meteoData(i).air_temperature=meteoRow.Var4 + calibrationTool.zeroDegInKelvin;
+            meteoData(i).tod = hours(meteoData(i).dateTime-meteoData(1).dateTime);
+            
+            %rowPrec = find(isbetween(precipitation.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt));
+            %meteoData(i).precipitation = sum(precipitation(rowPrec,:).p1,'omitnan');
+            meteoData(i).precipitation = nanmean(precipitation.p1(isbetween(precipitation.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt),:));
+            meteoData(i).rel_humidity=meteoRow.Var8;
+            
+            meteoData(i).air_pressure= nan;
             %         % TODO Check units
             %         if i>1
             %             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;

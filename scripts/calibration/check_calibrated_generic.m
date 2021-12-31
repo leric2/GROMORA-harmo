@@ -73,6 +73,7 @@ for i = 1:size(calibratedSpectra,2)
     centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTNoise & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTNoise);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
+    calibratedSpectra(i).mean_Yfactor = mean(calibratedSpectra(i).Yspectral(centerChannels));
     
     % Removing extreme outliers before computing TN:
     boxCarFilter=ones(100,1)/100;
@@ -105,15 +106,19 @@ for i = 1:size(calibratedSpectra,2)
     
     diff_Tb = diff(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     calibratedSpectra(i).noiseLevel = nanstd(diff_Tb(~isinf(diff_Tb)))/sqrt(2);
+
+    % Mean calibrated Tb for this cycle:
+    calibratedSpectra(i).meanTb = nanmean(calibratedSpectra(i).Tb(~calibratedSpectra(i).potentialBadChannels));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Cold and Hot spectra variation among this cycle
     calibratedSpectra(i).meanStdHotSpectra=nanmean(calibratedSpectra(i).stdHotSpectra);
     calibratedSpectra(i).meanStdColdSpectra=nanmean(calibratedSpectra(i).stdColdSpectra);
     
-        
-    % Mean hot counts
+    % Mean counts
     calibratedSpectra(i).meanHotCounts = nanmean(calibratedSpectra(i).meanHotSpectra);
+    calibratedSpectra(i).meanColdCounts = nanmean(calibratedSpectra(i).meanColdSpectra);
+    calibratedSpectra(i).meanSkyCounts = nanmean(calibratedSpectra(i).meanSkySpectra);
     
     %%%%%%%%%%% Flag 3 %%%%%%%%%%%    
     % Liquid Nitrogen sensors
@@ -149,13 +154,16 @@ for i = 1:size(calibratedSpectra,2)
         FFT_adc_overload_OK=1;
     end
     
+   
     %%%%%%%%%% Flag 6 %%%%%%%%%%%
-    % Frequency lock flag
-    if sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)
+    calibratedSpectra(i).stdVGunn = std(logFile.V_Gunn(ind),'omitnan');
+    calibratedSpectra(i).VGunn = mean(logFile.V_Gunn(ind),'omitnan');
+    if (calibratedSpectra(i).stdVGunn > calibrationTool.maxStdV_Gun) | (sum((logFile.Freq_Lock(ind) == 0)) > calibrationTool.maxProportionFreqLockError*length(ind)) 
         freq_lock_OK=0;
     else
         freq_lock_OK=1;
     end
+    
     
     %%%%%%%%%%% Flag ... %%%%%%%%%%%    NOT USED 
     % FFTS number of aquisition
@@ -290,7 +298,7 @@ for i = 1:size(calibratedSpectra,2)
                % just for estimation
                Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            else
-               disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+               %disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
                Teff = 283 - calibrationTool.TC.deltaT; 
            end
            logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);
@@ -365,7 +373,8 @@ for i = 1:size(calibratedSpectra,2)
         "hotLoadOK",...
         "pointingAngleOK",...
         "FreqLockOK"];
-    
+
+
     calibratedSpectra(i).outlierCalib = NaN;
     warning('off','backtrace')
     if (sum(calibratedSpectra(i).errorVector)<length(calibratedSpectra(i).errorVector))
@@ -376,6 +385,19 @@ for i = 1:size(calibratedSpectra,2)
         disp(errorV)
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
     end
+%     if strcmp(calibrationTool.outlierDectectionType,'RFI')
+%         if calibratedSpectra(i).outlierRFISky + calibratedSpectra(i).outlierDetectColdRFI  + calibratedSpectra(i).outlierDetectHotRFI  > 0
+%             disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
+%             fig=figure("visible","off");
+%             ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
+%             ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
+%             ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
+%             
+%             print(fig,['/home/esauvageat/Desktop/RFI/GROMOS_RFI_' calibrationTool.dateStr '_' num2str(i)],'-dpdf','-fillpage')
+%             xlabel('IF [MHz]')
+%             ylabel('count difference')
+%         end
+%     end
    
 end
 

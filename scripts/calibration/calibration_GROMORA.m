@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='GROMOS';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -54,20 +54,29 @@ dates=datenum(daysadd(datetime('yesterday'),-6)) : datenum(daysadd(datetime('yes
 %     datenum('2019_03_12','yyyy_mm_dd'):datenum('2019_03_12','yyyy_mm_dd'),...
 %     datenum('2019_04_25','yyyy_mm_dd'):datenum('2019_05_04','yyyy_mm_dd'),...
 %     datenum('2019_06_11','yyyy_mm_dd'):datenum('2019_06_18','yyyy_mm_dd')];
-% 
-% dates=[datenum('2009_04_01','yyyy_mm_dd'):datenum('2009_04_30','yyyy_mm_dd'),...
-%     datenum('2009_11_01','yyyy_mm_dd'):datenum('2009_11_30','yyyy_mm_dd'),...
-%     datenum('2014_11_01','yyyy_mm_dd'):datenum('2014_11_30','yyyy_mm_dd'),...
-%     datenum('2015_04_01','yyyy_mm_dd'):datenum('2015_04_30','yyyy_mm_dd'),...
-%     datenum('2015_11_01','yyyy_mm_dd'):datenum('2015_11_30','yyyy_mm_dd'),...
-%     datenum('2016_04_01','yyyy_mm_dd'):datenum('2016_04_30','yyyy_mm_dd'),...
-%     datenum('2016_11_01','yyyy_mm_dd'):datenum('2016_11_30','yyyy_mm_dd'),...
-%     datenum('2017_04_01','yyyy_mm_dd'):datenum('2017_04_30','yyyy_mm_dd'),...
-%     datenum('2017_11_01','yyyy_mm_dd'):datenum('2017_11_30','yyyy_mm_dd'),...
-%     datenum('2018_04_01','yyyy_mm_dd'):datenum('2018_04_30','yyyy_mm_dd'),...
-%     datenum('2018_11_01','yyyy_mm_dd'):datenum('2018_11_30','yyyy_mm_dd')];
+% % 
+% dates=[datenum('2011_04_01','yyyy_mm_dd'):datenum('2011_04_02','yyyy_mm_dd'),...
+%    datenum('2011_09_01','yyyy_mm_dd'):datenum('2011_09_02','yyyy_mm_dd'),...
+%    datenum('2012_04_01','yyyy_mm_dd'):datenum('2012_04_02','yyyy_mm_dd'),...
+%    datenum('2012_09_01','yyyy_mm_dd'):datenum('2012_09_02','yyyy_mm_dd'),...
+%    datenum('2013_04_01','yyyy_mm_dd'):datenum('2013_04_02','yyyy_mm_dd'),...
+%    datenum('2013_09_01','yyyy_mm_dd'):datenum('2013_09_02','yyyy_mm_dd'),...
+%    datenum('2014_04_01','yyyy_mm_dd'):datenum('2014_04_02','yyyy_mm_dd'),...
+%    datenum('2014_09_01','yyyy_mm_dd'):datenum('2014_09_02','yyyy_mm_dd'),...
+%    datenum('2015_04_01','yyyy_mm_dd'):datenum('2015_04_02','yyyy_mm_dd'),...
+%    datenum('2015_09_01','yyyy_mm_dd'):datenum('2015_09_02','yyyy_mm_dd'),...
+%    datenum('2016_04_01','yyyy_mm_dd'):datenum('2016_04_02','yyyy_mm_dd'),...
+%    datenum('2016_09_01','yyyy_mm_dd'):datenum('2016_09_02','yyyy_mm_dd'),...
+%    datenum('2017_04_01','yyyy_mm_dd'):datenum('2017_04_02','yyyy_mm_dd'),...
+%    datenum('2017_09_01','yyyy_mm_dd'):datenum('2017_09_02','yyyy_mm_dd'),...
+%    datenum('2018_04_01','yyyy_mm_dd'):datenum('2018_04_02','yyyy_mm_dd'),...
+%    datenum('2018_09_01','yyyy_mm_dd'):datenum('2018_09_02','yyyy_mm_dd'),...    
+%    datenum('2019_04_01','yyyy_mm_dd'):datenum('2019_04_02','yyyy_mm_dd'),...
+%    datenum('2019_09_01','yyyy_mm_dd'):datenum('2019_09_02','yyyy_mm_dd'),...    
+%    datenum('2020_04_01','yyyy_mm_dd'):datenum('2020_04_02','yyyy_mm_dd'),...
+%    datenum('2020_09_01','yyyy_mm_dd'):datenum('2020_09_02','yyyy_mm_dd'),...
+%    datenum('2020_12_01','yyyy_mm_dd'):datenum('2020_12_02','yyyy_mm_dd')];
 
-%dates=datenum('2015_09_27','yyyy_mm_dd')
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
     labviewLogFolder = '/storage/tub/instruments/gromos/level1/GROMORA/InputsCalibration/';
     labviewLog = read_labview_log_generic(instrumentName, labviewLogFolder);
@@ -92,8 +101,10 @@ for d = 1:numel(dates)
     calibrationTool=import_default_calibrationTool(dateStr);
     
     calibrationTool.instrumentName=instrumentName;
-    calibrationTool.calibrationVersion = '1.0';
+    calibrationTool.calibrationVersion = '2.0';
     
+    calibrationTool.extraName = '';
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
@@ -126,6 +137,7 @@ for d = 1:numel(dates)
     calibrationTool.saveLevel1b = true;
     
     calibrationTool.savePlanckIntensity = true;
+    calibrationTool.check_deltaTC = true;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
@@ -158,6 +170,9 @@ for d = 1:numel(dates)
         % Import specific parameter and functions for this instrument
         calibrationTool = import_GROMOS_calibrationTool(calibrationTool);
         
+        % an extra folder where we copy missing anetz data (from STARTWAVE)
+        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+
     elseif strcmp(instrumentName, 'SOMORA')
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
@@ -181,6 +196,9 @@ for d = 1:numel(dates)
         
         % Import specific parameter and functions for this instrument
         calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
+
+        % an extra folder where we copy missing anetz data (from STARTWAVE)
+        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
 
     elseif strcmp(instrumentName,'mopi5')
         % FOR MOPI:
@@ -210,6 +228,7 @@ for d = 1:numel(dates)
         calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);
     end
     
+    %calibrationTool.transmittanceWindow  = calibrationTool.transmittanceWindow *0.97
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Launching the calibration and integration processes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -256,7 +275,7 @@ for d = 1:numel(dates)
             end 
         end
     end
-    clearvars level1
+    %clearvars level1
     clear functions   
 end
 

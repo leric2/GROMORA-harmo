@@ -63,8 +63,9 @@ if isfield(logFile,'TExt0')
     logFile.T_Reserved=logFile.TExt7;
 else
     %TODO
-    disp('Error with log file parameters')
-%     logFile.T_Ceiling=logFile.AI_0;
+    %disp('Error with log file parameters')
+    % TOCHECK if this is really some kind of room temperature
+    logFile.T_Ceiling=logFile.AI_7*100;
 %     logFile.T_Floor=logFile.AI_0;
 %     logFile.T_Aircon_Out=logFile.AI_0;
 %     logFile.T_Window=logFile.AI_0;
@@ -81,4 +82,16 @@ logFile.Freq_Lock = (logFile.PLL_Lock & logFile.Ferranti_Lock);
 
 logFile.T_Room = logFile.T_Ceiling;
 
+if ~isfield(logFile, 'FE_T_Sys')
+    logFile.FE_T_Sys = ones(length(logFile.t),1)*nan;
+    
+end
+
+
+if calibrationTool.timeNumber < datenum(2010,05,13)
+    % Seems that before this date, there was no room temperature measured.
+    logFile.T_Room = ones(length(logFile.t),1)*nan;
+elseif (calibrationTool.timeNumber > datenum(2010,08,18) && calibrationTool.timeNumber < datenum(2012,07,23))
+    %  Removing dependance on the Above_Low flags during this period.
+    logFile.LN2_Level_OK = (logFile.LN2_above_High == calibrationTool.goodFlagLN2Above);
 end

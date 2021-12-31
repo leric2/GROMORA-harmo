@@ -113,7 +113,7 @@ class GROMOS_LvL2(DataRetrieval):
     Hereafter we define some parameters and methods specific to this 
     instrument.
     '''
-    def __init__(self, date, basename_lvl1, basename_lvl2, integration_strategy, integration_time):
+    def __init__(self, date, basename_lvl1, basename_lvl2, integration_strategy, integration_time, extra_base=''):
         '''
         Some specific parameters to implement for the GROMOS instances (only constant stuff...)
         '''
@@ -131,7 +131,7 @@ class GROMOS_LvL2(DataRetrieval):
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
-        super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder)
+        super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder, extra_base)
     
     def return_bad_channels(self, date, spectro):
 

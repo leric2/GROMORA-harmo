@@ -62,14 +62,16 @@ def retrieve_day(date, instrument_name):
     retrieval_param = dict()
     if instrument_name=="GROMOS":
         import gromos_classes as gc
-        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/',str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/v2/',str(date.year))
         basename_lvl2 = os.path.join('/storage/tub/instruments/gromos/level2/GROMORA/v1/',str(date.year))
         instrument = gc.GROMOS_LvL2(
-            date, 
-            basename_lvl1, 
-            basename_lvl2, 
-            integration_strategy, 
-            int_time)
+            date,
+            basename_lvl1,
+            basename_lvl2,
+            integration_strategy,
+            int_time,
+            extra_base=''
+            )
         retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v1/',str(date.year))
@@ -80,7 +82,8 @@ def retrieve_day(date, instrument_name):
             basename_lvl1=basename_lvl1,
             basename_lvl2=basename_lvl2,
             integration_strategy=integration_strategy,
-            integration_time=int_time
+            integration_time=int_time,
+            extra_base=''
         )
         retrieval_param['increased_var_factor'] = 1 # 1.1 for constant o3 cov 
     elif instrument_name=="mopi5":
@@ -97,6 +100,13 @@ def retrieve_day(date, instrument_name):
             integration_time=int_time
         )
     
+    if integration_strategy == 'classic':
+        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
+            no_flag=False, meta_data=True, extra_base='')
+    else:
+        raise NotImplementedError(
+            'TODO, implement reading level1b in non classical cases !')
+
    # cycles = np.arange(1,24)
     
     #cycles = [17]
@@ -107,7 +117,8 @@ def retrieve_day(date, instrument_name):
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
-    retrieval_param['sensor'] = 'FFT'
+    retrieval_param['sensor'] = 'FFT_SB'
+    retrieval_param['SB_bias'] = 0
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
 
     retrieval_param["obs_freq"] = instrument.observation_frequency
@@ -121,16 +132,16 @@ def retrieve_day(date, instrument_name):
     retrieval_param["irregularity_f_grid"] = 45
     retrieval_param["z_top_sim_grid"] = 112e3
     retrieval_param["z_bottom_sim_grid"] = 600
-    retrieval_param["z_resolution_sim_grid"] = 1e3
+    retrieval_param["z_resolution_sim_grid"] = 2e3
 
     retrieval_param["retrieval_grid_type"] = 'altitude'
     retrieval_param["z_top_ret_grid"] = 95e3
     retrieval_param["z_bottom_ret_grid"] = 1e3
     retrieval_param["z_resolution_ret_grid"] = 2e3
 
-    retrieval_param["z_top_ret_grid_h2o"] = 20e3 
-    retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
-    retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
+    # retrieval_param["z_top_ret_grid_h2o"] = 20e3 
+    # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
+    # retrieval_param["z_resolution_ret_grid_h2o"] = 2e3
     retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
     # retrieval_param["z_top_ret_grid_h2o"] = 20e3
     # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
@@ -147,13 +158,17 @@ def retrieve_day(date, instrument_name):
     retrieval_param['spectroscopy_type'] = 'XML'
     retrieval_param['line_file'] = line_file
     retrieval_param['atm'] ='ecmwf_cira86' # fascod  ecmwf_cira86
+    retrieval_param['ptz_merge_method'] = 'max_diff' # max_diff, simple_stack_corr, simple
+    retrieval_param['ptz_merge_max_Tdiff'] = 5
     retrieval_param['h2o_apriori']= 'fascod_extended' #'ecmwf_extended' # 'fascod_extended'
     retrieval_param['ecmwf_store_location'] ='/storage/tub/instruments/gromos/ECMWF_Bern'
+    retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(d.year)
     #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
     retrieval_param['extra_time_ecmwf'] = 3.5
 
-    retrieval_param['o3_apriori']='waccm_monthly'   
+    retrieval_param['o3_apriori']='waccm_monthly'
     retrieval_param['o3_apriori_covariance'] = 'low_alt_ratio'
+    retrieval_param['plot_o3_apriori_covariance'] = False
     #retrieval_param['o3_apriori']='gromos'   
     retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
 
@@ -162,6 +177,10 @@ def retrieve_day(date, instrument_name):
 
     retrieval_param["apriori_o2_stdDev"]  = 1e-8 #6e-4
     retrieval_param["apriori_n2_stdDev"] = 1e-8
+
+    retrieval_param['covmat_polyfit_0'] = 0.1
+    retrieval_param['covmat_polyfit_1'] = 0.5
+    retrieval_param['covmat_polyfit_2'] = 0.5
 
     retrieval_param['water_vapor_model'] = 'H2O-PWR98' #'H2O-PWR98, H2O'  #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
     retrieval_param['o2_model'] = 'O2-PWR93' #'O2-MPM93'
@@ -179,11 +198,6 @@ def retrieve_day(date, instrument_name):
 
     # Baseline retrievals 
     retrieval_param['sinefit_periods'] = np.array([319e6])
-    
-    if integration_strategy == 'classic':
-        integrated_dataset, flags, integrated_meteo = instrument.read_level1b(no_flag=False, meta_data=True, extra_base=None)
-    else:
-        raise NotImplementedError('TODO, implement reading level1b in non classical cases !')
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -205,8 +219,9 @@ def retrieve_day(date, instrument_name):
     spectro = 'AC240'
     spectro_dataset = instrument.integrated_data[spectro]
 
-    cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0] 
-    cycles = [1,15]
+    cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
+    cycles= np.where((flags[spectro].calibration_flags.data[:,0]+ flags[spectro].calibration_flags.data[:,1])==2 )[0]
+    #cycles = [1,15]
     #cycles = [1,7,15,21]
     if len(cycles) ==0:
         return 0
@@ -343,15 +358,40 @@ def retrieve_day(date, instrument_name):
     
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt.nc')
+        level2.to_netcdf(path = instrument.filename_level2[spectro]+'_waccm_low_alt_RFI.nc')
 
         return level2
     else:
         return 0
 if __name__ == "__main__":
-    void_date_problem = [ datetime.date(2018,5,5),datetime.date(2018,12,24),datetime.date(2018,12,25), datetime.date(2018,12,26), datetime.date(2019,1,3)]
+    void_date_problem = [
+        datetime.date(2009,11,3), 
+        datetime.date(2009,11,27),
+        datetime.date(2009,12,25),
+        datetime.date(2009,12,26), 
+        datetime.date(2010,1,6), 
+        datetime.date(2010,1,7), 
+        datetime.date(2010,1,13),
+        datetime.date(2010,1,31),
+        datetime.date(2010,2,2),
+        datetime.date(2010,3,3),
+        datetime.date(2010,5,31),
+        datetime.date(2010,7,5),
+        datetime.date(2010,7,12),
+        datetime.date(2010,7,29),
+        datetime.date(2010,8,12),
+        datetime.date(2010,9,7),
+        datetime.date(2010,9,16),
+        datetime.date(2010,9,18),
+        datetime.date(2010,9,19),
+        datetime.date(2017,5,26), 
+        datetime.date(2018,5,5),
+        datetime.date(2018,12,24),
+        datetime.date(2018,12,25), 
+        datetime.date(2018,12,26), 
+        datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2018-01-01', end='2018-01-02')
+    dates = pd.date_range(start='2021-12-16', end='2021-12-20')#.append(pd.date_range(start='2021-12-16', end='2021-12-20'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
