@@ -40,14 +40,16 @@ from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
-    date = datetime.date(2018, 2, 26)
+    instrument_name = "GROMOS"
+    date = datetime.date(2021, 12, 17)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
