@@ -55,7 +55,9 @@ from utils_GROSOM import save_single_pdf
 # plt.rcParams['xtick.labelsize'] = 24
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -63,14 +65,14 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # if __name__ == "__main__":
 
 
-instrument_name = "SOMORA"
+instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2020-01-08', end='2020-01-09')
+date = pd.date_range(start='2020-01-01', end='2020-12-31')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -82,9 +84,10 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = False
-save_o3= True
-plot_selected = True
+plot_o3_ts = True
+save_o3= False
+save_residuals = True
+plot_selected = False
 plot_selected_nicer = False
 plot_fshift = False
 save_fshift = False
@@ -110,6 +113,7 @@ spectros = ['USRP-A','U5303']
 spectros = ['AC240'] 
 
 plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/'
+plotfolder = '/storage/tub/instruments/somora/level2/v1/'
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
@@ -122,6 +126,8 @@ ex = '_waccm_continuum'
 ex = '_waccm_monthly_scaled_h2o'
 ex = '_gromosAP_scaled_h2o'
 ex = '_waccm_low_alt_dx10'
+#ex = '_waccm_low_alt'
+
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -501,6 +507,13 @@ if plot_o3_ts:
             'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
             ) 
         o3_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_ozone.nc')
+    if save_residuals:
+        residual  = ozone.y - ozone.yf
+
+        residual.rename('residuals')
+        residual.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
+        residual.time.encoding['calendar'] = 'proleptic_gregorian'
+        residual.to_netcdf(plotfolder+instrument_name+'_'+instrument.datestr+'_residuals.nc')
 
 if plot_o3_diff_waccm:
     # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
