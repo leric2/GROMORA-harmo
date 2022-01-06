@@ -53,10 +53,10 @@ import GROSOM_library
 from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
-# plt.rcParams.update({
-#     "text.usetex": False,
-#     "font.family": "serif",
-#     "font.sans-serif": ["Free sans"]})
+plt.rcParams.update({
+    "text.usetex": False,
+    "font.family": "serif",
+    "font.sans-serif": ["Free sans"]})
 
 # plt.rcParams['xtick.labelsize'] = 24
 # plt.rcParams['ytick.labelsize'] = 24
@@ -69,14 +69,14 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # if __name__ == "__main__":
 
 
-instrument_name = "GROMOS"
+instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2019-10-16', end='2019-10-16')
+date = pd.date_range(start='2019-01-01', end='2019-06-30')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -91,17 +91,18 @@ plot_all_mopi5 = False
 plot_o3_ts = True
 save_o3= False
 save_o3_only = False
-save_residuals=False
+save_residuals=True
 plot_selected = False
 plot_selected_nicer = False
-plot_fshift = True
+plot_fshift = False
 save_fshift = False
-plot_cost = True
+plot_cost = False
 plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
-plot_polyfit = True
+plot_polyfit = False
 plot_MLS = False
+add_L2_flags = False
 
 add_opacity=True
 
@@ -122,7 +123,6 @@ spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
-plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/'
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
@@ -138,13 +138,17 @@ ex = '_waccm_low_alt_dx10_nonWinCorr'
 ex = '_gromosAP_low_alt'
 ex = '_sinefit_optimized'
 ex = '_waccm_low_alt_dx10'
+# ex = '_v2'
+# ex = '_waccm_low_alt'
 
 new_L2 = False
 
 if new_L2:
+    plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
     cont_name = 'h2o_continuum_x' 
 else:
     cont_name = 'h2o_pwr98_x'
+    plotfolder = '/scratch/GROSOM/Level2/GROMORA_waccm/'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -526,6 +530,39 @@ if plot_all:
         instrument.datestr + '_plot_all_test_polyfit2'
     GROSOM_library.plot_O3_all(level2_dataset, outname)
 
+if add_L2_flags:
+    new_ds = level2_dataset['AC240'] 
+    # Absolute flags 
+    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold ) & (np.abs(new_ds.poly_fit_x[0])<instrument.polyfit_threshold), True, False)
+   # good_data = xr.where( np.abs(new_ds.oem_diagnostics[:, 3]-1)<0.1, True, False)
+   # good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 3] - 1) <0.1 ), True, False) 
+    
+   # np.sum(np.abs(1-gromos.oem_diagnostics[:,2])<0.05)/(len(gromos.time))
+  #  np.sum(np.abs(1-somora.oem_diagnostics[:,2])<0.05)/(len(somora.time))
+
+    # Combined flags 
+    diff_polyfit_1 = new_ds.poly_fit_x[1] - new_ds.poly_fit_x[1].mean(dim='time')
+    diff_polyfit_2 = new_ds.poly_fit_x[2] - new_ds.poly_fit_x[2].mean(dim='time')
+
+    #  good_data = xr.where(np.abs(diff_polyfit_2)<0.2, True, False)
+    # new_ds.where(good_data).o3_x.isel(o3_p=15).plot()
+
+    new_ds['retrieval_quality'] = good_data*1 # ('time', good_data.data.astype(int))
+    new_ds['retrieval_quality'].attrs['standard_name'] = 'retrieval_quality'
+    new_ds['retrieval_quality'].attrs['long_name'] = 'quality flag retrieval'
+    new_ds['retrieval_quality'].attrs['units'] = '1'
+    new_ds['retrieval_quality'].attrs['description'] = 'Quality flag of the retrievals from cost and polyfit term'
+
+    new_ds['time'] = pd.to_datetime(level2_dataset['AC240'].time)
+    new_ds.time.attrs['standard_name'] = 'time'
+    new_ds.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
+    new_ds.time.encoding['calendar'] = 'proleptic_gregorian'
+    new_ds.time.attrs['timezone'] = 'Z'
+    new_ds.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
+    
+    new_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_all.nc')
+
+
 if plot_o3_ts:
     ozone = level2_dataset['AC240'] 
     o3 = ozone.o3_x
@@ -571,6 +608,7 @@ if plot_o3_ts:
     # o3.plot.imshow(x='time')
     fig2.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                 instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
+
     if save_o3_only:
         o3_ds = ozone.get([
             'o3_x','o3_xa','o3_mr','o3_eo','o3_es','o3_avkm','o3_z','o3_fwhm', 'o3_offset',
@@ -585,11 +623,15 @@ if plot_o3_ts:
             ) 
         o3_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_ozone.nc')
     if save_residuals:
-        residual = ozone.get([
-            'y',
-            'yf','y_baseline',
-            'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
-            ) 
+        # residual = ozone.get([
+        #     'y',
+        #     'yf','y_baseline',
+        #     'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
+        #     ) 
+        # residual  = np.convolve(ozone.y - ozone.yf, np.ones(4) / 4, mode="same")
+        residual  = ozone.y - ozone.yf
+
+        residual.rename('residuals')
         residual.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_residuals.nc')
 
 if plot_o3_diff_waccm:
@@ -768,7 +810,9 @@ if plot_selected:
             level2_dataset,
             outname,
             spectro='AC240',
-            cycles=[1,7,13,21]         
+            cycles=[16, 19],
+            altitude = False,
+            add_baselines = False,    
         )
     else:
         GROSOM_library.plot_O3_all(

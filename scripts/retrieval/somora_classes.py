@@ -133,6 +133,10 @@ class SOMORA_LvL2(DataRetrieval):
         ''' 
         if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
             baseline_periods = np.array([100e6])
+        elif (retrieval_param['date'] >= datetime.date(2019,6,1)) & (retrieval_param['date'] < datetime.date(2019,12,31)):
+            baseline_periods = np.array([110e6, 286e6, 364e6])
+        else:
+            baseline_periods = np.array([])
 
         return baseline_periods
 
@@ -162,6 +166,17 @@ class SOMORA_LvL2(DataRetrieval):
             plt.show()
         return f_grid
 
+    @property
+    def basecolor(self):
+       return '#2c7bb6'
+
+    @property
+    def cost_threshold(self):
+        return 0.1
+
+    @property
+    def polyfit_threshold(self):
+        return 0.1
 
     # def define_retrieval_param(self, retrieval_param):
     #     '''

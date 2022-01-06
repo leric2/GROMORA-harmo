@@ -149,7 +149,9 @@ class GROMOS_LvL2(DataRetrieval):
         ''' 
         if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
             baseline_periods = np.array([400e6])
-
+        else:
+            baseline_periods = np.array([])
+            
         return baseline_periods
 
     def make_f_grid_double_sideband(self, retrieval_param): 
@@ -178,3 +180,15 @@ class GROMOS_LvL2(DataRetrieval):
             plt.suptitle('Frequency grid spacing')
             plt.show()
         return f_grid
+    
+    @property
+    def basecolor(self):
+       return '#d7191c' 
+
+    @property
+    def cost_threshold(self):
+        return 0.1
+
+    @property
+    def polyfit_threshold(self):
+        return 0.1

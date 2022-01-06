@@ -54,8 +54,9 @@ import apriori_data_GROSOM
 import GROSOM_library
 from GROMORA_time import get_LST_from_GROMORA
 
-from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.ticker import (MultipleLocator, FuncFormatter, AutoMinorLocator)
 from matplotlib.lines import Line2D
+
 
 from retrievals import arts
 from retrievals import covmat
@@ -350,90 +351,154 @@ class DataRetrieval(ABC):
             print('saved in '+outfolder+self.instrument_name+'/'+save_name+self.datestr+'.pdf')
             #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
-    def plot_ozone_sel(self, level2_data, outName, spectro, cycles=None):
+    def plot_ozone_sel(self, level2_data, outName, spectro, cycles=None, altitude = False, add_baselines=False):
+        from GROSOM_library import cmap
         F0 = self.observation_frequency
+
+        col = self.basecolor
+
         figure_o3_sel=list()
+        fs=22
 
         if cycles is None:
             cycles = np.arange(len(level2_data[spectro].time))
 
         for i in cycles:
-            f_backend = level2_data[spectro].f.data
-            y = level2_data[spectro].y[i].data
-            yf = level2_data[spectro].yf[i].data
-            bl = level2_data[spectro].y_baseline[i].data 
+            f_backend = np.where(level2_data[spectro].bad_channels[i]==0,level2_data[spectro].f.data,  np.nan)
+            y = np.where(level2_data[spectro].bad_channels[i]==0, level2_data[spectro].y[i].data, np.nan)# level2_data[spectro].y[i].data
+            yf = np.where(level2_data[spectro].bad_channels[i]==0, level2_data[spectro].yf[i].data, np.nan)# level2_data[spectro].yf[i].data
+            bl = np.where(level2_data[spectro].bad_channels[i]==0, level2_data[spectro].y_baseline[i].data, np.nan)# level2_data[spectro].y_baseline[i].data 
             r = y - yf
-            r_interp = np.interp(f_backend,f_backend[~np.isnan(r)],r[~np.isnan(r)] )
-            r_smooth = np.convolve(r_interp, np.ones(128) / 128, mode="same")
-            fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(9,6))
-            axs[0].plot((f_backend - F0) / 1e6, y, label="observed")
-            axs[0].plot((f_backend - F0) / 1e6, yf, label="fitted")
-
+            r = np.where(np.isnan(r), 0, r)
+            # r[level2_data[spectro].bad_channels[i].data] = np.nan
+            # r_interp = np.interp(f_backend,f_backend[~np.isnan(r)],r[~np.isnan(r)], left=0, right=0 )
+            r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
+            fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(15,10))
+            if self.instrument_name == 'GROMOS':
+                print('Binning spectra for similar resolution as SOMORA')
+                axs[0].plot((np.convolve(f_backend, np.ones(2)/2, mode='same') - F0) / 1e6, np.convolve(y, np.ones(2)/2, mode='same'), color='silver', label="observed")
+            else:
+                axs[0].plot((f_backend - F0) / 1e6, y, color='silver', label="observed", alpha=1)
+            axs[0].plot((f_backend - F0) / 1e6, yf, color='k', label="fitted")
+            axs[0].set_ylabel("$T_B$ [K]", fontsize=fs)
+            axs[0].set_ylim(np.nanmedian(yf)-4, np.nanmedian(yf)+20)
            # axs[0].set_xlim(-0.5,15)
-            axs[0].legend()
-            axs[1].plot((f_backend - F0) / 1e6, r, label="residuals")
-            axs[1].plot((f_backend - F0) / 1e6, r_smooth, label="residuals smooth")
-            axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
+            axs[0].legend(fontsize=fs)
+            axs[1].plot((f_backend - F0) / 1e6, r, color='silver', label="residuals", alpha=1)
+            axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
+            if add_baselines:
+                axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
 
-           # axs[1].set_ylim(-4, 4)
-            axs[1].legend()
-            axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(F0 / 1e9))
-
+            axs[1].set_ylim(-4, 4)
+            axs[1].legend(fontsize=fs)
+            axs[1].set_xlabel("RF - {:.3f} GHz [MHz]".format(F0 / 1e9), fontsize=fs)
+            axs[1].set_ylabel(r"$\Delta T_B$ [K]", fontsize=fs)
             for ax in axs:
-                ax.set_ylabel("$T_B$ [K]")
-                ax.set_xlim([min((f_backend - F0) / 1e6), max((f_backend - F0) / 1e6)])
-            fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
-            fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+                ax.grid()
+                ax.set_xlim([np.nanmin((f_backend - F0) / 1e6), np.nanmax((f_backend - F0) / 1e6)])
+                ax.tick_params(axis='both', which='major', labelsize=fs)
+            fig.suptitle('O$_3$ spectrum: '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'), fontsize=fs+4)
+
+            fig.tight_layout(rect=[0, 0.03, 1, 0.99])
             figure_o3_sel.append(fig)
 
-            fig, axs = plt.subplots(nrows=1, ncols=3, sharey=True, figsize=(9,6))
+
+            fig, axs = plt.subplots(nrows=1, ncols=4, sharey=True, figsize=(20,12))
 
             o3 = level2_data[spectro].isel(time=i).o3_x
             o3_apriori = level2_data[spectro].isel(time=i).o3_xa
             o3_z = level2_data[spectro].isel(time=i).o3_z
+            fwhm=level2_data[spectro].isel(time=i).o3_fwhm 
+            offset=level2_data[spectro].isel(time=i).o3_offset
             o3_p = level2_data[spectro].isel(time=i).o3_p
             mr = level2_data[spectro].isel(time=i).o3_mr
             #error = lvl2[spectro].isel(time=i).o3_eo +  lvl2[spectro].isel(time=i).o3_es
             error = np.sqrt(level2_data[spectro].isel(time=i).o3_eo**2 +  level2_data[spectro].isel(time=i).o3_es**2)
             error_frac = error/o3
             o3_good = o3.where(mr>0.8).data
-            #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
-            axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
-            axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='r')
-            axs[0].set_title('$O_3$ VMR')
-            axs[0].set_xlim(-0.5,11)
-            axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
-            axs[0].set_xlabel('$O_3$ VMR [ppm]')
-            axs[0].yaxis.set_major_locator(MultipleLocator(10))
-            axs[0].yaxis.set_minor_locator(MultipleLocator(5))
-            axs[0].xaxis.set_major_locator(MultipleLocator(5))
+
+            if altitude:
+                y_axis=o3_z/1e3
+                y_lab = 'Altitude [km]'
+            else:
+                y_axis = o3_p/100
+                y_lab = 'Pressure [hPa] '
+            axs[0].fill_betweenx(y_axis, (o3-error)*1e6,(o3+error)*1e6, color=col, alpha=0.5)
+            axs[0].plot(o3*1e6, y_axis,'-', linewidth=1.5, label='retrieved',color=col)
+            axs[0].plot(o3_apriori*1e6, y_axis, '--', linewidth=1.5, label='apriori',color='k')
+            #axs[0].set_title('O$_3$ VMR')
+            axs[0].set_xlim(-0.5,9)
+            if altitude:
+                axs[0].set_ylim(5,85)
+                axs[0].yaxis.set_major_locator(MultipleLocator(10))
+                axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+            else:
+                axs[0].set_yscale('log')
+                axs[0].invert_yaxis()
+                axs[0].set_ylim(500,0.005)
+               # axs[0].yaxis.set_major_locator(MultipleLocator(10))
+              #  axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+                axs[0].yaxis.set_major_formatter(FuncFormatter(lambda y, _: '{:g}'.format(y)))
+            axs[0].set_xlabel('O$_3$ VMR [ppmv]', fontsize=fs)
+
+            axs[0].xaxis.set_major_locator(MultipleLocator(4))
             axs[0].xaxis.set_minor_locator(MultipleLocator(1))
             axs[0].grid(which='both',  axis='x', linewidth=0.5)
-            axs[0].set_ylabel('Altitude [km]')
-            axs[0].legend()
-            axs[1].plot(mr/4, o3_z/1e3,color='k', label='MR/4')
+            axs[0].set_ylabel(y_lab, fontsize=fs)
+            axs[0].legend(fontsize=fs)
+            axs[1].plot(mr/4, y_axis,color='k', label='MR/4')
+
             counter=0
-            for avk in level2_data[spectro].isel(time=i).o3_avkm:
-                if 0.8 <= np.sum(avk) <= 1.2:
+            color_count = 0
+            for j, avk in enumerate(level2_data[spectro].isel(time=i).o3_avkm):
+                if 0.6 <= np.sum(avk) <= 1.4:
                     counter=counter+1
-                    if np.mod(counter,5)==0:
-                        axs[1].plot(avk, o3_z / 1e3, label='z='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+'km', color='r')
+                    if np.mod(counter,8)==0:
+                        axs[1].plot(avk, y_axis, color=cmap(color_count*0.25+0.01))#label='z = '+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km'
+                        color_count = color_count +1
                     else:
-                        axs[1].plot(avk, o3_z / 1e3, color='k')
-            axs[1].set_xlabel("AVKM")
-            axs[1].set_xlim(-0.08,0.45)
-            axs[1].xaxis.set_major_locator(MultipleLocator(0.1))
+                        if counter==1:
+                            axs[1].plot(avk,y_axis, color='silver', label='AVKs')
+                        else:
+                            axs[1].plot(avk, y_axis, color='silver')
+
+
+            # counter=0
+            # for avk in level2_data[spectro].isel(time=i).o3_avkm:
+            #     if 0.8 <= np.sum(avk) <= 1.2:
+            #         counter=counter+1
+            #         if np.mod(counter,5)==0:
+            #             axs[1].plot(avk, o3_z / 1e3, label='z='+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+'km', color='r')
+            #         else:
+            #             axs[1].plot(avk, o3_z / 1e3, color='k')
+            axs[1].set_xlabel("Averaging Kernels", fontsize=fs)
+            axs[1].set_ylabel("", fontsize=fs)
+            axs[1].set_xlim(-0.08,0.4)
+            axs[1].xaxis.set_major_locator(MultipleLocator(0.2))
             axs[1].xaxis.set_minor_locator(MultipleLocator(0.05))
-            axs[1].legend()
+            axs[1].legend(loc=1, fontsize=fs-2)
             axs[1].grid(which='both',  axis='x', linewidth=0.5)
 
 
-            axs[2].plot(level2_data[spectro].isel(time=i).o3_es * 1e6, o3_z / 1e3, label="smoothing error")
-            axs[2].plot(level2_data[spectro].isel(time=i).o3_eo * 1e6, o3_z / 1e3, label="obs error")
-            axs[2].set_xlabel("$e$ [ppm]")
-            axs[2].set_ylabel("Altitude [km]")
-            axs[2].legend()
+            axs[2].plot(level2_data[spectro].isel(time=i).o3_es * 1e6, y_axis, '-', color='k', label="smoothing error")
+            axs[2].plot(level2_data[spectro].isel(time=i).o3_eo * 1e6, y_axis, '--' ,color='k', label="measurement error")
+            axs[2].set_xlabel("Errors [ppmv]", fontsize=fs)
+            axs[2].set_ylabel("", fontsize=fs)
+            axs[2].set_xlim(-0.08,1)
+            axs[2].xaxis.set_major_locator(MultipleLocator(0.5))
+            axs[2].xaxis.set_minor_locator(MultipleLocator(0.1))
+            axs[2].legend(loc=1, fontsize=fs-2)
             axs[2].grid(axis='x', linewidth=0.5)
+
+            axs[3].plot(fwhm/1e3, y_axis, color='k', label='FWHM')
+            axs[3].plot(offset/1e3, y_axis, '--', color='k', label='AVKs offset')
+            axs[3].set_xlim(-15,20)
+            axs[3].set_xlabel("Resolution and offset [km]", fontsize=fs)
+            axs[3].set_ylabel("", fontsize=fs)
+            axs[3].xaxis.set_minor_locator(MultipleLocator(5))
+            axs[3].xaxis.set_major_locator(MultipleLocator(10))
+            axs[3].grid(which='both', axis='x', linewidth=0.5)
+            axs[3].legend(loc=2, fontsize=fs)
 
             #axs[3].plot(level2_data[spectro].isel(time=i).h2o_x * 1e6, o3_z / 1e3, label="retrieved")
             # axs[3].set_xlabel("$VMR$ [ppm]")
@@ -444,31 +509,30 @@ class DataRetrieval(ABC):
             for a in axs:
                 #a.set_ylim(10,80)
                 a.grid(which='both', axis='y', linewidth=0.5)
-            fig.suptitle('$O_3$ retrievals (and h2o): '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'))
+                a.grid(which='both', axis='x', linewidth=0.5)
+                a.tick_params(axis='both', which='major', labelsize=fs)
+            fig.suptitle('O$_3$ retrievals: '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'), fontsize=fs+4)
+            fig.tight_layout(rect=[0, 0.01, 1, 0.99])
             figure_o3_sel.append(fig)
 
-            # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':
-            # fig, axs = plt.subplots(1, 1, sharey=True)
-            # h2o_x = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_x
-            # h2o_xa = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_xa
-            # h2o_z = level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).h2o-pwr98__h2o_z
+        # #if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+        # fig, axs = plt.subplots(1, 1, sharey=True)
+        # h2o_x = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_x
+        # h2o_xa = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_xa
+        # h2o_z = level2_data[spectro].isel(time=i).h2o-pwr98__h2o_z
 
-            # axs[0].semilogx(
-            #     h2o_x, h2o_z / 1e3, label="retrieved", marker="x"
-            # )
-            # axs[0].semilogx(h2o_xa, h2o_z / 1e3, label="apriori")
-            # axs[0].set_xlabel("Water VMR []")
-            # axs[0].set_ylabel("Altitude [km]")
-            # axs[0].legend()
-
-            # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
-            # figure_o3_sel.append(fig)
+        # axs[0].semilogx(
+        #     h2o_x, h2o_z / 1e3, label="retrieved", marker="x"
+        # )
+        # axs[0].semilogx(h2o_xa, h2o_z / 1e3, label="apriori")
+        # axs[0].set_xlabel("Water VMR []")
+        # axs[0].set_ylabel("Altitude [km]")
+        # axs[0].legend()
+        
+        # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
+        # figure_o3_sel.append(fig)
         save_single_pdf(outName+'.pdf',figure_o3_sel)
-
-    # def plot_level1b_TB(self, calibration_cycle):
-    #     plt.plot(self.integrated_data[self.spectrometers].frequencies,level1b_dataset.Tb_trop_corr[calibration_cycle])
-    #     plt.ylim((0,200))
-    #     pass
+        
     
     def plot_meteo_ds_level1b_dataset(self):
         GROSOM_library.plot_meteo_level1b(self.meteo_ds)
@@ -1250,26 +1314,28 @@ class DataRetrieval(ABC):
         
         ac.noise_variance_vector = y_var
 
+        
+
         ##################################################################################################################### 
         # Apply the retrievals quantites: 
         if retrieval_param['retrieval_quantities'] == 'o3_h2o':
-            print('Retrievals quantites: O3 and H2O continuum')
+            print('Retrievals quantities: O3 and H2O continuum')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret], y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
-            print('Retrievals quantites: O3, H2O continuum and Fshift')
+            print('Retrievals quantities: O3, H2O continuum and Fshift')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, fshift_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
-            print('Retrievals quantites: O3, H2O continuum and Polyfit')
+            print('Retrievals quantities: O3, H2O continuum and Polyfit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
-            print('Retrievals quantites: O3, H2O continuum, Fshift and Polyfit')
+            print('Retrievals quantities: O3, H2O continuum, Fshift and Polyfit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret, fshift_ret],  y_vars=y_var)
         elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
-            print('Retrievals quantites: O3, H2O continuum, Fshift, Polyfit and Sinefit')
+            print('Retrievals quantities: O3, H2O continuum, Fshift, Polyfit and Sinefit')
             ac.define_retrieval(retrieval_quantities=[
                                 ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret],  y_vars=y_var)
         else:
@@ -1541,6 +1607,11 @@ class DataRetrieval(ABC):
         level2.y.attrs['units'] = 'K'
         level2.y.attrs['description'] = 'integrated brightness temperature for this cycle, corrected for window and troposphere'
 
+        level2.bad_channels.attrs['standard_name'] = 'bad_channels'
+        level2.bad_channels.attrs['long_name'] = 'bad channels identified on measurement vector'
+        level2.bad_channels.attrs['units'] = '-'
+        level2.bad_channels.attrs['description'] = 'a boolean vector identifying the bad channels on the measurement vector'
+
         level2.yf.attrs['standard_name'] = 'fitted_measurement'
         level2.yf.attrs['long_name'] = 'fitted measurement vector'
         level2.yf.attrs['units'] = 'K'
@@ -1610,7 +1681,7 @@ class DataRetrieval(ABC):
                 level2[varname].attrs['description'] = 'Sinusoidal baseline retrieved for this period, first element is sine and second is cosine term'
 
         # Saving it as netCDF v4
-        level2.to_netcdf(path=full_name, format='NETCDF4')
+        level2.to_netcdf(path=full_name, format='NETCDF4', unlimited_dims='time')
 
         return level2
 
