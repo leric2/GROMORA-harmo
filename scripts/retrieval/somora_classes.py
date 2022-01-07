@@ -131,8 +131,8 @@ class SOMORA_LvL2(DataRetrieval):
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
 
         ''' 
-        if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
-            baseline_periods = np.array([100e6])
+        if (retrieval_param['date'] >= datetime.date(2019,1,1)) & (retrieval_param['date'] < datetime.date(2020,1,1)):
+            baseline_periods = np.array([110e6, 216e6, 310e6])
         elif (retrieval_param['date'] >= datetime.date(2019,6,1)) & (retrieval_param['date'] < datetime.date(2019,12,31)):
             baseline_periods = np.array([110e6, 286e6, 364e6])
         else:

@@ -1362,15 +1362,16 @@ class DataRetrieval(ABC):
             ws.x2artsAtmAndSurf()
             ws.x2artsSensor()
 
-            # To be safe, rerun some checks
+            # To be safe, rerun some checkss
             ws.atmfields_checkedCalc(negative_vmr_ok=True)
             ws.atmgeom_checkedCalc()
 
             # Calculate yf and Jacobian matching x
-            ws.yCalc() #(y=ws.yf)
+            ws.yCalc() #()ws.yf
 
             # Add baseline term
-            ws.VectorAddElementwise(ws.yf, ws.y, ws.y_baseline)
+            #ws.VectorAddElementwise(ws.yf, ws.y, ws.y_baseline)
+            ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
 
             # This method takes cares of some "fixes" that are needed to get the Jacobian
             # right for iterative solutions. No need to call this WSM for linear inversions.

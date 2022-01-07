@@ -26,8 +26,9 @@ Todo: all
 """
 import sys
 
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+
 
 import datetime
 import os
@@ -44,8 +45,7 @@ from dotenv import load_dotenv
 from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
-load_dotenv('/opt/anaconda/.env.birg-arts24')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
 
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
@@ -124,7 +124,7 @@ def retrieve_day(date, instrument_name):
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
     retrieval_param['verbose'] = 1
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
@@ -331,7 +331,7 @@ if __name__ == "__main__":
         datetime.date(2018,12,26), 
         datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2017-01-09', end='2017-01-09')# .append(pd.date_range(start='2019-10-01', end='2019-10-20'))
+    dates = pd.date_range(start='2019-01-10', end='2019-01-20').append(pd.date_range(start='2019-10-01', end='2019-10-20'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')

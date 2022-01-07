@@ -26,8 +26,8 @@ Todo: all
 """
 import sys
 
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
 
 import datetime
 import os
@@ -44,8 +44,9 @@ from dotenv import load_dotenv
 from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
-load_dotenv('/opt/anaconda/.env.birg-arts24')
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+#load_dotenv('/opt/anaconda/.env.birg-arts24')
+load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
+#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
@@ -61,6 +62,7 @@ if __name__ == "__main__":
     recheck_channels = False
 
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_pyarts/"
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
