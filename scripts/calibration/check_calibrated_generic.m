@@ -387,7 +387,7 @@ for i = 1:size(calibratedSpectra,2)
     if strcmp(calibrationTool.outlierDectectionType,'RFI')
         if sum(calibratedSpectra(i).outlierRFI) > 0
             disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
-            fig=figure(Visible="off");
+            fig=figure("visible","off");
             ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
             ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
             ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
