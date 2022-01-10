@@ -73,6 +73,7 @@ for i = 1:size(calibratedSpectra,2)
     centerChannels=find(calibratedSpectra(i).freq>=calibratedSpectra(i).observationFreq-calibrationTool.frequencyBandAroundCenterTNoise & calibratedSpectra(i).freq<calibratedSpectra(i).observationFreq+calibrationTool.frequencyBandAroundCenterTNoise);
     
     Ycenter=calibratedSpectra(i).Yspectral(centerChannels);
+    calibratedSpectra(i).mean_Yfactor = mean(calibratedSpectra(i).Yspectral(centerChannels));
     
     % Removing extreme outliers before computing TN:
     boxCarFilter=ones(100,1)/100;
@@ -297,7 +298,7 @@ for i = 1:size(calibratedSpectra,2)
                % just for estimation
                Teff = mean(air_temp(meteoInd))-calibrationTool.TC.deltaT;
            else
-               disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+               %disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
                Teff = 283 - calibrationTool.TC.deltaT; 
            end
            logFile.TC(isTC).Tb_Calib = calibrationTool.TCold + (logFile.TC(isTC).THotCalib - calibrationTool.TCold) .* (logFile.TC(isTC).sky - logFile.TC(isTC).coldCalib)./(logFile.TC(isTC).hotCalib - logFile.TC(isTC).coldCalib);
@@ -384,19 +385,19 @@ for i = 1:size(calibratedSpectra,2)
         disp(errorV)
         disp(calibratedSpectra(i).errorVectorDescription(~calibratedSpectra(i).errorVector))
     end
-    if strcmp(calibrationTool.outlierDectectionType,'RFI')
-        if sum(calibratedSpectra(i).outlierRFI) > 0
-            disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
-            fig=figure("visible","off");
-            ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
-            ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
-            ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
-            
-            print(fig,['/home/esauvageat/Desktop/RFI/GROMOS_RFI_' calibrationTool.dateStr '_' num2str(i)],'-dpdf','-fillpage')
-            xlabel('IF [MHz]')
-            ylabel('count difference')
-        end
-    end
+%     if strcmp(calibrationTool.outlierDectectionType,'RFI')
+%         if calibratedSpectra(i).outlierRFISky + calibratedSpectra(i).outlierDetectColdRFI  + calibratedSpectra(i).outlierDetectHotRFI  > 0
+%             disp(['Potential RFI problem n. ' num2str(i) ', TOD: ' datestr(timeofday(calibratedSpectra(i).meanAntTime),'HH:MM:SS')]);
+%             fig=figure("visible","off");
+%             ax1 = subplot(3,1,1); plot(ax1, calibratedSpectra(i).freqRFI,calibratedSpectra(i).AntSpectraRFI); ylim([-20, 50]); title('Sky')
+%             ax2 = subplot(3,1,2); plot(ax2, calibratedSpectra(i).freqRFI,calibratedSpectra(i).ColdSpectraRFI);ylim([-20, 50]); title('Cold')
+%             ax3 = subplot(3,1,3); plot(ax3, calibratedSpectra(i).freqRFI,calibratedSpectra(i).HotSpectraRFI);ylim([-20, 50]); title('Hot'); xlabel('IF [MHz]')
+%             
+%             print(fig,['/home/esauvageat/Desktop/RFI/GROMOS_RFI_' calibrationTool.dateStr '_' num2str(i)],'-dpdf','-fillpage')
+%             xlabel('IF [MHz]')
+%             ylabel('count difference')
+%         end
+%     end
    
 end
 

@@ -44,9 +44,9 @@ locationLevel1b=calibrationTool.level1Folder;
 integratedSpectra=level1.integratedSpectra;
 
 if calibrationTool.integrationTime == 60
-    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
 else
-    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' num2str(calibrationTool.integrationTime/60) 'h_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+    filename=[locationLevel1b calibrationTool.instrumentName '_level1b_' num2str(calibrationTool.integrationTime/60) 'h_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
 end
 calibrationTool.filenameLevel1b=filename;
 

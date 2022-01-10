@@ -1112,11 +1112,7 @@ if plot_sel_paper:
         level2_data,
         outname,
         spectrometer=spectro_lvl2,
-<<<<<<< HEAD
         cycles= [0]
-=======
-        cycles= [0,11]
->>>>>>> fc2bc5bccecf53d2d7eaa99460c6911f4047069e
     )
 
 if plot_avks_paper:

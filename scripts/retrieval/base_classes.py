@@ -1198,7 +1198,8 @@ class DataRetrieval(ABC):
         integration_time=None,
         date=None,
         level1_folder=None,
-        level2_folder=None
+        level2_folder=None,
+        extra_base=None
         ):
         
         self.instrument_name = instrument_name
@@ -1225,7 +1226,7 @@ class DataRetrieval(ABC):
         self.calibration_flags = dict()
         self.filename_level1a = dict()
         self.filename_level1b = dict()
-        extra_base =''
+        #extra_base =''
         for s in self.spectrometers:
             self.filename_level1a[s] = list()
             self.filename_level1b[s] = list()
@@ -1236,26 +1237,26 @@ class DataRetrieval(ABC):
                         os.path.join(
                     self.level1_folder,
                     self.instrument_name + "_level1a_" +
-                    s + "_" + self.datestr
+                    s + "_" + self.datestr + extra_base
                     ))
                     if self.integration_strategy == 'classic':
                         if self.int_time == 1:
                             self.filename_level1b[s] = os.path.join(
                             self.level1_folder,
                             self.instrument_name + "_level1b_" +
-                            s + "_" + self.datestr
+                            s + "_" + self.datestr + extra_base
                             )
                         else:
                             self.filename_level1b[s] = os.path.join(
                             self.level1_folder,
                             self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                            s + "_" + self.datestr
+                            s + "_" + self.datestr + extra_base
                             )
                     else:
                         self.filename_level1b[s] = os.path.join(
                             self.level1_folder,
                             self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                            s + "_" + self.datestr
+                            s + "_" + self.datestr + extra_base
                             )
             else:
                 self.datestr = self.date.strftime('%Y_%m_%d')
@@ -1264,20 +1265,20 @@ class DataRetrieval(ABC):
                         self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_" +
-                        s + "_" + self.datestr
+                        s + "_" + self.datestr + extra_base
                         ))
                     else:
                         self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                        s + "_" + self.datestr
+                        s + "_" + self.datestr + extra_base
                         ))
                 else:
                     self.datestr = self.date.strftime('%Y_%m_%d')
                     self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                        s + "_" + self.datestr+extra_base
+                        s + "_" + self.datestr + extra_base
                         ))
 
     def get_hot_load_temperature(self, time):
@@ -1312,7 +1313,7 @@ class DataRetrieval(ABC):
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" +
-                s + "_" + self.datestr
+                s + "_" + self.datestr + extra_base
                 )
             else:
                 # self.filename_level1b[s] = os.path.join(
@@ -1324,7 +1325,7 @@ class DataRetrieval(ABC):
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" + str(self.int_time) +"h_" +
-                s + "_" + self.datestr
+                s + "_" + self.datestr + extra_base
                 )
         
             #print('reading : ', self.filename_level1b[s])

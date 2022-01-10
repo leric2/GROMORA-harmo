@@ -76,9 +76,12 @@ catch ME
         % (useless anyway)
         T.dateNum = dateN;
         T = T(T.dateNum > calibrationTool.timeNumber-2 & T.dateNum < calibrationTool.timeNumber+2, :);
+        
+        if isempty(T.dateNum)
+            error();
+        end
         meteoData=table2struct(T);
-        
-        
+
         for i = 1:length(meteoData)
             meteoData(i).dateNum=T.dateNum(i)-calibrationTool.referenceTime;
             meteoData(i).dateTime=datetime(T.dateNum(i),'ConvertFrom','datenum');
@@ -87,8 +90,10 @@ catch ME
             meteoData(i).tod = 24*(meteoData(i).dateTime-meteoData(1).dateTime);
             meteoData(i).air_temperature = meteoData(i).air_temperature + calibrationTool.zeroDegInKelvin;
         end
+        disp('Loaded MCH data from extra folder')
     catch ME
         disp('no MCH data loaded for this day')
         meteoData = struct();
+    end
 end
 end

@@ -54,9 +54,16 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
     '''i
     Building the ecmwf store for atmospheric state
     '''
+    if t1 > dt.datetime(2013,6,24):
+        ecmwf_levels=137
+    elif t1 < dt.datetime(2013,6,25):
+        ecmwf_levels=91
+    else:
+        ecmwf_levels=np.nan
+        
     ecmwf_store = ECMWFLocationFileStore(ECMWF_store_path, ecmwf_prefix)
     ds_ecmwf = (
-        ecmwf_store.select_time(t1, t2, combine='by_coords')
+        ecmwf_store.select_time(t1, t2, n_levels=ecmwf_levels, combine='by_coords')
         .mean(dim='time')
         .swap_dims({"level":"pressure"})
     )
@@ -341,15 +348,21 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
 
     # Merging ecmwf and CIRA86
-    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86)
-   # plot_apriori_ptz(ds_ptz)
-
+    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86, method=retrieval_param['ptz_merge_method'], max_T_diff=retrieval_param['ptz_merge_max_Tdiff'])
+    #plot_apriori_ptz(ds_ptz)
+    
     # extrapolate to p_grid ??
     if z_grid is not None:
         ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
-    
-    # Temperature
+    #
+    #  Temperature
     atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
+    
+    if retrieval_param["retrieval_type"] == 8:
+        if retrieval_param["test_type"] == 'Tprofile':
+            print('Adding bias on Tprofile !')
+            atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values+retrieval_param['Tprofile_bias'])
+
 
     # z field
     atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
@@ -364,6 +377,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     pressure_atm = atm.z_field.to_xarray().coords['Pressure']
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
+    #print('Pressure [Pa]:')
+    #print(pressure_atm)
 
     if retrieval_param['o3_apriori'] == 'somora':
         print('Ozone apriori from : old SOMORA retrievals')
@@ -608,7 +623,7 @@ def extrapolate_down_ptz(ds_ptz, z_grid):
     )
     return ds_extrapolated
 
-def merge_ecmwf_cira86(ds_ecmwf, cira86):
+def merge_ecmwf_cira86(ds_ecmwf, cira86, method='simple_stack_corr', max_T_diff=10, max_pressure=50):
     '''
     Merging profile from ECMWF oper and CIRA86 monthly climatology.
 
@@ -627,27 +642,47 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86):
             DESCRIPTION.
     '''
 
-    #upper_p_grid = cira86.Pressure.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)
+    if method=='simple':
+        #upper_p_grid = cira86.Pressure.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)
 
-    # selection based on altitude
-    upper_p_grid = cira86.Pressure.data[cira86.altitude > np.max(ds_ecmwf.geometric_height.data)]
-    #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
+        # selection based on altitude
+        upper_p_grid = cira86.Pressure.data[cira86.altitude > np.max(ds_ecmwf.geometric_height.data)]
+        #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
+
+        upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
+        p_grid = np.hstack((ds_ecmwf.pressure.data, upper_p_grid))
+        temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
+        z_grid = np.hstack((ds_ecmwf.geometric_height.data, upper_cira86_ds.altitude.data))
+    elif method=='simple_stack_corr':
+        # selection based on altitude
+        upper_cira86_ds = cira86.where(cira86.Pressure < np.min(ds_ecmwf.pressure.data), drop=True)
+        #upper_t = cira86.temperature.data[cira86.Pressure < np.min(ds_ecmwf.pressure.data)]
+
+        #upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
+        #ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1])
+
+        p_grid = np.hstack((ds_ecmwf.pressure.data, upper_cira86_ds.Pressure))
+        temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
+        z_grid = np.hstack((ds_ecmwf.geometric_height.data, upper_cira86_ds.altitude.data))
+
+    elif method=='max_diff':
+        ecmwf_t_i = p_interpolate(
+            cira86.Pressure.data, ds_ecmwf.pressure.data, ds_ecmwf.temperature.data, fill=np.nan
+        )
+        T_diff = cira86.temperature-ecmwf_t_i
     
-    upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
+        p_with_low_T_diff = T_diff.Pressure.where((T_diff<max_T_diff), drop=True)
+        upper_p_grid = cira86.Pressure.where(cira86.Pressure<p_with_low_T_diff[-1], drop=True)
+        upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
+        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1])
+        # # interpolate CIRA86 altitude on p_grid
+        # cira86_alt_i = p_interpolate(
+        #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
+        # )
+        p_grid = np.hstack((ecmwf_lower.pressure.data, upper_p_grid))
+        temperature = np.hstack((ecmwf_lower.temperature.data, upper_cira86_ds.temperature.data))
+        z_grid = np.hstack((ecmwf_lower.geometric_height.data, upper_cira86_ds.altitude.data))
 
-    p_grid = np.hstack((ds_ecmwf.pressure.data, upper_p_grid))
-
-    #ecmwf_t_i = p_interpolate(
-    #    p_grid, ds_ecmwf.pressure.data, ds_ecmwf.temperature.data, fill=np.nan
-    #)
-
-    temperature = np.hstack((ds_ecmwf.temperature.data, upper_cira86_ds.temperature.data))
-    z_grid = np.hstack((ds_ecmwf.geometric_height.data, upper_cira86_ds.altitude.data))
-
-    # # interpolate CIRA86 altitude on p_grid
-    # cira86_alt_i = p_interpolate(
-    #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
-    # )
 
     ds_merged = xr.Dataset({'t': ('p', temperature),
                             'z': ('p', z_grid)},
