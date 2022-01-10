@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -44,20 +44,8 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2018_06_09','yyyy_mm_dd'):datenum('2018_06_09','yyyy_mm_dd');
-% dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
-%      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
-%      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
-%      datenum('2010_08_31','yyyy_mm_dd'):datenum('2010_08_31','yyyy_mm_dd')];
-%      datenum('2020_10_10','yyyy_mm_dd'):datenum('2020_10_19','yyyy_mm_dd'),...
-%       datenum('2020_11_18','yyyy_mm_dd'):datenum('2020_11_19','yyyy_mm_dd'),...
-%       datenum('2020_12_18','yyyy_mm_dd'):datenum('2020_12_19','yyyy_mm_dd'),...
-%       datenum('2020_01_18','yyyy_mm_dd'):datenum('2020_01_19','yyyy_mm_dd'),...
-%       datenum('2020_02_18','yyyy_mm_dd'):datenum('2020_02_19','yyyy_mm_dd'),...
-%       datenum('2020_03_18','yyyy_mm_dd'):datenum('2020_03_19','yyyy_mm_dd'),...
-%       datenum('2020_04_18','yyyy_mm_dd'):datenum('2020_04_19','yyyy_mm_dd'),...
-%       datenum('2020_05_18','yyyy_mm_dd'):datenum('2020_05_19','yyyy_mm_dd'),...
-%       datenum('2020_06_18','yyyy_mm_dd'):datenum('2020_06_19','yyyy_mm_dd')];
+%dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
+dates=datenum(datetime('yesterday')) : datenum(datetime('yesterday'));
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
@@ -90,7 +78,6 @@ dates=datenum('2018_06_09','yyyy_mm_dd'):datenum('2018_06_09','yyyy_mm_dd');
 %    datenum('2020_12_01','yyyy_mm_dd'):datenum('2020_12_02','yyyy_mm_dd')];
 
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
-    labviewLogFolder = '/home/esauvageat/Documents/GROMORA/Analysis/InputsCalibration/';
     labviewLogFolder = '/storage/tub/instruments/gromos/level1/GROMORA/InputsCalibration/';
     labviewLog = read_labview_log_generic(instrumentName, labviewLogFolder);
 else
