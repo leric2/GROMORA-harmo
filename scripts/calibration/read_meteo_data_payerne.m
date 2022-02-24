@@ -74,7 +74,7 @@ catch ME
     warning('no meteo from local station, trying with anetz data')
     try
         meteoData = read_meteo_data_MCH(calibrationTool);
-        disp('Found anetz data for this day');
+        %disp('Found anetz data for this day');
     catch ME
         warning(ME.message)
         disp('no meteo data loaded for this day')
