@@ -1,4 +1,4 @@
-function [data, meteoData, calibrationTool] = read_level1_GROSOM(calibrationTool, sublevel)
+function [data, meteoData, calibrationTool] = read_level1_GROMORA(calibrationTool, sublevel)
 %==========================================================================
 % NAME          | read_level1_GROSOM.m
 % TYPE          | function

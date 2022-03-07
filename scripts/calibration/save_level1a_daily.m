@@ -294,8 +294,13 @@ else
     ncwrite(filename,'/spectrometer1/noise_level',-9999*ones(length(calibratedSpectra),1));
 end
 
-ncwrite(filename,'/spectrometer1/VGunn',[calibratedSpectra.VGunn]);
-ncwrite(filename,'/spectrometer1/stdVGunn',[calibratedSpectra.stdVGunn]);
+if isfield(calibratedSpectra,'VGunn')
+    ncwrite(filename,'/spectrometer1/VGunn',[calibratedSpectra.VGunn]);
+    ncwrite(filename,'/spectrometer1/stdVGunn',[calibratedSpectra.stdVGunn]);
+else
+    ncwrite(filename,'/spectrometer1/VGunn',-9999*ones(length(calibratedSpectra),1));
+    ncwrite(filename,'/spectrometer1/stdVGunn',-9999*ones(length(calibratedSpectra),1));
+end
 
 numInd=vertcat(calibratedSpectra.numberOfIndices);
 ncwrite(filename,'/spectrometer1/number_of_hot_spectra',numInd(:,1));
