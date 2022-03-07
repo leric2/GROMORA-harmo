@@ -30,8 +30,8 @@
 
 clear all; close all; clc; clear functions; %clear mex;
 
-% 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C'
-instrumentName='SOMORA';
+% 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
+instrumentName='WIRAC';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -44,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2018_06_09','yyyy_mm_dd'):datenum('2018_06_09','yyyy_mm_dd');
+dates=datenum('2022_03_02','yyyy_mm_dd'):datenum('2022_03_02','yyyy_mm_dd');
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
@@ -66,28 +66,7 @@ dates=datenum('2018_06_09','yyyy_mm_dd'):datenum('2018_06_09','yyyy_mm_dd');
 %     datenum('2019_03_12','yyyy_mm_dd'):datenum('2019_03_12','yyyy_mm_dd'),...
 %     datenum('2019_04_25','yyyy_mm_dd'):datenum('2019_05_04','yyyy_mm_dd'),...
 %     datenum('2019_06_11','yyyy_mm_dd'):datenum('2019_06_18','yyyy_mm_dd')];
-% % 
-% dates=[datenum('2011_04_01','yyyy_mm_dd'):datenum('2011_04_02','yyyy_mm_dd'),...
-%    datenum('2011_09_01','yyyy_mm_dd'):datenum('2011_09_02','yyyy_mm_dd'),...
-%    datenum('2012_04_01','yyyy_mm_dd'):datenum('2012_04_02','yyyy_mm_dd'),...
-%    datenum('2012_09_01','yyyy_mm_dd'):datenum('2012_09_02','yyyy_mm_dd'),...
-%    datenum('2013_04_01','yyyy_mm_dd'):datenum('2013_04_02','yyyy_mm_dd'),...
-%    datenum('2013_09_01','yyyy_mm_dd'):datenum('2013_09_02','yyyy_mm_dd'),...
-%    datenum('2014_04_01','yyyy_mm_dd'):datenum('2014_04_02','yyyy_mm_dd'),...
-%    datenum('2014_09_01','yyyy_mm_dd'):datenum('2014_09_02','yyyy_mm_dd'),...
-%    datenum('2015_04_01','yyyy_mm_dd'):datenum('2015_04_02','yyyy_mm_dd'),...
-%    datenum('2015_09_01','yyyy_mm_dd'):datenum('2015_09_02','yyyy_mm_dd'),...
-%    datenum('2016_04_01','yyyy_mm_dd'):datenum('2016_04_02','yyyy_mm_dd'),...
-%    datenum('2016_09_01','yyyy_mm_dd'):datenum('2016_09_02','yyyy_mm_dd'),...
-%    datenum('2017_04_01','yyyy_mm_dd'):datenum('2017_04_02','yyyy_mm_dd'),...
-%    datenum('2017_09_01','yyyy_mm_dd'):datenum('2017_09_02','yyyy_mm_dd'),...
-%    datenum('2018_04_01','yyyy_mm_dd'):datenum('2018_04_02','yyyy_mm_dd'),...
-%    datenum('2018_09_01','yyyy_mm_dd'):datenum('2018_09_02','yyyy_mm_dd'),...    
-%    datenum('2019_04_01','yyyy_mm_dd'):datenum('2019_04_02','yyyy_mm_dd'),...
-%    datenum('2019_09_01','yyyy_mm_dd'):datenum('2019_09_02','yyyy_mm_dd'),...    
-%    datenum('2020_04_01','yyyy_mm_dd'):datenum('2020_04_02','yyyy_mm_dd'),...
-%    datenum('2020_09_01','yyyy_mm_dd'):datenum('2020_09_02','yyyy_mm_dd'),...
-%    datenum('2020_12_01','yyyy_mm_dd'):datenum('2020_12_02','yyyy_mm_dd')];
+
 
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
     labviewLogFolder = '/home/esauvageat/Documents/GROMORA/Analysis/InputsCalibration/';
@@ -145,9 +124,9 @@ for d = 1:numel(dates)
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;
     calibrationTool.calibratedSpectraSpectralPlot = true;
-    calibrationTool.saveLevel1a = true;
+    calibrationTool.saveLevel1a = false;
     calibrationTool.integratedSpectraPlot = true;
-    calibrationTool.saveLevel1b = true;
+    calibrationTool.saveLevel1b = false;
     
     calibrationTool.savePlanckIntensity = true;
     calibrationTool.check_deltaTC = true;
@@ -239,6 +218,41 @@ for d = 1:numel(dates)
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
         calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);
+     elseif strcmp(instrumentName,'WIRAC')
+        % Time interval for doing the calibration
+        calibrationTool.calibrationTime=10;
+    
+        % Total integration time
+        calibrationTool.integrationTime=60;
+        
+        % Filtering options of level 1a
+        calibrationTool.filterByTransmittance = false;
+        calibrationTool.transmittanceThreshold = 0.05;
+        calibrationTool.filterByFlags = true;
+        
+        %%% Flags level 1b:
+        % Minimum number of averaged spectra needed for the level 1b
+        calibrationTool.minNumberOfAvgSpectra = 3;
+        % transmittance threshold for flagging level 1b:
+        calibrationTool.troposphericTransmittanceFlag = 0.15;
+
+        % Temperature of the cold load
+        calibrationTool.TCold=80;
+        
+        % Import specific parameter and functions for this instrument
+        calibrationTool = import_WIRAC_calibrationTool(calibrationTool);        
+        % an extra folder where we copy missing anetz data (from STARTWAVE)
+        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+
+        % Specific to WIRAC:
+        calibrationTool.outlierDectectionType = 'noFFT';
+
+        calibrationTool.saveLevel1a = true;
+        calibrationTool.integratedSpectraPlot = true;
+        calibrationTool.saveLevel1b = true;
+
+        calibrationTool.savePlanckIntensity = true;
+        calibrationTool.check_deltaTC = true;
     end
     
     %calibrationTool.transmittanceWindow  = calibrationTool.transmittanceWindow *0.97
