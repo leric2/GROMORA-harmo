@@ -85,6 +85,8 @@ for i = 1:size(calibratedSpectra,2)
     
     %TSysCenter2=(calibratedSpectra(i).THot-mean(Ycenter)*retrievalTool.TCold)./(mean(Ycenter)-1);
     
+    % This is the one plotted in red and the one use for flagging bad
+    % Tnoise
     calibratedSpectra(i).TNoise=nanmean(TNoiseCenter);
     
     %%%%%%%%%%% Flag 2 %%%%%%%%%%%

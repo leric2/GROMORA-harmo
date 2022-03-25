@@ -391,4 +391,9 @@ if (calibrationTool.timeNumber>= datenum(2010,01,01) && calibrationTool.timeNumb
     calibrationTool.indiceTC = 1;
 end
 
+% Bad channels
+if calibrationTool.timeNumber>= datenum(2022,02,17)
+    calibrationTool.badChannels=[122821 2282 12283 12284 12285 12286 12287 12288 12288 16384 16385];
+end
+
 end
