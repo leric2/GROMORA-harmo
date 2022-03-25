@@ -55,8 +55,8 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
-    date = datetime.date(2019, 1, 15)
+    instrument_name = "GROMOS"
+    date = datetime.date(2018, 10 , 9)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -117,14 +117,14 @@ if __name__ == "__main__":
         raise NotImplementedError(
             'TODO, implement reading level1b in non classical cases !')
 
-    cycles = np.arange(12, 13)
+    cycles = np.arange(7, 8)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
-    retrieval_param['verbose'] = 1
+    retrieval_param['verbose'] = 3
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
@@ -176,8 +176,15 @@ if __name__ == "__main__":
         retrieval_param["integration_cycle"] = c
         print('retrieving cycle : ', c)
 
-        retrieval_param['p_surface'] = integrated_meteo[spectro].air_pressure[c].data
-        retrieval_param['T_surface'] = integrated_meteo[spectro].air_temperature[c].data
+        if ~np.isnan(integrated_meteo[spectro].air_pressure[c].data):
+            retrieval_param['p_surface'] = integrated_meteo[spectro].air_pressure[c].data
+        else:
+            retrieval_param['p_surface'] = instrument.standard_air_pressure
+        
+        if ~np.isnan(integrated_meteo[spectro].air_temperature[c].data):
+            retrieval_param['T_surface'] = integrated_meteo[spectro].air_temperature[c].data
+        else:
+            retrieval_param['T_surface'] = instrument.standard_air_temperature
 
         if retrieval_param["retrieval_type"] == 1:
             retrieval_param["surface_altitude"] = 1e3
@@ -349,7 +356,7 @@ if __name__ == "__main__":
 
             axs[1].plot(ds_freq/1e9, y[0]-y[1], label='Per-HIT', color='k')
             #axs[1].plot(ds_freq/1e9, y[0]-y[2], label = 'MLS-HIT', color='green')
-            #axs[1].plot(ds_freq/1e9, y[0]-y[1], label = 'MLS-Per', color='red')
+            #axs[1].plot(ds_req/1e9, y[0]-y[1], label = 'MLS-Per', color='red')
             axs[0].set_ylabel('Tb [K]')
             #axs[1].set_ylim(-2.5, 2.5)
             ax1.set_xlim(-10, 10)

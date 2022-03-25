@@ -307,6 +307,9 @@ class DataRetrieval(ABC):
                     try:
                         level2_data = xr.open_dataset(
                             self.filename_level2[s] + ".nc",
+                            decode_times=True,
+                            decode_coords=True,
+                            use_cftime=True,
                         )                    
                     except FileNotFoundError:
                         print('No file for this day, skipping ', self.filename_level2[s])
@@ -332,6 +335,9 @@ class DataRetrieval(ABC):
                 try:
                     self.level2_data[s] = xr.open_dataset(
                         self.filename_level2[s] + ".nc",
+                        decode_times=True,
+                        decode_coords=True,
+                        use_cftime=True,
                         )
                     print('Read : ', self.filename_level2[s])
                 except FileNotFoundError:
@@ -571,7 +577,7 @@ class DataRetrieval(ABC):
         retrieval_param["number_of_freq_points"] = 1201
         retrieval_param["irregularity_f_grid"] = 45
         retrieval_param["z_top_sim_grid"] = 112e3
-        retrieval_param["z_bottom_sim_grid"] = 600
+        retrieval_param["z_bottom_sim_grid"] = 600 #600
         retrieval_param["z_resolution_sim_grid"] = 2e3
 
         retrieval_param["retrieval_grid_type"] = 'altitude'
@@ -587,7 +593,7 @@ class DataRetrieval(ABC):
         retrieval_param["h2o_pressure"] = [500e2]
 
         #retrieval_param['unit_var_y']  = 3**2
-        retrieval_param['pointing_angle_corr'] = 0
+        retrieval_param['pointing_angle_corr'] = self.correct_pointing(retrieval_param)
 
         retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
         retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
@@ -596,12 +602,12 @@ class DataRetrieval(ABC):
         retrieval_param['spectroscopy_type'] = 'XML'
         
         retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
-        # max_diff, simple_stack_corr, simple
+        # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5
         retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
         # /tub/instruments/gromos/ECMWF_Bern'
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+str(retrieval_param['date'].year)
+        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
         #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
         retrieval_param['extra_time_ecmwf'] = 3.5
 
@@ -866,6 +872,8 @@ class DataRetrieval(ABC):
             plt.matshow(sx.todense())
             plt.colorbar()  
 
+            #np.save('/home/es19m597/Documents/GROMORA/Data/apriori_cov', sx.todense())
+
         return sx
 
     def define_sensor(self, retrieval_param, ds_freq, ds_df):
@@ -1102,6 +1110,7 @@ class DataRetrieval(ABC):
         retrieval_param["azimuth_angle"] = spectro_dataset.azimuth_angle.values[cycle]
         retrieval_param["lat"] = spectro_dataset.lat[cycle].values
         retrieval_param["lon"] = spectro_dataset.lon[cycle].values
+        retrieval_param["station_altitude"] = spectro_dataset.alt[cycle].values
 
         try:
             retrieval_param["time"] = spectro_dataset.time[cycle].values
@@ -1142,20 +1151,33 @@ class DataRetrieval(ABC):
         elif retrieval_param['atm'] == 'ecmwf_cira86':
             ecmwf_prefix = f'ecmwf_oper_v{2}_{self.location}_%Y%m%d.nc'
             retrieval_param['ecmwf_prefix'] = ecmwf_prefix
-
-            atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
-                retrieval_param,
-                retrieval_param['ecmwf_store_location'],
-                retrieval_param['cira86_path'],
-                pd.to_datetime(retrieval_param['time_start']),
-                pd.to_datetime(retrieval_param['time_stop']),
-                retrieval_param['extra_time_ecmwf'],
-                z_grid
-            )
-            ac.set_atmosphere(atm, vmr_zeropadding=True)
-            retrieval_param['test_apriori'] = ac.ws.vmr_field.value[0,:,0]
+            try:
+                atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
+            except:
+                retrieval_param['ptz_merge_method'] = 'max_diff_surf'
+                atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
         else:
             raise ValueError('Atmosphere type not recognized')
+        
+        retrieval_param['test_apriori'] = ac.ws.vmr_field.value[0,:,0]
 
         if retrieval_param["surface_altitude"] < min(ac.ws.z_field.value[:, 0, 0]):
             retrieval_param["surface_altitude"] = min(ac.ws.z_field.value[:, 0, 0])
@@ -1210,6 +1232,8 @@ class DataRetrieval(ABC):
             #     abs_p=ac.ws.p_grid.value[0],
             # )
            # ac.ws.abs_lookupCalc()
+            ac.ws.jacobianAddBasicCatalogParameter(ac.ws.jacobian_quantities, ac.ws.jacobian_agenda, "O3-666 TR UP J 0 LO J 0", "Line Strength" )
+
             y_FM = ac.y_calc(jacobian_do=True)
            # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
             return ac, retrieval_param, sensor

@@ -41,6 +41,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
+import gc
 
 from utils_GROSOM import save_single_pdf
 
@@ -69,7 +70,7 @@ def retrieve_day(date, instrument_name):
     if instrument_name=="GROMOS":
         import gromos_classes as gc
         basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/v2/',str(date.year))
-        basename_lvl2 = os.path.join('/storage/tub/instruments/gromos/level2/GROMORA/v1/',str(date.year))
+        basename_lvl2 = os.path.join('/storage/tub/instruments/gromos/level2/GROMORA/v2/',str(date.year))
         instrument = gc.GROMOS_LvL2(
             date,
             basename_lvl1,
@@ -81,7 +82,7 @@ def retrieve_day(date, instrument_name):
         retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
         basename_lvl1 = os.path.join('/storage/tub/instruments/somora/level1/v2/',str(date.year))
-        basename_lvl2 = os.path.join('/storage/tub/instruments/somora/level2/v1/',str(date.year))
+        basename_lvl2 = os.path.join('/storage/tub/instruments/somora/level2/v2/',str(date.year))
         import somora_classes as sm
         instrument = sm.SOMORA_LvL2(
             date=date,
@@ -161,9 +162,10 @@ def retrieve_day(date, instrument_name):
     spectro_dataset = instrument.integrated_data[spectro]
 
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
-    cycles= np.where((flags[spectro].calibration_flags.data[:,0]+ flags[spectro].calibration_flags.data[:,1])==2 )[0]
+    #cycles= cycles[np.where(np.mod(cycles,8)==1)[0]]
    # cycles = [1,4,10, 15]
-    #cycles = [1,7,15,21]
+    #cycles = [2, 14]
+    #cycles= cycles[np.where(np.mod(cycles,8)==1)[0]]
     if len(cycles) ==0:
         return 0
     #retrieval_param = {**global_attrs_level1b, **retrieval_param}
@@ -204,6 +206,17 @@ def retrieve_day(date, instrument_name):
         print('######################################################################################')
         retrieval_param["integration_cycle"] = c
         print('retrieving cycle : ',c)
+
+        if ~np.isnan(integrated_meteo[spectro].air_pressure[c].data):
+            retrieval_param['p_surface'] = integrated_meteo[spectro].air_pressure[c].data
+        else:
+            retrieval_param['p_surface'] = instrument.standard_air_pressure
+        
+        if ~np.isnan(integrated_meteo[spectro].air_temperature[c].data):
+            retrieval_param['T_surface'] = integrated_meteo[spectro].air_temperature[c].data
+        else:
+            retrieval_param['T_surface'] = instrument.standard_air_temperature
+            
         try:
             if retrieval_param["retrieval_type"] == 1:
                 retrieval_param["surface_altitude"] = 1e3
@@ -288,50 +301,54 @@ def retrieve_day(date, instrument_name):
             elif (counter>0) & (len(level2_cycle) > 0):
                 counter = counter + 1
                 level2 = xr.concat([level2, level2_cycle], dim='time')
-        except:
-           # print(e)
+        except Exception as e:
+            print(e)
             # if counter==0:
             #     level2 = xr.Dataset()
             # else:
             #     level2_cycle=xr.Dataset()
             print('problem retrieving cycle : ',c)
-    
+
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
         level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
-
-        return level2
-    else:
-        return 0
+        level2.close()
+        level2_cycle.close()
+        del level2, level2_cycle
+        gc.collect()
+        #return None
+    # else:
+    #     return 0
 if __name__ == "__main__":
-    void_date_problem = [
-        datetime.date(2009,11,3), 
-        datetime.date(2009,11,27),
-        datetime.date(2009,12,25),
-        datetime.date(2009,12,26), 
-        datetime.date(2010,1,6), 
-        datetime.date(2010,1,7), 
-        datetime.date(2010,1,13),
-        datetime.date(2010,1,31),
-        datetime.date(2010,2,2),
-        datetime.date(2010,3,3),
-        datetime.date(2010,5,31),
-        datetime.date(2010,7,5),
-        datetime.date(2010,7,12),
-        datetime.date(2010,7,29),
-        datetime.date(2010,8,12),
-        datetime.date(2010,9,7),
-        datetime.date(2010,9,16),
-        datetime.date(2010,9,18),
-        datetime.date(2010,9,19),
-        datetime.date(2017,5,26), 
-        datetime.date(2018,5,5),
-        datetime.date(2018,12,24),
-        datetime.date(2018,12,25), 
-        datetime.date(2018,12,26), 
-        datetime.date(2019,1,3)]
+    void_date_problem = []
+        # datetime.date(2009,11,3), 
+        # datetime.date(2009,11,27),
+        # datetime.date(2009,12,25),
+        # datetime.date(2009,12,26), 
+        # datetime.date(2010,1,6), 
+        # datetime.date(2010,1,7), 
+        # datetime.date(2010,1,13),
+        # datetime.date(2010,1,31),
+        # datetime.date(2010,2,2),
+        # datetime.date(2010,3,3),
+        # datetime.date(2010,5,31),
+        # datetime.date(2010,7,5),
+        # datetime.date(2010,7,12),
+        # datetime.date(2010,7,29),
+        # datetime.date(2010,8,12),
+        # datetime.date(2010,9,7),
+        # datetime.date(2010,9,16),
+        # datetime.date(2010,9,18),
+        # datetime.date(2010,9,19),
+        #datetime.date(2017,5,26), 
+        # datetime.date(2018,5,5),
+        # datetime.date(2018,12,24),
+        # datetime.date(2018,12,25), 
+        # datetime.date(2018,12,26), 
+        #datetime.date(2019,1,3)]
 
-    dates = pd.date_range(start='2019-01-10', end='2019-01-20').append(pd.date_range(start='2019-10-01', end='2019-10-20'))
+    #dates = pd.date_range(start=sys.argv[1], end=sys.argv[2])#.append(pd.date_range(start='2014-01-01', end='2014-12-31'))
+    dates = pd.date_range(start='2020-02-23', end='2020-02-25')#.append(pd.date_range(start='2019-01-14', end='2019-03-12')) #.append(pd.date_range(start='2012-10-26', end='2012-11-11')).append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -340,12 +357,16 @@ if __name__ == "__main__":
             print('abort core problem with this day : ',d ,' --> skipping')
         else:
             try:
-                level2 = retrieve_day(d, 'SOMORA')
+                retrieve_day(d, 'SOMORA')
             except:
-                print('problem retrieving day : ',d)
+                #print('problem retrieving day : ',d)
+                pass
             print('######################################################################################')
             print('######################################################################################')
             try:
-                level2 = retrieve_day(d, 'GROMOS')
+                retrieve_day(d, 'GROMOS')
             except:
+                pass
                 print('problem retrieving day : ',d)
+            
+
