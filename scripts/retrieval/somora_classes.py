@@ -193,7 +193,7 @@ class SOMORA_LvL2(DataRetrieval):
 
     @property
     def polyfit_threshold(self):
-        return 0.1
+        return 0.1 #0.5 for 2010
 
     @property
     def standard_air_pressure(self):

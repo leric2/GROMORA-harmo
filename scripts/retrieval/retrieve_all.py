@@ -332,23 +332,40 @@ if __name__ == "__main__":
         # datetime.date(2010,2,2),
         # datetime.date(2010,3,3),
         # datetime.date(2010,5,31),
-        # datetime.date(2010,7,5),
-        # datetime.date(2010,7,12),
-        # datetime.date(2010,7,29),
-        # datetime.date(2010,8,12),
-        # datetime.date(2010,9,7),
-        # datetime.date(2010,9,16),
-        # datetime.date(2010,9,18),
-        # datetime.date(2010,9,19),
+    #     datetime.date(2010,7,5),
+    #     datetime.date(2010,7,12),
+    #     datetime.date(2010,7,29),
+    #     datetime.date(2010,8,12),
+    #     datetime.date(2010,9,7),
+    #     datetime.date(2010,9,16),
+    #     datetime.date(2010,9,18),
+    #     datetime.date(2010,9,19)]
         #datetime.date(2017,5,26), 
         # datetime.date(2018,5,5),
         # datetime.date(2018,12,24),
         # datetime.date(2018,12,25), 
         # datetime.date(2018,12,26), 
         #datetime.date(2019,1,3)]
-
+    # dates = [
+    #     datetime.date(2014,8,12),
+    #     datetime.date(2014,9,2),
+    #     datetime.date(2010,12,6),
+    #     datetime.date(2010,12,8),
+    #     datetime.date(2010,12,9),
+    #     datetime.date(2011,6,9),
+    #     datetime.date(2011,6,30),
+    #     datetime.date(2012,4,2),
+    #     datetime.date(2012,5,15),
+    #     datetime.date(2012,7,3),
+    #     datetime.date(2013,7,30),
+    #     datetime.date(2016,10,10),
+    #     datetime.date(2017,4,24),
+    #     datetime.date(2018,8,23),
+    #     datetime.date(2018,10,16),
+    #     ]
+    dates = [datetime.date(2015,7,6),datetime.date(2015,8,13)]
     #dates = pd.date_range(start=sys.argv[1], end=sys.argv[2])#.append(pd.date_range(start='2014-01-01', end='2014-12-31'))
-    dates = pd.date_range(start='2020-02-23', end='2020-02-25')#.append(pd.date_range(start='2019-01-14', end='2019-03-12')) #.append(pd.date_range(start='2012-10-26', end='2012-11-11')).append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
+    #dates = pd.date_range(start='2010-01-06', end='2010-01-07').append(pd.date_range(start='2010-01-13', end='2010-01-13')).append(pd.date_range(start='2010-05-31', end='2010-05-31'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -362,11 +379,11 @@ if __name__ == "__main__":
                 #print('problem retrieving day : ',d)
                 pass
             print('######################################################################################')
-            print('######################################################################################')
-            try:
-                retrieve_day(d, 'GROMOS')
-            except:
-                pass
-                print('problem retrieving day : ',d)
+            # print('######################################################################################')
+            # try:
+            #     retrieve_day(d, 'GROMOS')
+            # except:
+            #     pass
+            #     print('problem retrieving day : ',d)
             
 
