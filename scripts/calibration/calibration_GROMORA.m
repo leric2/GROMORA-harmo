@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
-instrumentName='WIRAC';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -44,7 +44,9 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2022_03_02','yyyy_mm_dd'):datenum('2022_03_02','yyyy_mm_dd');
+dates=datenum('2015_08_13','yyyy_mm_dd'):datenum('2015_08_13','yyyy_mm_dd');
+%dates=datenum('2010_12_08','yyyy_mm_dd'):datenum('2010_12_13','yyyy_mm_dd');
+
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
@@ -124,9 +126,9 @@ for d = 1:numel(dates)
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;
     calibrationTool.calibratedSpectraSpectralPlot = true;
-    calibrationTool.saveLevel1a = false;
+    calibrationTool.saveLevel1a = true;
     calibrationTool.integratedSpectraPlot = true;
-    calibrationTool.saveLevel1b = false;
+    calibrationTool.saveLevel1b = true;
     
     calibrationTool.savePlanckIntensity = true;
     calibrationTool.check_deltaTC = true;

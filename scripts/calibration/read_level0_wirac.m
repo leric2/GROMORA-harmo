@@ -41,6 +41,7 @@ function [logFile, rawSpectra] = read_level0_wirac(calibrationTool, readRawFile)
 % if nargin<4    index =0; end % 0: read all measurements
 
 file = calibrationTool.file;
+channels = calibrationTool.numberOfChannels;
 % make sure that file name is given without exetension
 if findstr(file, '.txt');
     file=file(1:end-4);
@@ -63,7 +64,7 @@ if isempty(D)
     D.bytes=NaN;
 end
 LineByLine=0;
-if 0
+if channels > 0
     % check if *.bin file size matches to given number of channels and expected number of measurements
     if D.bytes ~= channels*4*M
         warning( 'Size of binary file %d does not match channels*measurements*4=%d\nDAta wil be read line by line', D.bytes, channels*4*M)
