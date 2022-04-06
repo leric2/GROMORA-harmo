@@ -50,5 +50,16 @@ logFile.T_Out=logFile.AI_7*100;
 logFile.T_Room=logFile.AI_1*100;
 
 logFile.Freq_Lock = (logFile.IF_LO1_Lock & logFile.IF_LO2_Lock);
+if length(logFile.Freq_Lock)==1
+    logFile.Freq_Lock = ones(length(logFile.t),1)*logFile.Freq_Lock;
+end
+if length(logFile.FFT_Nr_of_acq)==1
+    logFile.FFT_Nr_of_acq = ones(length(logFile.t),1)*logFile.FFT_Nr_of_acq;
 
+end
+if length(logFile.LN2_Level_OK)==1
+    logFile.LN2_Level_OK = ones(length(logFile.t),1)*logFile.LN2_Level_OK;
+end
+if ~isfield(logFile, 'comment')
+    logFile.comment = 'warning: corrupted raw file';
 end
