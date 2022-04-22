@@ -113,7 +113,7 @@ Tb_ref(zero_index)=nan;
 Tbref=data.T0*exp(-data.tau*AM_ref_trop)+data.Teff*(1-exp(-data.tau*AM_ref_trop));
 
 %===== calculate the equivalent transmission of the ref absorber
-A=nanmean((Tb_ref-data.Tref)./(Tbref-data.Tref));
+A=mean((Tb_ref-data.Tref)./(Tbref-data.Tref), 'omitnan');%AB
 
 %===== calibrate the difference spectrum
 deltaTb(nonzero_index)=(data.S_line-data.S_ref)./(data.S_hot-data.S_cold).*(data.Thot-T_COLD);

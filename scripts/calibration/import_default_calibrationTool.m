@@ -857,15 +857,18 @@ switch instrumentName
 % paths
         %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
         calibrationTool.extraFileFolder='/export/data/miawarac/ExtraRawFiles/'; % no write permission on the IAP lake
+        
         %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
-        calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%AB
+        disp(calibrationTool.rawFileFolder)
         %calibrationTool.rawFileFolder=['/scratch/'];
-        calibrationTool.level1Folder='/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';
+        calibrationTool.level1Folder= '//home/alistair/export/data/miawarac/MIAC_calibration_GROSOM-harmo/'%'/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
+        disp(calibrationTool.filename)
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
         
-        calibrationTool.meteoFolder=['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';
+        calibrationTool.meteoFolder=['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';%AB
         calibrationTool.observationFreq=22.235;
         
         calibrationTool.calibrationTime=60;

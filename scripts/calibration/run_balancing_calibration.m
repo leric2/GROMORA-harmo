@@ -1,7 +1,7 @@
 function [o, calibratedSpectra] = run_balancing_calibration(rawSpectra,logFile,calibrationTool,~)
 o = [];
 
-disp('run balancing calibration')
+disp(['run balancing calibration for ' calibrationTool.dateStr])
 
 if length(unique(logFile.dir))>1
     1
