@@ -41,7 +41,7 @@ function calibrationTool = save_level1a_daily(calibrationTool,logFile,calibrated
 %           |  
 %==========================================================================
 % Filename and location for DAILY netCDF file
-if calibrationTool.calType=="debug"
+if strcmp(calibrationTool.calType,'debug')
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '_debug.nc'];
 else
     filename=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
@@ -49,7 +49,7 @@ end
 calibrationTool.filenameLevel1a=filename;
 
 % Rewrite if already existing
-if isfile(filename)
+if  exist(filename,'file')
     delete(filename)
 end
 
@@ -79,6 +79,8 @@ nccreate(filename,'/spectrometer1/time_of_day','Dimensions',{'time',Inf},'Dataty
 nccreate(filename,'/spectrometer1/first_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/last_sky_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 nccreate(filename,'/spectrometer1/time_min','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/dir','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
+nccreate(filename,'/spectrometer1/pol','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999);
 
 %%%%%%%%%%%%%%%%%
 % Calibration variables   
@@ -96,6 +98,10 @@ nccreate(filename,'/spectrometer1/noise_temperature','Dimensions',{'time',Inf},'
 nccreate(filename,'/spectrometer1/std_dev_noise_temperature','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/calibration_time','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/mean_sky_elevation_angle','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/mean_opacity','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/sigma','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/A','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
+nccreate(filename,'/spectrometer1/a','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 
 nccreate(filename,'/spectrometer1/TRoom','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
 nccreate(filename,'/spectrometer1/TWindow','Dimensions',{'time',Inf},'Datatype','double','FillValue',-9999)
@@ -239,15 +245,41 @@ ncwriteatt(filename,'/spectrometer1/time_min','units',calibrationTool.meanDateti
 ncwriteatt(filename,'/spectrometer1/time_min','calendar',calibrationTool.calendar);
 ncwriteatt(filename,'/spectrometer1/time_min','description','minimum theoretical start time for this calibration cycle');
 
+if isfield(calibratedSpectra,'dir')
+    ncwrite(filename,'/spectrometer1/dir',[calibratedSpectra.dir]);
+else
+    ncwrite(filename,'/spectrometer1/dir',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'pol')
+    ncwrite(filename,'/spectrometer1/pol',[calibratedSpectra.pol]);
+else
+    ncwrite(filename,'/spectrometer1/pol',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
+
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
+<<<<<<< HEAD
 if calibrationTool.savePlanckIntensity
     %ncwrite(filename,'/spectrometer1/intensity_planck',vertcat(calibratedSpectra.intensityPlanck)');
 end  
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
 ncwrite(filename,'/spectrometer1/meanTb',[calibratedSpectra.meanTb]);
+=======
+%ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+if isfield(calibratedSpectra,'stdTb')
+    ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+else
+    ncwrite(filename,'/spectrometer1/stdTb',-9999*ones(length(calibratedSpectra),1));
+end
+%ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+if isfield(calibratedSpectra,'meanStdTb')
+    ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
+else
+    ncwrite(filename,'/spectrometer1/mean_std_Tb',-9999*ones(length(calibratedSpectra),1));
+end
+>>>>>>> test_miac_calibration
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
@@ -255,7 +287,26 @@ ncwrite(filename,'/spectrometer1/noise_temperature',[calibratedSpectra.TNoise]);
 ncwrite(filename,'/spectrometer1/std_dev_noise_temperature',[calibratedSpectra.stdTNoise]);
 ncwrite(filename,'/spectrometer1/calibration_time',60*[calibratedSpectra.calibrationTime]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[calibratedSpectra.meanAngleAntenna]);
-
+if isfield(calibratedSpectra,'tau')
+    ncwrite(filename,'/spectrometer1/mean_opacity',[calibratedSpectra.tau]);
+else
+    ncwrite(filename,'/spectrometer1/mean_opacity',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'sigma')
+    ncwrite(filename,'/spectrometer1/sigma',[calibratedSpectra.sigma]);
+else
+    ncwrite(filename,'/spectrometer1/sigma',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'A')
+    ncwrite(filename,'/spectrometer1/A',[calibratedSpectra.A]);
+else
+    ncwrite(filename,'/spectrometer1/A',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
+if isfield(calibratedSpectra,'a')
+    ncwrite(filename,'/spectrometer1/a',[calibratedSpectra.a]);
+else
+    ncwrite(filename,'/spectrometer1/a',vertcat(-9999*ones(length(calibratedSpectra.firstSkyTime),1))');
+end
 if isfield(calibratedSpectra,'if')
     ncwrite(filename,'/spectrometer1/intermediate_freq',calibratedSpectra(1).if);
 else
@@ -508,6 +559,17 @@ attrVal.azimuth = {'azimuth angle',...
     'degree',...
     'angle measured clockwise positive, 0 deg is northwise'};
 
+attrVal.dir = {'measurement direction',...
+    '',...
+    '',...
+    '1 is left, 2 is right'};
+attrVal.pol = {'polarisation',...
+    '',...
+    '',...
+    'polarisation of the measured spectrum'};
+
+
+
 %attrVal.effCalTime = {'effective calibration time',...
 %    'calibration_time',...
 %    'second',...
@@ -577,6 +639,26 @@ attrVal.meanAngleAntenna = {'mean sky angle',...
     'elevation_angle',...
     'degree',...
     'mean elevation angle of the sky observation during this cycle'};
+
+attrVal.meanOpacity = {'meanOpaciy',...
+    '',...
+    '',...
+    'mean zenith opacity of the atmosphere during this cycle'};
+
+attrVal.sigma = {'sigma',...
+    '',...
+    'K',...
+    'noise temperature of the integrated spectrum'};
+
+attrVal.A = {'A',...
+    '',...
+    '',...
+    'the equivalent transmission of the reference absorber'};
+
+attrVal.a = {'a',...
+    '',...
+    '',...
+    'the correction coefficient for the troposphere and ref absorber'};
 
 attrVal.TRoom = {'TRoom',...
     'room_temperature',...
@@ -743,6 +825,9 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/lon',attrName{i},attrVal.lon{i});
     ncwriteatt(filename,'/spectrometer1/alt',attrName{i},attrVal.alt{i});
     ncwriteatt(filename,'/spectrometer1/azimuth_angle',attrName{i},attrVal.azimuth{i});
+    ncwriteatt(filename,'/spectrometer1/dir',attrName{i},attrVal.dir{i});
+    ncwriteatt(filename,'/spectrometer1/pol',attrName{i},attrVal.pol{i});
+
     %ncwriteatt(filename,'/spectrometer1/effectiveCalibrationTime',attrName{i},attrVal.effCalTime{i});
     ncwriteatt(filename,'/spectrometer1/Tb',attrName{i},attrVal.Tb{i});
     ncwriteatt(filename,'/spectrometer1/stdTb',attrName{i},attrVal.stdTb{i});
@@ -756,6 +841,10 @@ for i=1:length(attrName)
     ncwriteatt(filename,'/spectrometer1/std_dev_noise_temperature',attrName{i},attrVal.stdTNoise{i});
     ncwriteatt(filename,'/spectrometer1/calibration_time',attrName{i},attrVal.calibrationTime{i});
     ncwriteatt(filename,'/spectrometer1/mean_sky_elevation_angle',attrName{i},attrVal.meanAngleAntenna{i});
+    ncwriteatt(filename,'/spectrometer1/mean_opacity',attrName{i},attrVal.meanOpacity{i});
+    ncwriteatt(filename,'/spectrometer1/sigma',attrName{i},attrVal.sigma{i});
+    ncwriteatt(filename,'/spectrometer1/A',attrName{i},attrVal.A{i});
+    ncwriteatt(filename,'/spectrometer1/a',attrName{i},attrVal.a{i});
     ncwriteatt(filename,'/spectrometer1/TRoom',attrName{i},attrVal.TRoom{i});
     ncwriteatt(filename,'/spectrometer1/stdTRoom',attrName{i},attrVal.stdTRoom{i});
     ncwriteatt(filename,'/spectrometer1/VGunn',attrName{i},attrVal.VGunn{i});
@@ -798,7 +887,7 @@ end
 % Adding debug group (optionnal)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % There are 2 types of debug information for which we create new groups.
-if calibrationTool.calType=="debug"
+if strcmp(calibrationTool.calType,'debug')
     nccreate(filename,'/UpDown/timeUpDown','Dimensions',{'timeUpDown',Inf},'Datatype','double','Format','netcdf4');
     nccreate(filename,'/UpDown/channel_idx','Dimensions',{'channel_idx',calibrationTool.numberOfChannels},'Datatype','int64','FillValue',-9999)
     

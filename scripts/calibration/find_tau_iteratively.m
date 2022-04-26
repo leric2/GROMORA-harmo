@@ -88,7 +88,7 @@ while abs(offset) > 20e-3  &&  niter < niter_max
   % calibrate the signals S
   
   for i=1:size(s_tipping,1)
-     Tb(i) = nanmean( ((s_tipping(i,:)-s_hot)./(s_hot-s_cold).*(Thot-Tcold)+Thot)')';
+     Tb(i) = mean( ((s_tipping(i,:)-s_hot)./(s_hot-s_cold).*(Thot-Tcold)+Thot)', 'omitnan')';%AB
   end
 
   
