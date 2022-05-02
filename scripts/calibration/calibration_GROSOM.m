@@ -74,7 +74,7 @@ dates= datenum('2019_05_02','yyyy_mm_dd'):datenum('2019_06_01','yyyy_mm_dd');
 %     datenum('2020_04_01','yyyy_mm_dd'):datenum('2020_04_21','yyyy_mm_dd')];
 
 %dates=datenum('2015_09_27','yyyy_mm_dd')
-if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
+if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) && readLabviewLog
     labviewLog = read_labview_log_generic(instrumentName);
 else
     labviewLog = struct();
