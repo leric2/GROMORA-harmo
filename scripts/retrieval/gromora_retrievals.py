@@ -9,22 +9,7 @@ Main class definition for GROMORA retrieval.
 
 This file implements the abstract "DataRetrieval" class for GROMOS and SOMORA retrievals. 
 
-
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
+It is called by the main instrument classes. 
 
 """
 
@@ -72,8 +57,12 @@ import retrieval_module
 
 from utils_GROSOM import sideband_response_theory
 
-
 class DataRetrieval(ABC):
+    '''
+    The __init__ function is basically implementing a new class and is automatically called at each new retrieval.
+    
+    
+    '''
     def __init__(
         self,
         instrument_name=None,
@@ -585,32 +574,17 @@ class DataRetrieval(ABC):
         
         # fig.suptitle(r'$H_{2}O$ retrievals (and h2o)')
         # figure_o3_sel.append(fig)
-        save_single_pdf(outName+'.pdf',figure_o3_sel)
-        
-    
-    def plot_meteo_ds_level1b_dataset(self):
-        GROSOM_library.plot_meteo_level1b(self.meteo_ds)
-        pass 
-    
-    def forward_model(self, retrieval_param):
-        ''' 
-        Performing a FM according to the retrieval_param dictionnary as input
-        parameters
-        
-        '''
-        return retrieval_module.forward_model(retrieval_param)
+        save_single_pdf(outName+'.pdf',figure_o3_sel)    
 
     def define_retrieval_param(self, retrieval_param):
         '''
+        This function fills the dictionary containing all parameters for GROMOS retrievals.
+
         Parameters
         ----------
-        retrieval_param : dict
-            This function fills the dict containing all parameters for GROMOS retrievals.
 
-        Returns
-        -------
-        retrieval_param
-
+        In/Out:
+        retrieval_param : a dict containing all required parameters, names, folder path etc for running a GROMORA retrievals.
         '''
         
         retrieval_param['sensor'] = 'FFT_SB'
@@ -643,9 +617,6 @@ class DataRetrieval(ABC):
         #retrieval_param['unit_var_y']  = 3**2
         retrieval_param['pointing_angle_corr'] = self.correct_pointing(retrieval_param)
 
-        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
-        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-
         #retrieval_param['obs_freq'] = 1.4217504e11
         retrieval_param['spectroscopy_type'] = 'XML'
         
@@ -663,7 +634,7 @@ class DataRetrieval(ABC):
         # 'waccm_yearly_scaled'low_alt_ratio
 
         retrieval_param['o3_apriori_covariance'] = 'sinefit_optimized' # 'low_alt_ratio_optimized' #low_alt_ratio_optimized
-        retrieval_param['waccm_file'] = '/storage/tub/instruments/gromos/InputsRetrievals/waccm_o3_climatology.nc'
+        retrieval_param['waccm_file'] = '/storage/tub/atmosphere/WACCM/waccm_o3_climatology.nc'
         retrieval_param["apriori_O3_cov"] = 1e-6  # 1e-6
         retrieval_param["apriori_H2O_stdDev"] = 1  # 6e-4 12e-4 0.5 16e-4
 
@@ -722,49 +693,10 @@ class DataRetrieval(ABC):
 
     #     retrieval_param['ref_elevation_angle'] =  90
 
-    def make_f_grid(self, retrieval_param): 
-        '''
-        create simulation frequency grid for gromora retrievals
 
-        '''
-        n_f = retrieval_param["number_of_freq_points"]  # Number of points
-        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
-        x = np.linspace(-1, 1, n_f)
-        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
-        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
-            retrieval_param['obs_freq']
-
-        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
-        #f_grid = np.concatenate((f_grid,np.arange(148.975e9,149.975e9,1e6)))
-        #f_grid = np.arange(141e9,150e9,1e6)
-        if retrieval_param["show_f_grid"]:
-            fig = plt.figure()
-            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
-            plt.xlim((retrieval_param['obs_freq']-200e6) /
-                     1e9, (retrieval_param['obs_freq']+200e6)/1e9)
-            # plt.ylim(0,300)
-            plt.ylabel(r'$\Delta f$ [kHz]')
-            plt.suptitle('Frequency grid spacing')
-            plt.show()
-        return f_grid
-
-    def plot_FM_comparison(self, ds_freq, y_FM, y_obs):
-        fig = plt.figure()
-
-        fig.suptitle('Comparison between FM and Observation')
-        ax = fig.add_subplot(111)
-        ax.plot(ds_freq/1e9, y_obs, 'r')
-        ax.plot(ds_freq/1e9, y_FM, 'b-', linewidth=2)
-        ax.set_ylim((10,250))
-
-        ax.set_xlabel('freq [GHz]')
-        ax.set_ylabel('Tb [K]')
-
-        ax.legend(('Observed', 'FM'))
-
-        plt.show()
-        pass
-
+    ############################################################################################################################
+    # Covariances definition
+    ############################################################################################################################
     def set_continuum_apriori_covariance(self, retrieval_param, p_grid_retrieval_h2o):
         '''
         Function to built the continuum apriori covariance matrix
@@ -924,6 +856,10 @@ class DataRetrieval(ABC):
 
         return sx
 
+
+    ############################################################################################################################
+    # Sensor definition
+    ############################################################################################################################
     def define_sensor(self, retrieval_param, ds_freq, ds_df):
         '''
         Function to define the sensor for GROMORA (a bit sketchy at the moment...)
@@ -1024,22 +960,41 @@ class DataRetrieval(ABC):
         
         return sensor
 
+    ############################################################################################################################
+    # Grids definition
+    ############################################################################################################################
+    # Frequency grid:
+    def make_f_grid(self, retrieval_param): 
+        '''
+        create simulation frequency grid for gromora retrievals
+
+        '''
+        n_f = retrieval_param["number_of_freq_points"]  # Number of points
+        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+        x = np.linspace(-1, 1, n_f)
+        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+            retrieval_param['obs_freq']
+
+        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+        #f_grid = np.concatenate((f_grid,np.arange(148.975e9,149.975e9,1e6)))
+        #f_grid = np.arange(141e9,150e9,1e6)
+        if retrieval_param["show_f_grid"]:
+            fig = plt.figure()
+            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+            plt.xlim((retrieval_param['obs_freq']-200e6) /
+                     1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+            # plt.ylim(0,300)
+            plt.ylabel(r'$\Delta f$ [kHz]')
+            plt.suptitle('Frequency grid spacing')
+            plt.show()
+        return f_grid
+
+    ############################################################################################################################
+    # Retrievals grid:
     def set_pgrids(self, retrieval_param):
         '''
-        Function to define the sensor for GROMORA (a bit sketchy at the moment...)
-
-        Parameters
-        ----------
-        retrieval_param : dict
-            DESCRIPTION.
-        ds_freq : numpy array
-            DESCRIPTION.
-        ds_df : 
-            DESCRIPTION.
-        
-        Returns
-        -------
-        sensor: 
+        Function to define the pressure grid for ozone and continuum retrievals
 
         ''' 
         if retrieval_param["retrieval_grid_type"] == 'pressure':
@@ -1066,7 +1021,10 @@ class DataRetrieval(ABC):
             p_grid_retrieval_h2o = z2p_simple(z_grid_retrieval_h2o)
 
         return  p_grid_retrieval, p_grid_retrieval_h2o
-
+    
+    ############################################################################################################################
+    # The retrieval function
+    ############################################################################################################################
     def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None):
         '''
         Retrieval of a single integration cycle defined in retrieval_param
@@ -1760,15 +1718,23 @@ class DataRetrieval(ABC):
 
         return level2
 
-    def retrieve_daily(self, spectro_dataset, retrieval_param):
-        ''' 
-        Trying parallel retrievals for the cycles defined in retrieval_param
-        '''
-        retrieval_param["binned_ch"] = False
 
-        retrieval_param['ref_elevation_angle'] =  90
+    def plot_FM_comparison(self, ds_freq, y_FM, y_obs):
+        fig = plt.figure()
 
-        return retrieval_module.retrieve_daily(self, spectro_dataset, retrieval_param)
+        fig.suptitle('Comparison between FM and Observation')
+        ax = fig.add_subplot(111)
+        ax.plot(ds_freq/1e9, y_obs, 'r')
+        ax.plot(ds_freq/1e9, y_FM, 'b-', linewidth=2)
+        ax.set_ylim((10,250))
+
+        ax.set_xlabel('freq [GHz]')
+        ax.set_ylabel('Tb [K]')
+
+        ax.legend(('Observed', 'FM'))
+
+        plt.show()
+        pass
 
     def retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None):
         ''' 
@@ -1783,31 +1749,6 @@ class DataRetrieval(ABC):
         retrieval_param['ref_elevation_angle'] = 90
 
         return retrieval_module.retrieve_cycle_tropospheric_corrected(self, spectro_dataset, retrieval_param, ac_sim_FM=ac)
-    
-    # def retrieve_cycle_tropospheric_corrected_pyarts(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
-    #     ''' 
-    #     Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
-    #     '''
-
-    #     if f_bin is not None:
-    #         retrieval_param["binned_ch"] = True
-    #     else:
-    #         retrieval_param["binned_ch"] = False
- 
-    #     retrieval_param['ref_elevation_angle'] = 90
-    #     import retrieval_module_pyarts
-    #     return retrieval_module_pyarts.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param)
-    
-    def test_retrieval(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None):
-        ''' 
-        Performing single retrieval for a given calibration cycle uncluding a tropospheric correction
-        '''
-
-        retrieval_param["binned_ch"] = False
- 
-        retrieval_param['ref_elevation_angle'] = 90
-
-        return retrieval_module.test_retrieval(spectro_dataset, retrieval_param)
 
     def smooth_and_apply_correction(self, level1b_dataset, meteo_ds):   
         '''
@@ -1828,48 +1769,6 @@ class DataRetrieval(ABC):
         '''
         return GROSOM_library.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     
-    def create_binning(self, freq, tb, retrieval_param):   
-        '''
-        
-
-        Parameters
-        ----------
-        level1b_dataset : TYPE
-            DESCRIPTION.
-        meteo_ds : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        '''
-        n_f = retrieval_param["number_of_freq_points"]
-        bw_extra = 1.2*self.bandwidth
-
-        return GROSOM_library.create_bin_vector(self.observation_frequency, freq, tb, n_f, bw_extra)
-
-    def bin_spectrum(self, freq, tb, bin_vect):   
-        '''
-        
-
-        Parameters
-        ----------
-        level1b_dataset : TYPE
-            DESCRIPTION.
-        meteo_ds : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        '''
-
-        return GROSOM_library.bin_spectrum(freq, tb, bin_vect)
-
     def smooth_corr_spectra(self, level1b_dataset, retrieval_param):
         '''
         

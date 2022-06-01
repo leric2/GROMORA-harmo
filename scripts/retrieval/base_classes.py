@@ -47,8 +47,6 @@ import GROSOM_library
 import retrieval_module
 #import mopi5_retrievals
 
-from retrievals import data
-
 #%%
 
 # class MicrowaveRadiometerIAP(ABC):
