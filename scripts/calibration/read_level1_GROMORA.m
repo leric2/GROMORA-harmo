@@ -26,10 +26,17 @@ function [data, meteoData, calibrationTool] = read_level1_GROMORA(calibrationToo
 
 % filename:
 if sublevel == 1
-    filename=calibrationTool.filenameLevel1a;
+    if ~isfield(calibrationTool, 'filenameLevel1a')
+        calibrationTool.filenameLevel1a=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
+    end
+        filename=calibrationTool.filenameLevel1a;
 else
-    filename=calibrationTool.filenameLevel1b;
+    if ~isfield(calibrationTool, 'filenameLevel1b')
+        calibrationTool.filenameLevel1b=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1b_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
+    end
+        filename=calibrationTool.filenameLevel1b;
 end
+
 
 %ncinfo(filename)
 gNames = {ncinfo(filename).Groups.Name};
@@ -63,12 +70,14 @@ for g=1:length(gNames)
                 meteoData(t).(varName)= ncread(filename,fullfile(gName,varName),[1,t],[Inf,1])';
             end
         end
+    elseif strcmp(gName,'tipping_curve')
+        continue
     else
         vNames = {ncinfo(filename,gName).Variables.Name};
         dimNames = {ncinfo(filename,gName).Dimensions.Name};
         size=zeros(1,length(dimNames));
         for i=1:length(dimNames)
-            size(i) = ncinfo(filename,fullfile(gName,dimNames{i})).Size;
+             size(i) = ncinfo(filename,fullfile(gName,dimNames{i})).Size;
         end
         
         % Intialize our structure with time
@@ -114,7 +123,7 @@ calibrationTool.logFile.filenameLevel1a=ncreadatt(filename,'/','filename');
 
 if sublevel == 1
 calibrationTool.logFile.rawFilename=ncreadatt(filename,'/','raw_filename');
-calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
+%calibrationTool.logFile.rawData=ncreadatt(filename,'/','raw_data');
 end
 
 % Coordinate variables, directly adding the attributes
