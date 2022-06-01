@@ -54,7 +54,7 @@ from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
 plt.rcParams.update({
-    "text.usetex": False,
+    "text.usetex": True,
     "font.family": "serif",
     "font.sans-serif": ["Free sans"]})
 
@@ -68,7 +68,6 @@ load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-
 instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
@@ -76,7 +75,7 @@ instrument_name = "SOMORA"
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2019-01-01', end='2019-06-30')
+date = pd.date_range(start='2009-11-01', end='2009-11-02')
 #date = pd.date_range(start='2017-09-01', end='2018-01-05')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
@@ -88,11 +87,11 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = True
+plot_o3_ts = False
 save_o3= False
 save_o3_only = False
-save_residuals=True
-plot_selected = False
+save_residuals=False
+plot_selected = True
 plot_selected_nicer = False
 plot_fshift = False
 save_fshift = False
@@ -136,12 +135,14 @@ ex = '_waccm_monthly_scaled_h2o'
 ex = '_gromosAP_scaled_h2o'
 ex = '_waccm_low_alt_dx10_nonWinCorr'
 ex = '_gromosAP_low_alt'
-ex = '_sinefit_optimized'
-ex = '_waccm_low_alt_dx10'
-# ex = '_v2'
-# ex = '_waccm_low_alt'
 
-new_L2 = False
+ex = '_sinefit_optimized'
+
+
+ex = '_waccm_low_alt'
+ex = '_waccm_low_alt_dx10'
+ex = '_v2'
+new_L2 = True
 
 if new_L2:
     plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
@@ -208,7 +209,10 @@ if instrument_name == "GROMOS":
     import gromos_classes as gc
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
+    if new_L2:
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    else:
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -219,8 +223,11 @@ if instrument_name == "GROMOS":
 elif instrument_name == "SOMORA":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
+    if new_L2:
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/somora/level2/v2/"+str(date[0].year)
+    else:
+        basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -287,8 +294,7 @@ else:
     # )
     #print(level2_dataset)
     F0 = instrument.observation_frequency
-
-
+    
 if extract_fgrid:
     date = datetime.date(2017, 10, 12)
     import somora_classes as sm
@@ -541,8 +547,8 @@ if add_L2_flags:
   #  np.sum(np.abs(1-somora.oem_diagnostics[:,2])<0.05)/(len(somora.time))
 
     # Combined flags 
-    diff_polyfit_1 = new_ds.poly_fit_x[1] - new_ds.poly_fit_x[1].mean(dim='time')
-    diff_polyfit_2 = new_ds.poly_fit_x[2] - new_ds.poly_fit_x[2].mean(dim='time')
+    # diff_polyfit_1 = new_ds.poly_fit_x[1] - new_ds.poly_fit_x[1].mean(dim='time')
+    # diff_polyfit_2 = new_ds.poly_fit_x[2] - new_ds.poly_fit_x[2].mean(dim='time')
 
     #  good_data = xr.where(np.abs(diff_polyfit_2)<0.2, True, False)
     # new_ds.where(good_data).o3_x.isel(o3_p=15).plot()
@@ -552,11 +558,14 @@ if add_L2_flags:
     new_ds['retrieval_quality'].attrs['long_name'] = 'quality flag retrieval'
     new_ds['retrieval_quality'].attrs['units'] = '1'
     new_ds['retrieval_quality'].attrs['description'] = 'Quality flag of the retrievals from cost and polyfit term'
+    
+    new_ds['o3_x'].attrs['valid_min'] = 0
+    new_ds['o3_x'].attrs['valid_max'] = 50e-6
 
-    new_ds['time'] = pd.to_datetime(level2_dataset['AC240'].time)
+    # new_ds['time'] = pd.to_datetime(level2_dataset['AC240'].time)
     new_ds.time.attrs['standard_name'] = 'time'
     new_ds.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
-    new_ds.time.encoding['calendar'] = 'proleptic_gregorian'
+    new_ds.time.encoding['calendar'] = 'standard'
     new_ds.time.attrs['timezone'] = 'Z'
     new_ds.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
     
@@ -810,9 +819,10 @@ if plot_selected:
             level2_dataset,
             outname,
             spectro='AC240',
-            cycles=[16, 19],
+            cycles=[1,14,18],
             altitude = False,
-            add_baselines = False,    
+            add_baselines = True, 
+            to_ppm = 1e6  
         )
     else:
         GROSOM_library.plot_O3_all(
@@ -829,7 +839,7 @@ if plot_selected_nicer:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1, 10, 17]#cycles=[1,7,10,13,17,21]
+        cycles=[1,14,18]#cycles=[1,7,10,13,17,21]
     )
 
 
