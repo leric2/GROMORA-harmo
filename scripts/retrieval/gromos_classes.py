@@ -218,9 +218,8 @@ class GROMOS_LvL2(DataRetrieval):
     def basecolor(self):
        return '#d7191c' 
 
-    @property
-    def cost_threshold(self):
-        return 0.1
+    def cost_threshold(self, year):
+        return 0.1 
 
     @property
     def polyfit_threshold(self):

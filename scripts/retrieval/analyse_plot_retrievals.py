@@ -76,7 +76,7 @@ instrument_name = "SOMORA"
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2020-01-01', end='2020-12-31')
+date = pd.date_range(start='2019-01-01', end='2019-12-31')
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
@@ -564,7 +564,7 @@ if plot_all:
 if add_L2_flags:
     new_ds = level2_dataset['AC240'] 
     # Absolute flags 
-    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
+    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0]) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
    # good_data = xr.where( np.abs(new_ds.oem_diagnostics[:, 3]-1)<0.1, True, False)
    # good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 3] - 1) <0.1 ), True, False) 
     

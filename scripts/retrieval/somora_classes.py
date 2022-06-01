@@ -188,12 +188,14 @@ class SOMORA_LvL2(DataRetrieval):
        return '#2c7bb6'
 
     @property
-    def cost_threshold(self):
+    def polyfit_threshold(self):
         return 0.1
 
-    @property
-    def polyfit_threshold(self):
-        return 0.1 #0.5 for 2010
+    def cost_threshold(self, year):
+        if year > 2010:
+            return 0.1 #0.5 for 2010
+        else:
+            return 0.5
 
     @property
     def standard_air_pressure(self):
