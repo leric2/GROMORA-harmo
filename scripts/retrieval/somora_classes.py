@@ -131,14 +131,21 @@ class SOMORA_LvL2(DataRetrieval):
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
 
         ''' 
-        if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
-            baseline_periods = np.array([100e6])
-        elif (retrieval_param['date'] >= datetime.date(2019,6,1)) & (retrieval_param['date'] < datetime.date(2019,12,31)):
-            baseline_periods = np.array([110e6, 286e6, 364e6])
+        if (retrieval_param['date'] >= datetime.date(2009,1,1)) & (retrieval_param['date'] < datetime.date(2019,10,1)):
+            baseline_periods = np.array([110e6, 216e6, 310e6])
+        elif (retrieval_param['date'] >= datetime.date(2019,10,1)) & (retrieval_param['date'] < datetime.date(2020,4,15)):
+            baseline_periods = np.array([110e6, 186e6, 347e6, 888e6]) #888e6
+        elif (retrieval_param['date'] >= datetime.date(2020,4,15)) & (retrieval_param['date'] < datetime.date(2020,9,30)):
+            baseline_periods = np.array([92e6, 110e6, 364e6, 400e6]) #baseline_periods = np.array([110e6, 186e6, 364e6])
+        elif (retrieval_param['date'] >= datetime.date(2020,9,30)):
+            baseline_periods = np.array([96e6, 110e6, 186e6, 347e6, 382e6]) # 96e6 888e6 baseline_periods = np.array([110e6, 186e6, 364e6])
         else:
             baseline_periods = np.array([])
 
         return baseline_periods
+
+    def correct_pointing(self, retrieval_param):
+        return 0
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
@@ -167,6 +174,16 @@ class SOMORA_LvL2(DataRetrieval):
         return f_grid
 
     @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS data. 
+        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+
+        '''
+        date2flag_somora =  [ ]
+        return date2flag_somora
+
+    @property
     def basecolor(self):
        return '#2c7bb6'
 
@@ -176,7 +193,15 @@ class SOMORA_LvL2(DataRetrieval):
 
     @property
     def polyfit_threshold(self):
-        return 0.1
+        return 0.1 #0.5 for 2010
+
+    @property
+    def standard_air_pressure(self):
+        return 960
+
+    @property
+    def standard_air_temperature(self):
+        return 10
 
     # def define_retrieval_param(self, retrieval_param):
     #     '''

@@ -64,7 +64,7 @@ if isempty(D)
     D.bytes=NaN;
 end
 LineByLine=0;
-if channels>0
+if channels > 0
     % check if *.bin file size matches to given number of channels and expected number of measurements
     if D.bytes ~= channels*4*M
         warning( 'Size of binary file %d does not match channels*measurements*4=%d\nDAta wil be read line by line', D.bytes, channels*4*M)

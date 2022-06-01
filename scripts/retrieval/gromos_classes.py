@@ -147,12 +147,30 @@ class GROMOS_LvL2(DataRetrieval):
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
 
         ''' 
-        if (retrieval_param['date'] >= datetime.date(2019,1,15)) & (retrieval_param['date'] < datetime.date(2019,1,16)):
-            baseline_periods = np.array([400e6])
+        if (retrieval_param['date'] >= datetime.date(2009,1,1)) & (retrieval_param['date'] < datetime.date(2015,2,23)):
+            baseline_periods = np.array([178e6, 240e6, 360e6])
+        elif  (retrieval_param['date'] >= datetime.date(2015,2,23)) & (retrieval_param['date'] < datetime.date(2015,8,31)):
+            baseline_periods = np.array([140e6, 240e6, 400e6])
+        elif  (retrieval_param['date'] >= datetime.date(2015,8,31)) & (retrieval_param['date'] < datetime.date(2017,1,1)):
+            baseline_periods = np.array([160e6, 240e6, 360e6])
+        elif (retrieval_param['date'] >= datetime.date(2017,1,1)) & (retrieval_param['date'] < datetime.date(2018,1,1)):
+            baseline_periods = np.array([178e6, 240e6, 360e6])
+        elif (retrieval_param['date'] >= datetime.date(2018,1,1)) & (retrieval_param['date'] < datetime.date(2019,1,1)):
+            baseline_periods = np.array([135e6, 240e6, 360e6])
+        elif (retrieval_param['date'] >= datetime.date(2019,1,1)) & (retrieval_param['date'] < datetime.date(2019,3,15)):
+            baseline_periods = np.array([155e6, 240e6, 360e6])
+        elif (retrieval_param['date'] >= datetime.date(2019,3,15)) & (retrieval_param['date'] < datetime.date(2022,2,16)):
+            baseline_periods = np.array([135e6, 178e6, 240e6])
         else:
             baseline_periods = np.array([])
             
         return baseline_periods
+    
+    def correct_pointing(self, retrieval_param):
+        if (retrieval_param['date'] >= datetime.date(2019,2,12)) & (retrieval_param['date'] < datetime.date(2019,3,13)):
+            return -5
+        else:
+            return 0
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
@@ -182,6 +200,21 @@ class GROMOS_LvL2(DataRetrieval):
         return f_grid
     
     @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS data. 
+        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+
+        '''
+        date2flag_gromos =  [
+            datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
+            pd.date_range('2012-07-24', '2012-08-07'),
+            pd.date_range('2019-01-14', '2019-02-12'),
+
+        ]
+        return date2flag_gromos
+
+    @property
     def basecolor(self):
        return '#d7191c' 
 
@@ -192,3 +225,11 @@ class GROMOS_LvL2(DataRetrieval):
     @property
     def polyfit_threshold(self):
         return 0.1
+
+    @property
+    def standard_air_pressure(self):
+        return 955
+        
+    @property
+    def standard_air_temperature(self):
+        return 10

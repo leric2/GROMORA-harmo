@@ -24,6 +24,12 @@ Attributes:
 Todo: all
 
 """
+import sys
+
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+
+
 import datetime
 import os
 import time
@@ -36,6 +42,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
+import gc
 
 from utils_GROSOM import save_single_pdf
 
@@ -44,8 +51,7 @@ sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/sc
 
 
 # For ARTS, we need to specify some paths
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-
+load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -58,13 +64,11 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
 
         basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
-        line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
-        #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
-        #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
-        #line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_f_modified.xml'
-
-        # Dictionnary containing all EXTERNAL retrieval parameters
+        # Dictionnary containing all EXTERNAL retrieval parameters 
         retrieval_param = dict()
+        retrieval_param["ARTS_DATA_PATH"] = ARTS_DATA_PATH
+        retrieval_param["ARTS_BUILD_PATH"] = ARTS_BUILD_PATH
+        retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH
 
         if instrument_name == "GROMOS":
             import gromos_classes as gc
@@ -99,12 +103,8 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         else:
             raise NotImplementedError(
                 'TODO, implement reading level1b in non classical cases !')
-
-
-        # type of retrieval to do:
-        # 1. tropospheric corrected
-        # 2. with h20
-        # 3. test retrieving the FM
+        retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
+        retrieval_param['verbose'] = 2
         retrieval_param["retrieval_type"] = 8
         retrieval_param['FM_only'] = False
         retrieval_param['show_FM'] = True
@@ -112,11 +112,9 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         retrieval_param['SB_bias'] = 0
         retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
 
-        retrieval_param["obs_freq"] = instrument.observation_frequency
-        retrieval_param['sideband_response'] = 'theory'
         retrieval_param["plot_meteo_ds"] = False
 
-        retrieval_param["show_f_grid"] = True
+        retrieval_param["show_f_grid"] = False
         retrieval_param['plot_opacities'] = False
         # 3. test retrieving the FM
         retrieval_param['verbose'] = 1
@@ -138,12 +136,9 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                 dimension=['time', 'channel_idx']
             )
 
-        if instrument_name == 'mopi5':
-            #instrument = instrument.correction_function_mopi5('U5303', 290)
-            integrated_dataset = instrument.correct_troposphere(
-                instrument.spectrometers, dim='time', method='Ingold_v1', basis_spectro='AC240')
-            instrument.compare_spectra_mopi5(dim='time', idx=[
-                                             0, 1, 2, 3], save_plot=False, identifier=[0, 1, 2, 3], with_corr=True)
+        retrieval_param['plot_o3_apriori_covariance'] = False
+
+        retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
         # for i,s in enumerate(instrument.spectrometer):
         spectro = 'AC240'
@@ -186,7 +181,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                     retrieval_param['increased_var_factor'] = 1.1
                     save_str='sensitivity_test_noise'
                 elif test=='SB':
-                    retrieval_param['SB_bias'] = 0.05 # in mm
+                    retrieval_param['SB_bias'] = +0.05e-3 # 0.05mm uncertainties, total is 11mm for SOMORA and 20mm for GROMOS
                     save_str = 'sensitivity_test_SB'
                 elif test=='Tcold' or test=='tWindow':
                     extra = '_'+test
@@ -215,17 +210,18 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                         no_flag=False, meta_data=True, extra_base=extra)
                     spectro_dataset = instrument.integrated_data[spectro]
                 elif test=='spectroscopy':
-                    save_str = 'sensitivity_test_spectroscopy'
+                    save_str = 'sensitivity_test_spectroscopy_new'
                     #line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
                     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
                     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
-                    line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_f_modified.xml'
+                    retrieval_param['FM_only'] = True
+                    line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Perrin_modified_linestrength.xml'
+                    line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Perrin_modified.xml'
                     retrieval_param['line_file'] = line_file
                 else: 
                     save_str='other'
 
-                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
-                    spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, sensor=None)
+                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
 
                 figure_list = instrument.plot_level2(
                     ac, spectro_dataset, retrieval_param, title='retrieval_o3', figure_list=figure_list)
@@ -238,12 +234,15 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                 level2_cycle = xr.Dataset()
 
 if __name__=='__main__':
-    instrument_name = ['GROMOS','SOMORA']
-    date = datetime.date(2018, 6, 9)
-    #date = datetime.date(2018, 2, 26)
-    cycle = np.arange(7, 8)
-    #cycle = np.arange(9, 10)
+    instrument_name = ['GROMOS'] #,'SOMORA'
+    #date = datetime.date(2018, 6, 9)
+    date = datetime.date(2018, 2, 26)
+    #cycle = np.arange(7, 8)
+    cycle = np.arange(9, 10)
 
-    tests = ['og', 'noise', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow'] #'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
+    tests = ['spectroscopy'] # 'og', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
     for radiometer in instrument_name:
-        sensitivity_analysis(radiometer, date, param=tests, cycles=cycle)
+        try:
+            sensitivity_analysis(radiometer, date, param=tests, cycles=cycle)
+        except:
+            pass
