@@ -10,17 +10,18 @@ calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp(['Write tau and Teff to file for ' dateStr])
 disp('Reading level0 data...')
 
 % Reading raw data
-[logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool);
+[logFile,rawSpectra] = calibrationTool.read_level0(calibrationTool,1);
 
 
 
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
 % instrument and might need date information later ?).
-logFile = calibrationTool.harmonize_log(logFile);
+logFile = calibrationTool.harmonize_log(calibrationTool,logFile);
 
 % Quality check of the raw data:
 if calibrationTool.checkLevel0
@@ -52,11 +53,11 @@ end
 % get_meteo_data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-logFile.meteo = calibrationTool.get_meteo_data(calibrationTool);
+logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tipping Curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+disp(['run tipping curve to get tau and Teff for ' dateStr])
 logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);

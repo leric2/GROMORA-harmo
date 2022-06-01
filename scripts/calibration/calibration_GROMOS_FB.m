@@ -31,22 +31,21 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
-instrumentName='MIAWARA-C';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
-integrate = true;
+calibrate = false;
+integrate = false;
 readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2015_08_13','yyyy_mm_dd'):datenum('2015_08_13','yyyy_mm_dd');
-%dates=datenum('2010_12_08','yyyy_mm_dd'):datenum('2010_12_13','yyyy_mm_dd');
-
+%dates=datenum('2009_01_01','yyyy_mm_dd'):datenum('2009_01_01','yyyy_mm_dd');
+dates=datenum('2008_06_06','yyyy_mm_dd'):datenum('2008_07_31','yyyy_mm_dd');
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
@@ -103,8 +102,8 @@ for d = 1:numel(dates)
     % Editing the calibrationTool for this particular day and instrument:
     % calibrationTool.requiredFields={'instrumentName','bytesPerValue','rawFileFolder'};
     
-    calibrationTool.meanDatetimeUnit='days since 2000-01-01 00:00:00';
-    calibrationTool.referenceTime = datenum(2000,1,1,0,0,0);
+    calibrationTool.meanDatetimeUnit='days since 1970-01-01 00:00:00';
+    calibrationTool.referenceTime = datenum(1970,1,1,0,0,0);
     calibrationTool.calendar='standard';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -126,12 +125,12 @@ for d = 1:numel(dates)
     calibrationTool.rawSpectraPlot = false;
     calibrationTool.calibratedSpectraPlot = true;
     calibrationTool.calibratedSpectraSpectralPlot = true;
-    calibrationTool.saveLevel1a = true;
+    calibrationTool.saveLevel1a = false;
     calibrationTool.integratedSpectraPlot = true;
     calibrationTool.saveLevel1b = true;
     
-    calibrationTool.savePlanckIntensity = true;
-    calibrationTool.check_deltaTC = true;
+    calibrationTool.savePlanckIntensity = false;
+    calibrationTool.check_deltaTC = false;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instrument specific parameters
@@ -162,8 +161,8 @@ for d = 1:numel(dates)
         calibrationTool.TCold=80;
         
         % Import specific parameter and functions for this instrument
-        calibrationTool = import_GROMOS_calibrationTool(calibrationTool);
-        
+        calibrationTool = import_GROMOS_FB_calibrationTool(calibrationTool);
+
         % an extra folder where we copy missing anetz data (from STARTWAVE)
         calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
 
@@ -263,47 +262,16 @@ for d = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now, we keep the number of spectrometer as condition for separating 
 % between GROSOM and mopi5.
-    if calibrationTool.numberOfSpectrometer==1
-        % Performing calibration
-        if calibrate
-            try
-                calibrationTool = run_calibration(calibrationTool);
-            catch ME
-                warning(['Problem with the calibration of day: ', calibrationTool.dateStr]);
-                disp(ME.message)
-            end
-        end
         % Performing integration
         if integrate
             try
                 [calibrationTool, level1] = run_integration(calibrationTool);
             catch ME
-                warning(['Problem with the integration of day: ', calibrationTool.dateStr]);
-                disp(ME.message)
+                warning('Problem integrating this day !')
             end
+    
         end
-    else
-        for m=1:length(modelFFTS)
-            calibrationTool = calibrationTool.import_spectrometer(calibrationTool, modelFFTS(m));
-            if calibrate
-                try  
-                    run_calibration(calibrationTool);
-                catch ME
-                    warning(['Problem with the calibration of ' calibrationTool.spectrometer ':']);
-                    disp(ME.message)
-                end
-            end
-            if integrate
-                try
-                    [calibrationTool, level1] = run_integration(calibrationTool);
-                catch ME
-                    warning('Problem with the integration:');
-                    disp(ME.message)
-                end
-                %clearvars calibrationTool
-            end 
-        end
-    end
+
     %clearvars level1
     clear functions   
 end
