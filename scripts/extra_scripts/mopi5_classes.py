@@ -41,7 +41,7 @@ import mopi5_retrievals
 import mopi5_library
 from utils_GROSOM import save_single_pdf
 from utils_GROSOM import save_pngs
-import retrieval_module
+import retrieval.retrieval_module as retrieval_module
 
 class IntegrationMOPI5(Integration):
     '''

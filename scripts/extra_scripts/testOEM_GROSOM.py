@@ -6,7 +6,7 @@ Inspired from Jonas, this is a script to test the OEM retrievals for GROMOS.
 
 Ozone retrieval only on tropospheric corrected spectra.
 """
-import retrieval_module
+import retrieval.retrieval_module as retrieval_module
 import apriori_data_GROSOM
 import data_GROSOM
 from retrievals import covmat

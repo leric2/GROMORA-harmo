@@ -25,6 +25,12 @@ Attributes:
 Todo: all
 
 """
+
+import sys
+
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+
 import datetime
 import os
 from abc import ABC
@@ -43,35 +49,36 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
 from xarray.backends import file_manager
 
 import GROSOM_library
-import mopi5_library
+# import mopi5_library
 from utils_GROSOM import save_single_pdf
 
 #from cmcrameri import cm
-# plt.rcParams.update({
-#     "text.usetex": False,
-#     "font.family": "serif",
-#     "font.sans-serif": ["Free sans"]})
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.sans-serif": ["Free sans"]})
 
 # plt.rcParams['xtick.labelsize'] = 24
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
-load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+#load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-
-instrument_name = "GROMOS"
+instrument_name = "SOMORA"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2020-12-19', end='2020-12-20')
-#date = pd.date_range(start='2017-09-01', end='2018-01-05')
+date = pd.date_range(start='2019-01-01', end='2019-12-31')
+#date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+#date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
 #date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
 
@@ -82,7 +89,7 @@ df_bins = 200e3
 
 plot_all = False
 plot_all_mopi5 = False
-plot_o3_ts = True
+plot_o3_ts = False
 save_o3= False
 save_o3_only = False
 save_residuals=False
@@ -95,7 +102,9 @@ plot_o3_diff_waccm = False
 read_waccm_clim = False
 compare = False
 plot_polyfit = False
+plot_sinefit = False
 plot_MLS = False
+add_L2_flags = True
 
 add_opacity=False
 
@@ -116,7 +125,6 @@ spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
-plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/'
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
@@ -130,7 +138,21 @@ ex = '_waccm_monthly_scaled_h2o'
 ex = '_gromosAP_scaled_h2o'
 ex = '_waccm_low_alt_dx10_nonWinCorr'
 ex = '_gromosAP_low_alt'
-ex = '_waccm_low_alt_RFI'
+
+ex = '_sinefit_optimized'
+ex = '_waccm_low_alt_dx10'
+ex = '_v2'
+# ex = '_waccm_low_alt'
+
+new_L2 = True
+
+if new_L2:
+    plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
+    plotfolder = '/storage/tub/instruments/somora/level2/v2/'
+    cont_name = 'h2o_continuum_x' 
+else:
+    cont_name = 'h2o_pwr98_x'
+    plotfolder = '/scratch/GROSOM/Level2/GROMORA_waccm/'
 # %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -190,7 +212,10 @@ if instrument_name == "GROMOS":
     import gromos_classes as gc
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
+    if new_L2:
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    else:
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -201,8 +226,11 @@ if instrument_name == "GROMOS":
 elif instrument_name == "SOMORA":
     import somora_classes as sm
     basename_lvl1 = "/scratch/GROSOM/Level1/"
+    if new_L2:
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/somora/level2/v2/"+str(date[0].year)
+    else:
+        basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -269,8 +297,7 @@ else:
     # )
     #print(level2_dataset)
     F0 = instrument.observation_frequency
-
-
+    
 if extract_fgrid:
     date = datetime.date(2017, 10, 12)
     import somora_classes as sm
@@ -293,23 +320,23 @@ if plot_cost:
 
     if instrument_name == 'mopi5':
         for s in spectros:
-            fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True,figsize=(15, 10))
+            fig, axsco = plt.subplots(nrows=1, ncols=1, sharex=True,figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
-            axes.plot(end_cost)
+            axsco.plot(end_cost)
             fig.savefig(plotfolder+'/' +
                         instrument.datestr+s+ex+'_end_cost.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=3, ncols=1,figsize=(15, 10))
+            fig, axsco = plt.subplots(nrows=3, ncols=1,sharex=True, figsize=(15, 10))
             end_cost = level2_dataset[s].oem_diagnostics[:, 3]
             noise_input = level2_dataset[s].median_noise
-            end_cost.plot(marker='.', ax=axes[0])
-            noise_input.plot(marker='.',ax=axes[1])
+            end_cost.plot(marker='.', ax=axsco[0])
+            noise_input.plot(marker='.',ax=axsco[1])
             if add_opacity:
-                ds_opacity.tropospheric_opacity.plot(marker='.',ax=axes[2])
+                ds_opacity.tropospheric_opacity.plot(marker='.',ax=axsco[2])
             #axs[1].set_ylim(0,1)
-            axes[0].set_xticks([])
-            axes[1].set_xticks([])
+            axsco[0].set_xticks([])
+            axsco[1].set_xticks([])
           #  end_cost.plot(ax=axs, ylim=(0.75,8))
             fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'_end_cost.pdf', dpi=500)
@@ -331,8 +358,8 @@ if plot_polyfit:
         polyfit_2[1].plot(marker='.', ax=axes[1])
         polyfit_1[2].plot(marker='.',ax=axes[2])
         polyfit_2[2].plot(marker='.', ax=axes[2])
-        level2_somora[s].h2o_pwr98_x.plot(ax=axes[3])
-        level2_gromos[s].h2o_pwr98_x.plot(ax=axes[3])
+        level2_somora[s][cont_name].plot(ax=axes[3])
+        level2_gromos[s][cont_name].plot(ax=axes[3])
         axes[0].set_ylabel('polyfit')
         axes[1].set_ylabel('polyfit')
         axes[2].set_ylabel('polyfit')
@@ -356,12 +383,17 @@ if plot_polyfit:
                         gromos.datestr+ex+'polyfit_comparison.pdf', dpi=500)
     else:
         for s in spectros:
-            fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(15, 10))
+            fig, axes = plt.subplots(nrows=5, ncols=1,sharex=True, figsize=(15, 10))
             polyfit = level2_dataset[s].poly_fit_x
-            polyfit[0].plot(marker='.', ax=axes[0], color='k')
-            polyfit[1].plot(marker='.',ax=axes[1], color='k')
-            polyfit[2].plot(marker='.',ax=axes[2], color='k')
-            level2_dataset[s].h2o_pwr98_x.plot(ax=axes[3], color='k')
+            if new_L2:
+                polyfit[:,0].plot(marker='.', ax=axes[0], color='k')
+                polyfit[:,1].plot(marker='.',ax=axes[1], color='k')
+                polyfit[:,2].plot(marker='.',ax=axes[2], color='k')
+            else:
+                polyfit[0].plot(marker='.', ax=axes[0], color='k')
+                polyfit[1].plot(marker='.',ax=axes[1], color='k')
+                polyfit[2].plot(marker='.',ax=axes[2], color='k')
+            level2_dataset[s][cont_name].plot(ax=axes[3], color='k')
             axes[0].set_ylabel('polyfit')
             axes[1].set_ylabel('polyfit')
             axes[2].set_ylabel('polyfit')
@@ -384,7 +416,35 @@ if plot_polyfit:
             fig.tight_layout(rect=[0, 0.03, 1, 0.99])
             fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                         instrument.datestr+ex+'polyfit.pdf', dpi=500)
-            
+
+if plot_sinefit:
+    s = 'AC240'
+     #level2_dataset[s]['time'] = pd.to_datetime(level2_dataset[s]['time'].data)
+    fig, axes = plt.subplots(nrows=3, ncols=1,sharex=True, figsize=(15, 10))
+    level2_dataset[s].sine_fit_0_x[:,0].plot(marker='.', ax=axes[0], color='k')
+    level2_dataset[s].sine_fit_0_x[:,1].plot(marker='.', ax=axes[0], color='r')
+    level2_dataset[s].sine_fit_1_x[:,0].plot(marker='.', ax=axes[1], color='k')
+    level2_dataset[s].sine_fit_1_x[:,1].plot(marker='.', ax=axes[1], color='r')
+    level2_dataset[s].sine_fit_2_x[:,0].plot(marker='.', ax=axes[2], color='k')
+    level2_dataset[s].sine_fit_2_x[:,1].plot(marker='.', ax=axes[2], color='r')
+
+    axes[0].set_ylabel('sinefit')
+    axes[1].set_ylabel('sinefit')
+    axes[2].set_ylabel('sinefit')
+
+    axes[0].set_title('Period ='+str(level2_dataset[s].sine_fit_0_x.attrs['period MHz'])+' MHz')
+    axes[1].set_title('Period ='+str(level2_dataset[s].sine_fit_1_x.attrs['period MHz'])+' MHz')
+    axes[2].set_title('Period ='+str(level2_dataset[s].sine_fit_2_x.attrs['period MHz'])+' MHz')
+
+    for i in [0,1]:
+        axes[i].set_xlabel('')
+        #axes[i].set_xticks([])
+    #ds_opacity.tropospheric_opacity_tc.plot(marker='.',ax=axes[3])
+    #axes[3].set_ylim(0,20)
+    #axs[1].set_ylim(0,1)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.99])
+    fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
+        instrument.datestr+ex+'sinefit.pdf', dpi=500)      
 
 def avk_smooth_mls(ds, o3_mls_mean):
     avkm=ds.o3_avkm.mean(dim='time').values
@@ -507,8 +567,52 @@ if plot_all:
         instrument.datestr + '_plot_all_test_polyfit2'
     GROSOM_library.plot_O3_all(level2_dataset, outname)
 
+if add_L2_flags:
+    new_ds = level2_dataset['AC240'] 
+    # Absolute flags 
+    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0]) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
+   # good_data = xr.where( np.abs(new_ds.oem_diagnostics[:, 3]-1)<0.1, True, False)
+   # good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 3] - 1) <0.1 ), True, False) 
+    
+   # np.sum(np.abs(1-gromos.oem_diagnostics[:,2])<0.05)/(len(gromos.time))
+  #  np.sum(np.abs(1-somora.oem_diagnostics[:,2])<0.05)/(len(somora.time))
+
+    # Combined flags 
+    # diff_polyfit_1 = new_ds.poly_fit_x[1] - new_ds.poly_fit_x[1].mean(dim='time')
+    # diff_polyfit_2 = new_ds.poly_fit_x[2] - new_ds.poly_fit_x[2].mean(dim='time')
+
+    #  good_data = xr.where(np.abs(diff_polyfit_2)<0.2, True, False)
+    # new_ds.where(good_data).o3_x.isel(o3_p=15).plot()
+    new_ds['o3_x'].attrs['valid_min'] = 0
+    new_ds['o3_x'].attrs['valid_max'] = 50e-6
+
+    new_ds['retrieval_quality'] = ('time', good_data.data.astype(int)) # good_data*1 # ('time', good_data.data.astype(int))
+    new_ds['retrieval_quality'].attrs['standard_name'] = 'retrieval_quality'
+    new_ds['retrieval_quality'].attrs['long_name'] = 'quality flag retrieval'
+    new_ds['retrieval_quality'].attrs['units'] = '1'
+    new_ds['retrieval_quality'].attrs['description'] = 'Quality flag of the retrievals from cost and polyfit term'
+    
+    new_ds['o3_x'].attrs['valid_min'] = 0
+    new_ds['o3_x'].attrs['valid_max'] = 50e-6
+
+    # new_ds['time'] = pd.to_datetime(level2_dataset['AC240'].time)
+    new_ds.time.attrs['standard_name'] = 'time'
+    new_ds.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
+    new_ds.time.encoding['calendar'] = 'standard'
+    new_ds.time.attrs['timezone'] = 'Z'
+    new_ds.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
+
+    if save_residuals:
+        residual = new_ds.get(['y', 'yf', 'bad_channels', 'y_baseline'])
+        residual['res'] = residual.y - residual.yf
+        residual.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_residuals.nc')
+    
+    ozone = new_ds.drop_dims(['f']) #drop_vars(['y', 'yf', 'bad_channels', 'y_baseline'])
+    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'.nc' , format='NETCDF4', unlimited_dims='time')
+
+
 if plot_o3_ts:
-    ozone = level2_dataset['AC240'].isel(o3_lat=0, o3_lon=0)
+    ozone = level2_dataset['AC240'] 
     o3 = ozone.o3_x
     mr = ozone.o3_mr.data
     o3['altitude'] = ozone.o3_z / 1e3
@@ -525,8 +629,8 @@ if plot_o3_ts:
     o3.coords['o3_p'] = o3.coords['o3_p']/100
     o3.data = o3.data*1e6
    # o3=o3.swap_dims({'o3_p':'altitude'})
-    fig = plt.figure(num=1)
-    ax = fig.subplots(1)
+    fig2, axs = plt.subplots(nrows=1, ncols=1, figsize=(9, 6))
+
   #  o3_hourly = o3_hourly.swap_dims({'o3_p':'geometric_height'})
    # o3_hourly['geometric_height'] = o3_hourly.o3_z
     #o3.plot(x='time', y='altitude')
@@ -542,16 +646,17 @@ if plot_o3_ts:
         cbar_kwargs={"label": "ozone [PPM]"}
     )
     pl.set_edgecolor('face')
-    ax.set_ylim(0.01, 500)
-    ax.set_yticks([])
-    ax.invert_yaxis()
-    ax.set_yscale('log')
+    axs.set_ylim(0.01, 500)
+    axs.set_yticks([])
+    axs.invert_yaxis()
+    axs.set_yscale('log')
 
-    ax.set_ylabel('Pressure [hPa]')
+    axs.set_ylabel('Pressure [hPa]')
     plt.tight_layout()
     # o3.plot.imshow(x='time')
-    fig.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
+    fig2.savefig(plotfolder+'/'+instrument.basename_plot_level2 +
                 instrument.datestr+ex+'_ozone_ts_mr.pdf', dpi=500)
+
     if save_o3_only:
         o3_ds = ozone.get([
             'o3_x','o3_xa','o3_mr','o3_eo','o3_es','o3_avkm','o3_z','o3_fwhm', 'o3_offset',
@@ -566,11 +671,15 @@ if plot_o3_ts:
             ) 
         o3_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_ozone.nc')
     if save_residuals:
-        residual = ozone.get([
-            'y',
-            'yf','y_baseline',
-            'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
-            ) 
+        # residual = ozone.get([
+        #     'y',
+        #     'yf','y_baseline',
+        #     'median_noise','oem_diagnostics','obs_za','obs_aa','obs_lat','obs_lon','obs_alt']
+        #     ) 
+        # residual  = np.convolve(ozone.y - ozone.yf, np.ones(4) / 4, mode="same")
+        residual  = ozone.y - ozone.yf
+
+        residual.rename('residuals')
         residual.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_residuals.nc')
 
 if plot_o3_diff_waccm:
@@ -743,12 +852,24 @@ if compare_MLS:
 if plot_selected:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_sel_polyfit2'
-    GROSOM_library.plot_O3_all(
-        level2_dataset,
-        outname,
-        spectro='AC240',
-        cycles=[1,7,10,13,17,21]
-    )
+    
+    if new_L2:
+        instrument.plot_ozone_sel(
+            level2_dataset,
+            outname,
+            spectro='AC240',
+            cycles=[1,14,18],
+            altitude = False,
+            add_baselines = True, 
+            to_ppm = 1e6  
+        )
+    else:
+        GROSOM_library.plot_O3_all(
+            level2_dataset,
+            outname,
+            spectro='AC240',
+            cycles=[1,7,13,21]
+        )
 
 if plot_selected_nicer:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
@@ -757,18 +878,18 @@ if plot_selected_nicer:
         level2_dataset,
         outname,
         spectro='AC240',
-        cycles=[1, 10, 17]#cycles=[1,7,10,13,17,21]
+        cycles=[1,14,18]#cycles=[1,7,10,13,17,21]
     )
 
 
 if plot_fshift:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_fshift.pdf'
-    fshift = level2_dataset['AC240'].isel(freq_shift_grid1=0).freq_shift_x
+    fshift = level2_dataset['AC240'].isel(f_shift_grid=0).freq_shift_x
 
     fshift = fshift*1e-3
-    fig = plt.figure(num=1)
-    ax = fig.subplots(1)
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharey=True, figsize=(9, 6))
+
     fshift.plot(
         ax=ax
     )
@@ -854,7 +975,6 @@ if compare_MERRA2:
     # o3_merra2.assign_coords({'altitude':merra2_info.alt.isel(phony_dim_1=0)})
     plt.tight_layout()
     fig.savefig(instrument.level2_folder+'/ozone_ts_17_merra2.pdf')
-# %%
 
 if compare_ECMWF:
     Mair = 28.9644

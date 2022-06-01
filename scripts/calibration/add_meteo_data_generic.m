@@ -27,7 +27,7 @@ function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, 
 for t=1:length(calibratedSpectra)
     %start=datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum');
     %stop=datenum(datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
-    timeMin = datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum');
+    timeMin = datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum', 'TimeZone',calibrationTool.timeZone);
     stop = timeMin+seconds(calibratedSpectra(t).calibration_time);
     
     % Selecting the interesting values for each calibration cycle:

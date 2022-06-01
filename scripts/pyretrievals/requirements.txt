@@ -1,0 +1,17 @@
+numpy
+scipy
+pandas
+xarray
+pygrib
+pydap
+pastedeploy
+mechanicalsoup
+numba
+pytest
+python-dotenv
+tqdm
+docopt
+git+https://github.com/leric2/pyretrievals.git@master
+git+https://github.com/atmtools/typhon.git
+sphinx
+-e .

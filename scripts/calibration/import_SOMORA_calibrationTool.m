@@ -85,7 +85,7 @@ calibrationTool.rawFileFolder=['/scratch/SOMORA_rawData/' calibrationTool.dateSt
 calibrationTool.rawFileFolder=['/media/somora_data/RAW_DATA/' calibrationTool.dateStr(1:4) '/' calibrationTool.dateStr(6:7) '/'];
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
-calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
+calibrationTool.extraFileFolder='/home/es19m597/Documents/GROMORA/extra_raw_data/SOMORA/'; % no write permission on the IAP lake
 calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v2/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
@@ -319,7 +319,7 @@ else
     calibrationTool.transmittanceWindow = 0.9980; %value since 21/08/2018
 end
 
-if calibrationTool.timeNumber>datenum(2009,09,22) && calibrationTool.timeNumber<datenum(2010,12,14)
+if calibrationTool.timeNumber>=datenum(2009,09,22) && calibrationTool.timeNumber<datenum(2010,10,12)
     % Andres: changed Sky elevation from 40 to 39. from now on the angle in the ascii file in the column Elevation_Angle is correct
     calibrationTool.elevationAngleAntenna=38;
     calibrationTool.elevationAngleCold=-92;
@@ -328,8 +328,15 @@ if calibrationTool.timeNumber>datenum(2009,09,22) && calibrationTool.timeNumber<
     calibrationTool.elevationAngleColdTol = 1;
 
     calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
+elseif calibrationTool.timeNumber>datenum(2010,10,11) && calibrationTool.timeNumber<datenum(2010,12,14)
+    calibrationTool.elevationAngleAntenna=40;
+    calibrationTool.elevationAngleCold=-91;
+    calibrationTool.elevationAngleHot=179;
+    calibrationTool.elevationAngleHotTol = 1;
+    calibrationTool.elevationAngleColdTol = 2;
+    calibrationTool.stdAntAngleThresh = 1;
+    calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic_nodrift(calibrationTool,drift,meteoData, calibratedSpectra,N);
 
-    
 elseif calibrationTool.timeNumber>datenum(2012,01,01) && calibrationTool.timeNumber<datenum(2012,04,24)
 %     calibrationTool.elevationAngleAntenna=38;
 %     calibrationTool.elevationAngleCold=-92;
@@ -351,13 +358,14 @@ elseif (calibrationTool.timeNumber>= datenum(2010,01,28) && calibrationTool.time
 elseif (calibrationTool.timeNumber>=datenum(2016,11,04) && calibrationTool.timeNumber<datenum(2020,01,24))
     % Change of noise temperature at this date
     calibrationTool.TNoiseCenterTh=2700;
-    
 elseif calibrationTool.timeNumber>datenum(2020,01,24)
     calibrationTool.TNoiseCenterTh=2080;
 
 end
-
-
+% Noise temperature fluctuations
+if (calibrationTool.timeNumber>= datenum(2011,10,28) && calibrationTool.timeNumber<datenum(2012,01,18))
+    calibrationTool.stdTNoiseThresh=12;
+end
 
 % TC
 

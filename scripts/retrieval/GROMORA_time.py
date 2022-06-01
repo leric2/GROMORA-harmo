@@ -11,18 +11,14 @@ Collection of functions for dealing with time
 Including : 
     * a-priori data
 """
-import os
 import numpy as np
-import retrievals
 import xarray as xr
 import pandas as pd
-import math
-import netCDF4
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from pysolar import solar
+#from pysolar import solar
 
 local_timezone = timezone('Europe/Zurich')
 gromora_tz = timezone('UTC')
@@ -108,18 +104,22 @@ def get_sunset_lst_from_lst(lst, lat):
     )
     return sunrise_lst, sunset_lst
 
-def get_LST_from_GROMORA(dt, lat, lon):
+def get_LST_from_GROMORA(dt, lat, lon, print_option=False):
     #dt = utc.localize(datetime64_2_datetime(date))
     if np.issubdtype(dt.dtype, np.datetime64) :
         dt = datetime64_2_datetime(dt).replace(tzinfo=gromora_tz)
-    print('UTC time: ',dt) 
+
+    if print_option:
+        print('UTC time: ',dt) 
     local_time =  dt.astimezone(local_timezone)
-    print('Local time: ',local_time)
+    if print_option:
+        print('Local time: ',local_time)
 
     doy = pd.to_datetime(dt).dayofyear
 
     eot = equation_of_time(doy)
-    print('Equation of time : ', str(eot))
+    if print_option:
+        print('Equation of time : ', str(eot))
 
     lstm = 15*local_time.utcoffset().seconds/3600
     tc = time_correction_factor(lon, lstm, eot)
@@ -131,9 +131,10 @@ def get_LST_from_GROMORA(dt, lat, lon):
     ha = hour_angle(lst)
 
     ha_sunset, ha_NOAA= hour_angle_sunset(doy, lat)
-    print('Hour angle: ', str(ha))
-    print('Hour angle sunset: ', str(ha_sunset))
-    print('Hour angle NOAA: ', str(ha_NOAA))
+    if print_option:
+        print('Hour angle: ', str(ha))
+    #  print('Hour angle sunset: ', str(ha_sunset))
+    # print('Hour angle NOAA: ', str(ha_NOAA))
     
     if np.abs(ha) > np.abs(ha_NOAA):
         night = True

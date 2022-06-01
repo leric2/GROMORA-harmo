@@ -35,7 +35,8 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from base_classes import Integration, DataRetrieval
+from base_classes import Integration# , DataRetrieval
+from gromora_retrievals import DataRetrieval
 import GROSOM_library
 
 def return_bad_channels_somora(date):
@@ -109,9 +110,10 @@ class SOMORA_LvL2(DataRetrieval):
         spectrometers = ["AC240"]
 
         self.lo = 1.49275e11
+        self.reference_elevation_angle = 90
         
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
-        level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)
+        level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
 
         # Can be used for plotting names (SOMORA_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
@@ -122,13 +124,100 @@ class SOMORA_LvL2(DataRetrieval):
 
         return return_bad_channels_somora(date)  
     
-    def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
+
+    
+    def baseline_period(self, retrieval_param):
         '''
-        Correction function for the troposphere. 
-        
-        Invidual correction for each spectrometers specified !
+        Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
+
+        ''' 
+        if (retrieval_param['date'] >= datetime.date(2009,1,1)) & (retrieval_param['date'] < datetime.date(2019,10,1)):
+            baseline_periods = np.array([110e6, 216e6, 310e6])
+        elif (retrieval_param['date'] >= datetime.date(2019,10,1)) & (retrieval_param['date'] < datetime.date(2020,4,15)):
+            baseline_periods = np.array([110e6, 186e6, 347e6, 888e6]) #888e6
+        elif (retrieval_param['date'] >= datetime.date(2020,4,15)) & (retrieval_param['date'] < datetime.date(2020,9,30)):
+            baseline_periods = np.array([92e6, 110e6, 364e6, 400e6]) #baseline_periods = np.array([110e6, 186e6, 364e6])
+        elif (retrieval_param['date'] >= datetime.date(2020,9,30)):
+            baseline_periods = np.array([96e6, 110e6, 186e6, 347e6, 382e6]) # 96e6 888e6 baseline_periods = np.array([110e6, 186e6, 364e6])
+        else:
+            baseline_periods = np.array([])
+
+        return baseline_periods
+
+    def correct_pointing(self, retrieval_param):
+        return 0
+
+    def make_f_grid_double_sideband(self, retrieval_param): 
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        create simulation frequency grid
+
+        '''
+        usb_grid= np.arange(155.875e9,157.075e9,100e6)
+        n_f = retrieval_param["number_of_freq_points"]  # Number of points
+        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+        x = np.linspace(-1, 1, n_f)
+        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+            retrieval_param['obs_freq']
+
+        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+        f_grid = np.concatenate((f_grid, usb_grid))
+        if retrieval_param["show_f_grid"]:
+            fig = plt.figure()
+            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+            # plt.xlim((retrieval_param['obs_freq']-200e6) /
+            #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+            # plt.ylim(0,300)
+            plt.ylabel(r'$\Delta f$ [kHz]')
+            plt.suptitle('Frequency grid spacing')
+            plt.show()
+        return f_grid
+
+    @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS data. 
+        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+
+        '''
+        date2flag_somora =  [ ]
+        return date2flag_somora
+
+    @property
+    def basecolor(self):
+       return '#2c7bb6'
+
+    @property
+    def polyfit_threshold(self):
+        return 0.1
+
+    def cost_threshold(self, year):
+        if year > 2010:
+            return 0.1 #0.5 for 2010
+        else:
+            return 0.5
+
+    @property
+    def standard_air_pressure(self):
+        return 960
+
+    @property
+    def standard_air_temperature(self):
+        return 10
+
+    # def define_retrieval_param(self, retrieval_param):
+    #     '''
+    #     Parameters
+    #     ----------
+    #     retrieval_param : dict
+    #         This function fills the dict containing all parameters for GROMOS retrievals.
+
+    #     Returns
+    #     -------
+    #     retrieval_param
+
+    #     '''
+    #     return self.define_retrieval_param
 
     # def find_bad_channels(self, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
     #     '''
