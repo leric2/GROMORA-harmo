@@ -309,7 +309,7 @@ class DataRetrieval(ABC):
                             self.filename_level2[s] + ".nc",
                             decode_times=True,
                             decode_coords=True,
-                            use_cftime=True,
+                            use_cftime=False,
                         )                    
                     except FileNotFoundError:
                         print('No file for this day, skipping ', self.filename_level2[s])
@@ -337,7 +337,7 @@ class DataRetrieval(ABC):
                         self.filename_level2[s] + ".nc",
                         decode_times=True,
                         decode_coords=True,
-                        use_cftime=True,
+                        use_cftime=False,
                         )
                     print('Read : ', self.filename_level2[s])
                 except FileNotFoundError:

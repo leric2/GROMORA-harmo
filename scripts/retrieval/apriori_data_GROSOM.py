@@ -23,9 +23,6 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from pytz import timezone
 
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
-
 from retrievals import arts
 from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels

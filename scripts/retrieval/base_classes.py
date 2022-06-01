@@ -44,10 +44,8 @@ ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import GROSOM_library
-import retrieval_module
+#import retrieval_module
 #import mopi5_retrievals
-
-from retrievals import data
 
 #%%
 
