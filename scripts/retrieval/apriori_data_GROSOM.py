@@ -375,13 +375,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # z field
     atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
     
-    o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
-    o3_apriori_h = interpolate(
-        atm.z_field.data[:,0,0], 
-        o3_apriori_SOMORA.altitude.data,
-        o3_apriori_SOMORA.o3.data
-        )
-
     pressure_atm = atm.z_field.to_xarray().coords['Pressure']
     # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
     # Ozone
@@ -389,12 +382,20 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     #print(pressure_atm)
 
     if retrieval_param['o3_apriori'] == 'somora':
+        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+        o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
+        o3_apriori_h = interpolate(
+            atm.z_field.data[:,0,0], 
+            o3_apriori_SOMORA.altitude.data,
+            o3_apriori_SOMORA.o3.data
+        )
         print('Ozone apriori from : old SOMORA retrievals')
         # extracting pressure from the fascod atm
         atm.set_vmr_field(
             "O3", pressure_atm, o3_apriori_h
         )       
     elif retrieval_param['o3_apriori'] == 'gromos':
+        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
         o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         print('Ozone apriori from : old GROMOS retrievals')
         atm.set_vmr_field(
