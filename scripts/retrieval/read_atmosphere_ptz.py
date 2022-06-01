@@ -7,21 +7,36 @@ Created
 
 Collection of functions for dealing with GROSOM a-priori data
 
-Using the Atmosphere Class to define a 
 
 Including : 
     * a-priori data
 """
-import os
 import sys
-import numpy as np
-import xarray as xr
-import pandas as pd
-import math
-import netCDF4
+
+import datetime
+import os
+import time
+from abc import ABC
+
 import matplotlib.pyplot as plt
+import netCDF4
+import numpy as np
+import pandas as pd
+import xarray as xr
+from dotenv import load_dotenv
 import datetime as dt
 from pytz import timezone
+from utils_GROSOM import save_single_pdf
+
+# For ARTS, we need to specify some paths
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
+
+
+ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
+ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
+ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
+
 
 sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
 sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
@@ -33,25 +48,8 @@ from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
 from GROMORA_time import pysolar_sza, get_LST_from_GROMORA
-
 #from typhon.arts.xml import load
 from pyarts.xml import load
-
-ARTS_DATA_PATH = os.environ.get("ARTS_DATA_PATH", None)
-
-summer_months = [4, 5, 6, 7, 8, 9]
-
-month_start = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-month_stop = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-
-class APrioriDataGROSOM(arts.Atmosphere):
-    '''
-    TO DO ?
-    '''
-    def __init__(self, apriori_type):
-        self.type = apriori_type
-
-        pass
 
 def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
     '''
@@ -1208,16 +1206,67 @@ def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_m
         ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
 
     return ds_ptz
+
+def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_method, max_T_diff, extra_time_ecmwf = 3.5, z_grid=None):
+    '''
+    Reading the a-priori atmosphere defined from ECMWF operationnal dataset and CIRA86 clim
+
+    This function is a work around to add temperature profile information on the retrieved profiles.
+
+    time: datetime
+    '''
+    summer_months = [4, 5, 6, 7, 8, 9]
+
+
+    month = pd.to_datetime(time).month
+
+    # Range of time to seach for ECMWF profiles.
+    ecmwf_time1 = time - pd.Timedelta(extra_time_ecmwf, "h")
+    ecmwf_time2 = time + pd.Timedelta(extra_time_ecmwf, "h")
+
+    # Read EACMWF data (oper for now)
+    ECMWF_store_path = ecmwf_store
+    ecmwf_prefix = ecmwf_prefix = f'ecmwf_oper_v{2}_{location}_%Y%m%d.nc'
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+
+    if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
+        raise ValueError('no ECMWF data')
+
+    # Reading CIRA86
+    cira86 = read_cira86_monthly(cira86_path, month, lat)
+
+    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
+        
+    #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+
+    # Merging ecmwf and CIRA86
+    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86, method=merge_method, max_T_diff=max_T_diff)
+    
+
+    
+    # extrapolate to p_grid ??
+    if z_grid is not None:
+        ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
+
+    return ds_ptz
     
 if __name__ == "__main__":
-    date = dt.datetime(2020,1,1)
+    date = dt.datetime(2010,8,10,23,0,0)
+    loc='Bern'
     ptz = read_ptz_ecmwf_cira86(
         time=pd.to_datetime(date), 
         lat=46, 
-        location='BERN', 
-        ecmwf_store='/storage/tub/atmosphere/ecmwf/locations/'+str(date.year), 
+        location=loc, 
+        ecmwf_store='/storage/tub/atmosphere/ecmwf/locations/'+loc, 
         cira86_path=os.path.join(ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly'), 
         merge_method='max_diff',
         max_T_diff=5,
         extra_time_ecmwf = 3.5, 
         z_grid=None)
+
+    p_grid = np.logspace(-3, 5, 47)
+    
+    z_interp = p_interpolate(p_grid, ptz.p.values, ptz.z.values )
+    t_interp = p_interpolate(p_grid, ptz.p.values, ptz.t.values)
+    plt.plot(ptz.t.values, ptz.z.values, 'x')
+    plt.plot(t_interp, z_interp)
