@@ -259,27 +259,12 @@ end
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
-<<<<<<< HEAD
 if calibrationTool.savePlanckIntensity
     %ncwrite(filename,'/spectrometer1/intensity_planck',vertcat(calibratedSpectra.intensityPlanck)');
 end  
 ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
 ncwrite(filename,'/spectrometer1/meanTb',[calibratedSpectra.meanTb]);
-=======
-%ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
-if isfield(calibratedSpectra,'stdTb')
-    ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
-else
-    ncwrite(filename,'/spectrometer1/stdTb',-9999*ones(length(calibratedSpectra),1));
-end
-%ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
-if isfield(calibratedSpectra,'meanStdTb')
-    ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
-else
-    ncwrite(filename,'/spectrometer1/mean_std_Tb',-9999*ones(length(calibratedSpectra),1));
-end
->>>>>>> test_miac_calibration
 ncwrite(filename,'/spectrometer1/frequencies',calibratedSpectra(1).freq);
 
 ncwrite(filename,'/spectrometer1/THot',[calibratedSpectra.THot]);
