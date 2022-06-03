@@ -34,6 +34,7 @@ import datetime
 import os
 import time
 from abc import ABC
+import sys
 
 import matplotlib.pyplot as plt
 import netCDF4
@@ -44,6 +45,10 @@ from dotenv import load_dotenv
 import gc
 
 from utils_GROSOM import save_single_pdf
+
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
+
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
@@ -102,13 +107,34 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         retrieval_param['verbose'] = 2
         retrieval_param["retrieval_type"] = 8
         retrieval_param['FM_only'] = False
-        retrieval_param['show_FM'] = False
-        retrieval_param['date'] = date
+        retrieval_param['show_FM'] = True
+        retrieval_param['sensor'] = 'FFT_SB'
+        retrieval_param['SB_bias'] = 0
+        retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
 
         retrieval_param["plot_meteo_ds"] = False
 
         retrieval_param["show_f_grid"] = False
         retrieval_param['plot_opacities'] = False
+        # 3. test retrieving the FM
+        retrieval_param['verbose'] = 1
+
+        retrieval_param['date'] = date
+
+        retrieval_param['plot_o3_apriori_covariance'] = True
+
+
+        retrieval_param = instrument.define_retrieval_param(retrieval_param)
+
+        assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
+
+        if recheck_channels:
+            integrated_data = instrument.find_bad_channels_stdTb(
+                spectrometers=instrument.spectrometers,
+                stdTb_threshold=12,
+                apply_on='int',
+                dimension=['time', 'channel_idx']
+            )
 
         retrieval_param['plot_o3_apriori_covariance'] = False
 

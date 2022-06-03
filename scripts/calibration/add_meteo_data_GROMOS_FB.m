@@ -1,4 +1,4 @@
-function calibratedSpectra = add_meteo_data_generic(calibrationTool, meteoData, calibratedSpectra)
+function calibratedSpectra = add_meteo_data_GROMOS_FB(calibrationTool, meteoData, calibratedSpectra)
 %==========================================================================
 % NAME          | add_meteo_data_generic
 % TYPE          | function
@@ -31,7 +31,7 @@ for t=1:length(calibratedSpectra)
     stop = timeMin+seconds(calibratedSpectra(t).calibration_time);
     
     % Selecting the interesting values for each calibration cycle:
-    rowInd=([meteoData.dateTime]>=timeMin & [meteoData.dateTime]<=stop);
+    rowInd=([meteoData.dateTime]>=timeMin - minutes(calibrationTool.meteoTimeExtension) & [meteoData.dateTime]<=stop+minutes(calibrationTool.meteoTimeExtension));
     
     calibratedSpectra(t).mean_air_temperature=nanmean(vertcat(meteoData.air_temperature(rowInd)));
     calibratedSpectra(t).mean_relative_humidity=0.01*nanmean(vertcat(meteoData.relative_humidity(rowInd)));

@@ -57,12 +57,15 @@ switch filterN
         % using the std dev of Tb to qualify good and bad spectra
         % (Integrated spectra)
         for t = 1:length(spectra)
-            indCyclesGood=indicesGood;
-            
-            indCyclesGood(spectra(t).stdTb > calibrationTool.maxStdDevTbInt) = NaN;
-            
-            spectra(t).channelsQuality=indCyclesGood';
+            spectra(t).channelsQuality=indicesGood';
         end
+        return
+    case 5
+        % Filterbench case
+        for t = 1:length(spectra)
+            indCyclesGood=indicesGood;
+            spectra(t).channelsQuality=indCyclesGood';
+               end
         return
 end
 

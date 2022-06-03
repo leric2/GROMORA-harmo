@@ -36,12 +36,12 @@ function [calibrationTool, level1] = run_integration(calibrationTool)
 %           | git server of IAP.
 %==========================================================================
 % Check that the calibration file (level1a) exist for this day
-if ~isfield(calibrationTool, 'filenameLevel1a')
-    calibrationTool.filenameLevel1a=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
-end
-if ~exist(calibrationTool.filenameLevel1a,'file')
-    error('No calibration data found for this day')
-end
+%     if ~isfield(calibrationTool, 'filenameLevel1a')
+%         calibrationTool.filenameLevel1a=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
+%     end
+% if ~exist(calibrationTool.filenameLevel1a,'file')
+%     error('No calibration data found for this day')
+%  end
 
 % Start integration
 disp(['Starting the integration process for ' calibrationTool.instrumentName ' ' calibrationTool.spectrometer ': ' calibrationTool.dateStr])
