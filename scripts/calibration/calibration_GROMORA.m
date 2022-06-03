@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
-instrumentName='MIAWARA-C';
+instrumentName='SOMORA';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
