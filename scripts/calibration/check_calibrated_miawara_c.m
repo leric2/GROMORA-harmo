@@ -177,11 +177,11 @@ for i = 1:size(calibratedSpectra,2)
 %         calibratedSpectra(i).stdTempWindow=-9999;
 %     end
 %     
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Time variable for this cycle
     % Correspond to the first sky measurements taken into account for the
     % mean calibrated spectra.
+       
     calibratedSpectra(i).dateStart=datestr(standardLog.x(1:6,ia(1))','yyyymmddTHHMMSSZ');
     calibratedSpectra(i).dateStop=datestr(standardLog.x(1:6,ia(end))','yyyymmddTHHMMSSZ');
     
@@ -189,17 +189,9 @@ for i = 1:size(calibratedSpectra,2)
     calibratedSpectra(i).lastSkyTime=datenum(calibratedSpectra(i).dateStop,'yyyymmddTHHMMSSZ')-datenum(1970,1,1);
     
     % As we are always using daily raw files:
-    % As we are always using daily raw files:
     calibratedSpectra(i).year=year(datenum(calibrationTool.dateStr));
     calibratedSpectra(i).month=month(datenum(calibrationTool.dateStr));
     calibratedSpectra(i).day=day(datenum(calibrationTool.dateStr));
-    
-    calibratedSpectra(i).timeMin = datestr(calibratedSpectra(i).theoreticalStartTime,'YYYY_mm_dd_HH:MM:SS');
-    calibratedSpectra(i).timeMax = datestr(calibratedSpectra(i).theoreticalStartTime + minutes(calibratedSpectra(i).calibrationTime),'YYYY_mm_dd_HH:MM:SS');
-    
-    calibratedSpectra(i).timeMin=datenum(calibratedSpectra(i).timeMin,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    calibratedSpectra(i).timeMax=datenum(calibratedSpectra(i).timeMax,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
-    
     
     if standardLog.Month(1) < 10
         m = ['0' num2str(standardLog.Month(1))];
@@ -218,6 +210,11 @@ for i = 1:size(calibratedSpectra,2)
     % as well as the "mean time" of the calibration cycle (mean of all
     % antenna measurements)
     meanDatetime=[calibratedSpectra(i).date '_' datestr(mean(standardLog.t(ia))/24,'HH:MM:SS')];
+    
+    theoreticalminTime=[calibratedSpectra(i).date '_' datestr(calibratedSpectra(i).theoreticalStartTime/24,'HH:MM:SS')];
+    %theoreticalmaxTime=[calibratedSpectra(i).date '_' datestr((calibratedSpectra(i).theoreticalStartTime+calibratedSpectra(i).calibrationTime/60)/24,'HH:MM:SS')];
+    
+    calibratedSpectra(i).timeMin=datenum(theoreticalminTime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     
     calibratedSpectra(i).meanDatetime=datenum(meanDatetime,'YYYY_mm_dd_HH:MM:SS')-datenum(1970,1,1);
     %calibratedSpectra(i).meanDatetimeUnit='days since 1970-01-01 00:00:00';
@@ -259,27 +256,14 @@ for i = 1:size(calibratedSpectra,2)
 %         hotLoadOK,...
 %         FFT_adc_overload_OK];
     
-
-    %========== find sigma ===============
-
-    %ind = find(a(:,1)>=10648 & a(:,1)<=10810);
-    idx = find(calibratedSpectra(i).freq>=2.226002048709027e+10 & calibratedSpectra(i).freq>=2.226496463651346e+10);
-
-    m            = length(idx);
-    [p,s,mu]     = polyfit(1:m,calibratedSpectra(i).Tb(idx),1);
-    level1_sigma = calibratedSpectra(i).Tb(idx)-polyval(p,1:m,[],mu);
-    calibratedSpectra(i).sigma        = std(level1_sigma);
-
-
-
     % Error vector description:
-    calibratedSpectra(i).errorVectorDescription=[...
-        'sufficientNumberOfIndices',...
-        'systemTemperatureOK',...
-        'LN2SensorsOK',...
-        'LN2LevelOK',...
-        'hotLoadOK',...
-        'FFT_adc_overload_OK'];
+    calibratedSpectra(i).errorVectorDescription=[
+        "sufficientNumberOfIndices",...
+        "systemTemperatureOK",...
+        "LN2SensorsOK",...
+        "LN2LevelOK",...
+        "hotLoadOK",...
+        "FFT_adc_overload_OK"];
     
 %     if (sum(calibratedSpectra(i).errorVector)<6)
 %         errorV=num2str(calibratedSpectra(i).errorVector);

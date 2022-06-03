@@ -21,7 +21,6 @@ function [calibratedSpectra] = balancing_calibration_generic(rawSpectra,logFile,
 %               |
 %==========================================================================
 
-
 % Calibration version
 calibVersion = calibrationTool.calibrationVersion ;
 
@@ -52,7 +51,6 @@ mirror_cold = logFile.Mirror_elevation(logFile.isColdSky);
 
 for j = 1:length(logFile.TC) % loop over polarisations
     
-    disp(['Calibrate polarisation ' num2str(j)])
     
     % load remaining data from day before
     
@@ -131,8 +129,6 @@ for j = 1:length(logFile.TC) % loop over polarisations
         t1 = t0+(m-1)*dt_int;
         t2 = t0+m*dt_int;
         
-        disp(['run calibration for ' datestr(t1,'yyyy-mm-dd HH:MM') ' - ' datestr(t2,'yyyy-mm-dd HH:MM')])
-        
         % Read line spectra within time interval
 
         isInTimeInterval = logFile.time >= t1 & logFile.time < t2;
@@ -204,23 +200,20 @@ for j = 1:length(logFile.TC) % loop over polarisations
             
         end
         
-        %% Does not work with matlab2016          
-%         % write measurements of day after to file
-% 
-%         isInTimeInterval = logFile.time >= t0+1;
-%         
-%         f = [calibrationTool.extraFileFolder calibrationTool.filename '_missing'];
-%         
-%         M = rawSpectra(isInTimeInterval,:)';
-%         fid = fopen([f '.bin'], 'w');
-%         fwrite(fid,M(:));
-%         fclose(fid);
-%         
-%         addpath(calibrationTool.root_dir)
-%         writecell(logFile.header',[f '.txt'],'Delimiter',';')
-%         dlmwrite([f '.txt'],logFile.x(:,isInTimeInterval)','delimiter',';','-append');
-        
+        % write measurements of day after to file
 
+        isInTimeInterval = logFile.time >= t0+1;
+        
+        f = [calibrationTool.file '_missing'];
+        
+        M = rawSpectra(isInTimeInterval,:)';
+        fid = fopen([f '.bin'], 'w');
+        fwrite(fid,M(:));
+        fclose(fid);
+        
+        writecell(logFile.header',[f '.txt'],'Delimiter',';')
+        dlmwrite([f '.txt'],logFile.x(:,isInTimeInterval)','delimiter',';','-append');
+        
         % save averaged spectra
         
         m_loop = m + (j-1)/dt_int;
@@ -237,22 +230,16 @@ for j = 1:length(logFile.TC) % loop over polarisations
         
         
         calibratedSpectra(m_loop).Tb = nanmean(out.Tb);
-        calibratedSpectra(m_loop).stdTb = std(out.Tb); 
-        calibratedSpectra(m_loop).meanStdTb = nanmean(std(out.Tb));
         calibratedSpectra(m_loop).TSys = nanmean(nanmean(out.T_rec));
         calibratedSpectra(m_loop).stdTSys = nanmean(std(out.T_rec));
-        calibratedSpectra(m_loop).tau = nanmean(TAU);
-        calibratedSpectra(m_loop).A   = nanmean(out.A);     % A:      the equivalent transmission of the reference absorber
-        calibratedSpectra(m_loop).a   = nanmean(out.a);     % a:      the correction coefficient for the troposphere and ref absorber
         
 %         calibratedSpectra(m).Yspectral=nanmean(S_hot(idx_hot))./nanmean(S_cold(idx_cold));
 %         calibratedSpectra(m).TN=(calibratedSpectra(m).THot - calibratedSpectra(m).Yspectral*calibrationTool.TCold)./ (calibratedSpectra(m).Yspectral -1);
         calibratedSpectra(m_loop).pol = j;
         calibratedSpectra(m_loop).dir = logFile.dir(find(isDir ==1,1,'first'));
         calibratedSpectra(m_loop).theoreticalStartTime = (m-1)*dt_int *24; % in hours
-        calibratedSpectra(m_loop).calibrationTime      = calibrationTool.calibrationTime;
-        calibratedSpectra(m_loop).calibrationVersion   = calibVersion;
-
+        calibratedSpectra(m_loop).calibrationTime=calibrationTool.calibrationTime;
+        calibratedSpectra(m_loop).calibrationVersion = calibVersion;
         clear out
     end
     

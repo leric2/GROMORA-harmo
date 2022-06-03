@@ -42,8 +42,8 @@ try
     set(gcf, 'PaperPosition', [1 1 19 27.7])
     orient(fig,'landscape')
     
-    xstart = datenum(calibrationTool.dateTime);
-    xstop = datenum(calibrationTool.dateTime + days(1));
+    xstart = calibrationTool.dateTime;
+    xstop = calibrationTool.dateTime + days(1);
     
     limTNPlot = 2500;
     if ~isempty(drift)
@@ -155,7 +155,6 @@ try
     %print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-fillpage')
     print(fig,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
     close
-<<<<<<< HEAD
     
     if calibrationTool.calibratedSpectraSpectralPlot
         
@@ -172,22 +171,6 @@ try
             plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
             %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
             
-=======
-    %%
-    fig2 = figure('visible','off');
-    %fig2 = figure();
-    clf
-    set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
-    orient(fig2,'landscape')
-    cm = colormap(parula(N));
-    %subplot(1,2,1);
-    count=1;
-    for i=1:N
-        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-            % plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).Tb,'Color',cm(i,:));
-            plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).Tb);
-        
->>>>>>> test_miac_calibration
             %plot(calibratedSpectra(l(i)).Tb)
             
             
@@ -200,7 +183,6 @@ try
             ylim([lowerLim,upperLim])
             TOD{count}=num2str(round(calibratedSpectra(l(i)).timeOfDay,1));
             count = count + 1;
-<<<<<<< HEAD
                 %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
             %end
             hold on
@@ -253,55 +235,6 @@ try
         print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_spectral_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
 
     end
-=======
-        %TOD{i}=num2str(calibratedSpectra(l(i)).timeOfDay);
-        %end
-        hold on
-    end
-
-    legend(TOD,'Location','southoutside','NumColumns',4);
-    grid on, xlabel('IF [MHz]');
-    
-    
-    %legend(TOD)
-    %print([calibrationTool.level1Folder 'calibratedSpectra_' calibrationTool.dateStr '_' calibrationTool.spectrometer],'-dpdf','-fillpage')
-    print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
-%    %%
-%    fig3 = figure; %('visible','off');
-%    %fig2 = figure();
-%    clf
-%    set(gcf, 'PaperPosition', [.1 .1 0.5, 0.5])
-%    
-%    yInfstd = 0;
-%    ySupStd = 20;
-%    orient(fig3,'landscape')
-%    cm = colormap(parula(N));
-%    subplot(1,2,1);
-%    for i=1:N
-%        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-%            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).stdTb,'Color',cm(i,:));
-%            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).TSys);
-%            ylabel('stdTb [K]')
-%            ylim([yInfstd,ySupStd])
-%        %end
-%        hold on
-%    end
-%    
-%    subplot(1,2,2);
-%    for i=1:N
-%        %if ~(calibratedSpectra(l(i)).outlierCalib == 1)
-%            plot(calibratedSpectra(l(i)).if,calibratedSpectra(l(i)).TN,'Color',cm(i,:));
-%            %plot(calibratedSpectra(l(i)).freq,calibratedSpectra(l(i)).TSys);
-%            ylabel('TN [K]')
-%            ylim([limTNPlot-1000,limTNPlot+1000])
-%        %end
-%        hold on
-%    end
-%    for i=1:2; subplot(1,2,i); grid on, xlabel('IF [MHz]'); end
-%    
-%    print(fig3,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-append','-fillpage')
-    
->>>>>>> test_miac_calibration
 catch ME
     warning(ME.identifier,'%s',['Plotting calibration problem: ' ME.message])
 end
