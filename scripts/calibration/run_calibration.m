@@ -95,7 +95,6 @@ logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
 
 if calibrationTool.doTippingCurve
     % Tipping Curve
-<<<<<<< HEAD
     TC = calibrationTool.run_tipping_curve(rawSpectra, logFile,...
         calibrationTool);
     if ~isempty(fieldnames(TC))
@@ -103,10 +102,6 @@ if calibrationTool.doTippingCurve
     else
         calibrationTool.doTippingCurve = false;
     end
-=======
-    disp('run tipping curve calibration')
-    logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
->>>>>>> test_miac_calibration
 end
 
 %%
