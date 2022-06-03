@@ -62,12 +62,7 @@ plt.rcParams.update({
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
 #load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-<<<<<<< HEAD
-load_dotenv('/opt/anaconda/.env.birg-arts24')
-
-=======
 load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
->>>>>>> origin/pyarts
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -130,11 +125,6 @@ spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
-<<<<<<< HEAD
-plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/'
-plotfolder = '/storage/tub/instruments/somora/level2/v1/'
-=======
->>>>>>> origin/pyarts
 
 ex = 'fascodunbiased_all'
 ex = '_fascod_fix_noise_3'
@@ -681,14 +671,6 @@ if plot_o3_ts:
             ) 
         o3_ds.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_ozone.nc')
     if save_residuals:
-<<<<<<< HEAD
-        residual  = ozone.y - ozone.yf
-
-        residual.rename('residuals')
-        residual.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
-        residual.time.encoding['calendar'] = 'proleptic_gregorian'
-        residual.to_netcdf(plotfolder+instrument_name+'_'+instrument.datestr+'_residuals.nc')
-=======
         # residual = ozone.get([
         #     'y',
         #     'yf','y_baseline',
@@ -699,7 +681,6 @@ if plot_o3_ts:
 
         residual.rename('residuals')
         residual.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'_residuals.nc')
->>>>>>> origin/pyarts
 
 if plot_o3_diff_waccm:
     # filename_waccm = '/storage/nas/MW/scratch/sauvageat/InputsRetrievals/waccm_o3_climatology.nc'
