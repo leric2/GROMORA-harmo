@@ -1,4 +1,4 @@
-function calibrationTool = import_default_calibrationTool(instrumentName,dateStr)
+function calibrationTool = import_default_calibrationTool(dateStr)
 %==========================================================================
 % NAME          | import_default_calibrationTool(instrumentName)
 % TYPE          | Function
@@ -28,22 +28,13 @@ calibrationTool.Year = str2double(dateStr(1:4));
 calibrationTool.Month = str2double(dateStr(6:7));
 calibrationTool.Day = str2double(dateStr(9:10));
 
-% Name of the instrument
-calibrationTool.instrumentName=instrumentName;
-
-% Valid properties for all instruments
-calibrationTool.binaryDataExtension = '.bin';
-calibrationTool.logFileDataExtension = '.txt';
-
-calibrationTool.bytesPerValue=4;
-calibrationTool.binaryType='ieee-be';
-
-calibrationTool.positionIndAsName = false;
-
+<<<<<<< HEAD
 % Conversion of datestr to datenum:
 calibrationTool.dateTime = datetime(dateStr,'InputFormat','yyyy_MM_dd');
 calibrationTool.timeNumber=datenum(dateStr,'yyyy_mm_dd');
+=======
 %calibrationTool.dateTime = datetime(dateStr,'InputFormat','yyyy_MM_dd');
+>>>>>>> test_miac_calibration
 
 % Name of the instrument
 calibrationTool.dateStr=dateStr;
@@ -57,10 +48,12 @@ calibrationTool.kb=1.38065e-23;         % [J/K]
 % Conversion between degree C and Kelvin.
 calibrationTool.zeroDegInKelvin = 273.15;
 
+<<<<<<< HEAD
 %calibrationTool.deltaTCorr = 10.4;
 
 % MW background radiation at TOA
 calibrationTool.backgroundMWTb = 2.736;
+=======
 calibrationTool.backgroundMWTb = 2.7;
 
 
@@ -127,7 +120,7 @@ switch instrumentName
         % Path definition (for local computer only)
         % calibrationTool.rawFileFolder=['/scratch/GROMOS_rawData/' dateStr(1:4) '/' dateStr(6:7) '/'];
         % taken on the IAP lake, To Be mounted beforehand
-        calibrationTool.rawFileFolder=['/mnt/lake/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
+        calibrationTool.rawFileFolder=['/mnt/instrumentdata/gromos/FFTS/' dateStr(1:4) '/'];
         %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/rawData/'];
         calibrationTool.extraFileFolder='/scratch/GROSOM/ExtraRawFiles/'; % no write permission on the IAP lake
         calibrationTool.level1Folder='/scratch/GROSOM/Level1/GROMOS/';
@@ -226,7 +219,7 @@ switch instrumentName
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Meteo Data
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        calibrationTool.meteoFolder='/mnt/lake/instrumentdata/meteo/exwi/meteo/';
+        calibrationTool.meteoFolder='/mnt/instrumentdata/meteo/exwi/meteo/';
         %calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/METEO_DATA/';
         
         % Read meteo data
@@ -867,17 +860,16 @@ switch instrumentName
         calibrationTool.extraFileFolder='/export/data/miawarac/ExtraRawFiles/'; % no write permission on the IAP lake
         
         %calibrationTool.rawFileFolder='/home/franziska/Documents/MW/play_MIA-C_calibration/';%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];
-        calibrationTool.rawFileFolder=['/mnt/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%AB
+        calibrationTool.rawFileFolder=['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%AB
         disp(calibrationTool.rawFileFolder)
         %calibrationTool.rawFileFolder=['/scratch/'];
-        calibrationTool.level1Folder = '/home/alistair/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';%'/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';
+        calibrationTool.level1Folder= '//home/alistair/export/data/miawarac/MIAC_calibration_GROSOM-harmo/'%'/export/data/miawarac/MIAC_calibration_GROSOM-harmo/';
         
         calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
         disp(calibrationTool.filename)
         calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
-        calibrationTool.extraName = '';
         
-        calibrationTool.meteoFolder=['/mnt/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';%AB
+        calibrationTool.meteoFolder=['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';%AB
         calibrationTool.observationFreq=22.235;
         
         calibrationTool.calibrationTime=60;
@@ -898,22 +890,20 @@ switch instrumentName
         calibrationTool.read_level0=@(calibrationTool, rawFileReading) read_level0_missing(calibrationTool, rawFileReading); 
         
         calibrationTool.filenameLevel1a=[calibrationTool.level1Folder 'MIAWARA-C_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
+        
         calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) run_balancing_calibration(rawSpectra,log,calibrationTool,calType);
         calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_miawara_c(log,calibrationTool,calibratedSpectra);
         
         % tipping curve
         calibrationTool.doTippingCurve = true;
-        calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_miawarac(rawSpectra, log, calibrationTool);
+        calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_generic(rawSpectra,log, calibrationTool);
         calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_miawarac(rawSpectra,log, calibrationTool);
-
-        %balencing calibration
-        calibrationTool.calibrationVersion = '1.0.0'
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %% From calibration GROSOM
     % Type of calibration to do: standard of debug
     calibrationType='standard';
-    
+
     % working directory
     root_dir = '/home/miawarac/GROSOM-harmo/';
     calibrationTool.root_dir = root_dir;
@@ -997,7 +987,7 @@ switch instrumentName
 %    calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_generic(log,calibrationTool,calibratedSpectra);
     
     % Function saving the calibrated spectra into netCDF file
-    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily_miawara_c(calibrationTool,log,calibratedSpectra,warningLevel0);
+    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
     
         
 end
@@ -1112,4 +1102,5 @@ switch instrumentName
         else
             calibrationTool.read_meteo_data = @(log) get_meteo_data_miac(log);
         end
+>>>>>>> test_miac_calibration
 end

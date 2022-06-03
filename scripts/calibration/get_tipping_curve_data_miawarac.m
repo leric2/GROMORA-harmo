@@ -1,18 +1,20 @@
 
 function TC_data = get_tipping_curve_data_miawarac(rawSpectra, logFile, calibrationTool)
 
+
 % idx hot
+
 idx_hot = find(logFile.Mirror_pos == 1);
+
 
 % the tipping curve is calculated for the average of a certain frequency
 % range
-disp('calibrationTool location')
-disp(calibrationTool.channel_freqs)
 
 f = load(calibrationTool.channel_freqs);
 N        = calibrationTool.numberOfChannels;
 freq     = interp1(f(:,1)',f(:,2)',1:N/2);
 idx_freq = find (freq > 22.135e9 & freq < 22.335e9);
+
 
 % cycle through hot measurements, the hot measurement is always the first
 % measurement
