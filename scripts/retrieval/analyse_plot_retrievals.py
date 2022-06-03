@@ -62,25 +62,25 @@ plt.rcParams.update({
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
 #load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
+load_dotenv('/opt/arts/.env.stockhorn-arts24')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # from apriori_data_GROSOM import read_add_geopotential_altitude
 # if __name__ == "__main__":
 
-instrument_name = "SOMORA"
+instrument_name = "GROMOS"
 
 # date = pd.date_range(start='2019-01-03', end='2019-01-05')
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
 # date = pd.date_range(start='2019-01-30', end='219-06-18')
-date = pd.date_range(start='2019-01-01', end='2019-12-31')
+#date = pd.date_range(start='2022-05-25', end='2022-05-29')
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-#date = [datetime.date(2019,3,11), datetime.date(2019,4,3)]
+date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
 
 int_time = 1
 
@@ -93,7 +93,7 @@ plot_o3_ts = False
 save_o3= False
 save_o3_only = False
 save_residuals=False
-plot_selected = False
+plot_selected = True
 plot_selected_nicer = False
 plot_fshift = False
 save_fshift = False
@@ -104,7 +104,7 @@ compare = False
 plot_polyfit = False
 plot_sinefit = False
 plot_MLS = False
-add_L2_flags = True
+add_L2_flags = False
 
 add_opacity=False
 
@@ -148,7 +148,7 @@ new_L2 = True
 
 if new_L2:
     plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-    plotfolder = '/storage/tub/instruments/somora/level2/v2/'
+    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
     cont_name = 'h2o_continuum_x' 
 else:
     cont_name = 'h2o_pwr98_x'
@@ -213,7 +213,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/oper/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(
@@ -858,7 +858,7 @@ if plot_selected:
             level2_dataset,
             outname,
             spectro='AC240',
-            cycles=[1,14,18],
+            cycles=[0,8,16],
             altitude = False,
             add_baselines = True, 
             to_ppm = 1e6  

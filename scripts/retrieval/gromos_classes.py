@@ -161,6 +161,8 @@ class GROMOS_LvL2(DataRetrieval):
             baseline_periods = np.array([155e6, 240e6, 360e6])
         elif (retrieval_param['date'] >= datetime.date(2019,3,15)) & (retrieval_param['date'] < datetime.date(2022,2,16)):
             baseline_periods = np.array([135e6, 178e6, 240e6])
+        elif retrieval_param['date'] > datetime.date(2022,2,16):
+            baseline_periods = np.array([135e6, 178e6, 240e6])
         else:
             baseline_periods = np.array([])
             

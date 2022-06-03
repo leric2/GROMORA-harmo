@@ -40,7 +40,7 @@ import gc
 from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
-load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
+load_dotenv('/opt/arts/.env.stockhorn-arts24')
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
@@ -50,10 +50,10 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
 
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
-SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/v2/'
+SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
 
 def retrieve_day(date, instrument_name, integration_strategy='classic', int_time = 1):
     '''
@@ -136,7 +136,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
 
     # Retrievel only the integration cycles with sufficient number of calibrated spectra.
     cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
-
+    #cycles = [0,1,2]
     if len(cycles) ==0:
         return 0   
 
@@ -220,8 +220,8 @@ if __name__ == "__main__":
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    dates = pd.date_range(start='2019-10-10', end='2019-12-31')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
-    
+    #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
+    dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
@@ -230,11 +230,11 @@ if __name__ == "__main__":
         if d in void_date_problem :
             print('abort core problem with this day : ',d ,' --> skipping')
         else:
-            try:
-                retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
-            except:
-                pass
-            print('######################################################################################')
+            # try:
+            #     retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
+            # except:
+            #    pass
+            # print('######################################################################################')
             print('######################################################################################')
             try:
                 retrieve_day(d, instrument_name='GROMOS',  integration_strategy=integration_strategy)

@@ -259,13 +259,10 @@ end
 %%%%%%%%%%%%%%%%%
 % Calibration variables
 ncwrite(filename,'/spectrometer1/Tb',vertcat(calibratedSpectra.Tb)');
+%ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 if calibrationTool.savePlanckIntensity
     %ncwrite(filename,'/spectrometer1/intensity_planck',vertcat(calibratedSpectra.intensityPlanck)');
-end  
-ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
-ncwrite(filename,'/spectrometer1/mean_std_Tb',[calibratedSpectra.meanStdTb]);
-ncwrite(filename,'/spectrometer1/meanTb',[calibratedSpectra.meanTb]);
-%ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
+end
 if isfield(calibratedSpectra,'stdTb')
     ncwrite(filename,'/spectrometer1/stdTb',vertcat(calibratedSpectra.stdTb)');
 else

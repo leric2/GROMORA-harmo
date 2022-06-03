@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from pytz import timezone
 
-
 from retrievals import arts
 from retrievals.data.ecmwf import ECMWFLocationFileStore
 from retrievals.data.ecmwf import levels
