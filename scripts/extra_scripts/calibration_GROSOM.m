@@ -4,14 +4,10 @@
 % AUTHOR(S) | Eric Sauvageat
 % CREATION  | 01.2020
 %           |
-% ABSTRACT  | Maingenerate a calibrationTool structure containing every
-%           | information
-% 
-% 
-% 
-% script for launching the calibration of MW
+% ABSTRACT  | Main script for launching the calibration of MW
 %           | radiometer data. The whole point of this script is to
-%           |  needed for the calibration before running it
+%           | generate a calibrationTool structure containing every
+%           | information needed for the calibration before running it
 %           | sequentially. Most of the parameters as imported as
 %           | default in the function import_default_calibrationTool()
 %           | and the remaining parameters can be defined or modified
@@ -48,7 +44,7 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates= datenum('2019_05_02','yyyy_mm_dd'):datenum('2019_06_01','yyyy_mm_dd');
+dates=datenum('2019_01_02','yyyy_mm_dd'):datenum('2019_02_01','yyyy_mm_dd');
 % dates=[datenum('2019_11_01','yyyy_mm_dd'):datenum('2019_11_01','yyyy_mm_dd'),...
 %     datenum('2009_10_01','yyyy_mm_dd'):datenum('2009_10_21','yyyy_mm_dd'),...
 %     datenum('2010_04_01','yyyy_mm_dd'):datenum('2010_04_21','yyyy_mm_dd'),...
@@ -181,6 +177,7 @@ for d = 1 :numel(dates)
     % Not possible before if we want to include the calibrationTime for
     % instance.
     % calibrationTool = create_filenames(calibrationTool);
+    
     
     calibrationTool = run_calibration(calibrationTool);
     
