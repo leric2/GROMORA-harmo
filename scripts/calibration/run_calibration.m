@@ -43,7 +43,7 @@ assert(ischar(calibrationTool.dateStr),'Please enter the date in the right forma
 
 % Check here that all required fields are filled in calibrationTool ?
 % calibrationTool_complete(calibrationTool)
-
+disp([calibrationTool.file calibrationTool.binaryDataExtension])
 % Check if both bin and log file exist (does not check their content yet)
 assert(exist([calibrationTool.file calibrationTool.logFileDataExtension],'file') ...
     && exist([calibrationTool.file calibrationTool.binaryDataExtension],'file'),'Raw files not found !')
@@ -102,6 +102,8 @@ if calibrationTool.doTippingCurve
     else
         calibrationTool.doTippingCurve = false;
     end
+    disp('run tipping curve calibration')
+    logFile.TC = calibrationTool.run_tipping_curve(rawSpectra, logFile, calibrationTool);
 end
 
 %%
@@ -122,8 +124,15 @@ disp('Calibrating...')
 % Quality check of the calibrated spectra
 % Also computing some additional metadata from the log file and storing
 % everything in calibrated spectra
-[calibratedSpectra, logFile] = calibrationTool.check_calibrated(logFile, ...
+
+if strcmp(calibrationTool.instrumentName, 'MIAWARA-C')%AB
+    calibratedSpectra= calibrationTool.check_calibrated(logFile, ...
     calibrationTool, calibratedSpectra);
+else    
+    [calibratedSpectra, logFile] = calibrationTool.check_calibrated(logFile, ...
+    calibrationTool, calibratedSpectra);
+
+end
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,11 +149,15 @@ if calibrationTool.calibratedSpectraPlot
 end
 
 % Saving calibrated spectra (level 1a) into NetCDF-4 file
-if calibrationTool.saveLevel1a
-    disp('Saving Level 1a...')
-    calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
-        calibratedSpectra, warningLevel0);
-end
+%CANNOT FIND THE SAVELEVEL1A BOOLEAN ANYWHERE - SEEMS LIKE AN ERROR
+%if calibrationTool.saveLevel1a
+%    disp('Saving Level 1a...')
+ %   calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
+ %      calibratedSpectra, warningLevel0);
+%end
+
+disp('Saving Level 1a...')
+calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,calibratedSpectra,warningLevel0);
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)
