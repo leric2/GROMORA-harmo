@@ -23,13 +23,12 @@ import GROSOM_library
 
 from retrievals import arts
 from retrievals import covmat
-from retrievals import utils
 
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from retrievals.data import p_interpolate
 
-from typhon.arts.workspace import arts_agenda
-#from pyarts.workspace import arts_agenda
+#from typhon.arts.workspace import arts_agenda
+from pyarts.workspace import arts_agenda
 
 
 def make_f_grid(retrieval_param): 
@@ -710,23 +709,38 @@ def inversion_iterate_agenda(ws):
     ws.Ignore(ws.inversion_iteration_counter)
 
     ws.xClip(ijq=0, limit_low=0.00000000001, limit_high=0.00002)
+
     # Map x to ARTS' variables
     ws.x2artsAtmAndSurf()
     ws.x2artsSensor()
 
     # To be safe, rerun some checks
-    ws.atmfields_checkedCalc(negative_vmr_ok=True, bad_partition_functions_ok=True)
+    #ws.atmfields_checkedCalc(negative_vmr_ok=True, bad_partition_functions_ok=True)
+    ws.atmfields_checkedCalc(negative_vmr_ok=True)
     ws.atmgeom_checkedCalc()
 
     # Calculate yf and Jacobian matching x
-    ws.yCalc(y=ws.yf)
+    ws.yCalc() #(y=ws.yf)
 
     # Add baseline term
-    ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
+    ws.VectorAddElementwise(ws.yf, ws.y, ws.y_baseline)
 
     # This method takes cares of some "fixes" that are needed to get the Jacobian
     # right for iterative solutions. No need to call this WSM for linear inversions.
+    
     ws.jacobianAdjustAndTransform()
+    #ws.jacobianAdjustAfterIteration()
+
+    # >>> @arts_agenda
+    # >>> def inversion_iterate_agenda(ws):
+    # >>>     ws.x2artsStandard()
+    # >>>     ws.atmfields_checkedCalc()
+    # >>>     ws.atmgeom_checkedCalc()
+    # >>>     ws.yCalc()
+    # >>>     ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
+    # >>>     ws.jacobianAdjustAfterIteration()
+    # >>>
+    # >>> ws.Copy(ws.inversion_iterate_agenda, inversion_iterate_agenda)
 
 def retrieve_daily(instrument, spectro_dataset, retrieval_param):
     '''
@@ -1010,7 +1024,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
 
         ac.set_y([ds_y])
         # doing the checks
-        ac.checked_calc(negative_vmr_ok=False, bad_partition_functions_ok=False)
+        ac.checked_calc(negative_vmr_ok=False)
 
         good_channels = spectro_dataset.good_channels[cycle].data == 1
 
@@ -1042,9 +1056,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         # Run retrieval (parameter taken from MOPI)
         # SOMORA is using 'lm': Levenberg-Marquardt (LM) method
 
-   #     ac.checked_calc(bad_partition_functions_ok=True)
-
-        ac.checked_calc(bad_partition_functions_ok=True)
+        ac.checked_calc()
         ac.oem(
             method='gn',
             max_iter=10,

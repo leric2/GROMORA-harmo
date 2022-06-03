@@ -45,9 +45,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import GROSOM_library
 import retrieval_module
-import mopi5_retrievals
-
-from retrievals import data
+#import mopi5_retrievals
 
 #%%
 

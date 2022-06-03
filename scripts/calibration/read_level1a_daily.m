@@ -23,10 +23,15 @@ function [calibratedSpectra, meteoData, calibrationTool] = read_level1a_daily(ca
 %               | this is not as elegant).
 %               |
 %==========================================================================
-
 % filename:
-filename=calibrationTool.filenameLevel1a;
+    if ~isfield(calibrationTool, 'filenameLevel1a')
+        calibrationTool.filenameLevel1a=[calibrationTool.level1Folder calibrationTool.instrumentName '_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr calibrationTool.extraName '.nc'];
+    end
+if ~exist(calibrationTool.filenameLevel1a,'file')
+    error('No calibration data found for this day')
+end
 
+filename=calibrationTool.filenameLevel1a;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read the different dataset and variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,7 +40,7 @@ correctedSpectra.meanTime = ncread(filename,'/spectrometer1/time')';
 correctedSpectra.timeUnit = ncreadatt(filename,'/spectrometer1/time','units');
 correctedSpectra.timeCalendar= ncreadatt(filename,'/spectrometer1/time','calendar');
 
-correctedSpectra.meanDateTime = datetime(correctedSpectra.meanTime+calibrationTool.referenceTime,'ConvertFrom','datenum');
+correctedSpectra.meanDateTime = datetime(correctedSpectra.meanTime+calibrationTool.referenceTime,'ConvertFrom','datenum', 'TimeZone',calibrationTool.timeZone);
 
 correctedSpectra.channelID = ncread(filename,'/spectrometer1/channel_idx')';
 
@@ -121,7 +126,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading the meteo variables
 meteoData.dateNum = ncread(filename,'/meteo/time')';
-meteoData.dateTime = datetime(meteoData.dateNum + calibrationTool.referenceTime,'ConvertFrom','datenum');
+meteoData.dateTime = datetime(meteoData.dateNum + calibrationTool.referenceTime,'ConvertFrom','datenum','TimeZone',calibrationTool.timeZone);
 meteoData.air_pressure = ncread(filename,'/meteo/air_pressure')';
 meteoData.air_temperature = ncread(filename,'/meteo/air_temperature')';
 meteoData.relative_humidity = ncread(filename,'/meteo/relative_humidity')';
