@@ -85,6 +85,8 @@ for i = 1:size(calibratedSpectra,2)
     
     %TSysCenter2=(calibratedSpectra(i).THot-mean(Ycenter)*retrievalTool.TCold)./(mean(Ycenter)-1);
     
+    % This is the one plotted in red and the one use for flagging bad
+    % Tnoise
     calibratedSpectra(i).TNoise=nanmean(TNoiseCenter);
     
     %%%%%%%%%%% Flag 2 %%%%%%%%%%%
@@ -282,6 +284,11 @@ for i = 1:size(calibratedSpectra,2)
        % check if there was a tc done during this cycle (only mean
        % datetime)
        if sum(isTC) > 0
+           if sum(isTC) > 1
+              ind2keep = find(isTC==1, 1, 'first');
+              isTC(find(isTC==1)) = 0;
+              isTC(ind2keep) = 1;
+           end
            logFile.TC(isTC).coldSpectra = calibratedSpectra(i).meanColdSpectra(logFile.TC(isTC).channels);
            logFile.TC(isTC).coldCalib = nanmean(logFile.TC(isTC).coldSpectra);
            logFile.TC(isTC).hotSpectra = calibratedSpectra(i).meanHotSpectra(logFile.TC(isTC).channels);

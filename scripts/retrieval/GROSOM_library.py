@@ -535,7 +535,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     yf = ac.yf[0]
     r = y - yf
     r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
-    
+    bl = ac.ws.y_baseline.value 
 
     # Modelling error:
     e_mod = np.matmul(ozone_ret.ws.dxdy.value, r)[0:len(ozone_ret.p_grid)]
@@ -557,6 +557,7 @@ def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
 
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
     axs[1].plot((f_backend- retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
+    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, bl, label="baseline")
     axs[1].set_ylim(np.median(r)-2.5, np.median(r+2.5))
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
@@ -1142,21 +1143,21 @@ def plot_O3_all(level2_data, outName, spectro, cycles=None):
         error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
         error_frac = error/o3
         o3_good = o3.where(mr>0.8).data
-        #axs[0].plot(o3_good*1e6, o3_z/1e3, '--', linewidth=1, color='tab:blue')
-        axs[0].plot(o3*1e6, o3_z/1e3,'-x', linewidth=1, label='retrieved',color='blue')
-        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '-', linewidth=0.8, label='apriori',color='r')
+        #axs[0].plot(o3_good*1e6, o3_p/100, '--', linewidth=1, color='tab:blue')
+        axs[0].plot(o3*1e6, o3_p/100,'-x', linewidth=1, label='retrieved',color='blue')
+        axs[0].plot(o3_apriori*1e6, o3_p/100, '-', linewidth=0.8, label='apriori',color='r')
         axs[0].set_title('$O_3$ VMR')
         axs[0].set_xlim(-0.5,11)
-        axs[0].set_ylim(min(o3_z/1e3),max(o3_z/1e3))
+        axs[0].set_ylim(min(o3_p/100),max(o3_p/100))
         axs[0].set_xlabel('$O_3$ VMR [ppm]')
         axs[0].yaxis.set_major_locator(MultipleLocator(10))
         axs[0].yaxis.set_minor_locator(MultipleLocator(5))
         axs[0].xaxis.set_major_locator(MultipleLocator(5))
         axs[0].xaxis.set_minor_locator(MultipleLocator(1))
         axs[0].grid(which='both',  axis='x', linewidth=0.5)
-        axs[0].set_ylabel('Altitude [km]')
+        axs[0].set_ylabel('Pressure [hPa]')
         axs[0].legend()
-        axs[1].plot(mr/4, o3_z/1e3,color='k', label='MR/4')
+        axs[1].plot(mr/4, o3_p/100,color='k', label='MR/4')
         counter=0
         for avk in level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_avkm:
             if 0.8 <= np.sum(avk) <= 1.2:
@@ -1245,7 +1246,7 @@ def plot_O3_sel_nicer(level2_data, outName, spectro, cycles=None):
         axs[0].legend(fontsize=fs)
         axs[1].plot((f_backend - F0) / 1e6, r, color='silver', label="residuals", alpha=1)
         axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
-        #axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
+        axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
         
         axs[1].set_ylim(-4, 4)
         axs[1].legend(fontsize=fs)
@@ -1274,21 +1275,23 @@ def plot_O3_sel_nicer(level2_data, outName, spectro, cycles=None):
         error = np.sqrt(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo**2 +  level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es**2)
         error_frac = error/o3
         o3_good = o3.where(mr>0.8).data
-        axs[0].fill_betweenx(o3_z/1e3, (o3-error)*1e6,(o3+error)*1e6, color=col, alpha=0.5)
-        axs[0].plot(o3*1e6, o3_z/1e3,'-', linewidth=1.5, label='retrieved',color=col)
-        axs[0].plot(o3_apriori*1e6, o3_z/1e3, '--', linewidth=1.5, label='apriori',color='k')
+        axs[0].fill_betweenx(o3_p/100, (o3-error)*1e6,(o3+error)*1e6, color=col, alpha=0.5)
+        axs[0].plot(o3*1e6, o3_p/100,'-', linewidth=1.5, label='retrieved',color=col)
+        axs[0].plot(o3_apriori*1e6, o3_p/100, '--', linewidth=1.5, label='apriori',color='k')
         #axs[0].set_title('O$_3$ VMR')
         axs[0].set_xlim(-0.5,9)
-        axs[0].set_ylim(5,85)
+        axs[0].set_yscale('log')
+        axs[0].invert_yaxis()
+        axs[0].set_ylim(500,0.005)
         axs[0].set_xlabel('O$_3$ VMR [ppmv]', fontsize=fs)
-        axs[0].yaxis.set_major_locator(MultipleLocator(10))
-        axs[0].yaxis.set_minor_locator(MultipleLocator(5))
+        # axs[0].yaxis.set_major_locator(MultipleLocator(10))
+        # axs[0].yaxis.set_minor_locator(MultipleLocator(5))
         axs[0].xaxis.set_major_locator(MultipleLocator(4))
         axs[0].xaxis.set_minor_locator(MultipleLocator(1))
         axs[0].grid(which='both',  axis='x', linewidth=0.5)
-        axs[0].set_ylabel('Altitude [km]', fontsize=fs)
+        axs[0].set_ylabel('Pressure [hPa]', fontsize=fs)
         axs[0].legend(fontsize=fs)
-        axs[1].plot(mr/4, o3_z/1e3,color='k', label='MR/4')
+        axs[1].plot(mr/4, o3_p/100,color='k', label='MR/4')
 
         counter=0
         color_count = 0
@@ -1296,13 +1299,13 @@ def plot_O3_sel_nicer(level2_data, outName, spectro, cycles=None):
             if 0.6 <= np.sum(avk) <= 1.4:
                 counter=counter+1
                 if np.mod(counter,8)==0:
-                    axs[1].plot(avk, o3_z / 1e3, color=cmap(color_count*0.25+0.01))#label='z = '+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km'
+                    axs[1].plot(avk, o3_p/100, color=cmap(color_count*0.25+0.01))#label='z = '+f'{o3_z.sel(o3_p=avk.o3_p).values/1e3:.0f}'+' km'
                     color_count = color_count +1
                 else:
                     if counter==1:
-                        axs[1].plot(avk, o3_z / 1e3, color='silver', label='AVKs')
+                        axs[1].plot(avk, o3_p/100, color='silver', label='AVKs')
                     else:
-                        axs[1].plot(avk, o3_z / 1e3, color='silver')
+                        axs[1].plot(avk, o3_p/100, color='silver')
 
         
         # counter=0
@@ -1322,8 +1325,8 @@ def plot_O3_sel_nicer(level2_data, outName, spectro, cycles=None):
         axs[1].grid(which='both',  axis='x', linewidth=0.5)
         
 
-        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_z / 1e3, '-', color='k', label="smoothing error")
-        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_z / 1e3, '--' ,color='k', label="measurement error")
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_es * 1e6, o3_p/100, '-', color='k', label="smoothing error")
+        axs[2].plot(level2_data[spectro].isel(time=i, o3_lat=0, o3_lon=0).o3_eo * 1e6, o3_p/100, '--' ,color='k', label="measurement error")
         axs[2].set_xlabel("Errors [ppmv]", fontsize=fs)
         axs[2].set_ylabel("", fontsize=fs)
         axs[2].set_xlim(-0.08,1)
@@ -1332,8 +1335,8 @@ def plot_O3_sel_nicer(level2_data, outName, spectro, cycles=None):
         axs[2].legend(loc=1, fontsize=fs-2)
         axs[2].grid(axis='x', linewidth=0.5)
 
-        axs[3].plot(fwhm/1e3, o3_z/1e3, color='k', label='FWHM')
-        axs[3].plot(offset/1e3, o3_z/1e3, '--', color='k', label='AVKs offset')
+        axs[3].plot(fwhm/1e3, o3_p/100, color='k', label='FWHM')
+        axs[3].plot(offset/1e3, o3_p/100, '--', color='k', label='AVKs offset')
         axs[3].set_xlim(-15,20)
         axs[3].set_xlabel("Resolution and offset [km]", fontsize=fs)
         axs[3].set_ylabel("", fontsize=fs)

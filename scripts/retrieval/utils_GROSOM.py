@@ -54,3 +54,11 @@ def var_allan(y, axis=0):
     """
     var = np.mean(np.square(np.diff(y, axis=axis)), axis=axis) / 2
     return var
+
+
+def sideband_response_theory(RF, delta_z, polarisation_change=True):
+    if polarisation_change:
+        return np.sin(np.pi*delta_z*RF/3e8)**2
+    else:
+        return np.cos(np.pi*delta_z*RF/3e8)**2
+

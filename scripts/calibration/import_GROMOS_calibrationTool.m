@@ -329,14 +329,11 @@ elseif (calibrationTool.timeNumber > datenum(2010,03,16)) && (calibrationTool.ti
     calibrationTool.TNoiseCenterTh = 2550;
     calibrationTool.stdTNoiseThresh = 15;
 elseif (calibrationTool.timeNumber > datenum(2021,12,16)) && (calibrationTool.timeNumber <= datenum(2022,01,20))
-    % Change in TNoise at that date
     calibrationTool.TNoiseCenterTh = 3600;
     calibrationTool.stdTNoiseThresh = 15;
-elseif (calibrationTool.timeNumber > datenum(2022,01,20))
-    % Change in TNoise at that date
+elseif calibrationTool.timeNumber > datenum(2022,01,21)
     calibrationTool.TNoiseCenterTh = 3150;
     calibrationTool.stdTNoiseThresh = 15;
-
 end
 
 if calibrationTool.timeNumber <= datenum(2010,08,18)
@@ -392,6 +389,11 @@ end
 
 if (calibrationTool.timeNumber>= datenum(2010,01,01) && calibrationTool.timeNumber<datenum(2012,04,26))
     calibrationTool.indiceTC = 1;
+end
+
+% Bad channels
+if calibrationTool.timeNumber>= datenum(2022,02,17)
+    calibrationTool.badChannels=[122821 2282 12283 12284 12285 12286 12287 12288 12288 16384 16385];
 end
 
 end

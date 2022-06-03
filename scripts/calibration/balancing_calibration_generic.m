@@ -102,7 +102,7 @@ for j = 1:length(logFile.TC) % loop over polarisations
         post.time = logFile.time(1)+1;
         post.tau  = logFile.TC(j).tau(end);
         post.Teff = logFile.TC(j).Teff(end);
-        check Tdiff ?? min?
+        %check Tdiff ?? min?
     end
     
     
