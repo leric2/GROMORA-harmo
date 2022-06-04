@@ -44,8 +44,8 @@ from dotenv import load_dotenv
 from utils_GROSOM import save_single_pdf
 
 # For ARTS, we need to specify some paths
-#load_dotenv('/opt/anaconda/.env.birg-arts24')
-load_dotenv('/opt/arts/.env.stockhorn-arts24')
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/arts/.env.stockhorn-arts24')
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
