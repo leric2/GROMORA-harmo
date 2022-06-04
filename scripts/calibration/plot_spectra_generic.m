@@ -230,10 +230,8 @@ try
             hold on
         end
         for i=3:4; subplot(2,2,i); grid on, xlabel('IF [MHz]'); end
-
         %print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpsc','-painters','-append','-fillpage')
         print(fig2,[calibrationTool.level1Folder calibrationTool.instrumentName '_calibratedSpectra_spectral_' calibrationTool.spectrometer '_' calibrationTool.dateStr],'-dpdf','-fillpage')
-
     end
 catch ME
     warning(ME.identifier,'%s',['Plotting calibration problem: ' ME.message])
