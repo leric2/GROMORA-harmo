@@ -21,8 +21,8 @@ Example:
 import sys
 
 # Adding the paths to pyretrievals and retrieval folder
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/pyretrievals/')
 
 import datetime
 import os
@@ -50,7 +50,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
 
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
@@ -221,7 +221,7 @@ if __name__ == "__main__":
 
     # Date range on which to perform the retrievals
     #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
-    dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
+    dates = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')

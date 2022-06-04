@@ -28,8 +28,8 @@ Todo: all
 
 import sys
 
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/retrieval/')
+sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/pyretrievals/')
 
 import datetime
 import os
@@ -51,6 +51,9 @@ from xarray.backends import file_manager
 import GROSOM_library
 # import mopi5_library
 from utils_GROSOM import save_single_pdf
+
+import matplotlib
+matplotlib.use('pdf')
 
 #from cmcrameri import cm
 plt.rcParams.update({
@@ -80,7 +83,7 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
+date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
 
 int_time = 1
 
