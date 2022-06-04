@@ -31,7 +31,7 @@
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
-instrumentName='SOMORA';
+instrumentName='GROMOS';
 
 % Type of calibration to do: standard or debug
 calibrationType='standard';
@@ -45,7 +45,7 @@ readLabviewLog = true;
 
 % Define the dates for the calibration:
 %dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
-dates=datenum(daysadd(datetime('now'),-3)) : datenum(daysadd(datetime('now'),-3));
+dates=datenum(daysadd(datetime('now'),-4)) : datenum(daysadd(datetime('now'),-4));
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
