@@ -18,14 +18,14 @@ Example:
     Then, the user needs to go within the retrievals folder and the script can be launched with:
         $ python retrieve_all.py
 """
-import sys
+import sys, os
 
 # Adding the paths to pyretrievals and retrieval folder
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
-
+# sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
+# sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
 import datetime
-import os
 import time
 from abc import ABC
 

@@ -24,13 +24,12 @@ Attributes:
 Todo: all
 
 """
-import sys
+import sys, os
 
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
 
 import datetime
-import os
 import time
 from abc import ABC
 

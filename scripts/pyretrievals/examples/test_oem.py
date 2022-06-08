@@ -2,6 +2,8 @@
 This is very close to the "controlfiles/artscomponents/TestOEM.arts" cfile shipped with arts.
 Plus some plots to show the retrieval results.
 """
+import sys
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
 import warnings
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
 import os
@@ -12,9 +14,15 @@ from dotenv import load_dotenv
 from retrievals import arts
 from retrievals import covmat
 
-load_dotenv('./.env')
-ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
+from pyarts.workspace import arts_agenda
 
+# For ARTS, we need to specify some paths
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/arts/.env.stockhorn-arts24')
+
+ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
+ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
+ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 def make_f_grid():
     n_f = 601  # Number of points
@@ -24,6 +32,31 @@ def make_f_grid():
     f_grid = f_grid * bw / (max(f_grid) - min(f_grid))
     return f_grid
 
+@arts_agenda
+def gromora_inversion_agenda(ws):
+    """Custom inversion iterate agenda to ignore bad partition functions."""
+    ws.Ignore(ws.inversion_iteration_counter)
+
+    ws.xClip(ijq=0, limit_low=0.00000000001, limit_high=0.00002)
+
+    # Map x to ARTS' variables
+    ws.x2artsAtmAndSurf()
+    ws.x2artsSensor()
+
+    # To be safe, rerun some checkss
+    ws.atmfields_checkedCalc(negative_vmr_ok=True)
+    ws.atmgeom_checkedCalc()
+
+    # Calculate yf and Jacobian matching x
+    ws.yCalc() #()ws.yf
+
+    # Add baseline term
+    #ws.VectorAddElementwise(ws.yf, ws.y, ws.y_baseline)
+    ws.VectorAddVector(ws.yf, ws.y, ws.y_baseline)
+
+    # This method takes cares of some "fixes" that are needed to get the Jacobian
+    # right for iterative solutions. No need to call this WSM for linear inversions.
+    ws.jacobianAdjustAndTransform()
 
 def main(show_plots=False, save_plots=False, save_netcdf=False):
     f0 = 110.836e+9
@@ -37,8 +70,14 @@ def main(show_plots=False, save_plots=False, save_netcdf=False):
     ac.set_grids(f_grid, p_grid)
 
     # Spectroscopy
-    ac.set_spectroscopy_from_file('testdata/ozone_line.xml', ['O3'],
-                                  'Arts', ('Voigt_Kuntz6', 'VVH', 750e9))
+    ac.set_spectroscopy_from_file(
+            abs_lines_file='spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz',
+            abs_species=['O3'],
+            format='Arts',
+            line_shape=["VVH", 750e9],
+        )
+    # ac.set_spectroscopy_from_file('spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz', ['O3'],
+    #                               'Arts', ('Voigt_Kuntz6', 'VVH', 750e9))
 
     # Atmosphere (a priori)
     clim_prefix = os.path.join(ARTS_DATA_PATH, 'planets/Earth/Fascod/tropical/tropical.')
@@ -91,7 +130,7 @@ def main(show_plots=False, save_plots=False, save_netcdf=False):
     ac.set_sensor(arts.SensorGaussian(f_backend + f_shift, np.array([f_resolution])))
 
     # Run retrieval
-    ac.oem(method='gn', max_iter=10, stop_dx=0.1)
+    ac.oem(method='gn', max_iter=10, stop_dx=0.1, inversion_iterate_agenda=gromora_inversion_agenda)
 
     if not ac.oem_converged:
         return False
@@ -154,9 +193,9 @@ def main(show_plots=False, save_plots=False, save_netcdf=False):
 
 def test_oem():
     """ Run this example as test """
-    assert main(show_plots=False, save_plots=False, save_netcdf=False)
+    assert main(show_plots=True, save_plots=False, save_netcdf=False)
 
 
 if __name__ == '__main__':
-    main(show_plots=False, save_plots=True, save_netcdf=True)
+    main(show_plots=True, save_plots=False, save_netcdf=False)
 
