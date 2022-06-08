@@ -2,23 +2,21 @@
 This is very close to the "controlfiles/artscomponents/TestOEM.arts" cfile shipped with arts.
 Plus some plots to show the retrieval results.
 """
-import sys
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+import sys, os
+sys.path.append(os.path.dirname(sys.path[0]))
 import warnings
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
-
-from retrievals import arts
-from retrievals import covmat
 
 from pyarts.workspace import arts_agenda
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
+from retrievals import arts
+from retrievals import covmat
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
