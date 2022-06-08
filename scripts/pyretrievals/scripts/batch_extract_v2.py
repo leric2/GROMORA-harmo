@@ -4,11 +4,15 @@ Batch procesing for extracting ECMWF data
 
 """
 import os
+import sys
+
+sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+
 #from retrievals.data.ecmwf import grib as ecmwf_grib
 from retrievals.data.ecmwf import levels as ecmwf_levels
 from glob import glob
 import xarray as xr
-from docopt import docopt
+#from docopt import docopt
 import json
 import logging
 #import pygrib
@@ -20,9 +24,9 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 
 if __name__ == '__main__':
-    dateRange = pd.date_range(start='2021-01-01', end='2021-11-25')
-    output = '/storage/tub/instruments/gromos/ECMWF_Bern/ecmwf_oper_v2_'
-    loc_file = '/home/esauvageat/Documents/ECMWF/locations_GROSOM.json'
+    dateRange = pd.date_range(start='2022-06-05', end='2022-06-05')
+    output = '/storage/tub/atmosphere/ecmwf/locations/'
+    loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations.json'
 
     if dateRange[0]> datetime(2013,6,24):
         number_of_ECMWF_levels=137

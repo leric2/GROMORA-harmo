@@ -17,7 +17,7 @@ import os
 from retrievals.data.ecmwf import levels as ecmwf_levels
 from glob import glob
 import xarray as xr
-from docopt import docopt
+#from docopt import docopt
 import json
 import logging
 #import pygrib
@@ -243,9 +243,8 @@ def extract_from_nc(nc_files, locations, output_prefix, levels_n=137):
 
             ds = xr.Dataset(data_vars, coords, attrs=attrs)
             ds['time'].encoding['units'] = 'seconds since 1970-01-01 00:00:00'
-
             day_str = pd.Timestamp(ds['time'].values[0]).strftime('%Y%m%d')
-            out_fn = output_prefix + loc_name + '_' + day_str + '.nc'
+            out_fn = output_prefix + loc_name + '/ecmwf_oper_v2_' + loc_name + '_' + day_str + '.nc'
             logging.info('Write ' + out_fn)
             ds.to_netcdf(out_fn, unlimited_dims=['time',])
 
