@@ -39,7 +39,7 @@ from xarray.core import dataarray
 from base_classes import Integration# , DataRetrieval
 
 from gromora_retrievals import DataRetrieval
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 
 def return_bad_channels_gromos(date):
     '''
@@ -108,7 +108,7 @@ class IntegrationGROMOS(Integration):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class WIRAC_LvL2(DataRetrieval):
     '''

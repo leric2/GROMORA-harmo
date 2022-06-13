@@ -42,11 +42,9 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
                                MultipleLocator)
 from xarray.backends import file_manager
 
-import GROSOM_library
-import mopi5_library
-from utils_GROSOM import save_single_pdf
+import retrieval.GROMORA_library as GROMORA_library
+from retrieval.utils_GROMORA import save_single_pdf
 
-#from cmcrameri import cm
 plt.rcParams.update({
     "text.usetex": False,
     "font.family": "serif",

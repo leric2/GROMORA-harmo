@@ -22,7 +22,7 @@ import xarray as xr
 import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 
 from dotenv import load_dotenv
 
@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 import datetime
 
 import apriori_data_GROSOM
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 from GROMORA_time import get_LST_from_GROMORA
 
 from matplotlib.ticker import (MultipleLocator, FuncFormatter, AutoMinorLocator, FormatStrFormatter)
@@ -51,15 +51,17 @@ from retrievals.data import p_interpolate
 
 from pyarts.workspace import arts_agenda
 
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 import retrieval_module
 #import mopi5_retrievals
 
-from utils_GROSOM import sideband_response_theory
+from utils_GROMORA import sideband_response_theory
 
 class DataRetrieval(ABC):
     '''
     The __init__ function is basically implementing a new class and is automatically called at each new retrieval.
+
+    It initiates automatically the filenames of the level 1a and 1b.
     
     
     '''
@@ -161,11 +163,11 @@ class DataRetrieval(ABC):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method=method)
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method=method)
 
     def read_level1b(self, no_flag=False, meta_data=True, extra_base=None):
         ''' 
-        Reading level1b dataset and completing the information on the instrument
+        Reading level1b dataset and completing the meta-information on the instrument.
         
         '''
         self.integrated_data = dict()
@@ -181,34 +183,21 @@ class DataRetrieval(ABC):
             s + "_" + self.datestr
             )
             if self.int_time == 1:
-                # self.filename_level1b[s] = os.path.join(
-                # self.level1_folder,
-                # self.instrument_name + "_level1b_" +
-                # s + "_" + self.datestr
-                # )
-
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" +
                 s + "_" + self.datestr + extra_base
                 )
             else:
-                # self.filename_level1b[s] = os.path.join(
-                # self.level1_folder,
-                # self.instrument_name + "_level1b_"+ str(self.int_time) +"h_" +
-                # s + "_" + self.datestr
-                # )
-
                 self.filename_level2[s] = os.path.join(
                 self.level2_folder,
                 self.instrument_name + "_level2_" + str(self.int_time) +"h_" +
                 s + "_" + self.datestr + extra_base
                 )
-        
-            #print('reading : ', self.filename_level1b[s])
-            #self.level1b_ds, self.flags, self.meteo_ds, global_attrs_level1b = GROSOM_library.read_level1(self._filename_lvl1b)
+
             try:
-                self.integrated_data[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s][0], no_flag=no_flag)
+                # The actual reading function
+                self.integrated_data[s], self.flags[s], self.integrated_meteo[s], global_attrs_level1b = GROMORA_library.read_level1(self.filename_level1b[s][0], no_flag=no_flag)
                 print('Read : ', self.filename_level1b[s][0])
             except FileNotFoundError:
                 print('No file for this day, skipping ', self.filename_level1b[s][0])
@@ -250,7 +239,7 @@ class DataRetrieval(ABC):
             for i in range(1,len(self.date)):
                 for s in self.spectrometers:
                     try:
-                        calibrated_data, calibration_flags, meteo_data, global_attrs_level1b = GROSOM_library.read_level1(self.filename_level1b[s][i], no_flag=no_flag)
+                        calibrated_data, calibration_flags, meteo_data, global_attrs_level1b = GROMORA_library.read_level1(self.filename_level1b[s][i], no_flag=no_flag)
                     except FileNotFoundError:
                         print('No file for this day, skipping ', self.filename_level1b[s][i])
                     else:
@@ -337,9 +326,9 @@ class DataRetrieval(ABC):
         figures = list()
         
         if idx is None:
-            figures.append(GROSOM_library.plot_Tb_all(self, self.integrated_data, title=title)) 
+            figures.append(GROMORA_library.plot_Tb_all(self, self.integrated_data, title=title)) 
         else:
-            figures.append(GROSOM_library.plot_Tb_selected(self, self.integrated_data, title=title, idx=idx)) 
+            figures.append(GROMORA_library.plot_Tb_selected(self, self.integrated_data, title=title, idx=idx)) 
 
         if save:
             save_single_pdf(outfolder+self.instrument_name+'/'+save_name+self.datestr+'.pdf', figures)
@@ -347,7 +336,18 @@ class DataRetrieval(ABC):
             #save_pngs(self.level1_folder+'time_series_'+self.datestr+'_', figures)
 
     def plot_ozone_sel(self, level2_data, outName, spectro, cycles=None, altitude = False, add_baselines=False, to_ppm=1):
-        from GROSOM_library import cmap
+        """Plotting function for the retrieved ozone profile
+
+        Args:
+            level2_data (_type_): _description_
+            outName (_type_): _description_
+            spectro (_type_): _description_
+            cycles (_type_, optional): _description_. Defaults to None.
+            altitude (bool, optional): _description_. Defaults to False.
+            add_baselines (bool, optional): _description_. Defaults to False.
+            to_ppm (int, optional): _description_. Defaults to 1.
+        """
+        from retrieval.GROMORA_library import cmap
         F0 = self.observation_frequency
 
         col = self.basecolor
@@ -577,36 +577,43 @@ class DataRetrieval(ABC):
         save_single_pdf(outName+'.pdf',figure_o3_sel)    
 
     def define_retrieval_param(self, retrieval_param):
-        '''
-        This function fills the dictionary containing all parameters for GROMOS retrievals.
+        """This function fills the dictionary containing all parameters for GROMOS retrievals.
 
-        Parameters
-        ----------
+        Args:
+            retrieval_param (dict): a dict containing all required parameters, names, folder path etc for running a GROMORA retrievals.
+        """
+        retrieval_param["obs_freq"] = self.observation_frequency
 
-        In/Out:
-        retrieval_param : a dict containing all required parameters, names, folder path etc for running a GROMORA retrievals.
-        '''
-        
+        ########################################################
+        # Sensor related parameter:
         retrieval_param['sensor'] = 'FFT_SB'
         retrieval_param['SB_bias'] = 0
         
-
-        retrieval_param["obs_freq"] = self.observation_frequency
         retrieval_param['sideband_response'] = 'theory'
         retrieval_param['use_all_channels'] = True
         retrieval_param['window_corrected_spectrum'] = True
-        retrieval_param["f_shift"] = 0  # 70e3#-405e3# -324.992e3#+1500e3
+        retrieval_param["f_shift"] = 0 
+
+        # Frequency grid for the simulation:
         retrieval_param["number_of_freq_points"] = 1201
         retrieval_param["irregularity_f_grid"] = 45
+
+        ########################################################
+        # Pressure grids
+        # Computed from altitudes values (all values in meters)
+
+        # Pressure grid for the simulation (FM)
         retrieval_param["z_top_sim_grid"] = 112e3
         retrieval_param["z_bottom_sim_grid"] = 600 #600
         retrieval_param["z_resolution_sim_grid"] = 2e3
 
+        # Pressure grid for the retrievals 
         retrieval_param["retrieval_grid_type"] = 'altitude'
         retrieval_param["z_top_ret_grid"] = 95e3
         retrieval_param["z_bottom_ret_grid"] = 1e3
         retrieval_param["z_resolution_ret_grid"] = 2e3
 
+        # Pressure value for the continuum retrievals
         retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
         # retrieval_param["z_top_ret_grid_h2o"] = 20e3
         # retrieval_param["z_bottom_ret_grid_h2o"] = 1e3
@@ -614,39 +621,13 @@ class DataRetrieval(ABC):
 
         retrieval_param["h2o_pressure"] = [500e2]
 
-        #retrieval_param['unit_var_y']  = 3**2
+        # Offset for the pointing angle -> instrument_class (usually 0)
         retrieval_param['pointing_angle_corr'] = self.correct_pointing(retrieval_param)
 
-        #retrieval_param['obs_freq'] = 1.4217504e11
+
+        ########################################################
+        # Species definition and spectroscopy
         retrieval_param['spectroscopy_type'] = 'XML'
-        
-        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
-        # max_diff, simple_stack_corr, simple, max_diff_surf
-        retrieval_param['ptz_merge_method'] = 'max_diff'
-        retrieval_param['ptz_merge_max_Tdiff'] = 5
-        retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
-        # /tub/instruments/gromos/ECMWF_Bern'
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
-        #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
-        retrieval_param['extra_time_ecmwf'] = 3.5
-
-        retrieval_param['o3_apriori'] = 'waccm_monthly'#'waccm_monthly'
-        # 'waccm_yearly_scaled'low_alt_ratio
-
-        retrieval_param['o3_apriori_covariance'] = 'sinefit_optimized' # 'low_alt_ratio_optimized' #low_alt_ratio_optimized
-        retrieval_param['waccm_file'] = '/storage/tub/atmosphere/WACCM/waccm_o3_climatology.nc'
-        retrieval_param["apriori_O3_cov"] = 1e-6  # 1e-6
-        retrieval_param["apriori_H2O_stdDev"] = 1  # 6e-4 12e-4 0.5 16e-4
-
-        #retrieval_param["apriori_o2_stdDev"] = 1e-8  # 6e-4
-        #retrieval_param["apriori_n2_stdDev"] = 1e-8
-        retrieval_param['poly_order'] = 2
-        retrieval_param['covmat_polyfit_0'] = 0.1
-        retrieval_param['covmat_polyfit_1'] = 0.5
-        retrieval_param['covmat_polyfit_2'] = 0.5
-
-        retrieval_param['noise_covariance']  = 'noise_level'
-
         # 'H2O-PWR98' #H2O-ContMPM93 'H2O-PWR98, H2O' #"H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252" #'H2O-MPM93'
         retrieval_param['water_vapor_model'] = 'H2O-PWR98'
         retrieval_param['o2_model'] = 'O2-PWR93'  # 'O2-MPM93'
@@ -662,11 +643,41 @@ class DataRetrieval(ABC):
         #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
         #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
         #line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_f_modified.xml'
-        retrieval_param['cira86_path'] = os.path.join(
-            retrieval_param['ARTS_DATA_PATH'], 'planets/Earth/CIRA86/monthly')
-        # Check the structure of the file and maybe use it ?
-        # print(netCDF4.Dataset(filename+".nc").groups.keys())
         retrieval_param['line_file'] = line_file
+        ########################################################
+        # Atmosphere for the simulation
+        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
+        # max_diff, simple_stack_corr, simple, max_diff_surf
+        retrieval_param['ptz_merge_method'] = 'max_diff'
+        retrieval_param['ptz_merge_max_Tdiff'] = 5
+        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
+        retrieval_param['cira86_path'] = os.path.join(retrieval_param['ARTS_DATA_PATH'], 'planets/Earth/CIRA86/monthly')
+        # time interval [h] around which we collect ECMWF profile
+        retrieval_param['extra_time_ecmwf'] = 3.5
+
+        ########################################################
+        # A priori and covariances
+        retrieval_param['o3_apriori'] = 'waccm_monthly'#'waccm_monthly'
+        # 'waccm_yearly_scaled'low_alt_ratio
+        retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
+        retrieval_param['o3_apriori_covariance'] = 'sinefit_optimized' # 'low_alt_ratio_optimized' #low_alt_ratio_optimized
+        retrieval_param['waccm_file'] = '/storage/tub/atmosphere/WACCM/waccm_o3_climatology.nc'
+        retrieval_param["apriori_O3_cov"] = 1e-6  # 1e-6
+        retrieval_param["apriori_H2O_stdDev"] = 1  # 6e-4 12e-4 0.5 16e-4
+
+        ########################################################
+        # Polyfit retrieval
+        retrieval_param['poly_order'] = 2
+        retrieval_param['covmat_polyfit_0'] = 0.1
+        retrieval_param['covmat_polyfit_1'] = 0.5
+        retrieval_param['covmat_polyfit_2'] = 0.5
+
+        ########################################################
+        # Type of noise covariance to use
+        retrieval_param['noise_covariance']  = 'noise_level'
+
+        ########################################################
         #  Baseline retrievals
         retrieval_param['sinefit_periods'] = self.baseline_period(retrieval_param) # np.array([400e6]) #np.array([319e6]) 160e6 110e6 119e6 113.5, 66e6, 45e6
         retrieval_param['sinefit_covmat'] = len(retrieval_param['sinefit_periods']) * [np.array([0.1, 0.1])] 
@@ -678,22 +689,8 @@ class DataRetrieval(ABC):
         retrieval_param['stop_dx'] = 20.1
         retrieval_param['lm_ga_setting']=[10, 2.0, 2.0, 100, 1, 99]
 
-       # retrieval_param['ref_elevation_angle'] =  self.reference_elevation_angle
-
         return retrieval_param
     
-    # def retrieve_cycle(self, spectro_dataset, retrieval_param, f_bin = None, tb_bin = None, ac=None, sensor = None):
-    #     ''' 
-    #     Performing single retrieval for a given calibration cycle (defined in retrieval_param) 
-    #     '''
-    #     if f_bin is not None:
-    #         retrieval_param["binned_ch"] = True
-    #     else:
-    #         retrieval_param["binned_ch"] = False
-
-    #     retrieval_param['ref_elevation_angle'] =  90
-
-
     ############################################################################################################################
     # Covariances definition
     ############################################################################################################################
@@ -856,28 +853,23 @@ class DataRetrieval(ABC):
 
         return sx
 
-
     ############################################################################################################################
     # Sensor definition
     ############################################################################################################################
     def define_sensor(self, retrieval_param, ds_freq, ds_df):
-        '''
-        Function to define the sensor for GROMORA (a bit sketchy at the moment...)
+        """Definition of the GROMORA sensor type to consider for the retrieval
 
-        Parameters
-        ----------
-        retrieval_param : dict
-            DESCRIPTION.
-        ds_freq : numpy array
-            DESCRIPTION.
-        ds_df : 
-            DESCRIPTION.
-        
-        Returns
-        -------
-        sensor: 
+        Args:
+            retrieval_param (dict): _description_
+            ds_freq (_type_): _description_
+            ds_df (_type_): _description_
 
-        '''
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         # Defining our sensors
         if retrieval_param['sensor']=='FFT': 
             sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
@@ -965,10 +957,16 @@ class DataRetrieval(ABC):
     ############################################################################################################################
     # Frequency grid:
     def make_f_grid(self, retrieval_param): 
-        '''
-        create simulation frequency grid for gromora retrievals
+        """Function to create the frequency grid for the retrievals     
 
-        '''
+        Args:
+            retrieval_param (dict): dictionary with all retrieval parameters 
+
+        Returns:
+            f_grid (numpy array): the frequency grid to do the retrievals.
+        """
+
+        # Creation of a cubic decay in the resolution around the observation frequency
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
         bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
         x = np.linspace(-1, 1, n_f)
@@ -979,6 +977,8 @@ class DataRetrieval(ABC):
         #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
         #f_grid = np.concatenate((f_grid,np.arange(148.975e9,149.975e9,1e6)))
         #f_grid = np.arange(141e9,150e9,1e6)
+
+        # An option to plot the frequency grid:
         if retrieval_param["show_f_grid"]:
             fig = plt.figure()
             plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
@@ -988,15 +988,21 @@ class DataRetrieval(ABC):
             plt.ylabel(r'$\Delta f$ [kHz]')
             plt.suptitle('Frequency grid spacing')
             plt.show()
+
         return f_grid
 
     ############################################################################################################################
     # Retrievals grid:
     def set_pgrids(self, retrieval_param):
-        '''
-        Function to define the pressure grid for ozone and continuum retrievals
+        """Function to define the pressure grid for ozone and continuum retrievals
 
-        ''' 
+        Args:
+            retrieval_param (dict): dictionary with all retrieval parameters 
+
+        Returns:
+            p_grid_retrieval: the retrieval pressure grid
+            p_grid_retrieval_h2o: the retrieval pressure grid for the water vapour continuum
+        """ 
         if retrieval_param["retrieval_grid_type"] == 'pressure':
             p_grid_retrieval = np.logspace(5, -1, 61)
         else:
@@ -1026,21 +1032,20 @@ class DataRetrieval(ABC):
     # The retrieval function
     ############################################################################################################################
     def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None):
-        '''
-        Retrieval of a single integration cycle defined in retrieval_param
+        """ Retrieval of a single integration cycle defined in retrieval_param
 
-        Parameters
-        ----------
-        level1b : TYPE
-            DESCRIPTION.
-        retrieval_param : TYPE
-            DESCRIPTION.
+        Args:
+            spectro_dataset (xarray): _description_
+            retrieval_param (dict): _description_
+            ac_sim_FM (_type_, optional): _description_. Defaults to None.
+            sensor (_type_, optional): _description_. Defaults to None.
 
-        Returns
-        -------
-        None.
+        Raises:
+            ValueError: _description_
 
-        '''
+        Returns:
+            _type_: _description_
+        """
         print('###################################################################################')
         start_time = time.time()
         cycle = retrieval_param["integration_cycle"]
@@ -1767,7 +1772,7 @@ class DataRetrieval(ABC):
             DESCRIPTION.
 
         '''
-        return GROSOM_library.smooth_and_apply_correction(level1b_dataset, meteo_ds)
+        return GROMORA_library.smooth_and_apply_correction(level1b_dataset, meteo_ds)
     
     def smooth_corr_spectra(self, level1b_dataset, retrieval_param):
         '''
@@ -1785,7 +1790,7 @@ class DataRetrieval(ABC):
             DESCRIPTION.
 
         '''
-        return GROSOM_library.smooth_corr_spectra(level1b_dataset, retrieval_param)
+        return GROMORA_library.smooth_corr_spectra(level1b_dataset, retrieval_param)
     
     def find_bad_channels(self, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
         '''
@@ -1799,7 +1804,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
+        return GROMORA_library.find_bad_channels(self.level1b_ds, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh)
     
     def find_bad_channels_stdTb(self, spectrometers, stdTb_threshold, apply_on='cal', dimension=['time','channel_idx']):
         '''
@@ -1816,12 +1821,12 @@ class DataRetrieval(ABC):
         if apply_on=='cal':
             for spectro in spectrometers:
                 bad_channels = self.return_bad_channels(self.date, spectro)
-                self.calibrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.calibrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+                self.calibrated_data[spectro] = GROMORA_library.find_bad_channels_stdTb(self.calibrated_data[spectro], bad_channels, stdTb_threshold, dimension)
             return self.calibrated_data
         elif apply_on=='int':
             for spectro in spectrometers:
                 bad_channels = self.return_bad_channels(self.date, spectro)
-                self.integrated_data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.integrated_data[spectro], bad_channels, stdTb_threshold, dimension)
+                self.integrated_data[spectro] = GROMORA_library.find_bad_channels_stdTb(self.integrated_data[spectro], bad_channels, stdTb_threshold, dimension)
             return self.integrated_data
         else:
             raise ValueError()
@@ -1839,7 +1844,7 @@ class DataRetrieval(ABC):
 
         '''
         bad_channels = self.return_bad_channels(date, spectro)
-        self.data[spectro] = GROSOM_library.find_bad_channels_stdTb(self.data[spectro], bad_channels, stdTb_threshold)
+        self.data[spectro] = GROMORA_library.find_bad_channels_stdTb(self.data[spectro], bad_channels, stdTb_threshold)
 
         return self.data[spectro]
     
@@ -1863,7 +1868,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2_from_tropospheric_corrected_spectra(spectro_dataset, ac, retrieval_param, title, figure_list)
+        return GROMORA_library.plot_level2_from_tropospheric_corrected_spectra(spectro_dataset, ac, retrieval_param, title, figure_list)
     
     def plot_level2(self, ac, spectro_dataset, retrieval_param, title, figure_list):
         '''
@@ -1885,7 +1890,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2(spectro_dataset, ac, retrieval_param, title, figure_list)
+        return GROMORA_library.plot_level2(spectro_dataset, ac, retrieval_param, title, figure_list)
 
     def plot_level2_test_retrieval(self, ac, retrieval_param, title):
         '''
@@ -1907,7 +1912,7 @@ class DataRetrieval(ABC):
         None.
 
         '''
-        return GROSOM_library.plot_level2_test_retrieval(ac, retrieval_param, title)
+        return GROMORA_library.plot_level2_test_retrieval(ac, retrieval_param, title)
     
     def return_bad_channels(self, date, spectro):
         '''

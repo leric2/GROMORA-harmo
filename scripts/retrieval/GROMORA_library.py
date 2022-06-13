@@ -22,7 +22,7 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLoc
 from matplotlib.lines import Line2D
 #from retrievals import arts
 
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 import matplotlib
 cmap = matplotlib.cm.get_cmap('plasma') # YlGnBu, inferno
 
@@ -33,19 +33,17 @@ color_gromos= '#d7191c'# '#008837'# '#d95f02'
 color_somora= '#2c7bb6' #7b3294' # '#1b9e77'
 
 def read_level1(filenameLevel1, no_flag = False):
-    """Example function with types documented in the docstring.
-    Description HERE
-
+    """  Main reading function for the GROMORA calibrated and integrated spectra.
     Args:
-        param1 (int): The first parameter.
-        param2 (str): The second parameter.
+        filenameLevel1 (string): full path filename which can be either 1a or 1b
+        no_flag (bool, optional): boolean to avoid reading the flags from the level 1. Defaults to False.
 
     Returns:
-        bool: The return value. True for success, False otherwise.
+        The different part of the of the level 1 file as xarray dataset.
+    """   
 
-    """
-
-    DS = xr.open_dataset(
+    # reading the main dataset (group=spectrometer1)
+    level1_dataset = xr.open_dataset(
         filenameLevel1 + ".nc",
         group="spectrometer1",
         mask_and_scale=True,
@@ -53,8 +51,11 @@ def read_level1(filenameLevel1, no_flag = False):
         decode_coords=True,
         #use_cftime=True,
         )
+
+    # reading the global attributes from the file
     globalAttributes=xr.open_dataset(filenameLevel1 + ".nc").attrs
-    METEO=xr.open_dataset(
+
+    meteo_dataset = xr.open_dataset(
         filenameLevel1+".nc",
         group="meteo",
         decode_times=True,
@@ -70,17 +71,8 @@ def read_level1(filenameLevel1, no_flag = False):
             decode_times=True,
             decode_coords=True,
             )
-    #except FileNotFoundError:
-    #    print('The following file could not be found : ' +filenameLevel1)
-        # print('Set to empty dataset')
-        # DS = xr.Dataset(dims=['time','channel_idx'])
-        # METEO = xr.Dataset(dims=['time','flags'])
-        # flags = xr.Dataset()
-        # globalAttributes = dict()
-    #else:
-    #    print('Problem reading this file : ' + filenameLevel1)   
              
-    return DS, flags, METEO, globalAttributes
+    return level1_dataset, flags, meteo_dataset, globalAttributes
 
 def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1'):
     '''

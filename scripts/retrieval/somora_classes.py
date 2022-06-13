@@ -37,7 +37,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from base_classes import Integration# , DataRetrieval
 from gromora_retrievals import DataRetrieval
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 
 def return_bad_channels_somora(date):
     '''
@@ -91,7 +91,7 @@ class IntegrationSOMORA(Integration):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class SOMORA_LvL2(DataRetrieval):
     '''

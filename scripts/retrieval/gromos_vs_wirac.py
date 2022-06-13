@@ -40,7 +40,7 @@ import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
 
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 import gromos_classes as gc
 import wirac_classes as wc

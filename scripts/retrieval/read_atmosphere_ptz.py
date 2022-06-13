@@ -26,7 +26,7 @@ import xarray as xr
 from dotenv import load_dotenv
 import datetime as dt
 from pytz import timezone
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')

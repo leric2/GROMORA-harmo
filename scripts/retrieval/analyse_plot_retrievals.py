@@ -26,13 +26,12 @@ Todo: all
 
 """
 
-import sys
+import sys, os
 
 sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
 sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
 
 import datetime
-import os
 from abc import ABC
 
 import matplotlib.pyplot as plt
@@ -48,9 +47,9 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
                                MultipleLocator)
 from xarray.backends import file_manager
 
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 # import mopi5_library
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 
 #from cmcrameri import cm
 plt.rcParams.update({
@@ -565,7 +564,7 @@ if compare:
 if plot_all:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + '_plot_all_test_polyfit2'
-    GROSOM_library.plot_O3_all(level2_dataset, outname)
+    GROMORA_library.plot_O3_all(level2_dataset, outname)
 
 if add_L2_flags:
     new_ds = level2_dataset['AC240'] 
@@ -864,7 +863,7 @@ if plot_selected:
             to_ppm = 1e6  
         )
     else:
-        GROSOM_library.plot_O3_all(
+        GROMORA_library.plot_O3_all(
             level2_dataset,
             outname,
             spectro='AC240',
@@ -874,7 +873,7 @@ if plot_selected:
 if plot_selected_nicer:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_sel_polyfit2'
-    GROSOM_library.plot_O3_sel_nicer(
+    GROMORA_library.plot_O3_sel_nicer(
         level2_dataset,
         outname,
         spectro='AC240',

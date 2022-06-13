@@ -40,7 +40,7 @@ import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
 
-from utils_GROSOM import save_single_pdf
+from retrieval.utils_GROMORA import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
@@ -248,8 +248,8 @@ if __name__ == "__main__":
             ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(
                 spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_sim_FM)
             level2_cycle = ac.get_level2_xarray()
-            import GROSOM_library
-            figure_list = GROSOM_library.plot_level2_test_retrieval(
+            import retrieval.GROMORA_library as GROMORA_library
+            figure_list = GROMORA_library.plot_level2_test_retrieval(
                 ac, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 4:
@@ -276,8 +276,8 @@ if __name__ == "__main__":
             ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
                 spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_sim_FM)
             level2_cycle = ac.get_level2_xarray()
-            import GROSOM_library
-            figure_list1 = GROSOM_library.plot_level2_test_retrieval(
+            import retrieval.GROMORA_library as GROMORA_library
+            figure_list1 = GROMORA_library.plot_level2_test_retrieval(
                 ac, ac_sim_FM, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             save_single_pdf(instrument.filename_level2[spectro]+'_'+str(
                 c)+'h'+'ecmwf_finer_fgrid'+'.pdf', figure_list1)

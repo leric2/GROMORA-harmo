@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import datetime
 
 import apriori_data_GROSOM
-import GROSOM_library
+import retrieval.GROMORA_library as GROMORA_library
 
 from retrievals import arts
 from retrievals import covmat
@@ -32,10 +32,14 @@ from pyarts.workspace import arts_agenda
 
 
 def make_f_grid(retrieval_param): 
-    '''
-    create simulation frequency grid
+    """Function to create the frequency grid for the retrievals
 
-    '''
+    Args:
+        retrieval_param (dict): main parameters dictionary
+
+    Returns:
+        f_grid: the frequency grid to do the retrievals on.
+    """
     n_f = retrieval_param["number_of_freq_points"]  # Number of points
     bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
     x = np.linspace(-1, 1, n_f)
@@ -57,30 +61,30 @@ def make_f_grid(retrieval_param):
         plt.show()
     return f_grid
 
-def make_f_grid_double_sideband(retrieval_param, usb_grid): 
-    '''
-    create simulation frequency grid
+# def make_f_grid_double_sideband(retrieval_param, usb_grid): 
+#     '''
+#     create simulation frequency grid
 
-    '''
-    n_f = retrieval_param["number_of_freq_points"]  # Number of points
-    bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
-    x = np.linspace(-1, 1, n_f)
-    f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
-    f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
-        retrieval_param['obs_freq']
+#     '''
+#     n_f = retrieval_param["number_of_freq_points"]  # Number of points
+#     bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+#     x = np.linspace(-1, 1, n_f)
+#     f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+#     f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+#         retrieval_param['obs_freq']
 
-    #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
-    f_grid = np.concatenate((f_grid, usb_grid))
-    if retrieval_param["show_f_grid"]:
-        fig = plt.figure()
-        plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
-        # plt.xlim((retrieval_param['obs_freq']-200e6) /
-        #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
-        # plt.ylim(0,300)
-        plt.ylabel(r'$\Delta f$ [kHz]')
-        plt.suptitle('Frequency grid spacing')
-        plt.show()
-    return f_grid
+#     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+#     f_grid = np.concatenate((f_grid, usb_grid))
+#     if retrieval_param["show_f_grid"]:
+#         fig = plt.figure()
+#         plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+#         # plt.xlim((retrieval_param['obs_freq']-200e6) /
+#         #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+#         # plt.ylim(0,300)
+#         plt.ylabel(r'$\Delta f$ [kHz]')
+#         plt.suptitle('Frequency grid spacing')
+#         plt.show()
+#     return f_grid
 
 
 def plot_FM_comparison(ds_freq, y_FM, y_obs):

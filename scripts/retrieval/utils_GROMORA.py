@@ -57,6 +57,16 @@ def var_allan(y, axis=0):
 
 
 def sideband_response_theory(RF, delta_z, polarisation_change=True):
+    """ Simulation of the theoretical sideband response from a MPI
+
+    Args:
+        RF (_type_): _description_
+        delta_z (_type_): _description_
+        polarisation_change (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """    
     if polarisation_change:
         return np.sin(np.pi*delta_z*RF/3e8)**2
     else:
