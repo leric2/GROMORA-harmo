@@ -213,6 +213,7 @@ if __name__ == "__main__":
                 figure_list = instrument.plot_level2(
                     ac, spectro_dataset, retrieval_param, title='retrieval_o3', figure_list=figure_list)
                # level2_cycle = xr.Dataset()
+                #ac.level2_diagnostics()
                 level2_cycle = ac.get_level2_xarray()
             else:
                 level2_cycle = xr.Dataset()
@@ -276,7 +277,7 @@ if __name__ == "__main__":
             ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
                 spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_sim_FM)
             level2_cycle = ac.get_level2_xarray()
-            import retrieval.GROMORA_library as GROMORA_library
+            import GROMORA_library
             figure_list1 = GROMORA_library.plot_level2_test_retrieval(
                 ac, ac_sim_FM, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             save_single_pdf(instrument.filename_level2[spectro]+'_'+str(

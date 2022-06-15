@@ -9,7 +9,7 @@ import datetime
 #from dotenv import load_dotenv
 
 #load_dotenv(dotenv_path='./.env')
-
+import matplotlib.pyplot as plt
 #from typhon.arts.workspace import Workspace, arts_agenda
 #from typhon.arts.workspace import Workspace
 from pyarts.workspace import Workspace
@@ -106,7 +106,7 @@ class ArtsController():
         boilerplate.setup_spectroscopy(self.ws, abs_lines, abs_species, line_shape)
         self.ws.abs_f_interp_order = abs_f_interp_order  # no effect for OnTheFly propmat
     
-    def set_spectroscopy_from_file2(self, abs_lines_file, abs_species,  format='HITRAN', line_shape=None, abs_f_interp_order=3):
+    def set_spectroscopy_from_file_old(self, abs_lines_file, abs_species,  format='HITRAN', line_shape=None, abs_f_interp_order=3):
         """
         Setup absorption species and spectroscopy data from HITRAN catalogue file.
 
@@ -261,15 +261,7 @@ class ArtsController():
             self.ws.AtmFieldsCalc(vmr_zeropadding=vmr_zeropadding)
         else:
             self.ws.AtmFieldsCalcExpand1D(vmr_zeropadding=vmr_zeropadding)
-    """
-    def set_atmosphere_fascod(self, fascod_name, vself.atmosphere_dimmr_zeropadding=0):
-        self.ws.AtmRawRead(basename="planets/Earth/Fascod/{}/{}".format(fascod_name, fascod_name))
-        
-        if self.atmosphere_dim == 1:
-            self.ws.AtmFieldsCalc(vmr_zeropadding=vmr_zeropadding)
-        else:
-            self.ws.AtmFieldsCalcExpand1D(vmr_zeropadding=vmr_zeropadding)
-    """
+
     def apply_hse(self, p_hse=100e2, z_hse_accuracy=0.5):
         """
         Calculate z field from hydrostatic equilibrium. See :arts:method:`z_fieldFromHSE`.
@@ -467,6 +459,7 @@ class ArtsController():
 
         https://pyoptimalestimation.readthedocs.io/en/latest/
 
+        Work in Progress...
 
         """
         from typhon.retrieval.oem import error_covariance_matrix
@@ -487,15 +480,15 @@ class ArtsController():
         self.covmat_ret =  inv(K.T @ inv_Se @ K + inv(Sx))
 
         KSxK = K @ Sx @ K.T
-        KSxK_inv = inv(K @ Sx @ K.T)
-        KSxK_Se = inv(KSxK + Se)
+        #KSxK_inv = inv(K @ Sx @ K.T)
+        #KSxK_Se = inv(KSxK + Se)
 
-        Syd = KSxK @ KSxK_Se @ KSxK
+        #Syd = KSxK @ KSxK_Se @ KSxK
         
         # Testing 12.12 from Rodgers
-        chi2, chi2TestX =  _testChi2(Sx @ K.T @ KSxK_Se @ K @ Sx, deltax, significance=0.05)
+        #chi2, chi2TestX =  _testChi2(Sx @ K.T @ KSxK_Se @ K @ Sx, deltax, significance=0.05)
 
-        chi2, chi2TestX =  _testChi2(Syd, deltay, significance=0.05)
+        #chi2, chi2TestX =  _testChi2(Syd, deltay, significance=0.05)
 
         covmat_diag_ratio = np.sqrt(np.diag(self.covmat_ret) / np.diag(Sx))
 

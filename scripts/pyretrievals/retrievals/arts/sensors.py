@@ -108,7 +108,8 @@ class SensorFFT_Sideband(AbstractSensor):
     """
     Sensor with channel response for an FFT Spectrometer with :math:`\mathrm{sinc}^2` response.
 
-    try to add sideband response
+    In addition, this sensor include a sideband response. 
+
     """
 
     def __init__(self, f_backend, resolution, num_channels, lo_freq, sideband_mode, intermediate_freq, sideband_response):
@@ -116,6 +117,10 @@ class SensorFFT_Sideband(AbstractSensor):
         :param f_backend: The backend frequency vector.
         :param resolution: The frequency resolution of the FFTS in Hz
         :param num_channels: Number of channels with nonzero response, default: 10
+        :param lo_freq: The local oscillator frequency in Hz
+        :param sideband_mode: the type of sideband, upper or lower
+        :param intermediate_freq: the intermediate frequency of the sideband
+        :param sideband_response: the sideband response corresponding to the intermediate frequency
         """
         self._f_backend = f_backend
         self.resolution = resolution
