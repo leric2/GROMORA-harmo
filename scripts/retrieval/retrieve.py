@@ -40,7 +40,7 @@ import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
 
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')

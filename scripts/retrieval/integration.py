@@ -34,7 +34,7 @@ import xarray as xr
 import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
-from retrieval.utils_GROMORA import save_single_pdf
+from utils_GROMORA import save_single_pdf
 
 from dotenv import load_dotenv
 

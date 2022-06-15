@@ -12,8 +12,7 @@ Using the Atmosphere Class to define a
 Including : 
     * a-priori data
 """
-import os
-import sys
+import os, sys
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -29,7 +28,7 @@ from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
-from GROMORA_time import pysolar_sza, get_LST_from_GROMORA
+from gromora_time import pysolar_sza, get_LST_from_GROMORA
 
 #from typhon.arts.xml import load
 from pyarts.xml import load

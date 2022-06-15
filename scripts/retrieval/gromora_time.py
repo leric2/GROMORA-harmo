@@ -5,11 +5,8 @@ Created
 
 @author: eric
 
-Collection of functions for dealing with time
+Collection of functions for dealing with time in the frame of GROMORA retrievals
 
-
-Including : 
-    * a-priori data
 """
 import numpy as np
 import xarray as xr
@@ -18,9 +15,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-#from pysolar import solar
-
+# local time zone for GROMOS and SOMORA:
 local_timezone = timezone('Europe/Zurich')
+
+# time zone of the measurement times from GROMOS and SOMORA:
 gromora_tz = timezone('UTC')
 
 
@@ -191,5 +189,3 @@ if __name__ == "__main__":
         print('Night !')
     else:
         print('Day !')
-
-    

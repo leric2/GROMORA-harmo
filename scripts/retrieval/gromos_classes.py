@@ -25,9 +25,7 @@ Todo: all
 
 """
 from abc import ABC
-import os
-import datetime
-
+import os, datetime
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -36,10 +34,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from xarray.core import dataarray
 
-from base_classes import Integration# , DataRetrieval
-
+from gromora_integration import Integration
 from gromora_retrievals import DataRetrieval
-import GROSOM_library
+import GROMORA_library as GROMORA_library
 
 def return_bad_channels_gromos(date):
     '''
@@ -108,7 +105,7 @@ class IntegrationGROMOS(Integration):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class GROMOS_LvL2(DataRetrieval):
     '''

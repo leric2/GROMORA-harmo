@@ -17,7 +17,7 @@ import xarray as xr
 import pandas as pd
 import netCDF4
 import matplotlib.pyplot as plt
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 
 from dotenv import load_dotenv
 
@@ -28,9 +28,6 @@ ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 import GROMORA_library, retrieval_module
-
-#import retrieval_module
-#import mopi5_retrievals
 
 
 class DataRetrieval(ABC):

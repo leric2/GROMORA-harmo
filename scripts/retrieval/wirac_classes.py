@@ -36,10 +36,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from xarray.core import dataarray
 
-from base_classes import Integration# , DataRetrieval
-
+from gromora_integration import Integration
 from gromora_retrievals import DataRetrieval
-import retrieval.GROMORA_library as GROMORA_library
+import GROMORA_library as GROMORA_library
 
 def return_bad_channels_gromos(date):
     '''

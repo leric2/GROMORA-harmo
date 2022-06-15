@@ -12,7 +12,7 @@ It only contains the operational parameters for GROMOS and SOMORA FFTS retrieval
 For further retrievals option, the user should have a look at "retrieve.py".
 
 Example:
-    On birg, it works using the GROMORA_retrievals conda environment which needs to be activated with:
+    On birg and stockhorn, it works using the GROMORA_retrievals conda environment which needs to be activated with:
         $ conda activate GROMORA_retrievals
 
     Then, the user needs to go within the retrievals folder and the script can be launched with:
@@ -25,8 +25,7 @@ import sys, os
 # sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
-import datetime
-import time
+import datetime, time
 from abc import ABC
 
 import matplotlib.pyplot as plt
@@ -37,12 +36,11 @@ import xarray as xr
 from dotenv import load_dotenv
 import gc
 
-from utils_GROSOM import save_single_pdf
+#from utils_GROMORA import save_single_pdf
 
 # For ARTS, we need to specify some paths
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
 load_dotenv('/opt/anaconda/.env.birg-arts24')
-
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
@@ -57,7 +55,7 @@ GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
 
-def retrieve_day(date, instrument_name, integration_strategy='classic', int_time = 1):
+def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
     Function performing daily retrieval of GROMOS or SOMORA ozone profiles.
 
@@ -70,12 +68,13 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
     retrieval_param["ARTS_BUILD_PATH"] = ARTS_BUILD_PATH
     retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH
 
+    int_time = 1
     # Implementation of the instrument class depending on instrument name:
     if instrument_name=="GROMOS":
-        import gromos_classes as gc
+        import gromos_classes as gromos
         basename_lvl1 = os.path.join(GROMOS_L1_BASEFOLDER,str(date.year))
         basename_lvl2 = os.path.join(GROMOS_L2_BASEFOLDER,str(date.year))
-        instrument = gc.GROMOS_LvL2(
+        instrument = gromos.GROMOS_LvL2(
             date,
             basename_lvl1,
             basename_lvl2,
@@ -83,12 +82,11 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
             int_time,
             extra_base=''
             )
-        retrieval_param['increased_var_factor'] = 1
     elif instrument_name=="SOMORA":
         basename_lvl1 = os.path.join(SOMORA_L1_BASEFOLDER,str(date.year))
         basename_lvl2 = os.path.join(SOMORA_L2_BASEFOLDER,str(date.year))
-        import somora_classes as sm
-        instrument = sm.SOMORA_LvL2(
+        import somora_classes as somora
+        instrument = somora.SOMORA_LvL2(
             date=date,
             basename_lvl1=basename_lvl1,
             basename_lvl2=basename_lvl2,
@@ -96,8 +94,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
             integration_time=int_time,
             extra_base=''
         )
-        retrieval_param['increased_var_factor'] = 1
-    
+        
     # Reading of integrated (level 1) data:
     if integration_strategy == 'classic':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
@@ -110,7 +107,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
     # Type:
     retrieval_param["retrieval_type"] = 2
     # Retrieval quantities:
-    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
+    retrieval_param['retrieval_quantities'] = retrieval_quantities
     # Verbosity:
     retrieval_param['verbose'] = 1
     # Stopping after FM and plotting it:
@@ -136,9 +133,11 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
     spectro = 'AC240'
     spectro_dataset = integrated_dataset[spectro]
 
-    # Retrievel only the integration cycles with sufficient number of calibrated spectra.
-    cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
-    #cycles = [1,2,3]
+    if retrieve_cycle is None:
+        # Retrieve only the integration cycles with sufficient number of calibrated spectra.
+        cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
+    else:
+        cycles = retrieve_cycle
     if len(cycles) ==0:
         return 0   
 
@@ -162,34 +161,13 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
             retrieval_param['T_surface'] = instrument.standard_air_temperature
             
         try:
-            if retrieval_param["retrieval_type"] == 1:
-                retrieval_param["surface_altitude"] = 1e3
-                retrieval_param["observation_altitude"] =  15e3
-                ac, retrieval_param = instrument.retrieve_cycle_tropospheric_corrected(spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
-                figure_list = instrument.plot_level2_from_tropospheric_corrected_spectra(
-                    ac, 
-                    spectro_dataset, 
-                    retrieval_param, 
-                    title = 'retrieval_trop_corr',
-                    figure_list = figure_list
-                    )
+            ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
+            if ac.oem_converged:
+                #figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='ozone retrieval cycle' + str(c),figure_list=figure_list)
                 level2_cycle = ac.get_level2_xarray()
-                save_str = str(retrieval_param["integration_cycle"])+'_Perrin_corr.pdf'
-                #level2.to_netcdf(path = instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'.nc')
-                #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'_Perrin_corrected.pdf', figure_list)
-            elif retrieval_param["retrieval_type"] == 2:
-                retrieval_param["surface_altitude"] = 1000
-                retrieval_param["observation_altitude"] =  1000   
-                ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
-                if ac.oem_converged:
-                    #figure_list = instrument.plot_level2(ac, spectro_dataset, retrieval_param, title ='ozone retrieval cycle' + str(c),figure_list=figure_list)
-                    level2_cycle = ac.get_level2_xarray()
-                else:
-                    level2_cycle=xr.Dataset()
-                save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved_Perrin.pdf'
             else:
-                save_str = '.pdf'
-                level2_cycle=[]
+                level2_cycle=xr.Dataset()
+            save_str = str(retrieval_param["integration_cycle"])+'_all_retrieved_Perrin.pdf'
             
             if (counter == 0) & (len(level2_cycle) > 0):
                 counter = counter + 1
@@ -207,7 +185,8 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
 
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
+        if save_level2:
+            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
@@ -218,28 +197,38 @@ if __name__ == "__main__":
     # Currently only 'classic' supported for GROMOS and SOMORA.
     integration_strategy = 'classic'
 
+    # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
+    retrieve_cycle =  [0] #None // [0]
+
+    instrument_name = ['GROMOS', 'SOMORA'] # ['GROMOS', 'SOMORA']
+
+    # Option to define the retrieval quantities to include
+    retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit' # 'o3_h2o_fshift_polyfit_sinefit' 
+
     # A selection of days that crash the retrievals for unknown reasons. Not needed in latest version
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
+    dates = pd.date_range(start='2020-05-25', end='2020-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
     #dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')
-    print('######################################################################################')
-
-    for d in dates:
-        if d in void_date_problem :
-            print('abort core problem with this day : ',d ,' --> skipping')
+    for day in dates:
+        if day in void_date_problem :
+            print('abort core problem with this day : ',day ,' --> skipping')
         else:
-            # try:
-            #     retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
-            # except:
-            #    pass
-            # print('######################################################################################')
             print('######################################################################################')
-            try:
-                retrieve_day(d, instrument_name='GROMOS',  integration_strategy=integration_strategy)
-            except:
-                pass            
-
+            for name in instrument_name:
+                print('######################################################################################')
+                try: 
+                    retrieve_day(
+                        day, 
+                        instrument_name=name,  
+                        integration_strategy=integration_strategy, 
+                        retrieve_cycle=retrieve_cycle,
+                        retrieval_quantities=retrieval_quantities,
+                        save_level2 = False
+                    )
+                except Exception as e:
+                    print(e)
+                    pass

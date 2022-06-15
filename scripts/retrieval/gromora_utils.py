@@ -60,8 +60,8 @@ def sideband_response_theory(RF, delta_z, polarisation_change=True):
     """ Simulation of the theoretical sideband response from a MPI
 
     Args:
-        RF (_type_): _description_
-        delta_z (_type_): _description_
+        RF (numpy array): frequency vector, in Hz
+        delta_z (double): _description_
         polarisation_change (bool, optional): _description_. Defaults to True.
 
     Returns:

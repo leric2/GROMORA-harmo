@@ -35,9 +35,9 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from base_classes import Integration# , DataRetrieval
+from gromora_integration import Integration
 from gromora_retrievals import DataRetrieval
-import retrieval.GROMORA_library as GROMORA_library
+import GROMORA_library as GROMORA_library
 
 def return_bad_channels_somora(date):
     '''

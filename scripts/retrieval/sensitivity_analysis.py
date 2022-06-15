@@ -44,7 +44,7 @@ import xarray as xr
 from dotenv import load_dotenv
 import gc
 
-from utils_GROSOM import save_single_pdf
+from gromora_utils import save_single_pdf
 
 sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
 sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')

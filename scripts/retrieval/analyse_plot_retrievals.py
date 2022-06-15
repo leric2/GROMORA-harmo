@@ -47,13 +47,13 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
                                MultipleLocator)
 from xarray.backends import file_manager
 
-import retrieval.GROMORA_library as GROMORA_library
+import GROMORA_library
 # import mopi5_library
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 
 #from cmcrameri import cm
 plt.rcParams.update({
-    "text.usetex": True,
+    "text.usetex": False,
     "font.family": "serif",
     "font.sans-serif": ["Free sans"]})
 
@@ -61,7 +61,8 @@ plt.rcParams.update({
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
 #load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-load_dotenv('/opt/arts/.env.stockhorn-arts24')
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/arts/.env.stockhorn-arts24')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -79,7 +80,8 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
+date = pd.date_range(start='2011-01-09', end='2011-01-10') 
+#date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
 
 int_time = 1
 
@@ -212,7 +214,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/oper/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(

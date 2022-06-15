@@ -5,7 +5,7 @@ Created on Mon May 11 17:28:46 2020
 
 @author: eric
 
-Collection of functions for dealing with GROSOM data
+Collection of functions for dealing with GROMORA data
 
 Including : 
     * level1a, level1b and level2 data
@@ -19,18 +19,13 @@ import netCDF4
 import matplotlib.pyplot as plt
 
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
-from matplotlib.lines import Line2D
-#from retrievals import arts
 
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 import matplotlib
 cmap = matplotlib.cm.get_cmap('plasma') # YlGnBu, inferno
 
-# color_gromos = '#d95f02'
-# color_somora = '#1b9e77'
-
-color_gromos= '#d7191c'# '#008837'# '#d95f02'
-color_somora= '#2c7bb6' #7b3294' # '#1b9e77'
+color_gromos = '#d7191c'# '#008837'# '#d95f02'
+color_somora = '#2c7bb6' #7b3294' # '#1b9e77'
 
 def read_level1(filenameLevel1, no_flag = False):
     """  Main reading function for the GROMORA calibrated and integrated spectra.
@@ -75,9 +70,20 @@ def read_level1(filenameLevel1, no_flag = False):
     return level1_dataset, flags, meteo_dataset, globalAttributes
 
 def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1'):
-    '''
-    generic tropospheric correction for GROSOM
-    '''
+    """A Modified function derived from tropospheric_correction to work with other dimension than time. This was used for MOPI.
+
+    Args:
+        calibration (_type_): _description_
+        spectrometers (_type_): _description_
+        dim (_type_): _description_
+        method (str, optional): _description_. Defaults to 'Ingold_v1'.
+
+    Raises:
+        NotImplementedError: _description_
+
+    Returns:
+        level 1: new level 1 dataset with an added field for the tropospheric correction
+    """
     # little trick to work with other dimensions than time
     
     for s in spectrometers:
@@ -131,11 +137,10 @@ def correct_troposphere(calibration, spectrometers, dim, method='Ingold_v1'):
             calibration.integrated_dataset[s] = calibration.integrated_dataset[s].swap_dims({'time':dim})
     return calibration.integrated_dataset
 
-
 def tropospheric_correction(f, y, t_trop, use_wings='both', skip=[100,100], num_el=500):
     """
     Generate a correction function, given frequencies, brightness temperatures
-    and a weighted mean torpospheric temperature.
+    and a weighted mean tropospheric temperature.
     Returns a function f: (f, y) -> y_corr
 
     modified from the OG one from Jonas
@@ -173,9 +178,20 @@ def tropospheric_correction(f, y, t_trop, use_wings='both', skip=[100,100], num_
     return correct
 
 def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size, boxcar_thresh):
-    '''
-    daily processing
-    '''
+    """Function to identify bad channels on level 1 (a or b) spectra from MWR. 
+    It uses a boxcar smoothing difference for identification of spurious channels.
+
+    Args:
+        level1b_dataset (xarray ds): the level 1 dataset
+        bad_channels (list): some know bad channels
+        Tb_min (double): absolute threshold for Tb
+        Tb_max (double): absolute threshold for Tb
+        boxcar_size (int): size of the boxcar filter
+        boxcar_thresh (int): filter used for boxcar
+
+    Returns:
+        level1b_dataset (xarray ds): the level 1 dataset with an additional good_channel variable
+    """
     good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
         
     # identify additional spurious channels on this day    
@@ -204,9 +220,18 @@ def find_bad_channels(level1b_dataset, bad_channels, Tb_min, Tb_max, boxcar_size
     return level1b_dataset
 
 def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20, dimension=['time','channel_idx']):
-    '''
-    daily processing
-    '''
+    """Function to identify bad channels on level 1 (a or b) spectra from MWR. 
+    This one uses a theshold on the standard deviation of the level 1 for identification of spurious channels.
+
+    Args:
+        level1b_dataset (xarray ds): the level 1 dataset
+        bad_channels (list): some know bad channels
+        stdTb_threshold (double): absolute threshold for stdTb
+        dimension (list of string): the new dimensions for the good_channel variable
+
+    Returns:
+        level1b_dataset (xarray ds): the level 1 dataset with an additional good_channel variable
+    """
     #good_channels = np.zeros((len(level1b_dataset.time),len(level1b_dataset.channel_idx)))
     good_channels = np.zeros((level1b_dataset.dims[dimension[0]], level1b_dataset.dims[dimension[1]]))
         
@@ -227,21 +252,15 @@ def find_bad_channels_stdTb(level1b_dataset, bad_channels, stdTb_threshold = 20,
     return level1b_dataset
 
 def smooth_corr_spectra(level1b_dataset, retrieval_param):
-    '''
-    
+    """MOPI5
 
-    Parameters
-    ----------
-    level1b_dataset : TYPE
-        DESCRIPTION.
-    retrieval_param : TYPE
-        DESCRIPTION.
+    Args:
+        level1b_dataset (_type_): _description_
+        retrieval_param (_type_): _description_
 
-    Returns
-    -------
-    None.
-
-    '''
+    Returns:
+        _type_: _description_
+    """
     boxcar_size = retrieval_param['boxcar_size']
     
     # good_indices = np.ones(len(level1b_dataset.Tb[1]))
@@ -257,18 +276,15 @@ def smooth_corr_spectra(level1b_dataset, retrieval_param):
     return level1b_dataset
 
 def smooth_and_apply_correction(level1b_dataset, meteo_ds):
-    '''
-    Function coming from pywdp, in "troposphere.py" and adapted to GROSOM
+    """MOPI5 function
 
-    Parameters
-    ----------
-    
-    Returns
-    -------
-    ds : TYPE
-        DESCRIPTION.
+    Args:
+        level1b_dataset (_type_): _description_
+        meteo_ds (_type_): _description_
 
-    '''
+    Returns:
+        _type_: _description_
+    """
     #Ttrop = get_tropospheric_temperature(ds, mean_temperature_func)
     tau = level1b_dataset.trospheric_opacity.values
     T_trop = meteo_ds.air_temperature.values
@@ -480,7 +496,6 @@ def plot_meteo_level1b(METEO):
 def plot_level2(ds, ac, retrieval_param, title="",figures = list()):
     '''
     Plotting function directly taken from Jonas ;)
-    OG can be found in retrieval.py in MOPI retrievals
     
     Parameters
     ----------

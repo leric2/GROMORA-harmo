@@ -26,7 +26,7 @@ import xarray as xr
 from dotenv import load_dotenv
 import datetime as dt
 from pytz import timezone
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 
 # For ARTS, we need to specify some paths
 load_dotenv('/opt/anaconda/.env.birg-arts24')
@@ -47,7 +47,7 @@ from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
-from GROMORA_time import pysolar_sza, get_LST_from_GROMORA
+from gromora_time import pysolar_sza, get_LST_from_GROMORA
 #from typhon.arts.xml import load
 from pyarts.xml import load
 
