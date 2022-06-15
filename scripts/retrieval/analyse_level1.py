@@ -36,14 +36,7 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 from dotenv import load_dotenv
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.lines import Line2D
-from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
-                               MultipleLocator)
-from xarray.backends import file_manager
 
-import retrieval.GROMORA_library as GROMORA_library
-from retrieval.utils_GROMORA import save_single_pdf
 
 plt.rcParams.update({
     "text.usetex": False,

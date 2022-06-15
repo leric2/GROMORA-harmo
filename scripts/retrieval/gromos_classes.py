@@ -5,23 +5,8 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Classes for GROMOS instrument
+Integration and DataRetrieval classes implementation for GROMOS instrument
 
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
 
 """
 from abc import ABC
@@ -45,10 +30,9 @@ def return_bad_channels_gromos(date):
     Parameters
     ----------
     date : datetime object
-        DESCRIPTION.
     
     '''
-    #if year == 2019,....
+    
     bad_channels = np.arange(16383,16384)
     return bad_channels
 
@@ -83,7 +67,6 @@ class IntegrationGROMOS(Integration):
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder)
     
     def return_bad_channels(self, date, spectro):
-
         return return_bad_channels_gromos(date)
 
     # def compare_Tb_chunks(self, dim='time', idx=[0], save = False, Tb_corr = False):
@@ -135,7 +118,6 @@ class GROMOS_LvL2(DataRetrieval):
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder, extra_base)
     
     def return_bad_channels(self, date, spectro):
-
         return return_bad_channels_gromos(date)
 
     
@@ -173,10 +155,10 @@ class GROMOS_LvL2(DataRetrieval):
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
-        create simulation frequency grid
+        Create simulation frequency grid when the sideband response is included.
 
         '''
-        usb_grid= np.arange(148.975e9,150.175e9,100e6)
+        usb_grid = self.usb_grid
 
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
         bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
@@ -198,6 +180,12 @@ class GROMOS_LvL2(DataRetrieval):
             plt.show()
         return f_grid
     
+    def cost_threshold(self, year):
+        '''
+        Cost threshold over which we flag the level 2
+        '''
+        return 0.1 
+
     @property
     def day2flag_level2(self):
         '''
@@ -214,11 +202,12 @@ class GROMOS_LvL2(DataRetrieval):
         return date2flag_gromos
 
     @property
+    def usb_grid(self):
+        return np.arange(148.975e9,150.175e9,100e6)
+
+    @property
     def basecolor(self):
        return '#d7191c' 
-
-    def cost_threshold(self, year):
-        return 0.1 
 
     @property
     def polyfit_threshold(self):

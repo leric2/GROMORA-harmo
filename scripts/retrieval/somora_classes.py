@@ -5,23 +5,8 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Classes for SOMORA instrument
+Integration and DataRetrieval classes implementation for SOMORA instrument
 
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
 
 """
 from abc import ABC
@@ -124,8 +109,6 @@ class SOMORA_LvL2(DataRetrieval):
 
         return return_bad_channels_somora(date)  
     
-
-    
     def baseline_period(self, retrieval_param):
         '''
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
@@ -149,10 +132,10 @@ class SOMORA_LvL2(DataRetrieval):
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
-        create simulation frequency grid
+        Create simulation frequency grid when the sideband response is included.
 
         '''
-        usb_grid= np.arange(155.875e9,157.075e9,100e6)
+        usb_grid = self.usb_grid
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
         bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
         x = np.linspace(-1, 1, n_f)
@@ -173,6 +156,15 @@ class SOMORA_LvL2(DataRetrieval):
             plt.show()
         return f_grid
 
+    def cost_threshold(self, year):
+        '''
+        Cost threshold over which we flag the level 2
+        '''
+        if year > 2010:
+            return 0.1 #0.5 for 2010
+        else:
+            return 0.5
+
     @property
     def day2flag_level2(self):
         '''
@@ -191,11 +183,9 @@ class SOMORA_LvL2(DataRetrieval):
     def polyfit_threshold(self):
         return 0.1
 
-    def cost_threshold(self, year):
-        if year > 2010:
-            return 0.1 #0.5 for 2010
-        else:
-            return 0.5
+    @property
+    def usb_grid(self):
+        return np.arange(155.875e9,157.075e9,100e6)
 
     @property
     def standard_air_pressure(self):

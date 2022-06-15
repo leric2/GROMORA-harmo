@@ -5,23 +5,7 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Retrieval script
-
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
+A short script to compare the WIRA-C to the GROMOS level 1 spectra during the measurement campaign done at IAP.
 
 """
 from curses import window
@@ -40,7 +24,7 @@ import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
 
-from retrieval.utils_GROMORA import save_single_pdf
+from gromora_utils import save_single_pdf
 load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 import gromos_classes as gc
 import wirac_classes as wc

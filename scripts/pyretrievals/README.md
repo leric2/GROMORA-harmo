@@ -31,7 +31,7 @@ ARTS_DATA_PATH=/opt/arts-dev/arts-xml-data/
 ARTS_SRC_PATH=/opt/arts-dev/arts/
 ```
 
-## Examples
+## Examples and tests
 
 The ``examples`` directory contains a ``test_oem.py`` file which is similar to the ARTS cfile
 ``controlfiles/artscomponents/test_oem.arts``. It simulates the ozone line at 110 GHz and retrieves ozone VMR, frequency shift and a polynomial baseline.
