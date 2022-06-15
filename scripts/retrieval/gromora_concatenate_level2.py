@@ -38,7 +38,7 @@ plt.rcParams.update({
 
 #load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
-load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/anaconda/.env.birg-arts24')
 
 instrument_name = "SOMORA"
 
