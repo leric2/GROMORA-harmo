@@ -52,6 +52,12 @@ The results of the first part of harmonization of the GROMORA time series have b
 
 The data from 2009 to 2022 for both instrument can be found on the BORIS-portal (LINK HERE). Along with the data, you will find a full documentation of the resulting time series.
 
+### Data analysis
+
+There are 2 separate repositories which are used for the data analysis of the new harmonized GROMORA time series. 
+
+* [Level1_Analysis](https://git.iap.unibe.ch/IAP_MCH/Level1_Analysis): not so nicely documented scripts to deal with the level 1, for instance to perform the concatenation of the level 1 files.
+* [level2_Analysis](https://git.iap.unibe.ch/IAP_MCH/level2_analysis): the main repository for the analysis of the level 2 from GROMOS and SOMORA as well as all cross-comparisons with satellites.
 
 ## Contributions
 Contributions from anyone are more than welcome according to the rules defined in the **contributions.md** documents.
