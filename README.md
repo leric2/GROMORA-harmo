@@ -44,7 +44,7 @@ With a few adaptations (?), it should work with Matlab 2019 as well
 * Linux
 * ARTS 2.4 and the accompanying PyARTS package
 * Python 3.8
-* A list of required package listed in the [specifications](/scripts/env_file_GROMORA.txt). 
+* A list of required package listed in the [specifications](scripts/env_file_GROMORA.txt). 
 
 ## Results and data
 
