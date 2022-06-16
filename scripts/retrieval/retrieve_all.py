@@ -21,8 +21,6 @@ Example:
 import sys, os
 
 # Adding the paths to pyretrievals and retrieval folder
-# sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-# sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
 import datetime, time
@@ -38,7 +36,8 @@ import gc
 
 #from utils_GROMORA import save_single_pdf
 
-# For ARTS, we need to specify some paths
+# For ARTS, you need to specify some paths in your shell. 
+# If this is not already done, you can import them now with dotenv:
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
 #load_dotenv('/opt/anaconda/.env.birg-arts24')
 

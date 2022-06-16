@@ -42,7 +42,8 @@ from dotenv import load_dotenv
 
 from gromora_utils import save_single_pdf
 
-# For ARTS, we need to specify some paths
+# For ARTS, you need to specify some paths in your shell. 
+# If this is not already done, you can import them now with dotenv:
 #load_dotenv('/opt/anaconda/.env.birg-arts24')
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
 

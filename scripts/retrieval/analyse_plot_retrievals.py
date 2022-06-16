@@ -75,8 +75,6 @@ instrument_name = "GROMOS"
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
-# date = pd.date_range(start='2019-01-30', end='219-06-18')
-#date = pd.date_range(start='2022-05-25', end='2022-05-29')
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)

@@ -7,7 +7,7 @@ a GROMORA intrument. It contains all parameters required for the retrievals of a
 ---
 
 ## Table of Contents
-1. [Building calibrationTool](#building-calibrationtool)
+1. [Building retrieval_param](#building-retrieval_param)
 2. [Parameters](#parameters)
 
 ---
