@@ -24,17 +24,14 @@ Attributes:
 Todo: all
 
 """
-import sys
+import sys, os, time, gc
+from os.path import dirname, abspath, join
 
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
-
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(join(dirname(sys.path[0]),'retrieval'))
 
 import datetime
-import os
-import time
 from abc import ABC
-import sys
 
 import matplotlib.pyplot as plt
 import netCDF4
@@ -42,16 +39,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
-import gc
 
 from gromora_utils import save_single_pdf
 
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/esauvageat/Documents/GROMORA/Analysis/GROMORA-harmo/scripts/pyretrievals/')
-
 
 # For ARTS, we need to specify some paths
-load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
+#load_dotenv('/opt/anaconda/.env.birg-arts24_pyarts')
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -66,6 +59,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
 
         # Dictionnary containing all EXTERNAL retrieval parameters 
         retrieval_param = dict()
+        retrieval_param["GROMORA_FOLDER"] = dirname(dirname(dirname(abspath(__file__))))
         retrieval_param["ARTS_DATA_PATH"] = ARTS_DATA_PATH
         retrieval_param["ARTS_BUILD_PATH"] = ARTS_BUILD_PATH
         retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH
@@ -107,7 +101,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         retrieval_param['verbose'] = 2
         retrieval_param["retrieval_type"] = 8
         retrieval_param['FM_only'] = False
-        retrieval_param['show_FM'] = True
+        retrieval_param['show_FM'] = False
         retrieval_param['sensor'] = 'FFT_SB'
         retrieval_param['SB_bias'] = 0
         retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
@@ -214,17 +208,17 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                     #line_file = ARTS_DATA_PATH+"/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz"
                     #line_file = ARTS_DATA_PATH+"/spectroscopy/Hitran/O3-666.xml.gz"
                     #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
-                    retrieval_param['FM_only'] = True
+                    retrieval_param['FM_only'] = False
                     line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Perrin_modified_linestrength.xml'
-                    line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Perrin_modified.xml'
+                    #line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Perrin_modified.xml'
                     retrieval_param['line_file'] = line_file
                 else: 
                     save_str='other'
 
                 ac, retrieval_param, sensor_out = instrument.retrieve_cycle(spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
 
-                figure_list = instrument.plot_level2(
-                    ac, spectro_dataset, retrieval_param, title='retrieval_o3', figure_list=figure_list)
+                # figure_list = instrument.plot_level2(
+                #     ac, spectro_dataset, retrieval_param, title='retrieval_o3', figure_list=figure_list)
                 level2_cycle = ac.get_level2_xarray()
                 save_single_pdf(
                     instrument.filename_level2[spectro]+'_'+save_str+'.pdf', figure_list)
@@ -234,15 +228,16 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
                 level2_cycle = xr.Dataset()
 
 if __name__=='__main__':
-    instrument_name = ['GROMOS'] #,'SOMORA'
-    #date = datetime.date(2018, 6, 9)
-    date = datetime.date(2018, 2, 26)
-    #cycle = np.arange(7, 8)
-    cycle = np.arange(9, 10)
+    instrument_name = ['SOMORA', 'GROMOS'] #,'GROMOS'
+    high_opacity = False
 
-    tests = ['spectroscopy'] # 'og', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
+    if high_opacity:
+        date = datetime.date(2018, 6, 9)
+        cycle = np.arange(14, 15)
+    else:
+        date = datetime.date(2018, 2, 26)
+        cycle = np.arange(9, 10)
+
+    tests = ['og', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow'] # 'og', 'continuum','angle','spectroscopy','Tprofile','SB','Tcold','tWindow']
     for radiometer in instrument_name:
-        try:
-            sensitivity_analysis(radiometer, date, param=tests, cycles=cycle)
-        except:
-            pass
+        sensitivity_analysis(radiometer, date, param=tests, cycles=cycle)

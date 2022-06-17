@@ -1011,9 +1011,9 @@ class DataRetrieval(ABC):
             #     abs_p=ac.ws.p_grid.value[0],
             # )
            # ac.ws.abs_lookupCalc()
-            ac.ws.jacobianAddBasicCatalogParameter(ac.ws.jacobian_quantities, ac.ws.jacobian_agenda, "O3-666 TR UP J 0 LO J 0", "Line Strength" )
+            #ac.ws.jacobianAddBasicCatalogParameter(ac.ws.jacobian_quantities, ac.ws.jacobian_agenda, "O3-666 TR UP J 0 LO J 0", "Line Strength" )
 
-            y_FM = ac.y_calc(jacobian_do=True)
+            y_FM = ac.y_calc(jacobian_do=False)
            # plot_FM_comparison(ds_freq, y_FM[0], ds_y)
             return ac, retrieval_param, sensor
 
