@@ -45,9 +45,9 @@ Only a few specific parameters will be added during the processing of the routin
 
 |variable | type | Description |
 |-------|------|:-----------|
-|ARTS_DATA_PATH| str | path for ARTS| 
-|ARTS_BUILD_PATH|str | path for ARTS |
-|ARTS_INCLUDE_PATH|str | path for ARTS|
+|ARTS_DATA_PATH| str | path to ARTS data | 
+|ARTS_BUILD_PATH|str | path to ARTS build folder |
+|ARTS_INCLUDE_PATH|str | path to ARTS controlfiles |
 
 ---
 
@@ -56,9 +56,9 @@ Only a few specific parameters will be added during the processing of the routin
 |variable | type | Description |
 |-------|------|:-----------|
 |retrieval_type| int | type of retrieval to do 
-|retrieval_quantities| str |o3_h2o_fshift_polyfit_sinefit|
+|retrieval_quantities | str | retrieval quantities to include, see below |
 | obs_freq | double | observation frequency in Hz 
-|date | Timestamp | the day of the retrieval
+| date | Timestamp | the day of the retrieval
 | integration_cycle | int | the integration cycle to retrieve 
 | time| numpy array of datetime64 | the weighted time of measurement
 | time_start | numpy array of datetime64 | start time of measurement 
@@ -67,6 +67,15 @@ Only a few specific parameters will be added during the processing of the routin
 | max_iter| double | max number of iteration
 | stop_dx|  double | threshold to reach for dx
 | lm_ga_setting| list of double | parameter to use in case we use the LM method for the OEM
+
+#### retrieval quantities
+The options for this parameter are the following:
+
+1. 'o3_h2o': ozone and water vapor continuum
+2. 'o3_h2o_fshift': 1. but with a frequency shift retrieval
+3. 'o3_h2o_polyfit': 1. but with a polyfit retrieval (default is degree 2)
+4. 'o3_h2o_fshift_polyfit': 1. but with a frequency shift and a polyfit retrieval (default is degree 2)
+5. 'o3_h2o_fshift_polyfit_sinefit': 4. but with a sinefit retrieval (period must be defined). This is the default option for GROMOS and SOMORA reprocessing.
 
 ---
 
