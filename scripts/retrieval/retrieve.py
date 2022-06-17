@@ -25,9 +25,10 @@ Todo: all
 
 """
 import sys, os
+from os.path import dirname, abspath, join
 
-sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
-sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(join(dirname(sys.path[0]),'retrieval'))
 
 import datetime
 import time
@@ -64,6 +65,7 @@ if __name__ == "__main__":
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
+    retrieval_param["GROMORA_FOLDER"] = dirname(dirname(dirname(abspath(__file__))))
     retrieval_param["ARTS_DATA_PATH"] = ARTS_DATA_PATH
     retrieval_param["ARTS_BUILD_PATH"] = ARTS_BUILD_PATH
     retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH

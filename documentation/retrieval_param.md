@@ -41,22 +41,22 @@ Only a few specific parameters will be added during the processing of the routin
 
 ## Parameters
 
-### General parameter for ARTS
+### PATH variable
 
 |variable | type | Description |
 |-------|------|:-----------|
 |ARTS_DATA_PATH| str | path to ARTS data | 
 |ARTS_BUILD_PATH|str | path to ARTS build folder |
 |ARTS_INCLUDE_PATH|str | path to ARTS controlfiles |
-
+| GROMORA_FOLDER | str | path of the GROMORA folder |
 ---
 
 ### Main parameters
 
 |variable | type | Description |
 |-------|------|:-----------|
-|retrieval_type| int | type of retrieval to do 
-|retrieval_quantities | str | retrieval quantities to include, see below |
+| retrieval_type| int | type of retrieval to do 
+| retrieval_quantities | str | retrieval quantities to include, see below |
 | obs_freq | double | observation frequency in Hz 
 | date | Timestamp | the day of the retrieval
 | integration_cycle | int | the integration cycle to retrieve 

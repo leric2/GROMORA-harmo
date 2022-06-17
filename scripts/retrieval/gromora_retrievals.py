@@ -414,7 +414,7 @@ class DataRetrieval(ABC):
         # 'waccm_yearly_scaled'low_alt_ratio
         retrieval_param['h2o_apriori'] = 'ecmwf'  # 'ecmwf' # 'fascod_extended'
         retrieval_param['o3_apriori_covariance'] = 'sinefit_optimized' # 'low_alt_ratio_optimized' #low_alt_ratio_optimized
-        retrieval_param['waccm_file'] = '/storage/tub/atmosphere/WACCM/waccm_o3_climatology.nc'
+        retrieval_param['waccm_file'] = retrieval_param["GROMORA_FOLDER"] + '/files/waccm_o3_climatology.nc' #'/storage/tub/atmosphere/WACCM/waccm_o3_climatology.nc'
         retrieval_param["apriori_O3_cov"] = 1e-6  # 1e-6
         retrieval_param["apriori_H2O_stdDev"] = 1  # 6e-4 12e-4 0.5 16e-4
 

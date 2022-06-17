@@ -19,10 +19,10 @@ Example:
         $ python retrieve_all.py
 """
 import sys, os
-
+from os.path import dirname, abspath, join
 # Adding the paths to pyretrievals and retrieval folder
-sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'pyretrievals'))
-sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'retrieval'))
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(join(dirname(sys.path[0]),'retrieval'))
 import datetime, time
 from abc import ABC
 
@@ -61,6 +61,8 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     '''
     # Dictionnary containing all EXTERNAL retrieval parameters 
     retrieval_param = dict()
+
+    retrieval_param["GROMORA_FOLDER"] = dirname(dirname(dirname(abspath(__file__))))
 
     # Saving the ARTS paths into retrieval_param
     retrieval_param["ARTS_DATA_PATH"] = ARTS_DATA_PATH
