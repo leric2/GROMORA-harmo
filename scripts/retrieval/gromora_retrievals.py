@@ -890,7 +890,7 @@ class DataRetrieval(ABC):
         retrieval_param["lat"] = spectro_dataset.lat[cycle].values
         retrieval_param["lon"] = spectro_dataset.lon[cycle].values
         retrieval_param["station_altitude"] = spectro_dataset.alt[cycle].values
-
+        
         try:
             retrieval_param["time"] = spectro_dataset.time[cycle].values
             retrieval_param['time_start'] = spectro_dataset.first_sky_time[cycle].values
@@ -1118,6 +1118,7 @@ class DataRetrieval(ABC):
             print(f'Noise level for meas. cov: {np.sqrt(np.median(y_var)):.2f} K')
         
         ac.noise_variance_vector = y_var
+        ac.tropospheric_opacity = spectro_dataset.tropospheric_opacity[cycle].values
 
         ##################################################################################################################### 
         # Apply the retrievals quantites defined by the user: 
@@ -1239,9 +1240,11 @@ class DataRetrieval(ABC):
 
         # adding local solar time drectly 
         local_solar_time = list()
+        solar_zenith_angle = list()
         for t in level2.time.values:
             lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
             local_solar_time.append(lst)
+            solar_zenith_angle.append(sza)
         
         level2['local_solar_time'] =  ('time', local_solar_time)
         level2.local_solar_time.encoding['calendar'] = 'proleptic_gregorian'
@@ -1374,7 +1377,12 @@ class DataRetrieval(ABC):
         level2.h2o_continuum_avkm.attrs['standard_name'] = 'h2o_continuum_avkm'
         level2.h2o_continuum_avkm.attrs['long_name'] = 'averaging kernels for continuum'
         level2.h2o_continuum_avkm.attrs['units'] = '1'
-        
+
+        if 'temperature_profile' in list(level2.keys()):
+            level2.temperature_profile.attrs['standard_name'] = 'temperature_profile'
+            level2.temperature_profile.attrs['long_name'] = 'atmospheric temperature profiles interpolated on retrieval grid'
+            level2.temperature_profile.attrs['units'] = 'K'
+
         # Polyfit
         if 'poly_fit_x' in list(level2.keys()):
             
@@ -1450,6 +1458,17 @@ class DataRetrieval(ABC):
         level2.obs_aa.attrs['long_name'] = 'azimuth angle'
         level2.obs_aa.attrs['units'] = 'degree'
         level2.obs_aa.attrs['description'] = 'angle measured clockwise positive, 0 deg is northwise'
+
+        if 'tropospheric_opacity' in list(level2.keys()):
+            level2.tropospheric_opacity.attrs['standard_name'] = 'tropospheric_opacity'
+            level2.tropospheric_opacity.attrs['long_name'] = 'tropospheric_opacity computed with Ingold method during calibration'
+            level2.tropospheric_opacity.attrs['units'] = 'Np'
+
+        level2['solar_zenith_angle'] =  ('time', solar_zenith_angle)
+        level2.solar_zenith_angle.attrs['standard_name'] = 'solar_zenith_angle'
+        level2.solar_zenith_angle.attrs['long_name'] = 'solar zenith angle'
+        level2.solar_zenith_angle.attrs['units'] = 'deg'
+        level2.solar_zenith_angle.attrs['description'] = 'angle between the sun rays and zenith, minimal at local solar noon'
 
         ##################################################
         # Renaming some variable:

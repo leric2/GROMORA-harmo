@@ -21,6 +21,7 @@ from pyarts.griddedfield import GriddedField3
 from retrievals.arts import boilerplate
 #from retrievals.arts import retrieval
 from retrievals.data import p_interpolate
+from retrievals.data.utils import interpolate
 
 
 def _is_asc(x):
@@ -522,13 +523,22 @@ class ArtsController():
         # measurement = self.y
         # for i, meas in enumerate(measurement):
         #     measurement[i]  = np.where(bad_channels, np.nan, meas)
+
+        # Saving temperature profile:
+        temperature = self.ws.t_field.value[:,0,0]
+        original_zgrid = self.ws.t_field.value[:,0,0]
+        new_zgrid = ds.o3_z.data
+        interp_temperature = interpolate(new_zgrid, original_zgrid, temperature)
         
         ds['f'] = ('f', f_backend)
         ds['y'] = (('observation', 'f'), np.stack(self.y))
         ds['yf'] = (('observation', 'f'), np.stack(self.yf))
         ds['oem_diagnostics'] = ('oem_diagnostics_idx', self.oem_diagnostics)
         ds['median_noise'] = self.median_noise_level
+        ds['tropospheric_opacity'] = self.tropospheric_opacity
         ds['bad_channels'] = (('observation', 'f'), np.stack(np.split(bad_channels, self.n_obs)))
+
+        #ds['temperature_profile'] = (('o3_p','o3_lat','o3_lon'), interp_temperature[:,np.newaxis,np.newaxis])
 
         y_baseline = self.y_baseline
         if y_baseline is not None:
