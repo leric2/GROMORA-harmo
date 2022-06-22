@@ -106,12 +106,19 @@ class GROMOS_LvL2(DataRetrieval):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
 
+        
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
-
+        
+        self.institution = 'University of Bern;UBERN'
+        self.affiliation = 'ubern001'
+        self.longitude = 7.44
+        self.latitude = 46.95
+        self.altitude = 560
+        
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -186,20 +193,20 @@ class GROMOS_LvL2(DataRetrieval):
         '''
         return 0.1 
 
-    @property
-    def day2flag_level2(self):
-        '''
-        A selection of days to flags for the level2 GROMOS data. 
-        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+    # @property
+    # def day2flag_level2(self):
+    #     '''
+    #     A selection of days to flags for the level2 GROMOS data. 
+    #     These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
-        '''
-        date2flag_gromos =  [
-            datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
-            pd.date_range('2012-07-24', '2012-08-07'),
-            pd.date_range('2019-01-14', '2019-02-12'),
+    #     '''
+    #     date2flag_gromos =  [
+    #         datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
+    #         pd.date_range('2012-07-24', '2012-08-07'),
+    #         pd.date_range('2019-01-14', '2019-02-12'),
 
-        ]
-        return date2flag_gromos
+    #     ]
+    #     return date2flag_gromos
 
     @property
     def usb_grid(self):
@@ -220,3 +227,36 @@ class GROMOS_LvL2(DataRetrieval):
     @property
     def standard_air_temperature(self):
         return 10
+
+    @property
+    def cycle_duration(self):
+        return 7/3600
+    
+
+
+    @property
+    def global_attributes_ndacc(self):
+        pi_mail='axel.murk@unibe.ch'
+        do_name = 'Sauvageat;Eric'
+        do_mail = 'eric.sauvageat@unibe.ch'
+        rou= 'Please contact Axel Murk at axel.murk@unibe.ch'
+        ackn ='The middle atmospheric ozone radiometer GROMOS is operated by the Institute of Applied Physics, University of Bern, Switzerland.'
+        description='Atmospheric ozone profiles from continuous measurements of ground-based 142 GHz-microwave radiometer GROMOS at Bern, Switzerland'
+        return dict(
+            PI_NAME=self.name_PI,
+            PI_AFFILIATION=self.institution,
+            PI_ADDRESS = self.contact,
+            PI_EMAIL = pi_mail,
+            DO_NAME= do_name,
+            DO_AFFILIATION=self.institution,
+            DO_ADDRESS = self.contact,
+            DO_EMAIL =  do_mail,
+            DS_NAME= do_name,
+            DS_AFFILIATION=self.institution,
+            DS_ADDRESS = self.contact,
+            DS_EMAIL = do_mail,
+            DATA_DESCRIPTION = description,
+            DATA_RULES_OF_USE =rou,
+            DATA_ACKNOWLEDGEMENT=ackn,
+            FILE_PROJECT_ID = 'NDACC-GROMOS'
+        )

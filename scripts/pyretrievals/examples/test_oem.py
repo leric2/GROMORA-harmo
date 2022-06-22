@@ -5,15 +5,18 @@ Plus some plots to show the retrieval results.
 import sys, os
 sys.path.append(os.path.dirname(sys.path[0]))
 import warnings
-warnings.filterwarnings('ignore', message='numpy.dtype size changed')
+warnings.simplefilter('ignore')
+#warnings.filterwarnings('ignore', message='numpy.dtype size changed')
 import numpy as np
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+import logging
+logging.getLogger().disabled = True
 
 from pyarts.workspace import arts_agenda
 
 # For ARTS, we need to specify some paths
-load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/anaconda/.env.birg-arts24')
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
 from retrievals import arts
 from retrievals import covmat

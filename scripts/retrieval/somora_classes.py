@@ -100,6 +100,12 @@ class SOMORA_LvL2(DataRetrieval):
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
 
+        self.institution = 'Swiss Meteorological Institute;MCH'
+        self.affiliation = 'mch001'
+        self.longitude = 6.94
+        self.latitude = 46.82
+        self.altitude = 491
+
         # Can be used for plotting names (SOMORA_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -195,6 +201,38 @@ class SOMORA_LvL2(DataRetrieval):
     def standard_air_temperature(self):
         return 10
 
+    @property
+    def cycle_duration(self):
+        return 2/3600
+
+    @property
+    def global_attributes_ndacc(self):
+        pi_name='Maillard Barras;Eliane'
+        pi_mail='eliane.maillard@meteoswiss.ch'
+        do_name = 'Haefele;Alexander'
+        do_mail = 'alexander.haefele@meteoswiss.ch'
+        rou= 'Please contact Eliane Maillard Barras at eliane.maillard@meteoswiss.ch'
+        ackn ='The ozone microwave radiometer SOMORA is operated by MeteoSwiss, Switzerland.'
+        description='Atmospheric ozone profiles from continuous measurements by ground-based 142 GHz microwave radiometer SOMORA, Payerne, Switzerland'
+        contact = "Ch. de l\'Aerologie;CH-1530 Payerne;SWITZERLAND"
+        return dict(
+            PI_NAME=pi_name,
+            PI_AFFILIATION=self.institution,
+            PI_ADDRESS = contact,
+            PI_EMAIL = pi_mail,
+            DO_NAME= do_name,
+            DO_AFFILIATION=self.institution,
+            DO_ADDRESS = contact,
+            DO_EMAIL =  do_mail,
+            DS_NAME= pi_name,
+            DS_AFFILIATION=self.institution,
+            DS_ADDRESS = contact,
+            DS_EMAIL = pi_mail,
+            DATA_DESCRIPTION = description,
+            DATA_RULES_OF_USE =rou,
+            DATA_ACKNOWLEDGEMENT=ackn,
+            FILE_PROJECT_ID = 'NDACC-SOMORA'
+        )
     # def define_retrieval_param(self, retrieval_param):
     #     '''
     #     Parameters
