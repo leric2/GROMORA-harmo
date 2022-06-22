@@ -26,7 +26,7 @@ from matplotlib.ticker import (MultipleLocator, FuncFormatter, AutoMinorLocator,
 import gromora_atmosphere
 import GROMORA_library 
 
-from gromora_time import get_LST_from_GROMORA
+from gromora_time import get_LST_from_GROMORA, mjd2k_date
 from gromora_utils import save_single_pdf, sideband_response_theory
 
 from retrievals import arts
@@ -1238,7 +1238,9 @@ class DataRetrieval(ABC):
         level2.time.attrs['timezone'] = 'Z'
         level2.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
 
-        # adding local solar time drectly 
+        # adding local solar time and MJD2K 
+        julian_dates = mjd2k_date(pd.to_datetime(level2.time.data))
+
         local_solar_time = list()
         solar_zenith_angle = list()
         for t in level2.time.values:
@@ -1250,6 +1252,12 @@ class DataRetrieval(ABC):
         level2.local_solar_time.encoding['calendar'] = 'proleptic_gregorian'
         level2.local_solar_time.encoding['units'] = 'days since 2000-01-01 00:00:00'
         level2.local_solar_time.attrs['description'] = 'local solar time computed from the mean measurement time'
+        
+        level2['MJD2K'] =  ('time', julian_dates)
+        level2.MJD2K.attrs['standard_name'] = 'MJD2K'
+        level2.MJD2K.attrs['long_name'] = 'Modified Julian Date 2000'
+        level2.MJD2K.attrs['units'] = 'MJD2K'
+        level2.MJD2K.attrs['description'] = 'MJD2K as defined by GEOMS: it is 0.000000 on January 1, 2000 at 00:00:00 UTC'
 
         ##################################################
         # Global attributes 

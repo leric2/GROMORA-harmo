@@ -42,7 +42,6 @@ from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 from retrievals.arts.atmosphere import p2z_simple, z2p_simple
-from gromora_time import pysolar_sza, get_LST_from_GROMORA
 #from typhon.arts.xml import load
 from pyarts.xml import load
 from GROMORA_library import cmap
@@ -137,7 +136,6 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     new_z = dataset.o3_z.mean(dim='time').data
 
     #interp_ds = dataset.interp(o3_p=z2p_simple(new_z))
-
     julian_dates = mjd2k_date(pd.to_datetime(dataset.time.data))
 
     #.replace(tzinfo=gromora_tz)
