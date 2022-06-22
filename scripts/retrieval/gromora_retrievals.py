@@ -202,7 +202,7 @@ class DataRetrieval(ABC):
             self.mail_PI = global_attrs_level1b['mail'] 
             self.contact = global_attrs_level1b['contact'] 
 
-            self.institution = global_attrs_level1b['institution']
+            #self.institution = global_attrs_level1b['institution']
             self.instrument_name_from_level1b = global_attrs_level1b['instrument']
             self.location = global_attrs_level1b['location']
 
