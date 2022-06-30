@@ -62,7 +62,3 @@ There are 2 separate repositories which are used for the data analysis of the ne
 
 * [Level1_Analysis](https://git.iap.unibe.ch/IAP_MCH/Level1_Analysis): not so nicely documented scripts to deal with the level 1, for instance to perform the concatenation of the level 1 files.
 * [level2_Analysis](https://git.iap.unibe.ch/IAP_MCH/level2_analysis): the main repository for the analysis of the level 2 from GROMOS and SOMORA as well as all cross-comparisons with satellites.
-
-## Contributions
-Contributions from anyone are more than welcome according to the rules defined in the **contributions.md** documents.
-
