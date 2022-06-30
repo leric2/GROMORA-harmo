@@ -100,8 +100,9 @@ class SOMORA_LvL2(DataRetrieval):
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
 
-        self.institution = 'Swiss Meteorological Institute;MCH'
-        self.affiliation = 'mch001'
+        self.institution = 'Federal Office of Meteorology and Climatology;METEOSWISS'
+        self.affiliation = 'meteoswiss'
+        self.source = 'MWR.O3_METEOSWISS'
         self.longitude = 6.94
         self.latitude = 46.82
         self.altitude = 491

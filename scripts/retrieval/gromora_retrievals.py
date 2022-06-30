@@ -197,7 +197,7 @@ class DataRetrieval(ABC):
 
         if meta_data:       
             # Meta data
-            self.source = global_attrs_level1b['source'] 
+            #self.source = global_attrs_level1b['source'] 
             self.name_PI = global_attrs_level1b['name'] 
             self.mail_PI = global_attrs_level1b['mail'] 
             self.contact = global_attrs_level1b['contact'] 

@@ -158,15 +158,15 @@ def mjd2k_date(dates):
     """
     mjd2k_date = list()
     for date in dates:
-        mm = date.month
+        month = date.month
 
-        if mm>2:
+        if month>2:
             y = date.year
-            m = mm-3
+            m = month-3
             d = date.day
         else:
             y = date.year-1
-            m = mm+9
+            m = month+9
             d = date.day
 
         j = int(365.25*(y+4712)) + int(30.6*m+0.5) + 58.5 + d
@@ -176,7 +176,7 @@ def mjd2k_date(dates):
             gn = 38 - int(3*int(49 + y/100)/4)
             jd = j+gn
 
-        df = (date.hour*3600.0 + mm*60.0 + date.second)/86400
+        df = (date.hour*3600.0 + date.minute*60.0 + date.second)/86400
         mjd2k_date.append(jd + df - 2451544.5)
     
     return mjd2k_date

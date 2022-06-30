@@ -28,6 +28,9 @@ from pytz import timezone
 from gromora_utils import *
 from gromora_time import *
 
+from pyhdf.SD import *
+import math
+
 # # For ARTS, we need to specify some paths
 # load_dotenv('/opt/anaconda/.env.birg-arts24')
 # load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
@@ -46,7 +49,7 @@ from retrievals.arts.atmosphere import p2z_simple, z2p_simple
 from pyarts.xml import load
 from GROMORA_library import cmap
 
-def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), plot_tprofile=False):
+def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), plot_tprofile=False, save=True):
     """Function to convert GROMORA level 2 to GEOMS compliant NDACC data
 
     For now, it saves the new file as HDF5 file.
@@ -134,10 +137,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     dataset = level2_dataset['AC240'].drop_dims(['f', 'h2o_continuum_p', 'h2o_continuum_p_avk', 'poly_order', 'f_shift_grid', 'sine_grid'])
     #dataset['o3_p'] = dataset.o3_z.mean(dim='time').data
     new_z = dataset.o3_z.mean(dim='time').data
-
-    #interp_ds = dataset.interp(o3_p=z2p_simple(new_z))
-    julian_dates = mjd2k_date(pd.to_datetime(dataset.time.data))
-
+    
     #.replace(tzinfo=gromora_tz)
 
     lat = dataset.lat.mean(dim='time').data
@@ -197,12 +197,17 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             tco = tco + 0.5*(np.nansum([N_o3[i],N_o3[i+1]]))*(new_z[i+1]-new_z[i])
         o3_total_column.append(tco/DU)
 
+        nan_ind = interp_ds.o3_mr<measurement_response_limit
+
         o3.append(1e6*ozone)
-        o3_p.append(1e2*interp_ds.o3_p)
+        o3_p.append(1e-2*interp_ds.o3_p)
         o3_random.append(1e6*interp_ds.o3_eo.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
         o3_sytematic.append(1e6*interp_ds.o3_es.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
         o3_tot.append(1e6*(interp_ds.o3_es+ interp_ds.o3_eo).where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
-        o3_resolution.append(interp_ds.o3_fwhm.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
+        #reso = interp_ds.o3_fwhm.data.astype('int')
+        #reso[nan_ind] = np.nan
+        o3_resolution.append((interp_ds.o3_fwhm.where(interp_ds.o3_mr>measurement_response_limit, -900000).data).astype('int'))
+        #o3_resolution.append(reso)
         o3_apriori.append(1e6*interp_ds.o3_xa)
         o3_apriori_contribution.append(100*(1-interp_ds.o3_mr.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data))
         o3_avk.append(interp_ds.o3_avkm.data)
@@ -213,8 +218,13 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         
     #o3_density = interp_ds.o3_p.data/t_interp/K_B*o3
     #o3_density = interp_ds.o3_p.data/t_interp/K_B*o3
+
+    #interp_ds = dataset.interp(o3_p=z2p_simple(new_z))
+    julian_dates = mjd2k_date(pd.to_datetime(dataset.time.data))
+
     first_time = level1b.first_sky_time.reindex_like(dataset.time, method='nearest', tolerance='1H')
     last_time = level1b.last_sky_time.reindex_like(dataset.time, method='nearest', tolerance='1H')
+
     start_date_iso = pd.to_datetime(
         first_time[0].data
         ).round('1s').strftime('%Y%m%dT%H%M%Sz')
@@ -222,9 +232,19 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     stop_date_iso = pd.to_datetime(
         last_time[-1].data
         ).round('1s').strftime('%Y%m%dT%H%M%Sz')
+       
+    first_time_MJD2K = mjd2k_date(pd.to_datetime(first_time.data))
+    last_time_MJD2K = mjd2k_date(pd.to_datetime(last_time.data))
+
+    assert (julian_dates[0]>first_time_MJD2K[0]) and (julian_dates[-1]<last_time_MJD2K[-1])
+
     file_version='012'
     filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso+'_'+stop_date_iso+'_'+file_version+'.hdf'
     
+    file_generation_date = pd.to_datetime(
+        dt.datetime.now()
+        ).round('1s').strftime('%Y%m%dT%H%M%Sz')
+
     # Global attributes dictionary:
     global_attrs = instrument.global_attributes_ndacc
     global_attrs['DATA_DISCIPLINE'] = 'ATMOSPHERIC.PHYSICS;REMOTE.SENSING;GROUNDBASED',
@@ -236,7 +256,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     global_attrs['DATA_FILE_VERSION'] = file_version
     global_attrs['FILE_NAME']=filename,
-    global_attrs['FILE_GENERATION_DATE'] = dt.datetime.now().isoformat(timespec='seconds')
+    global_attrs['FILE_GENERATION_DATE'] = file_generation_date
     global_attrs['DATA_MODIFICATIONS'] = 'New harmonized retrievals from Swiss MWRs for FFTS time period',
     global_attrs['DATA_CAVEATS'] = 'Ozone profiles are estimated with the Optimal Estimation Method as implemented in the Atmospheric Radiative Transfer Simulator (ARTS)',
     global_attrs['DATA_QUALITY'] = '',
@@ -245,18 +265,18 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     global_attrs['FILE_ACCESS']='AVDC;NDACC',
     global_attrs['FILE_DOI']='',
     global_attrs['FILE_ASSOCIATION']='NDACC',
-    global_attrs['FILE_META_VERSION']=''
+    global_attrs['FILE_META_VERSION']='04R069;IDLCR8HDF'
 
     # var_dict = dict()
     # var_dict['LATITUDE.INSTRUMENT'] = (interp_ds.lat.data)
     # var_dict['LONGITUDE.INSTRUMENT'] = (interp_ds.lon.data),
-    # var_dict['ALTITUDE.INSTRUMENT'] = (altitude_instrument),
+    # var_dict['ALTITUDE.INSTRUMENT'] = (int(altitude_instrument)),
     # var_dict['ANGLE.VIEW_AZIMUTH'] = ('DATETIME', dataset.obs_aa.data),
     # var_dict['ANGLE.VIEW_ZENITH'] = ('DATETIME', dataset.obs_za.data),
     # var_dict['ANGLE.SOLAR_ZENITH_MEAN'] = ('DATETIME',mean_sza),
     # var_dict['OPACITY.ATMOSPHERIC_EMISSION'] = ('DATETIME',level1b.tropospheric_opacity.reindex_like(dataset.time, method='nearest', tolerance='1H').data),
-    # var_dict['DATETIME.START'] = ('DATETIME', mjd2k_date(pd.to_datetime(first_time.data))),
-    # var_dict['DATETIME.STOP'] = ('DATETIME', mjd2k_date(pd.to_datetime(last_time.data))),
+    # var_dict['DATETIME.START'] = ('DATETIME', first_time_MJD2K),
+    # var_dict['DATETIME.STOP'] = ('DATETIME', last_time_MJD2K),
     # var_dict['INTEGRATION.TIME'] = ('DATETIME',instrument.cycle_duration*level1b.number_of_sky_spectra.reindex_like(dataset.time, method='nearest', tolerance='1H').data),
     # var_dict['PRESSURE_INDEPENDENT'] = (['DATETIME', 'ALTITUDE'], o3_p),
     # var_dict['TEMPERATURE_INDEPENDENT'] = (['DATETIME', 'ALTITUDE'], temperature),
@@ -269,26 +289,26 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     # var_dict['O3.MIXING.RATIO.VOLUME_EMISSION_APRIORI.CONTRIBUTION'] = (['DATETIME', 'ALTITUDE'], o3_apriori_contribution ),
     # var_dict['O3.MIXING.RATIO.VOLUME_EMISSION_AVK'] = (['DATETIME', 'ALTITUDE', 'ALTITUDE'], o3_avk ),
     # var_dict['O3.COLUMN.PARTIAL_EMISSION'] = (['DATETIME'], o3_total_column ),
-    # var_dict['O3.NUMBER.DENSITY_EMISSION'] = (['DATETIME', 'ALTITUDE'], o3_apriori ),
+    # var_dict['O3.NUMBER.DENSITY_EMISSION'] = (['DATETIME', 'ALTITUDE'], o3_apriori )
     var_dict= dict(
             LATITUDE = (interp_ds.lat.data),
             LONGITUDE = (interp_ds.lon.data),
-            ALTITUDE_INSTRUMENT = (altitude_instrument),
+            ALTITUDE_INSTRUMENT = (int(altitude_instrument)),
             ANGLE_VIEW_AZIMUTH = ('DATETIME', dataset.obs_aa.data),
             ANGLE_VIEW_ZENITH = ('DATETIME', dataset.obs_za.data),
             ANGLE_SOLAR_ZENITH_MEAN = ('DATETIME',mean_sza),
             #NOISE= ('DATETIME', dataset.median_noise.data),
             OPACITY_ATMOSPHERIC_EMISSION = ('DATETIME',level1b.tropospheric_opacity.reindex_like(dataset.time, method='nearest', tolerance='1H').data),
-            DATETIME_START = ('DATETIME', mjd2k_date(pd.to_datetime(first_time.data))),
-            DATETIME_STOP = ('DATETIME', mjd2k_date(pd.to_datetime(last_time.data))),
+            DATETIME_START = ('DATETIME', first_time_MJD2K),
+            DATETIME_STOP = ('DATETIME',last_time_MJD2K),
             INTEGRATION_TIME = ('DATETIME',instrument.cycle_duration*level1b.number_of_sky_spectra.reindex_like(dataset.time, method='nearest', tolerance='1H').data),
             PRESSURE_INDEPENDENT = (['DATETIME', 'ALTITUDE'], o3_p),
             TEMPERATURE_INDEPENDENT = (['DATETIME', 'ALTITUDE'], temperature),
             O3_MIXING_RATIO_VOLUME_EMISSION = (['DATETIME', 'ALTITUDE'], o3 ),
             O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_RANDOM_STANDARD = (['DATETIME', 'ALTITUDE'], o3_random ),
-            O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_SYTEMATIC_STANDARD= (['DATETIME', 'ALTITUDE'], o3_sytematic ),
+            O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_SYSTEMATIC_STANDARD= (['DATETIME', 'ALTITUDE'], o3_sytematic ),
             O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_COMBINED_STANDARD = (['DATETIME', 'ALTITUDE'], o3_tot ),
-            O3_MIXING_RATIO_VOLUME_EMISSION_RESOLUTION_ALTITUDE = (['DATETIME', 'ALTITUDE'], o3_resolution ),
+            O3_MIXING_RATIO_VOLUME_EMISSION_RESOLUTION_ALTITUDE = (['DATETIME', 'ALTITUDE'], o3_resolution),
             O3_MIXING_RATIO_VOLUME_EMISSION_APRIORI = (['DATETIME', 'ALTITUDE'], o3_apriori ),
             O3_MIXING_RATIO_VOLUME_EMISSION_APRIORI_CONTRIBUTION = (['DATETIME', 'ALTITUDE'], o3_apriori_contribution ),
             O3_MIXING_RATIO_VOLUME_EMISSION_AVK = (['DATETIME', 'ALTITUDE', 'ALTITUDE'], o3_avk ),
@@ -298,7 +318,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     new_ds = xr.Dataset(
         coords=dict(
             DATETIME= julian_dates,
-            ALTITUDE=('ALTITUDE', new_z),
+            ALTITUDE=('ALTITUDE', new_z.astype('int')),
         ),
         data_vars=var_dict,
         attrs=global_attrs
@@ -322,8 +342,18 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     for s in list(new_ds.coords)+varname:
         n = list_indices[s]
-        valid_min = VAR_VALID_MIN_List[n]
-        valid_max = VAR_VALID_MAX_List[n]
+        if s=='DATETIME':
+            valid_min = -2200
+            valid_max = math.ceil(np.max(julian_dates))
+        elif s=='DATETIME_START':
+            valid_min = math.floor(np.min(first_time_MJD2K))
+            valid_max = math.ceil(np.max(first_time_MJD2K))
+        elif s=='DATETIME_STOP':
+            valid_min = math.floor(np.min(last_time_MJD2K))
+            valid_max = math.ceil(np.max(last_time_MJD2K))     
+        else:
+            valid_min = VAR_VALID_MIN_List[n]
+            valid_max = VAR_VALID_MAX_List[n]
 
         if s =='O3_NUMBER_DENSITY_EMISSION':
             fillV = -9e19
@@ -331,17 +361,21 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             fillV = -900000
 
         # Fill the nan values:
-        if s != 'O3_MIXING_RATIO_VOLUME_EMISSION_AVK':
-            new_ds[s].where(new_ds[s].data < valid_min, np.nan)
-            new_ds[s].where(new_ds[s].data > valid_max, np.nan)
-            new_ds[s] = new_ds[s].fillna(fillV)
-        else:
+        #if s == 'O3_MIXING_RATIO_VOLUME_EMISSION_RESOLUTION_ALTITUDE' or s == 'ALTITUDE':
+            # new_ds[s].where(new_ds[s].data < valid_min, -9223372036854775808)
+            # new_ds[s].where(new_ds[s].data > valid_max, -9223372036854775808)
+            # new_ds[s] = new_ds[s].where(new_ds[s].data == -9223372036854775808,fillV)
+        if s == 'O3_MIXING_RATIO_VOLUME_EMISSION_AVK':
             avk = new_ds[s].data
             avk[np.isnan(new_ds[s].data)] = fillV
             avk[avk<valid_min] = fillV
             avk[avk>valid_max] = fillV
 
             new_ds[s] = (['DATETIME', 'ALTITUDE', 'ALTITUDE'], avk)
+        else:
+            new_ds[s].where(new_ds[s].data < valid_min, np.nan)
+            new_ds[s].where(new_ds[s].data > valid_max, np.nan)
+            new_ds[s] = new_ds[s].fillna(fillV)
         
         new_ds[s].attrs['VAR_NAME'] = SDS_Name_List[n]
         new_ds[s].attrs['VAR_DESCRIPTION'] = VAR_DESCRIPTION_List[n]
@@ -350,14 +384,16 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         new_ds[s].attrs['VAR_DEPEND'] = VAR_DEPEND_List[n]
         new_ds[s].attrs['VAR_UNITS'] = VAR_UNITS_List[n]
         new_ds[s].attrs['VAR_SI_CONVERSION'] = VAR_SI_CONVERSION_List[n]
-        new_ds[s].attrs['VAR_DATA_TYPE'] = 'DOUBLE'
+        new_ds[s].attrs['VAR_DATA_TYPE'] = SDS_DataType_List[n]
         new_ds[s].attrs['VAR_VALID_MIN'] = valid_min
         new_ds[s].attrs['VAR_VALID_MAX'] = valid_max
         new_ds[s].attrs['VAR_FILL_VALUE'] = fillV
-        new_ds[s].attrs['_FillValue'] = fillV
+        #new_ds[s].attrs['_FillValue'] = fillV
             
         if VAR_DEPEND_List[n] == 'CONSTANT':
             new_ds[s].attrs['VAR_SIZE'] = '1'
+        elif VAR_DEPEND_List[n] == 'ALTITUDE':
+            new_ds[s].attrs['VAR_SIZE'] = str(len(new_ds.ALTITUDE))
         elif VAR_DEPEND_List[n] == 'DATETIME':
             new_ds[s].attrs['VAR_SIZE'] = str(len(new_ds.DATETIME))
         elif VAR_DEPEND_List[n] == 'DATETIME;ALTITUDE':
@@ -370,9 +406,11 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
        
         variables_all = variables_all+SDS_Name_List[n]+';'
 
-    new_ds.attrs['DATA_VARIABLE'] = variables_all
+    variables_all = variables_all[:-1]
+    new_ds.attrs['DATA_VARIABLES'] = variables_all
 
-    new_ds.to_netcdf(outfolder+filename)
+    if save:
+        new_ds.to_netcdf(outfolder+filename)
 
     if plot_tprofile is not None:
         fig, axs = plt.subplots(nrows=1, ncols=4, sharey=False, figsize=(24,16))
@@ -962,30 +1000,30 @@ SDS_Name_List = ['LATITUDE.INSTRUMENT',
                  'O3.COLUMN.PARTIAL_EMISSION',
                  'O3.NUMBER.DENSITY_EMISSION']
 
-SDS_DataType_List = ['float',
-                     'float',
-                     'int32',
-                     'double',
-                     'float',
-                     'float',
-                     'float',
-                     'float',
-                     'double',
-                     'double',
-                     'double',
-                     'int32',
-                     'float',
-                     'float',
-                     'float',
-                     'float',
-                     'float',
-                     'float',
-                     'int32',
-                     'float',
-                     'float',
-                     'float',
-                     'float',
-                     'float']
+SDS_DataType_List = ['REAL',
+                     'REAL',
+                     'INTEGER',
+                     'DOUBLE',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'DOUBLE',
+                     'DOUBLE',
+                     'DOUBLE',
+                     'INTEGER',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'INTEGER',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL',
+                     'REAL']
 
 VAR_DESCRIPTION_List = ['Latitude of the observation site (deg)',
                         'Longitude of the observation site (deg)',
@@ -1039,7 +1077,7 @@ VAR_NOTES_List = [' ',
                     
 VAR_DEPEND_List = ['CONSTANT',             
                    'CONSTANT',
-                   'ALTITUDE',
+                   'CONSTANT',
                    'DATETIME',
                    'DATETIME',
                    'DATETIME',
@@ -1115,7 +1153,7 @@ VAR_SI_CONVERSION_List = ['0.0;1.74533E-2;rad',
 VAR_VALID_MIN_List = [-90,
                       -180,
                       0,
-                      -2200,
+                      np.nan,
                       0,
                       0,
                       0,
@@ -1127,15 +1165,15 @@ VAR_VALID_MIN_List = [-90,
                       0,
                       100,
                       -0.1,
-                      0.1,
-                      0.1,
-                      0.1,
-                      5000,
+                      -0.1,
+                      -0.1,
+                      -0.1,
+                      1000,
                       -0.1,
                       -70,
                       -1,
                       0,
-                      -9.e19]
+                      0]
 
 VAR_VALID_MAX_List = [90,
                       180,
@@ -1149,7 +1187,7 @@ VAR_VALID_MAX_List = [90,
                       np.nan,
                       1000,
                       120000,
-                      500,
+                      1100,
                       500,
                       20,
                       20,
@@ -1179,7 +1217,7 @@ list_indices = {
     'TEMPERATURE_INDEPENDENT':13,
     'O3_MIXING_RATIO_VOLUME_EMISSION':14,
     'O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_RANDOM_STANDARD':15,
-    'O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_SYTEMATIC_STANDARD':16,
+    'O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_SYSTEMATIC_STANDARD':16,
     'O3_MIXING_RATIO_VOLUME_EMISSION_UNCERTAINTY_COMBINED_STANDARD':17,
     'O3_MIXING_RATIO_VOLUME_EMISSION_RESOLUTION_ALTITUDE':18,
     'O3_MIXING_RATIO_VOLUME_EMISSION_APRIORI':19,
@@ -1189,12 +1227,21 @@ list_indices = {
     'O3_NUMBER_DENSITY_EMISSION':23
     }
 
+def ndacc_ds_to_hdf(new_ds, outfolder):
+    filename = outfolder+new_ds.FILE_NAME[0] #'hello.hdf'#'hello.hdf'##new_ds.FILE_NAME[0] #'hello.hdf'#
+    sd = SD(filename, SDC.WRITE | SDC.CREATE)
+
+    # Create a dataset
+    sds = sd.create("sds1", SDC.INT16, (2, 3))
+
 if __name__ == "__main__":
     instrument_name = 'GROMOS'
-    d = dt.date(2020, 1 , 27)
+    d = dt.date(2020, 1 , 28)
     
-    dates = pd.date_range(start="2019-09-09",end="2019-09-09")
+    dates = pd.date_range(start="2013-11-09",end="2013-11-10")
 
     plot_cycle = None # [8]
     for d in dates:
-        new_ds = gromora_level2_ndacc(instrument_name=instrument_name, date=d, plot_tprofile=plot_cycle)
+        new_ds = gromora_level2_ndacc(instrument_name=instrument_name, date=d, plot_tprofile=plot_cycle, save=True)
+        
+        #ndacc_ds_to_hdf(new_ds,outfolder='/home/es19m597/Documents/GROMORA/NDACC/')
