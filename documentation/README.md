@@ -18,7 +18,7 @@ For the calibration and integration routine, the following documentation files a
 * [run_integration](run_integration.md): describes the integration sub-routine.
 * [calibrationTool](calibrationTool.md): describes the *calibrationTool* structure.
 * [level1](level1.md): describes the structure and content of the calibrated (level 1a) and integrated (level 1b) output files.
-*[level0](level0_gromora.md): describes the structure and content of the raw files (level 0) for GROMOS and SOMORA.
+* [level0](level0_gromora.md): describes the structure and content of the raw files (level 0) for GROMOS and SOMORA.
 * [quality_control_calibration](quality_control_calibration.md): describes the quality control done during the calibration. 
 
 In [example_level1](example_level1), you can find some examples of level 1a and
