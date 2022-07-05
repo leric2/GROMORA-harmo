@@ -803,16 +803,19 @@ class DataRetrieval(ABC):
         """ Retrieval of a single integration cycle defined in retrieval_param
 
         Args:
-            spectro_dataset (xarray): _description_
+            spectro_dataset (xarray): the daily level 1b dataset
             retrieval_param (dict): dictionary with all retrieval parameters 
-            ac_sim_FM (_type_, optional): _description_. Defaults to None.
-            sensor (_type_, optional): _description_. Defaults to None.
+            ac_sim_FM (optional): a generic spectra simulated from a previous FM, only for validation purposes. Defaults to None.
+            sensor (optional): a sensor object to consider for the observations. Defaults to None. 
+                In this case, the object is defined within the retrieval process.
 
         Raises:
-            ValueError: _description_
+            ValueError: Some error values when retrieval parameters are not correct. TO BE IMPROVED
 
         Returns:
-            _type_: _description_
+             ac: an ARTS controler object
+             retrieval_param (dict): dictionary with all retrieval parameters 
+             sensor: a sensor object
         """
         print('###################################################################################')
         start_time = time.time()
@@ -942,6 +945,7 @@ class DataRetrieval(ABC):
                 )
                 ac.set_atmosphere(atm, vmr_zeropadding=True)
             except:
+                # Try again another merging method for PTZ profile
                 retrieval_param['ptz_merge_method'] = 'max_diff_surf'
                 atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
                     retrieval_param,
