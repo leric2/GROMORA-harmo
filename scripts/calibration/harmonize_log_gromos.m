@@ -76,6 +76,9 @@ else
 end
 logFile.LN2_Sensors_OK = ~logFile.LN2_Relay;
 
+% The LN2 level flags are confusing on GROMOS and their meaning seemed to
+% have changed with time. Therefore, we use the parameter goodFlagLN2Above and
+% goodFlagLN2Belown to define the flags correctly for each time period. 
 logFile.LN2_Level_OK = (logFile.LN2_above_High == calibrationTool.goodFlagLN2Above) & (logFile.LN2_above_Low == calibrationTool.goodFlagLN2Below);
 
 logFile.Freq_Lock = (logFile.PLL_Lock & logFile.Ferranti_Lock);

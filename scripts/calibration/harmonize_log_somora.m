@@ -43,13 +43,18 @@ function logFile = harmonize_log_somora(calibrationTool, logFile)
 logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
 logFile.dateTime = datetime(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second, 'TimeZone',calibrationTool.timeZone);
 
+% SOMORA has no TC flags but an Position indice for it.
 logFile.Tipping_Curve_active=(logFile.Position==calibrationTool.indiceTC);
+
+% Some temperature sensors:
 logFile.T_Hot_Absorber=logFile.AI_0*100;
 logFile.T_Window=logFile.AI_3*100;
 logFile.T_Out=logFile.AI_7*100;
 logFile.T_Room=logFile.AI_1*100;
 
-logFile.Freq_Lock = (logFile.IF_LO1_Lock & logFile.IF_LO2_Lock);
+logFile.Freq_Lock = (logFile.IF_LO1_Lock & logFile.IF_LO2_Lock);   
+% Sometimes the log file flags are single variable for the whole day
+% so we convert it to vector
 if length(logFile.Freq_Lock)==1
     logFile.Freq_Lock = ones(length(logFile.t),1)*logFile.Freq_Lock;
 end
