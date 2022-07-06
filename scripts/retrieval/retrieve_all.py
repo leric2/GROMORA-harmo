@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
-import gc
+import gc as garbage
 
 from utils_GROSOM import save_single_pdf
 
@@ -209,7 +209,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
-        gc.collect()
+        garbage.collect()
 
 if __name__ == "__main__":
     # Selection of the integration stategy used for the level 1. 
@@ -221,23 +221,23 @@ if __name__ == "__main__":
 
     # Date range on which to perform the retrievals
     #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
-    dates = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
+    date = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))
     print('######################################################################################')
     print('######################################################################################')
     print('######################################################################################')
 
-    for d in dates:
-        if d in void_date_problem :
-            print('abort core problem with this day : ',d ,' --> skipping')
-        else:
+    
+    #    if d in void_date_problem :
+    #        print('abort core problem with this day : ',d ,' --> skipping')
+    #    else:
             # try:
             #     retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
             # except:
             #    pass
             # print('######################################################################################')
-            print('######################################################################################')
-            try:
-                retrieve_day(d, instrument_name='GROMOS',  integration_strategy=integration_strategy)
-            except:
-                pass            
+    print('######################################################################################')
+   # try:
+    retrieve_day(date, instrument_name='GROMOS',  integration_strategy=integration_strategy)
+   # except:
+   #     pass            
 

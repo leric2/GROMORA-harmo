@@ -83,7 +83,8 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
+date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4)),pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
+# pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
 
 int_time = 1
 
@@ -113,7 +114,7 @@ add_opacity=False
 
 extract_fgrid = False
 
-filename_opacity = '/scratch/GROSOM/Level2/opacities/'+instrument_name+'/'+instrument_name+'_opacity_'+str(date[0].year)+'.nc'
+#filename_opacity = '/scratch/GROSOM/Level2/opacities/'+instrument_name+'/'+instrument_name+'_opacity_'+str(date[0].year)+'.nc'
 #  filename_opacity_new = '/scratch/GROSOM/Level1/'+instrument_name+'_level1b_v2_all.nc'
 
 compare_MERRA2 = False
@@ -216,11 +217,11 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/oper/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     instrument = gc.GROMOS_LvL2(
-        date=date,
+        date=date[0],
         basename_lvl1=basename_lvl1,
         basename_lvl2=basename_lvl2,
         integration_strategy=integration_strategy,
