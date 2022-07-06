@@ -11,10 +11,12 @@ The goal of this repository is to enable anyone interested at the IAP and at MCH
 * 1.0 pre-release 12.2020
 * 1.0 released 03.2021
 * 2.0 pre-released 06.2022
+* 2.0 released 07.2022
 
 ### Retrievals:
 * 1.0 never released
 * 2.0 pre-released 06.2022
+* 2.0 released 07.2022
 
 ## Structure of the repository
 ### documentation 

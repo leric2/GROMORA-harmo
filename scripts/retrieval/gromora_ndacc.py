@@ -82,7 +82,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     #plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
     plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
-    outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'
+    outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'+instrument_name+'/'
     cont_name = 'h2o_continuum_x' 
 
     colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -239,7 +239,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     assert (julian_dates[0]>first_time_MJD2K[0]) and (julian_dates[-1]<last_time_MJD2K[-1])
 
     file_version='012'
-    filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso+'_'+stop_date_iso+'_'+file_version+'.hdf'
+    filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso+'_'+stop_date_iso+'_'+file_version
     
     file_generation_date = pd.to_datetime(
         dt.datetime.now()
@@ -255,7 +255,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     global_attrs['DATA_STOP_DATE'] = stop_date_iso
 
     global_attrs['DATA_FILE_VERSION'] = file_version
-    global_attrs['FILE_NAME']=filename,
+    global_attrs['FILE_NAME']=filename+'.hdf',
     global_attrs['FILE_GENERATION_DATE'] = file_generation_date
     global_attrs['DATA_MODIFICATIONS'] = 'New harmonized retrievals from Swiss MWRs for FFTS time period',
     global_attrs['DATA_CAVEATS'] = 'Ozone profiles are estimated with the Optimal Estimation Method as implemented in the Atmospheric Radiative Transfer Simulator (ARTS)',
@@ -410,7 +410,7 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     new_ds.attrs['DATA_VARIABLES'] = variables_all
 
     if save:
-        new_ds.to_netcdf(outfolder+filename)
+        new_ds.to_netcdf(outfolder+filename+'.nc')
 
     if plot_tprofile is not None:
         fig, axs = plt.subplots(nrows=1, ncols=4, sharey=False, figsize=(24,16))
@@ -1234,14 +1234,24 @@ def ndacc_ds_to_hdf(new_ds, outfolder):
     # Create a dataset
     sds = sd.create("sds1", SDC.INT16, (2, 3))
 
+
+
 if __name__ == "__main__":
     instrument_name = 'GROMOS'
     d = dt.date(2020, 1 , 28)
     
-    dates = pd.date_range(start="2013-11-09",end="2013-11-10")
+    dates = pd.date_range(start="2014-01-01",end="2014-01-10")
+
+    #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
+    #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
+    #xr.open_dataset(filename, engine='pseudonetcdf')
+    #test = xr.open_mfdataset(folder+'groundbased_mwr.o3_ubern001_bern_2010*.hdf', concat_dim='DATETIME', combine='nested')
 
     plot_cycle = None # [8]
     for d in dates:
-        new_ds = gromora_level2_ndacc(instrument_name=instrument_name, date=d, plot_tprofile=plot_cycle, save=True)
-        
+        try:
+            new_ds = gromora_level2_ndacc(instrument_name=instrument_name, date=d, plot_tprofile=plot_cycle, save=True)
+        except Exception as e:
+            print(e)
+            pass
         #ndacc_ds_to_hdf(new_ds,outfolder='/home/es19m597/Documents/GROMORA/NDACC/')
