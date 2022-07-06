@@ -36,7 +36,7 @@ instrumentName='GROMOS';
 % Type of calibration to do: standard or debug
 calibrationType='standard';
 
-calibrate = true;
+calibrate = false;
 integrate = true;
 readLabviewLog = false;
 
@@ -45,7 +45,7 @@ readLabviewLog = false;
 
 % Define the dates for the calibration:
 %dates=datenum('2009_01_01','yyyy_mm_dd'):datenum('2009_01_01','yyyy_mm_dd');
-dates=datenum('2007_06_06','yyyy_mm_dd'):datenum('2007_06_10','yyyy_mm_dd');
+dates=datenum('1995_03_06','yyyy_mm_dd'):datenum('1995_03_06','yyyy_mm_dd');
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
