@@ -37,15 +37,15 @@ instrumentName='GROMOS';
 calibrationType='standard';
 
 calibrate = false;
-integrate = false;
-readLabviewLog = true;
+integrate = true;
+readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
 
 % Define the dates for the calibration:
 %dates=datenum('2009_01_01','yyyy_mm_dd'):datenum('2009_01_01','yyyy_mm_dd');
-dates=datenum('2008_06_06','yyyy_mm_dd'):datenum('2008_07_31','yyyy_mm_dd');
+dates=datenum('1995_03_06','yyyy_mm_dd'):datenum('1995_03_06','yyyy_mm_dd');
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...
@@ -268,8 +268,8 @@ for d = 1:numel(dates)
                 [calibrationTool, level1] = run_integration(calibrationTool);
             catch ME
                 warning('Problem integrating this day !')
-            end
-    
+                disp(ME.message)
+            end  
         end
 
     %clearvars level1

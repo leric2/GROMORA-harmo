@@ -25,6 +25,12 @@ function calibratedSpectra = add_meteo_data_GROMOS_FB(calibrationTool, meteoData
 %==========================================================================
 %%%%%% Storing values into calibratedSpectra
 for t=1:length(calibratedSpectra)
+    if  isnan(meteoData.dateNum)
+            calibratedSpectra(t).mean_air_temperature= -9999;
+            calibratedSpectra(t).mean_relative_humidity=-9999;
+            calibratedSpectra(t).mean_air_pressure=-9999;
+            calibratedSpectra(t).rain_accumulation=-9999;
+    else
     %start=datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum');
     %stop=datenum(datetime(calibratedSpectra(t).timeMin+calibrationTool.referenceTime,'ConvertFrom','datenum')+seconds(calibratedSpectra(t).calibrationTime))-datenum(1970,1,1);
     timeMin = datetime(calibratedSpectra(t).time_min+calibrationTool.referenceTime,'ConvertFrom','datenum', 'TimeZone',calibrationTool.timeZone);
@@ -37,5 +43,6 @@ for t=1:length(calibratedSpectra)
     calibratedSpectra(t).mean_relative_humidity=0.01*nanmean(vertcat(meteoData.relative_humidity(rowInd)));
     calibratedSpectra(t).mean_air_pressure=nanmean(vertcat(meteoData.air_pressure(rowInd)));
     calibratedSpectra(t).rain_accumulation=sum(vertcat(meteoData.precipitation(rowInd)),'omitnan');
+    end
 end
 end

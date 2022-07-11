@@ -231,6 +231,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Adding meteo data
 meteo = read_meteo_data_unibe(calibrationTool);
+if isempty(fieldnames(meteo))
+    meteoData = struct();
+    meteoData.dateNum = nan;
+else
 meteoData = struct();
 meteoData.dateNum = [meteo.dateNum];
 meteoData.dateTime = [meteo.dateTime];
@@ -238,6 +242,7 @@ meteoData.air_pressure = [meteo.air_pressure];
 meteoData.air_temperature = [meteo.air_temperature];
 meteoData.relative_humidity = [meteo.rel_humidity];
 meteoData.precipitation = [meteo.precipitation];
+end
 %     if strcmp(gName,'meteo')
 %         vNames = {ncinfo(filename,gName).Variables.Name};
 %         %dimNames = {ncinfo(filename,gName).Dimensions.Name};
@@ -344,7 +349,7 @@ if calibrationTool.doTippingCurve
         if isfield(meteoData,'air_temperature')
             Teff = nanmean([meteoData.air_temperature])-calibrationTool.TC.deltaT;
         else
-            disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
+            %disp('we said, no meteo data found so lets make a guess for Tair (10 degC)');
             Teff = 283 - calibrationTool.TC.deltaT;
         end
             calibrationTool.logFile.TC(entriesTC).am = 1./sind(calibrationTool.logFile.TC(entriesTC).tipping_angle);
