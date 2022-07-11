@@ -227,11 +227,11 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     start_date_iso = pd.to_datetime(
         first_time[0].data
-        ).round('1s').strftime('%Y%m%dT%H%M%Sz')
+        ).round('1s').strftime('%Y%m%dT%H%M%SZ')
 
     stop_date_iso = pd.to_datetime(
         last_time[-1].data
-        ).round('1s').strftime('%Y%m%dT%H%M%Sz')
+        ).round('1s').strftime('%Y%m%dT%H%M%SZ')
        
     first_time_MJD2K = mjd2k_date(pd.to_datetime(first_time.data))
     last_time_MJD2K = mjd2k_date(pd.to_datetime(last_time.data))
@@ -239,11 +239,11 @@ def gromora_level2_ndacc(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     assert (julian_dates[0]>first_time_MJD2K[0]) and (julian_dates[-1]<last_time_MJD2K[-1])
 
     file_version='012'
-    filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso+'_'+stop_date_iso+'_'+file_version
+    filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso.lower()+'_'+stop_date_iso.lower()+'_'+file_version
     
     file_generation_date = pd.to_datetime(
         dt.datetime.now()
-        ).round('1s').strftime('%Y%m%dT%H%M%Sz')
+        ).round('1s').strftime('%Y%m%dT%H%M%SZ')
 
     # Global attributes dictionary:
     global_attrs = instrument.global_attributes_ndacc
@@ -1240,7 +1240,7 @@ if __name__ == "__main__":
     instrument_name = 'GROMOS'
     d = dt.date(2020, 1 , 28)
     
-    dates = pd.date_range(start="2014-01-01",end="2014-01-10")
+    dates = pd.date_range(start="2016-03-01",end="2016-03-05")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
