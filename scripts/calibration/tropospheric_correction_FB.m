@@ -1,4 +1,4 @@
-function spectra = tropospheric_correction_generic(spectra,calibrationTool)
+function spectra = tropospheric_correction_FB(spectra,calibrationTool)
 %==========================================================================
 % NAME          | tropospheric_correction_generic.m
 % TYPE          | function
@@ -47,6 +47,7 @@ for t = 1:length(spectra)
         spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
         spectra(t).troposphericTransmittance = -9999;
         spectra(t).troposphericOpacity=-9999;
+        spectra(t).troposphericOpacityTC = -9999;
         %spectra(t).meanTroposphericTransmittance  = -9999;
         %spectra(t).TbtropWinCorr = -9999;  
     else
@@ -310,6 +311,7 @@ for t = 1:length(spectra)
                 % In the beam direction:
                 %spectra(t).troposphericOpacityTC = TC(isTC).tauCalibZenithRJE * 1/sind(spectra(t).mean_sky_elevation_angle);   
                 spectra(t).troposphericOpacityTC = TC(isTC).tau_tc * 1/sind(spectra(t).mean_sky_elevation_angle);    
+                
             else
                 spectra(t).troposphericOpacityTC = NaN;
             end
