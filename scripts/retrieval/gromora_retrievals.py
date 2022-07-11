@@ -1566,15 +1566,14 @@ class DataRetrieval(ABC):
             bl = np.where(level2_data[spectro].bad_channels[i]==0, level2_data[spectro].y_baseline[i].data, np.nan)# level2_data[spectro].y_baseline[i].data 
             r = y - yf
             r = np.where(np.isnan(r), 0, r)
-            # r[level2_data[spectro].bad_channels[i].data] = np.nan
-            # r_interp = np.interp(f_backend,f_backend[~np.isnan(r)],r[~np.isnan(r)], left=0, right=0 )
-            r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
             fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(18,12))
             if self.instrument_name == 'GROMOS':
                 print('Binning spectra for similar resolution as SOMORA')
+                r = np.convolve(r, np.ones(2) / 2, mode="same")
                 axs[0].plot((np.convolve(f_backend, np.ones(2)/2, mode='same') - F0) / 1e6, np.convolve(y, np.ones(2)/2, mode='same'), color='silver', label="observed", alpha=.75)
             else:
                 axs[0].plot((f_backend - F0) / 1e6, y, color='silver', label="observed", alpha=.75)
+            r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
             axs[0].plot((f_backend - F0) / 1e6, yf, color='k', label="fitted")
             axs[0].set_ylabel("$T_B$ [K]", fontsize=fs)
             axs[0].set_ylim(np.nanmedian(yf)-4, np.nanmedian(yf)+20)
