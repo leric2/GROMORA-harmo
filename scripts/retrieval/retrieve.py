@@ -24,6 +24,7 @@ Attributes:
 Todo: all
 
 """
+from multiprocessing.sharedctypes import Value
 import sys, os
 from os.path import dirname, abspath, join
 
@@ -55,7 +56,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "GROMOS"
-    date = datetime.date(2018, 10 , 9)
+    date = datetime.date(1999, 2 , 6)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -71,10 +72,10 @@ if __name__ == "__main__":
     retrieval_param["ARTS_INCLUDE_PATH"] = ARTS_INCLUDE_PATH
 
     if instrument_name == "GROMOS":
-        import gromos_classes as gc
+        import gromos_FB_classes as fb
         basename_lvl1 = os.path.join(
             '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
-        instrument = gc.GROMOS_LvL2(
+        instrument = fb.GROMOS_FB_LvL2(
             date,
             basename_lvl1,
             basename_lvl2,
@@ -84,31 +85,7 @@ if __name__ == "__main__":
             )
         retrieval_param['increased_var_factor'] = 1  # 15
     elif instrument_name == "SOMORA":
-        basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/somora/level1/v2/', str(date.year))
-        import somora_classes as sm
-        instrument = sm.SOMORA_LvL2(
-            date=date,
-            basename_lvl1=basename_lvl1,
-            basename_lvl2=basename_lvl2,
-            integration_strategy=integration_strategy,
-            integration_time=int_time,
-            extra_base=''
-        )
-        retrieval_param['increased_var_factor'] = 1  # 1.1 #15
-    elif instrument_name == "mopi5":
-        import mopi5_classes as mc
-        basename_lvl1 = "/scratch/MOPI5/Level1/"
-        basename_lvl2 = "/scratch/MOPI5/Level2/"
-        #basename_lvl1 = "/home/eric/Documents/PhD/DATA/"
-        #basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
-        instrument = mc.MOPI5_LvL2(
-            date=date,
-            basename_lvl1=basename_lvl1,
-            basename_lvl2=basename_lvl2,
-            integration_strategy=integration_strategy,
-            integration_time=int_time
-        )
+        raise ValueError('Only GROMOS had FB !')
 
     if integration_strategy == 'classic':
         integrated_dataset, flags, integrated_meteo = instrument.read_level1b(
@@ -123,7 +100,7 @@ if __name__ == "__main__":
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
+    retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
     retrieval_param['verbose'] = 3
     retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
@@ -158,7 +135,7 @@ if __name__ == "__main__":
                                          0, 1, 2, 3], save_plot=False, identifier=[0, 1, 2, 3], with_corr=True)
 
     # for i,s in enumerate(instrument.spectrometer):
-    spectro = 'AC240'
+    spectro = 'FB'
     spectro_dataset = instrument.integrated_data[spectro]
 
     figure_list = []
