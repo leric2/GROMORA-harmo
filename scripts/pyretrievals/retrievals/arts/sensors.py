@@ -202,3 +202,36 @@ class SensorGaussian(AbstractSensor):
     @property
     def f_backend(self):
         return self._f_backend
+
+class SensorFB(AbstractSensor):
+    """Sensor with FB Channel response."""
+
+    def __init__(self, f_backend):
+        """
+        :param f_backend: Backend frequencies
+        """
+
+        self._f_backend = f_backend
+        self.bcr = GriddedField1(name='Backend channel response function for FB',
+                                 gridnames=['Frequency'], dataname='Data',
+                                 grids=[f_backend],
+                                 data=np.ones_like(f_backend))
+    def apply(self, ws):
+        ws.FlagOn(ws.sensor_norm)
+        ws.f_backend = self.f_backend
+        ws.backend_channel_response = [self.bcr, ]
+        super().apply(ws)
+
+    @property
+    def sensor_response_agenda(self):
+        @arts_agenda
+        def sensor_response_agenda(ws):
+            ws.AntennaOff()
+            ws.sensor_responseInit()
+            ws.sensor_responseBackend()
+
+        return sensor_response_agenda
+
+    @property
+    def f_backend(self):
+        return self._f_backend
