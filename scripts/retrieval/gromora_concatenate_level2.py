@@ -12,10 +12,11 @@ It also adds the retrieval_quality flags before saving it to yearly netCDF file.
 This scripts also provides basic plotting capabilities of the main diagnostics quantities.
 """
 
-import sys, datetime
+import sys, os
+from os.path import dirname, abspath, join
 
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(join(dirname(sys.path[0]),'retrieval'))
 
 import datetime
 
@@ -40,24 +41,24 @@ plt.rcParams.update({
 #load_dotenv('/opt/arts/.env.stockhorn-arts24')
 #load_dotenv('/opt/anaconda/.env.birg-arts24')
 
-instrument_name = "SOMORA"
+instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2011-01-01', end='2011-01-10') 
+date = pd.date_range(start='2009-02-01', end='2009-02-09') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
 #############################################################################
 # Concatenation of the daily files to single netCDF file for the period provided 
-concatenate_and_add_L2_flags = True
+concatenate_and_add_L2_flags = False
 save_residuals=False
 
 # Base diagnostic plot for the day provided.
-plot_selected = True
+plot_selected = False
 
 # raw plot of o3 time series and other diagnostics quantities
-plot_o3_ts = False
+plot_o3_ts = True
 plot_fshift = False
 plot_cost = False
 plot_polyfit = False
@@ -66,7 +67,8 @@ plot_sinefit = False
 add_opacity=False
 
 integration_strategy = 'classic'
-spectros = ['AC240'] 
+spectros = ['FB']
+spectro = spectros[0]
 int_time = 1
 ex = '_v2'
 # ex = '_waccm_low_alt'
@@ -82,14 +84,24 @@ colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
 #############################################################################
 #############################################################################
 if instrument_name == "GROMOS":
-    import gromos_classes as gromos
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
-    instrument = gromos.GROMOS_LvL2(
+    if spectro == 'AC240':
+        import gromos_classes as gromos_cl
+        instrument = gromos_cl.GROMOS_LvL2(
+        date=date,
+        basename_lvl1=basename_lvl1,
+        basename_lvl2=basename_lvl2,
+        integration_strategy=integration_strategy,
+        integration_time=int_time
+        )
+    else:
+        import gromos_FB_classes as gromos_cl
+        instrument = gromos_cl.GROMOS_FB_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
         basename_lvl2=basename_lvl2,
@@ -123,7 +135,7 @@ F0 = instrument.observation_frequency
 #############################################################################
 if concatenate_and_add_L2_flags:
 
-    new_ds = level2_dataset['AC240'] 
+    new_ds = level2_dataset[spectro] 
 
     #############################################################################
     # Adding the retrieval_quality flags to the concatenated level 2:
@@ -174,7 +186,7 @@ if plot_selected:
     instrument.plot_ozone_sel(
         level2_dataset,
         outname,
-        spectro='AC240',
+        spectro=spectros[0],
         cycles=[0,8,16],
         altitude = False,
         add_baselines = True, 
@@ -184,7 +196,7 @@ if plot_selected:
 #############################################################################
 #############################################################################
 if plot_o3_ts:
-    ozone = level2_dataset['AC240'] 
+    ozone = level2_dataset[spectro] 
     o3 = ozone.o3_x
     mr = ozone.o3_mr.data
     o3['altitude'] = ozone.o3_z / 1e3

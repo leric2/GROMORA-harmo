@@ -713,6 +713,9 @@ class DataRetrieval(ABC):
                 intermediate_freq= intermediate_freq,
                 sideband_response=sideband_response
             )
+        elif retrieval_param['sensor']=='FB':
+            channel_width_measured = retrieval_param['channel_width_measured']
+            sensor = arts.SensorGaussian(ds_freq+retrieval_param["f_shift"], fwhm=0.2e6)
         elif retrieval_param['sensor']=='OFF':
             sensor = arts.SensorOff()
         else:
@@ -825,20 +828,21 @@ class DataRetrieval(ABC):
             
             good_channels = spectro_dataset.good_channels[cycle].data == 1
             bad_channels = spectro_dataset.good_channels[cycle].data == 0
-
-            if retrieval_param['use_all_channels']:
-                ds_freq = spectro_dataset.frequencies[cycle].values
-            else:
-                ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
             
             if retrieval_param['window_corrected_spectrum']:
                 print('Using window corrected spectrum interpolated for bad channels')
                 ds_y = spectro_dataset.Tb_win_corr[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
             else:
                 print('Using non window corrected spectrum')
-                ds_y = spectro_dataset.Tb[cycle].values[good_channels]
+                ds_y = spectro_dataset.Tb[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
                 #ds_y = spectro_dataset.Tb_win_corr[cycle].values[good_channels]
                 #ds_y = spectro_dataset.intensity_planck_win_corr[cycle].values[good_channels]  
+            
+            if retrieval_param['use_all_channels']:
+                ds_freq = spectro_dataset.frequencies[cycle].values
+            else:
+                ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
+                ds_y = ds_y[good_channels] 
 
             ds_num_of_channel = len(ds_freq)
             #ds_Tb = Tb[cycle].values
@@ -862,6 +866,10 @@ class DataRetrieval(ABC):
             else:
                 if retrieval_param['sensor'] == 'FFT_SB':
                     f_grid = self.make_f_grid_double_sideband(retrieval_param)
+                elif retrieval_param['sensor'] == 'FB':
+                    ds_freq = np.flip(ds_freq)
+                    ds_y = np.flip(ds_y)
+                    f_grid = self.make_f_grid(retrieval_param)
                 else:
                     f_grid = self.make_f_grid(retrieval_param)
 
@@ -1081,7 +1089,7 @@ class DataRetrieval(ABC):
 
         ################################################
         # Frequency shift
-        fshift_ret = arts.FreqShift(100e3, df=50e3)
+        fshift_ret = arts.FreqShift(100e3, df=40e3)
 
         ################################################
         # Sinefit
@@ -1567,7 +1575,7 @@ class DataRetrieval(ABC):
             r = y - yf
             r = np.where(np.isnan(r), 0, r)
             fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(18,12))
-            if self.instrument_name == 'GROMOS':
+            if (self.instrument_name == 'GROMOS') & (spectro=='AC240'):
                 print('Binning spectra for similar resolution as SOMORA')
                 r = np.convolve(r, np.ones(2) / 2, mode="same")
                 axs[0].plot((np.convolve(f_backend, np.ones(2)/2, mode='same') - F0) / 1e6, np.convolve(y, np.ones(2)/2, mode='same'), color='silver', label="observed", alpha=.75)
@@ -1580,7 +1588,8 @@ class DataRetrieval(ABC):
            # axs[0].set_xlim(-0.5,15)
             axs[0].legend(fontsize=fs)
             axs[1].plot((f_backend - F0) / 1e6, r, color='silver', label="residuals", alpha=.75)
-            axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
+            if spectro != 'FB':
+                axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
             if add_baselines:
                 axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
 
