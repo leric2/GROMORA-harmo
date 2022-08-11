@@ -101,8 +101,8 @@ class SOMORA_LvL2(DataRetrieval):
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
 
         self.institution = 'Federal Office of Meteorology and Climatology;METEOSWISS'
-        self.affiliation = 'meteoswiss'
-        self.source = 'MWR.O3_METEOSWISS'
+        self.affiliation = 'meteoswiss001'
+        self.source = 'MWR.O3_METEOSWISS001'
         self.longitude = 6.94
         self.latitude = 46.82
         self.altitude = 491
@@ -179,8 +179,13 @@ class SOMORA_LvL2(DataRetrieval):
         These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
         '''
-        date2flag_somora =  [ ]
-        return date2flag_somora
+        date2flag =  [
+             slice('2012-04-24','2012-04-27')
+        ]
+        date2flag.append(slice('2016-09-29','2016-11-03'))
+        date2flag.append(slice('2018-01-31','2018-02-11'))
+        date2flag.append(slice('2018-07-25','2018-08-23'))
+        return date2flag
 
     @property
     def basecolor(self):

@@ -115,7 +115,7 @@ class GROMOS_LvL2(DataRetrieval):
         
         self.institution = 'University of Bern;UBERN'
         self.affiliation = 'ubern001'
-        self.source = 'MWR.O3_UBERN'
+        self.source = 'MWR.O3_UBERN001'
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
@@ -194,20 +194,19 @@ class GROMOS_LvL2(DataRetrieval):
         '''
         return 0.1 
 
-    # @property
-    # def day2flag_level2(self):
-    #     '''
-    #     A selection of days to flags for the level2 GROMOS data. 
-    #     These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+    @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS data. 
+        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
-    #     '''
-    #     date2flag_gromos =  [
-    #         datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
-    #         pd.date_range('2012-07-24', '2012-08-07'),
-    #         pd.date_range('2019-01-14', '2019-02-12'),
-
-    #     ]
-    #     return date2flag_gromos
+        '''
+        date2flag =  [
+            slice('2015-08-26','2015-08-29')
+        ]
+        date2flag.append(slice('2012-07-24','2012-08-08'))
+        date2flag.append(slice('2019-01-14','2019-02-12'))
+        return date2flag
 
     @property
     def usb_grid(self):
