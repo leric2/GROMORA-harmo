@@ -186,7 +186,7 @@ if __name__ == "__main__":
     integration_strategy = 'classic'
 
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
-    retrieve_cycle =  None #None #None // [0]
+    retrieve_cycle = None #   #None #None // [0]
 
     instrument_name = ['GROMOS'] # ['GROMOS', 'SOMORA']
 
@@ -197,7 +197,8 @@ if __name__ == "__main__":
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    dates = pd.date_range(start='2009-02-01', end='2009-02-15')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
+    dates = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+    #dates = pd.date_range(start='2008-01-01', end='2008-12-31')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
     #dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')

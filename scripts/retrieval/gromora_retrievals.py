@@ -715,7 +715,8 @@ class DataRetrieval(ABC):
             )
         elif retrieval_param['sensor']=='FB':
             channel_width_measured = retrieval_param['channel_width_measured']
-            sensor = arts.SensorGaussian(ds_freq+retrieval_param["f_shift"], fwhm=0.2e6)
+            channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
+            sensor = arts.SensorGaussian(ds_freq+retrieval_param["f_shift"], fwhm=channel_width_measured)
         elif retrieval_param['sensor']=='OFF':
             sensor = arts.SensorOff()
         else:
@@ -842,7 +843,7 @@ class DataRetrieval(ABC):
                 ds_freq = spectro_dataset.frequencies[cycle].values
             else:
                 ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
-                ds_y = ds_y[good_channels] 
+                ds_y = ds_y[good_channels]
 
             ds_num_of_channel = len(ds_freq)
             #ds_Tb = Tb[cycle].values
@@ -867,9 +868,12 @@ class DataRetrieval(ABC):
                 if retrieval_param['sensor'] == 'FFT_SB':
                     f_grid = self.make_f_grid_double_sideband(retrieval_param)
                 elif retrieval_param['sensor'] == 'FB':
+                    retrieval_param['good_channels'] = good_channels
                     ds_freq = np.flip(ds_freq)
                     ds_y = np.flip(ds_y)
-                    f_grid = self.make_f_grid(retrieval_param)
+                    #f_grid = self.make_f_grid(retrieval_param)
+                    f_grid = np.insert(ds_freq, 0, 141e9)
+                    f_grid = np.append(f_grid, 143e9)
                 else:
                     f_grid = self.make_f_grid(retrieval_param)
 
@@ -1560,6 +1564,7 @@ class DataRetrieval(ABC):
         F0 = self.observation_frequency
 
         col = self.basecolor
+        obs_color = col
 
         figure_o3_sel=list()
         fs=28
@@ -1580,14 +1585,14 @@ class DataRetrieval(ABC):
                 r = np.convolve(r, np.ones(2) / 2, mode="same")
                 axs[0].plot((np.convolve(f_backend, np.ones(2)/2, mode='same') - F0) / 1e6, np.convolve(y, np.ones(2)/2, mode='same'), color='silver', label="observed", alpha=.75)
             else:
-                axs[0].plot((f_backend - F0) / 1e6, y, color='silver', label="observed", alpha=.75)
+                axs[0].plot((f_backend - F0) / 1e6, y, color=obs_color, label="observed", alpha=.75)
             r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
             axs[0].plot((f_backend - F0) / 1e6, yf, color='k', label="fitted")
             axs[0].set_ylabel("$T_B$ [K]", fontsize=fs)
-            axs[0].set_ylim(np.nanmedian(yf)-4, np.nanmedian(yf)+20)
+            axs[0].set_ylim(np.nanmedian(yf)-20, np.nanmedian(yf)+20)
            # axs[0].set_xlim(-0.5,15)
             axs[0].legend(fontsize=fs)
-            axs[1].plot((f_backend - F0) / 1e6, r, color='silver', label="residuals", alpha=.75)
+            axs[1].plot((f_backend - F0) / 1e6, r, color=obs_color, label="residuals", alpha=.75)
             if spectro != 'FB':
                 axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
             if add_baselines:
@@ -1654,7 +1659,7 @@ class DataRetrieval(ABC):
             axs[0].text(
             0.9,
             0.01,
-            'a)',
+            r'a)',
             transform=axs[0].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1693,7 +1698,7 @@ class DataRetrieval(ABC):
             axs[1].text(
             0.9,
             0.01,
-            'b)',
+            r'b)',
             transform=axs[1].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1713,7 +1718,7 @@ class DataRetrieval(ABC):
             axs[2].text(
             0.9,
             0.01,
-            'c)',
+            r'c)',
             transform=axs[2].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1732,7 +1737,7 @@ class DataRetrieval(ABC):
             axs[3].text(
             0.9,
             0.01,
-            'd)',
+            r'd)',
             transform=axs[3].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1764,7 +1769,7 @@ class DataRetrieval(ABC):
                 a.grid(which='both', axis='x', linewidth=0.5)
                 a.tick_params(axis='both', which='major', labelsize=fs)
             fig.suptitle('O$_3$ retrievals: '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'), fontsize=fs+4)
-            fig.tight_layout(rect=[0, 0.01, 1, 0.99])
+            #fig.tight_layout(rect=[0, 0.01, 1, 0.99])
             figure_o3_sel.append(fig)
 
         save_single_pdf(outName+'.pdf',figure_o3_sel)    

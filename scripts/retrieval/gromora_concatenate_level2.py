@@ -45,20 +45,20 @@ instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2009-02-01', end='2009-02-09') 
+date = pd.date_range(start='2009-01-01', end='2009-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
 #############################################################################
 # Concatenation of the daily files to single netCDF file for the period provided 
-concatenate_and_add_L2_flags = False
+concatenate_and_add_L2_flags = True
 save_residuals=False
 
 # Base diagnostic plot for the day provided.
 plot_selected = False
 
 # raw plot of o3 time series and other diagnostics quantities
-plot_o3_ts = True
+plot_o3_ts = False
 plot_fshift = False
 plot_cost = False
 plot_polyfit = False
@@ -161,7 +161,7 @@ if concatenate_and_add_L2_flags:
     # Encoding the time coordinates properly:
     new_ds.time.attrs['standard_name'] = 'time'
     new_ds.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
-    new_ds.time.encoding['calendar'] = 'standard'
+    new_ds.time.encoding['calendar'] = 'proleptic_gregorian' #'standard'
     new_ds.time.attrs['timezone'] = 'Z'
     new_ds.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
     
@@ -174,7 +174,7 @@ if concatenate_and_add_L2_flags:
     
     # If not, we remove the observation vector from the concatenated level 2 (for space)
     ozone = new_ds.drop_dims(['f']) #drop_vars(['y', 'yf', 'bad_channels', 'y_baseline'])
-    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+ex+'.nc' , format='NETCDF4', unlimited_dims='time')
+    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_FB'+'.nc' , format='NETCDF4', unlimited_dims='time')
 
 #############################################################################
 #############################################################################
