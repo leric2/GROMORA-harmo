@@ -553,7 +553,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     global_attrs['FILE_ACCESS']='EVDC;NDACC'
     global_attrs['FILE_DOI']='TBD'
     global_attrs['FILE_ASSOCIATION']='NDACC'
-    global_attrs['FILE_META_VERSION']='CUSTOM'
+    global_attrs['FILE_META_VERSION']='04R069;CUSTOM'
 
     ####################################################
     # Variables definition:
@@ -860,7 +860,7 @@ if __name__ == "__main__":
     save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2015-01-01",end="2015-01-10")
+    dates = pd.date_range(start="2015-06-01",end="2015-06-07")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
