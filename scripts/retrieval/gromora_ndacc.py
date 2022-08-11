@@ -132,7 +132,7 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86, method='simple_stack_corr', max_T_diff=
         p_with_low_T_diff = T_diff.Pressure.where((T_diff<max_T_diff), drop=True)
         upper_p_grid = cira86.Pressure.where(cira86.Pressure<p_with_low_T_diff[-1], drop=True)
         upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
-        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1])
+        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure >= p_with_low_T_diff[-1], drop=True)
         # # interpolate CIRA86 altitude on p_grid
         # cira86_alt_i = p_interpolate(
         #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
@@ -148,6 +148,8 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86, method='simple_stack_corr', max_T_diff=
                                 'p' : ('p', p_grid),
                             }
     )
+
+    #ds_merged = ds_merged.interpolate_na(dim='t', method='linear', max_gap=3)
 
     return ds_merged
 
@@ -343,7 +345,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     new_L2 = True 
 
-    measurement_response_limit = 0.75
+    measurement_response_limit = 0.8
 
     #############################################################################
     #############################################################################
@@ -681,7 +683,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 ######################################################################################################################
 # Some plotting functions for checks    
     if plot_tprofile is not None:
-        fig, axs = plt.subplots(nrows=1, ncols=4, sharey=False, figsize=(24,16))
+        fig, axs = plt.subplots(nrows=1, ncols=4, sharey=True, figsize=(24,16))
         i = plot_tprofile[0]
 
         ds = level2_dataset['AC240'].isel(time=i)
@@ -706,8 +708,9 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         t_interp = p_interpolate(p_grid, ptz.p.values, ptz.t.values)
         axs[0].plot(ptz.t.values, ptz.z.values/1e3, 'x')
         axs[0].plot(t_interp, z_interp/1e3, 'o')
-        axs[0].plot(new_ds.isel(DATETIME=i).TEMPERATURE_INDEPENDENT, new_ds.isel(DATETIME=i).ALTITUDE/1e3)
+        axs[0].plot(new.TEMPERATURE_INDEPENDENT, new.ALTITUDE/1e3)
         axs[0].set_xlim(100,340)
+        axs[0].set_ylim(0,95)
 
         o3_og = ds.o3_x #.where(ds.o3_mr>measurement_response_limit, np.nan)
         o3 = new['O3.MIXING.RATIO.VOLUME_EMISSION']
@@ -860,14 +863,14 @@ if __name__ == "__main__":
     save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2015-06-01",end="2015-06-07")
+    dates = pd.date_range(start="2017-01-01",end="2017-01-01")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
     #xr.open_dataset(filename, engine='pseudonetcdf')
     #test = xr.open_mfdataset(folder+'groundbased_mwr.o3_ubern001_bern_2010*.hdf', concat_dim='DATETIME', combine='nested')
 
-    plot_cycle = None # [8]
+    plot_cycle = [12] # [8]
     for d in dates:
         if write_new:
             try:
@@ -883,6 +886,6 @@ if __name__ == "__main__":
                 print(e)
                 pass
         else:
-            filename = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/groundbased_mwr.o3_ubern001_bern_20180401t000014z_20180401t235946z_012.nc'
+            filename = 'groundbased_mwr.o3_ubern001_bern_20160101t000004z_20160101t235953z_012.nc'
             new_ds = xr.open_dataset(filename, engine='netcdf4')
             GEOMS_2_NDACC(new_ds,outfolder=save_folder_gromos)

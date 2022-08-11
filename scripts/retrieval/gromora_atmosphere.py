@@ -706,7 +706,7 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86, retrieval_param, method='simple_stack_c
         p_with_low_T_diff = T_diff.Pressure.where((T_diff<max_T_diff), drop=True)
         upper_p_grid = cira86.Pressure.where(cira86.Pressure<p_with_low_T_diff[-1], drop=True)
         upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
-        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1])
+        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1], drop=True)
         # # interpolate CIRA86 altitude on p_grid
         # cira86_alt_i = p_interpolate(
         #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
