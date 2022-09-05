@@ -205,7 +205,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', int_time
 
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
+        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_oper.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
