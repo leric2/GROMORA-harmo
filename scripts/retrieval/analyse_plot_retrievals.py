@@ -145,7 +145,7 @@ ex = '_gromosAP_low_alt'
 
 ex = '_sinefit_optimized'
 ex = '_waccm_low_alt_dx10'
-ex = '_v2'
+ex = '_oper.nc'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
