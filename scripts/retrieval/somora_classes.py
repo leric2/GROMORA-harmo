@@ -102,10 +102,14 @@ class SOMORA_LvL2(DataRetrieval):
 
         self.institution = 'Federal Office of Meteorology and Climatology;METEOSWISS'
         self.affiliation = 'meteoswiss001'
-        self.source = 'MWR.O3_METEOSWISS001'
+        self.source = 'MWR.O3_METEOSWISS001_HARMON.2022'
+        self.location = 'PAYERNE'
         self.longitude = 6.94
         self.latitude = 46.82
         self.altitude = 491
+
+        self.name_PI = 'Maillard Barras;Eliane'
+        self.contact = 'Ch. de l\'Aerologie;CH-1530 Payerne;SWITZERLAND'
 
         # Can be used for plotting names (SOMORA_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'

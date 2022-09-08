@@ -45,7 +45,7 @@ instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2009-01-01', end='2009-12-31') 
+date = pd.date_range(start='2008-01-01', end='2008-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -70,7 +70,7 @@ integration_strategy = 'classic'
 spectros = ['FB']
 spectro = spectros[0]
 int_time = 1
-ex = '_v2'
+ex = '_rect_SB'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
@@ -140,6 +140,11 @@ if concatenate_and_add_L2_flags:
     #############################################################################
     # Adding the retrieval_quality flags to the concatenated level 2:
     good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0]) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
+
+    # if spectro == 'FB':
+    #     # FB measured in CET ! 
+    #     new_ds['time'] = new_ds['time'] - pd.Timedelta(1, 'hour')
+    #     new_ds['local_solar_time'] = new_ds['local_solar_time'] - pd.Timedelta(1, 'hour')
     
     new_ds['retrieval_quality'] = ('time', good_data.data.astype(int)) # good_data*1 # ('time', good_data.data.astype(int))
     new_ds['retrieval_quality'].attrs['standard_name'] = 'retrieval_quality'
@@ -174,7 +179,7 @@ if concatenate_and_add_L2_flags:
     
     # If not, we remove the observation vector from the concatenated level 2 (for space)
     ozone = new_ds.drop_dims(['f']) #drop_vars(['y', 'yf', 'bad_channels', 'y_baseline'])
-    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_FB'+'.nc' , format='NETCDF4', unlimited_dims='time')
+    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_FB_SB'+'.nc' , format='NETCDF4', unlimited_dims='time')
 
 #############################################################################
 #############################################################################

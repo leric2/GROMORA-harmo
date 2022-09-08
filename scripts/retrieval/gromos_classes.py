@@ -106,7 +106,6 @@ class GROMOS_LvL2(DataRetrieval):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
 
-        
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
         
@@ -115,11 +114,15 @@ class GROMOS_LvL2(DataRetrieval):
         
         self.institution = 'University of Bern;UBERN'
         self.affiliation = 'ubern001'
-        self.source = 'MWR.O3_UBERN001'
+        self.source = 'MWR.O3_UBERN001_HARMON.2022'
+        self.location = 'BERN'
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
-        
+
+        self.name_PI = 'Murk;Axel'
+        self.contact = 'Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland'
+
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -231,8 +234,6 @@ class GROMOS_LvL2(DataRetrieval):
     @property
     def cycle_duration(self):
         return 7/3600
-    
-
 
     @property
     def global_attributes_ndacc(self):
