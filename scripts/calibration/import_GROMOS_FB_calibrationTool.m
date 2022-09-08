@@ -208,6 +208,8 @@ calibrationTool.filter2.boxCarThresh=2;
 % Meteo Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calibrationTool.meteoFolder=['/storage/lake/instrumentdata/meteo/exwi/meteo/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoFolderBollwerk=['/storage/lake/instrumentdata/meteo/bollwerk/' calibrationTool.dateStr(1:4) '/'];
+
 %calibrationTool.meteoFolder='/home/eric/Documents/PhD/GROSOM/Data/METEO_DATA/';
 
 % Read meteo data
@@ -316,6 +318,11 @@ calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_FB(calibrat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameter varying with time for the instruments:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if (calibrationTool.timeNumber > datenum(1996,12,31)) && (calibrationTool.timeNumber < datenum(1998,01,01))
+    %Not working for now before 2010-03-10
+    calibrationTool.doTippingCurve = false;
+end
+
 % binary name extension
 if calibrationTool.timeNumber < datenum(2010,05,06)
     calibrationTool.binaryDataExtension = '.dat';

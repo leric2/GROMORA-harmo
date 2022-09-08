@@ -1,4 +1,4 @@
-function calibrationTool = save_level1b_daily(calibrationTool,level1)
+function calibrationTool = save_level1b_FB(calibrationTool,level1)
 %==========================================================================
 % NAME      | save_level1b_daily.m
 % TYPE      | function
@@ -228,7 +228,7 @@ ncwrite(filename,'/spectrometer1/noise_temperature',[integratedSpectra.TNoise]);
 ncwrite(filename,'/spectrometer1/calibration_time',[integratedSpectra.calibration_time]);
 ncwrite(filename,'/spectrometer1/integration_time',[integratedSpectra.integration_time]);
 ncwrite(filename,'/spectrometer1/mean_sky_elevation_angle',[integratedSpectra.mean_sky_elevation_angle]);
-ncwrite(filename,'/spectrometer1/mean_std_Tb',[integratedSpectra.meanStdTbFromCal]);
+ncwrite(filename,'/spectrometer1/mean_std_Tb',[integratedSpectra.meanStdTbFromGoodCh]);
 ncwrite(filename,'/spectrometer1/meanTb',[integratedSpectra.meanTb]);
 
 ncwrite(filename,'/spectrometer1/number_of_calibrated_spectra',[integratedSpectra.numberOfAveragedSpectra]);

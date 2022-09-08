@@ -58,6 +58,7 @@ for h = 1:length(timeThresh)-1
         integratedTb=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedPlanckIntensity=-9999*ones(1,calibrationTool.numberOfChannels);
         integratedStdTb = -9999*ones(1,calibrationTool.numberOfChannels);
+        stdTbCal = -9999*ones(1,calibrationTool.numberOfChannels);
         integratedMeanStdTbFromCalMean = -9999;
         integratedSpectra(h).numberOfAveragedSpectra = 0;
         % goodSpectra=indSpectra;
@@ -77,10 +78,12 @@ for h = 1:length(timeThresh)-1
         if calibrationTool.savePlanckIntensity
             integratedPlanckIntensity = nanmean(vertcat(calibratedSpectra(goodSpectra).intensity_planck),1);
         end
+        %stdTb = nanstd(vertcat(calibratedSpectra(goodSpectra).Tb));
         % Computing the std deviation on the integrated spectra
         sum_of_variance = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb).^2,1);
         %integratedStdTb = nansum(vertcat(calibratedSpectra(goodSpectra).stdTb),1) / sqrt(length(goodSpectra));
         integratedStdTb = sqrt(sum_of_variance/length(goodSpectra));
+        stdTbCal = nanstd(vertcat(calibratedSpectra(goodSpectra).Tb),1)/sqrt(length(goodSpectra));
         %integratedMeanStdTbFromCalMean = sqrt(nansum([calibratedSpectra(goodSpectra).meanStdTb].^2)/length(goodSpectra))
         
         % For the mean, we take only good quality channels
@@ -145,6 +148,7 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).intensity_planck=integratedPlanckIntensity;
     end
     integratedSpectra(h).stdTb=integratedStdTb;
+    integratedSpectra(h).stdTbCal=stdTbCal;
     integratedSpectra(h).meanStdTbFromCal=integratedMeanStdTbFromCalMean;
     integratedSpectra(h).mean_sky_elevation_angle = meanAngleAT;
     integratedSpectra(h).time_of_day=tod;
