@@ -103,7 +103,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
         observation_frequency = 1.4217504e11
         instrument_name = "GROMOS"
 
-        self.bandwidth = [1e9]
+        self.bandwidth = [1.2e9]
         spectrometers = ["FB"]
 
         
@@ -116,10 +116,14 @@ class GROMOS_FB_LvL2(DataRetrieval):
         self.institution = 'University of Bern;UBERN'
         self.affiliation = 'ubern001'
         self.source = 'MWR.O3_UBERN'
+        self.location = 'BERN'
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
         
+        self.name_PI = 'Murk;Axel'
+        self.contact = 'Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland'
+
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -138,7 +142,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         ########################################################
         # Sensor related parameter:
-        retrieval_param['sensor'] = 'FB'
+        
         retrieval_param['SB_bias'] = 0
         
         retrieval_param['sideband_response'] = 'theory'
@@ -146,9 +150,9 @@ class GROMOS_FB_LvL2(DataRetrieval):
         retrieval_param['window_corrected_spectrum'] = True
         retrieval_param["f_shift"] = 0
 
-        # Frequency grid for the simulation:
-        retrieval_param["number_of_freq_points"] = 4*1201
-        retrieval_param["irregularity_f_grid"] = 5000
+        # # Frequency grid for the simulation:
+        # retrieval_param["number_of_freq_points"] = 4*1201
+        # retrieval_param["irregularity_f_grid"] = 5000
 
         ########################################################
         # Pressure grids
@@ -179,7 +183,6 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         # Offset for the pointing angle -> instrument_class (usually 0)
         retrieval_param['pointing_angle_corr'] = self.correct_pointing(retrieval_param)
-
 
         ########################################################
         # Species definition and spectroscopy
@@ -231,9 +234,9 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         ########################################################
         # Type of noise covariance to use
-        retrieval_param['noise_covariance']  = 'noise_level'
+        retrieval_param['noise_covariance']  = 'noise_level' #float(0.15)//'noise_level'  // 'stdTb'
         # factor to increase the noise variance
-        retrieval_param['increased_var_factor'] = 0.3
+        retrieval_param['increased_var_factor'] = 0.3# 0.3
         
         ########################################################
         # Variable related to channel response of FB
@@ -248,8 +251,18 @@ class GROMOS_FB_LvL2(DataRetrieval):
         # OEM parameters, see https://atmtools.github.io/arts-docs-2.4/docserver/methods/OEM.html 
         retrieval_param['oem_method'] = 'gn'# 'lm'
         retrieval_param['max_iter'] = 10
-        retrieval_param['stop_dx'] = 20.1
+        retrieval_param['stop_dx'] = 1
         retrieval_param['lm_ga_setting']=[10, 2.0, 2.0, 100, 1, 99]
+
+        #if self.date <  datetime.date(1999, 10 , 12):
+        if self.date <  datetime.date(2006, 2 , 1):
+            retrieval_param['atm'] = 'fascod_cira86' 
+            retrieval_param['h2o_apriori'] = 'fascod_extended'  # 'ecmwf' # 'fascod_extended'
+            #retrieval_param['noise_covariance']  = float(0.5)#float(0.16)
+            #retrieval_param['increased_var_factor'] =  0.5# 0.3
+            retrieval_param["z_top_sim_grid"] = 100e3
+            #retrieval_param['increased_var_factor'] =  0.04
+
 
         return retrieval_param
 
@@ -544,20 +557,19 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         return figure_list
 
-    # @property
-    # def day2flag_level2(self):
-    #     '''
-    #     A selection of days to flags for the level2 GROMOS data. 
-    #     These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+    @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS FB data. 
 
-    #     '''
-    #     date2flag_gromos =  [
-    #         datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
-    #         pd.date_range('2012-07-24', '2012-08-07'),
-    #         pd.date_range('2019-01-14', '2019-02-12'),
+        '''
+        date2flag_gromos_FB =  [
+            slice('2008-08-19','2008-10-3')
+        ]
+        #date2flag_gromos_FB.append(slice('2012-07-24','2012-08-08'))
+        #date2flag_gromos_FB.append(slice('2019-01-14','2019-02-12'))
 
-    #     ]
-    #     return date2flag_gromos
+        return date2flag_gromos_FB
 
     def cost_threshold(self, year):
         '''
@@ -580,11 +592,11 @@ class GROMOS_FB_LvL2(DataRetrieval):
         return good_channel_width
 
     def channel_width_theory(self):
-        return 1e6*[100,100,100,100,100,100,30,20,20,10,5,5,2,2,2,1,1,0.5,0.5,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.5,1,1,2,2,2,5,5,10,20,20,30,100,100,100,100,100,100,100]
+        return 1e6*np.array([100,100,100,100,100,100,30,20,20,10,5,5,2,2,2,1,1,0.5,0.5,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.5,1,1,2,2,2,5,5,10,20,20,30,100,100,100,100,100,100,100])
 
     @property
     def usb_grid(self):
-        return np.arange(148.975e9,150.175e9,100e6)
+        return np.arange(148.975e9,150.375e9,100e6)
 
     @property
     def basecolor(self):

@@ -56,7 +56,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "GROMOS"
-    date = datetime.date(2006, 1 , 3)
+    date = datetime.date(2006, 1, 30)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
@@ -93,12 +93,13 @@ if __name__ == "__main__":
         raise NotImplementedError(
             'TODO, implement reading level1b in non classical cases !')
 
-    cycles = np.arange(3,4)
+    cycles = np.arange(13,14)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
+    retrieval_param['sensor'] = 'FB_SB'
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
     retrieval_param['verbose'] = 3
     retrieval_param["retrieval_type"] = 2

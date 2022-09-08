@@ -29,7 +29,8 @@ from .sensors import (
     SensorGaussian,
     SensorFFT,
     SensorFFT_Sideband,
-    SensorFB
+    SensorRect,
+    SensorRectSB
 )
 
 
