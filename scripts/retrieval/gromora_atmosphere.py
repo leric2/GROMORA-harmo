@@ -53,13 +53,25 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
     '''
     Building the ecmwf store for atmospheric state
     '''
-    if t1 > dt.datetime(2013,6,24):
+    # if t1 > dt.datetime(2013,6,24):
+    #     ecmwf_levels=137
+    # elif t1 < dt.datetime(2013,6,25):
+    #     ecmwf_levels=91
+    # else:
+    #     ecmwf_levels=np.nan
+    if t1>dt.datetime(2013,6,24):
         ecmwf_levels=137
-    elif t1 < dt.datetime(2013,6,25):
+    elif (t1>=dt.datetime(2006,2,1)) & (t1<=dt.datetime(2013,6,24)):
         ecmwf_levels=91
+    elif (t1>=dt.datetime(1999,10,12)) & (t1<dt.datetime(2006,2,1)):
+        ecmwf_levels=60
+    elif (t1>=dt.datetime(1999,3,9)) & (t1<dt.datetime(1999,10,12)):
+        ecmwf_levels=50
+    elif (t1>=dt.datetime(1994,1,1)) & (t1<dt.datetime(1999,3,9)):
+        ecmwf_levels=31
     else:
         ecmwf_levels=np.nan
-        
+
     ecmwf_store = ECMWFLocationFileStore(ECMWF_store_path, ecmwf_prefix)
     ds_ecmwf = (
         ecmwf_store.select_time(t1, t2, n_levels=ecmwf_levels, combine='by_coords')
@@ -150,6 +162,8 @@ def plot_apriori_cira86(retrieval_param):
     plot_cira86_profile(cira86)
     pass 
 
+
+
 def get_apriori_fascod(retrieval_param):
     '''
     All in one.
@@ -196,6 +210,7 @@ def get_apriori_fascod(retrieval_param):
         print('Ozone apriori from : OG SOMORA')
     else:
         print('Ozone apriori from : fascod')
+
     return fascod_atm
 
 def get_apriori_atmosphere(retrieval_param):
@@ -226,6 +241,53 @@ def get_apriori_atmosphere(retrieval_param):
     #    )
     
     return atm
+
+def get_apriori_fascod_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf, z_grid=None):
+    '''
+    All in one.
+    '''
+    month = pd.to_datetime(retrieval_param['time']).month
+
+    if month in summer_months:
+        fascod_clim = 'midlatitude-summer'
+    else:
+        fascod_clim = 'midlatitude-winter'
+    
+    atm = arts.Atmosphere.from_arts_xml(
+        ARTS_DATA_PATH + "/planets/Earth/Fascod/{}/{}.".format(fascod_clim,fascod_clim)
+    )
+    print('Atmospheric state and apriori defined from Fascod climatology : ',fascod_clim)
+
+    # Reading CIRA86
+    cira86 = read_cira86_monthly(retrieval_param['cira86_path'], month, retrieval_param['lat'])
+    atm.set_t_field(cira86['Pressure'].values, cira86['temperature'].values)
+    # z field
+    atm.set_z_field(cira86['Pressure'].values, cira86["altitude"].values)
+    print('Set altitude and Temperature fields to CIRA86 !')
+
+    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf, "h")
+    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf, "h")
+
+    if ('ecmwf' in retrieval_param['atm']) or ('ecmwf' in retrieval_param['h2o_apriori']):
+        if retrieval_param['verbose'] > 1:
+            print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
+
+        # Read ECMWF data (oper for now)
+        ECMWF_store_path = ecmwf_store
+        ecmwf_prefix = retrieval_param['ecmwf_prefix']
+        ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+
+        ds_ecmwf['pressure']  = ds_ecmwf['pressure']*1e-2
+
+    atm = get_o3_apriori(atm, month, retrieval_param)
+    
+    if 'ecmwf' in retrieval_param['h2o_apriori']:
+        atm = get_h2o_apriori(atm, retrieval_param, fascod_clim, ds_ecmwf)
+    else:
+        atm = get_h2o_apriori(atm, retrieval_param, fascod_clim)
+
+    return atm
+
 
 def compare_ecmwf_oper_dataset():
     # for comparing between ECMWF oper version or between GRIB and netCDF file
@@ -291,95 +353,7 @@ def read_merra2_data(retrieval_param, merra_location, t1, t2):
         #use_cftime=True,
         )
 
-def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf, z_grid=None):
-    '''
-    Defining a-priori atmosphere from ECMWF operationnal dataset and CIRA86 clim
-
-    First, we initiate an Atmosphere from Fascod climatology before
-    updating the fields from ECMWF operationnal dataset.
-
-    At this point we have 2 choice:
-    1. Create atm using the fascod and overwrite our variable from ds_ptz
-
-    2. Create atm using "from_dataset". 
-    In this case:
-    The dataset must have the coordinates `pressure`, `lat`, `lon` and can have
-    variables `t`, `z` and absorbing species like `o3` (all lowercase).
-    --> It means we have to expand_dims at that point to use this method.
-    --> It means also that we need apriori values for each of the species in 
-    abs_species ......
-
-    '''
-    summer_months = [4, 5, 6, 7, 8, 9]
-
-    lat = retrieval_param['lat']
-    month = pd.to_datetime(retrieval_param['time']).month
-
-    if month in summer_months:
-        fascod_clim = 'midlatitude-summer'
-    else:
-        fascod_clim = 'midlatitude-winter'
-
-    clim_prefix = os.path.join(ARTS_DATA_PATH, "planets/Earth/Fascod/{0}/{0}.".format(fascod_clim))
-    
-    # atm = arts.Atmosphere.from_dataset(ds_ptz)
-    atm = arts.Atmosphere.from_arts_xml(clim_prefix)
-
-    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf, "h")
-    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf, "h")
-
-    if retrieval_param['verbose'] > 1:
-        print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
-
-    # Read EACMWF data (oper for now)
-    ECMWF_store_path = ecmwf_store
-    ecmwf_prefix = retrieval_param['ecmwf_prefix']
-    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
-
-    if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
-        raise ValueError('no ECMWF data')
-
-    # Reading CIRA86
-    cira86 = read_cira86_monthly(cira86_path, month, lat)
-
-    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
-        
-    #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
-
-    # Merging ecmwf and CIRA86
-    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86, retrieval_param, method=retrieval_param['ptz_merge_method'], max_T_diff=retrieval_param['ptz_merge_max_Tdiff'])
-
-    # extrapolate to p_grid ??
-    if z_grid is not None:
-        ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
-
-    if retrieval_param['verbose'] > 1:
-        print('Min pressure of the new grid: ', min(ds_ptz.p.values))
-        print('Max pressure of the new grid: ', max(ds_ptz.p.values))
-
-        print('Min altitude of the new grid (interpolated from cira86 !!): ', min(ds_ptz.z.values))
-        print('Max altitude of the new grid (interpolated from cira86 !!): ', max(ds_ptz.z.values))
-    
-        plot_apriori_ptz(ds_ptz)
-
-    #  Temperature
-    atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
-    
-    if retrieval_param["retrieval_type"] == 8:
-        if retrieval_param["test_type"] == 'Tprofile':
-            print('Adding bias on Tprofile !')
-            atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values+retrieval_param['Tprofile_bias'])
-
-
-    # z field
-    atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
-    
-    pressure_atm = atm.z_field.to_xarray().coords['Pressure']
-    # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
-    # Ozone
-    #print('Pressure [Pa]:')
-    #print(pressure_atm)
-
+def get_o3_apriori(atm, month, retrieval_param):
     if retrieval_param['o3_apriori'] == 'somora':
         retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
         o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
@@ -390,6 +364,7 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         )
         print('Ozone apriori from : old SOMORA retrievals')
         # extracting pressure from the fascod atm
+        pressure_atm = atm.z_field.to_xarray().coords['Pressure']
         atm.set_vmr_field(
             "O3", pressure_atm, o3_apriori_h
         )       
@@ -437,7 +412,11 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     else: 
         print('Ozone apriori not recognized !')
         return 0
-   # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
+
+    return atm
+
+def get_h2o_apriori(atm, retrieval_param, fascod_clim='midlatitude-sommer', ds_ecmwf=xr.Dataset()):
+    pressure_atm = atm.z_field.to_xarray().coords['Pressure']
 
     # Water vapor
     # merging Fascod with ECMWF
@@ -449,6 +428,8 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
         atm.set_vmr_field(
         "H2O", pressure_atm, h2o_apriori
         )
+        if retrieval_param['verbose'] > 1:
+            print('h2o AP from fascod and ecmwf')
     elif retrieval_param['h2o_apriori']=='ecmwf':
         #plot_apriori_ptz(h2o_apriori)
         atm.set_vmr_field(
@@ -474,6 +455,102 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
             print('h2o taken from fascod (extended)')
     else:
         raise ValueError('select valid apriori for h2o')
+    
+    return atm
+
+def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cira86_path, t1, t2, extra_time_ecmwf, z_grid=None):
+    '''
+    Defining a-priori atmosphere from ECMWF operationnal dataset and CIRA86 clim
+
+    First, we initiate an Atmosphere from Fascod climatology before
+    updating the fields from ECMWF operationnal dataset.
+
+    At this point we have 2 choice:
+    1. Create atm using the fascod and overwrite our variable from ds_ptz
+
+    2. Create atm using "from_dataset". 
+    In this case:
+    The dataset must have the coordinates `pressure`, `lat`, `lon` and can have
+    variables `t`, `z` and absorbing species like `o3` (all lowercase).
+    --> It means we have to expand_dims at that point to use this method.
+    --> It means also that we need apriori values for each of the species in 
+    abs_species ......
+
+    '''
+    summer_months = [4, 5, 6, 7, 8, 9]
+
+    lat = retrieval_param['lat']
+    month = pd.to_datetime(retrieval_param['time']).month
+
+    if month in summer_months:
+        fascod_clim = 'midlatitude-summer'
+    else:
+        fascod_clim = 'midlatitude-winter'
+
+    clim_prefix = os.path.join(ARTS_DATA_PATH, "planets/Earth/Fascod/{0}/{0}.".format(fascod_clim))
+    
+    # atm = arts.Atmosphere.from_dataset(ds_ptz)
+    atm = arts.Atmosphere.from_arts_xml(clim_prefix)
+
+    ecmwf_time1 = t1 - pd.Timedelta(extra_time_ecmwf, "h")
+    ecmwf_time2 = t2 + pd.Timedelta(extra_time_ecmwf, "h")
+
+    if retrieval_param['verbose'] > 1:
+        print('Searching ECMWF data between: '+str(ecmwf_time1)+ 'and '+str(ecmwf_time2))
+
+    # Read ECMWF data (oper for now)
+    ECMWF_store_path = ecmwf_store
+    ecmwf_prefix = retrieval_param['ecmwf_prefix']
+    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+
+    if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
+        raise ValueError('no ECMWF data')
+
+    # Reading CIRA86
+    cira86 = read_cira86_monthly(cira86_path, month, lat)
+
+    #plot_ecmwf_cira86_profile(ds_ecmwf, cira86)
+        
+    #filename = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+
+    # Merging ecmwf and CIRA86
+    ds_ptz = merge_ecmwf_cira86(ds_ecmwf, cira86, retrieval_param, method=retrieval_param['ptz_merge_method'], max_T_diff=retrieval_param['ptz_merge_max_Tdiff'])
+
+    # extrapolate to p_grid ??
+    if z_grid is not None:
+        ds_ptz = extrapolate_down_ptz(ds_ptz, z_grid)
+
+    if retrieval_param['verbose'] > 1:
+        print('Min pressure of the new grid: ', min(ds_ptz.p.values))
+        print('Max pressure of the new grid: ', max(ds_ptz.p.values))
+
+        print('Min altitude of the new grid (interpolated from cira86 !!): ', min(ds_ptz.z.values))
+        print('Max altitude of the new grid (interpolated from cira86 !!): ', max(ds_ptz.z.values))
+    
+        plot_apriori_ptz(ds_ptz)
+
+    #  Temperature
+    atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values)
+    
+    if retrieval_param["retrieval_type"] == 8:
+        if retrieval_param["test_type"] == 'Tprofile':
+            print('Adding bias on Tprofile !')
+            atm.set_t_field(ds_ptz['p'].values, ds_ptz['t'].values+retrieval_param['Tprofile_bias'])
+
+    # z field
+    atm.set_z_field(ds_ptz["p"].values, ds_ptz["z"].values)
+    
+    # DO NOT ADD O3 from ECMWF --> no value over 2 Pa...
+    # Ozone
+    #print('Pressure [Pa]:')
+    #print(pressure_atm)
+
+    # Adding ozone apriori
+    atm = get_o3_apriori(atm, month, retrieval_param)
+
+    # Adding humidity profile
+    atm = get_h2o_apriori(atm, retrieval_param, fascod_clim=fascod_clim, ds_ecmwf=ds_ecmwf)
+   # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
         
     print('Atmospheric state defined with: ECMWF oper v2, CIRA86')
 
@@ -689,7 +766,7 @@ def merge_ecmwf_cira86(ds_ecmwf, cira86, retrieval_param, method='simple_stack_c
         p_with_low_T_diff = T_diff.Pressure.where((T_diff<max_T_diff), drop=True)
         upper_p_grid = cira86.Pressure.where(cira86.Pressure<p_with_low_T_diff[-1], drop=True)
         upper_cira86_ds = cira86.sel(Pressure = upper_p_grid)
-        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1])
+        ecmwf_lower = ds_ecmwf.where(ds_ecmwf.pressure > p_with_low_T_diff[-1], drop=True)
         # # interpolate CIRA86 altitude on p_grid
         # cira86_alt_i = p_interpolate(
         #     p_grid, cira86.Pressure.data, cira86.altitude.data, fill = np.nan
