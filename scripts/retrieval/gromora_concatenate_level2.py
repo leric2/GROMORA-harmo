@@ -45,7 +45,7 @@ instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2008-01-01', end='2008-12-31') 
+date = pd.date_range(start='2000-01-01', end='2000-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -74,6 +74,9 @@ ex = '_rect_SB'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
+
+# Deal with CET now ?
+change2UTC=True
 
 #plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
 plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
@@ -141,10 +144,10 @@ if concatenate_and_add_L2_flags:
     # Adding the retrieval_quality flags to the concatenated level 2:
     good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0]) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
 
-    # if spectro == 'FB':
-    #     # FB measured in CET ! 
-    #     new_ds['time'] = new_ds['time'] - pd.Timedelta(1, 'hour')
-    #     new_ds['local_solar_time'] = new_ds['local_solar_time'] - pd.Timedelta(1, 'hour')
+    if (spectro == 'FB') and change2UTC:
+        # FB measured in CET ! 
+        new_ds['time'] = new_ds['time'] - pd.Timedelta(1, 'hour')
+        instrument.timezone = 'Z'
     
     new_ds['retrieval_quality'] = ('time', good_data.data.astype(int)) # good_data*1 # ('time', good_data.data.astype(int))
     new_ds['retrieval_quality'].attrs['standard_name'] = 'retrieval_quality'
@@ -167,7 +170,7 @@ if concatenate_and_add_L2_flags:
     new_ds.time.attrs['standard_name'] = 'time'
     new_ds.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
     new_ds.time.encoding['calendar'] = 'proleptic_gregorian' #'standard'
-    new_ds.time.attrs['timezone'] = 'Z'
+    new_ds.time.attrs['timezone'] = instrument.timezone
     new_ds.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
     
     #############################################################################

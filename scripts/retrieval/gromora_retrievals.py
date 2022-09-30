@@ -1348,20 +1348,27 @@ class DataRetrieval(ABC):
         # level2.time.attrs['units'] = 'days since 2000-01-01 00:00:00'
         level2.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
         level2.time.encoding['calendar'] = 'proleptic_gregorian'
-        level2.time.attrs['timezone'] = 'Z'
+        level2.time.attrs['timezone'] = self.timezone
         level2.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
 
         if self.spectrometers[0] == 'FB':
             # FB measured in CET ! 
-            level2['time'] = level2['time'] - pd.Timedelta(1, 'hour')
+            # level2['time'] = level2['time'] - pd.Timedelta(1, 'hour')
 
-        # adding local solar time and MJD2K 
-        julian_dates = mjd2k_date(pd.to_datetime(level2.time.data))
+            # adding local solar time and MJD2K 
+            julian_dates = mjd2k_date(pd.to_datetime(level2.time.data)- pd.Timedelta(1, 'hour'))
+        else:
+            julian_dates = mjd2k_date(pd.to_datetime(level2.time.data))
 
         local_solar_time = list()
         solar_zenith_angle = list()
         for t in level2.time.values:
-            lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+            if self.timezone == 'Z':
+                lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+            elif self.timezone == 'CET':
+                lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+            else:
+                ValueError('Timezone not recognized !')
             local_solar_time.append(lst)
             solar_zenith_angle.append(sza)
         

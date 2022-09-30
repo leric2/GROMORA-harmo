@@ -59,6 +59,7 @@ class IntegrationGROMOSFB(Integration):
         spectrometers = ["FB"]
         
         self.lo = 1.45875e11
+        self.timezone = 'CET'
 
         level1_folder = os.path.join(basename_lvl1, instrument_name)
 
@@ -120,6 +121,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
+        self.timezone = 'CET'
         
         self.name_PI = 'Murk;Axel'
         self.contact = 'Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland'

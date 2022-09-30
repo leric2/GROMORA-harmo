@@ -119,6 +119,7 @@ class GROMOS_LvL2(DataRetrieval):
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
+        self.timezone = 'Z'
 
         self.name_PI = 'Murk;Axel'
         self.contact = 'Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland'

@@ -107,6 +107,7 @@ class SOMORA_LvL2(DataRetrieval):
         self.longitude = 6.94
         self.latitude = 46.82
         self.altitude = 491
+        self.timezone = 'Z'
 
         self.name_PI = 'Maillard Barras;Eliane'
         self.contact = 'Ch. de l\'Aerologie;CH-1530 Payerne;SWITZERLAND'

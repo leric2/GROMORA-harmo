@@ -79,7 +79,7 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2010-01-19', end='2010-01-20') 
+date = pd.date_range(start='2022-09-18', end='2022-09-19') 
 #date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
 
 int_time = 1
@@ -123,7 +123,7 @@ classic = np.arange(1, 24)
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
-spectros = ['FB'] 
+spectros = ['AC240'] 
 
 
 ex = 'fascodunbiased_all'
@@ -142,6 +142,7 @@ ex = '_gromosAP_low_alt'
 ex = '_sinefit_optimized'
 ex = '_waccm_low_alt_dx10'
 ex = '_rect_SB'
+ex = '_oper'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
