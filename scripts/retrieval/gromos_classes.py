@@ -5,29 +5,12 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Classes for GROMOS instrument
+Integration and DataRetrieval classes implementation for GROMOS instrument
 
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
 
 """
 from abc import ABC
-import os
-import datetime
-
+import os, datetime
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -36,10 +19,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from xarray.core import dataarray
 
-from base_classes import Integration# , DataRetrieval
-
+from gromora_integration import Integration
 from gromora_retrievals import DataRetrieval
-import GROSOM_library
+import GROMORA_library as GROMORA_library
 
 def return_bad_channels_gromos(date):
     '''
@@ -48,10 +30,9 @@ def return_bad_channels_gromos(date):
     Parameters
     ----------
     date : datetime object
-        DESCRIPTION.
     
     '''
-    #if year == 2019,....
+    
     bad_channels = np.arange(16383,16384)
     return bad_channels
 
@@ -86,7 +67,6 @@ class IntegrationGROMOS(Integration):
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder)
     
     def return_bad_channels(self, date, spectro):
-
         return return_bad_channels_gromos(date)
 
     # def compare_Tb_chunks(self, dim='time', idx=[0], save = False, Tb_corr = False):
@@ -108,7 +88,7 @@ class IntegrationGROMOS(Integration):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class GROMOS_LvL2(DataRetrieval):
     '''
@@ -126,19 +106,26 @@ class GROMOS_LvL2(DataRetrieval):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
 
+        
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
-
+        
+        self.institution = 'University of Bern;UBERN'
+        self.affiliation = 'ubern001'
+        self.source = 'MWR.O3_UBERN001'
+        self.longitude = 7.44
+        self.latitude = 46.95
+        self.altitude = 560
+        
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
         super().__init__(instrument_name, observation_frequency, spectrometers, integration_strategy, integration_time, date, level1_folder, level2_folder, extra_base)
     
     def return_bad_channels(self, date, spectro):
-
         return return_bad_channels_gromos(date)
 
     
@@ -176,10 +163,10 @@ class GROMOS_LvL2(DataRetrieval):
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
-        create simulation frequency grid
+        Create simulation frequency grid when the sideband response is included.
 
         '''
-        usb_grid= np.arange(148.975e9,150.175e9,100e6)
+        usb_grid = self.usb_grid
 
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
         bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
@@ -201,6 +188,12 @@ class GROMOS_LvL2(DataRetrieval):
             plt.show()
         return f_grid
     
+    def cost_threshold(self, year):
+        '''
+        Cost threshold over which we flag the level 2
+        '''
+        return 0.1 
+
     @property
     def day2flag_level2(self):
         '''
@@ -208,20 +201,20 @@ class GROMOS_LvL2(DataRetrieval):
         These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
         '''
-        date2flag_gromos =  [
-            datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
-            pd.date_range('2012-07-24', '2012-08-07'),
-            pd.date_range('2019-01-14', '2019-02-12'),
-
+        date2flag =  [
+            slice('2015-08-26','2015-08-29')
         ]
-        return date2flag_gromos
+        date2flag.append(slice('2012-07-24','2012-08-08'))
+        date2flag.append(slice('2019-01-14','2019-02-12'))
+        return date2flag
+
+    @property
+    def usb_grid(self):
+        return np.arange(148.975e9,150.175e9,100e6)
 
     @property
     def basecolor(self):
        return '#d7191c' 
-
-    def cost_threshold(self, year):
-        return 0.1 
 
     @property
     def polyfit_threshold(self):
@@ -234,3 +227,36 @@ class GROMOS_LvL2(DataRetrieval):
     @property
     def standard_air_temperature(self):
         return 10
+
+    @property
+    def cycle_duration(self):
+        return 7/3600
+    
+
+
+    @property
+    def global_attributes_ndacc(self):
+        pi_mail='axel.murk@unibe.ch'
+        do_name = 'Sauvageat;Eric'
+        do_mail = 'eric.sauvageat@unibe.ch'
+        rou= 'Please contact Axel Murk at axel.murk@unibe.ch'
+        ackn ='The middle atmospheric ozone radiometer GROMOS is operated by the Institute of Applied Physics, University of Bern, Switzerland.'
+        description='Atmospheric ozone profiles from continuous measurements of ground-based 142 GHz-microwave radiometer GROMOS at Bern, Switzerland'
+        return dict(
+            PI_NAME=self.name_PI,
+            PI_AFFILIATION=self.institution,
+            PI_ADDRESS = self.contact,
+            PI_EMAIL = pi_mail,
+            DO_NAME= do_name,
+            DO_AFFILIATION=self.institution,
+            DO_ADDRESS = self.contact,
+            DO_EMAIL =  do_mail,
+            DS_NAME= do_name,
+            DS_AFFILIATION=self.institution,
+            DS_ADDRESS = self.contact,
+            DS_EMAIL = do_mail,
+            DATA_DESCRIPTION = description,
+            DATA_RULES_OF_USE =rou,
+            DATA_ACKNOWLEDGEMENT=ackn,
+            FILE_PROJECT_ID = 'NDACC-GROMOS'
+        )

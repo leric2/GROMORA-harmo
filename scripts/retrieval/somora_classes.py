@@ -5,23 +5,8 @@ Created on Fri Apr 10 11:37:52 2020
 
 @author: eric
 
-Classes for SOMORA instrument
+Integration and DataRetrieval classes implementation for SOMORA instrument
 
-Example:
-    E...
-
-        $ python example_google.py
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo: all
 
 """
 from abc import ABC
@@ -35,9 +20,9 @@ import netCDF4
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from base_classes import Integration# , DataRetrieval
+from gromora_integration import Integration
 from gromora_retrievals import DataRetrieval
-import GROSOM_library
+import GROMORA_library as GROMORA_library
 
 def return_bad_channels_somora(date):
     '''
@@ -91,7 +76,7 @@ class IntegrationSOMORA(Integration):
         
         Invidual correction for each spectrometers specified !
         '''
-        return GROSOM_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
+        return GROMORA_library.correct_troposphere(self, spectrometers, dim, method='Ingold_v1')
 
 class SOMORA_LvL2(DataRetrieval):
     '''
@@ -115,6 +100,13 @@ class SOMORA_LvL2(DataRetrieval):
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^
 
+        self.institution = 'Federal Office of Meteorology and Climatology;METEOSWISS'
+        self.affiliation = 'meteoswiss001'
+        self.source = 'MWR.O3_METEOSWISS001'
+        self.longitude = 6.94
+        self.latitude = 46.82
+        self.altitude = 491
+
         # Can be used for plotting names (SOMORA_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -123,8 +115,6 @@ class SOMORA_LvL2(DataRetrieval):
     def return_bad_channels(self, date, spectro):
 
         return return_bad_channels_somora(date)  
-    
-
     
     def baseline_period(self, retrieval_param):
         '''
@@ -149,10 +139,10 @@ class SOMORA_LvL2(DataRetrieval):
 
     def make_f_grid_double_sideband(self, retrieval_param): 
         '''
-        create simulation frequency grid
+        Create simulation frequency grid when the sideband response is included.
 
         '''
-        usb_grid= np.arange(155.875e9,157.075e9,100e6)
+        usb_grid = self.usb_grid
         n_f = retrieval_param["number_of_freq_points"]  # Number of points
         bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
         x = np.linspace(-1, 1, n_f)
@@ -173,6 +163,15 @@ class SOMORA_LvL2(DataRetrieval):
             plt.show()
         return f_grid
 
+    def cost_threshold(self, year):
+        '''
+        Cost threshold over which we flag the level 2
+        '''
+        if year > 2010:
+            return 0.1 #0.5 for 2010
+        else:
+            return 0.5
+
     @property
     def day2flag_level2(self):
         '''
@@ -180,8 +179,13 @@ class SOMORA_LvL2(DataRetrieval):
         These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
         '''
-        date2flag_somora =  [ ]
-        return date2flag_somora
+        date2flag =  [
+             slice('2012-04-24','2012-04-27')
+        ]
+        date2flag.append(slice('2016-09-29','2016-11-03'))
+        date2flag.append(slice('2018-01-31','2018-02-11'))
+        date2flag.append(slice('2018-07-25','2018-08-23'))
+        return date2flag
 
     @property
     def basecolor(self):
@@ -191,11 +195,9 @@ class SOMORA_LvL2(DataRetrieval):
     def polyfit_threshold(self):
         return 0.1
 
-    def cost_threshold(self, year):
-        if year > 2010:
-            return 0.1 #0.5 for 2010
-        else:
-            return 0.5
+    @property
+    def usb_grid(self):
+        return np.arange(155.875e9,157.075e9,100e6)
 
     @property
     def standard_air_pressure(self):
@@ -205,6 +207,38 @@ class SOMORA_LvL2(DataRetrieval):
     def standard_air_temperature(self):
         return 10
 
+    @property
+    def cycle_duration(self):
+        return 2/3600
+
+    @property
+    def global_attributes_ndacc(self):
+        pi_name='Maillard Barras;Eliane'
+        pi_mail='eliane.maillard@meteoswiss.ch'
+        do_name = 'Haefele;Alexander'
+        do_mail = 'alexander.haefele@meteoswiss.ch'
+        rou= 'Please contact Eliane Maillard Barras at eliane.maillard@meteoswiss.ch'
+        ackn ='The ozone microwave radiometer SOMORA is operated by MeteoSwiss, Switzerland.'
+        description='Atmospheric ozone profiles from continuous measurements by ground-based 142 GHz microwave radiometer SOMORA, Payerne, Switzerland'
+        contact = "Ch. de l\'Aerologie;CH-1530 Payerne;SWITZERLAND"
+        return dict(
+            PI_NAME=pi_name,
+            PI_AFFILIATION=self.institution,
+            PI_ADDRESS = contact,
+            PI_EMAIL = pi_mail,
+            DO_NAME= do_name,
+            DO_AFFILIATION=self.institution,
+            DO_ADDRESS = contact,
+            DO_EMAIL =  do_mail,
+            DS_NAME= pi_name,
+            DS_AFFILIATION=self.institution,
+            DS_ADDRESS = contact,
+            DS_EMAIL = pi_mail,
+            DATA_DESCRIPTION = description,
+            DATA_RULES_OF_USE =rou,
+            DATA_ACKNOWLEDGEMENT=ackn,
+            FILE_PROJECT_ID = 'NDACC-SOMORA'
+        )
     # def define_retrieval_param(self, retrieval_param):
     #     '''
     #     Parameters

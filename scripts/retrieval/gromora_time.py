@@ -5,22 +5,20 @@ Created
 
 @author: eric
 
-Collection of functions for dealing with time
+Collection of functions for dealing with time in the frame of GROMORA retrievals
 
-
-Including : 
-    * a-priori data
 """
 import numpy as np
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+import datetime as dt
 from pytz import timezone, utc
 
-#from pysolar import solar
-
+# local time zone for GROMOS and SOMORA:
 local_timezone = timezone('Europe/Zurich')
+
+# time zone of the measurement times from GROMOS and SOMORA:
 gromora_tz = timezone('UTC')
 
 
@@ -72,8 +70,8 @@ def datetime64_2_datetime(dt64):
     unix_epoch = np.datetime64(0, 's')
     one_second = np.timedelta64(1, 's')
     seconds_since_epoch = (dt64 - unix_epoch) / one_second
-    dt = datetime.utcfromtimestamp(seconds_since_epoch)
-    return dt
+    date = dt.datetime.utcfromtimestamp(seconds_since_epoch)
+    return date
 
 def equation_of_time(doy):
     B=(360/365)*(doy-81)
@@ -91,8 +89,8 @@ def hour_angle(lst):
     return 15*(hours_from_midnight-12)
 
 def lst_sunset_from_hour_angle(sunset_ha, midnight_lst):
-    sunrise = midnight_lst + timedelta(hours=12) + timedelta(hours=-np.abs(sunset_ha)/15)
-    sunset = midnight_lst + timedelta(hours=12) + timedelta(hours=np.abs(sunset_ha)/15)
+    sunrise = midnight_lst + dt.timedelta(hours=12) + dt.timedelta(hours=-np.abs(sunset_ha)/15)
+    sunset = midnight_lst + dt.timedelta(hours=12) + dt.timedelta(hours=np.abs(sunset_ha)/15)
     return sunrise, sunset
 
 def get_sunset_lst_from_lst(lst, lat):
@@ -104,18 +102,19 @@ def get_sunset_lst_from_lst(lst, lat):
     )
     return sunrise_lst, sunset_lst
 
-def get_LST_from_GROMORA(dt, lat, lon, print_option=False):
+def get_LST_from_GROMORA(date, lat, lon, print_option=False, check_format=True):
     #dt = utc.localize(datetime64_2_datetime(date))
-    if np.issubdtype(dt.dtype, np.datetime64) :
-        dt = datetime64_2_datetime(dt).replace(tzinfo=gromora_tz)
+    if check_format:
+        if np.issubdtype(date.dtype, np.datetime64):
+            date = datetime64_2_datetime(date).replace(tzinfo=gromora_tz)
 
     if print_option:
-        print('UTC time: ',dt) 
-    local_time =  dt.astimezone(local_timezone)
+        print('UTC time: ',date) 
+    local_time =  date.astimezone(local_timezone)
     if print_option:
         print('Local time: ',local_time)
 
-    doy = pd.to_datetime(dt).dayofyear
+    doy = pd.to_datetime(date).dayofyear
 
     eot = equation_of_time(doy)
     if print_option:
@@ -124,7 +123,7 @@ def get_LST_from_GROMORA(dt, lat, lon, print_option=False):
     lstm = 15*local_time.utcoffset().seconds/3600
     tc = time_correction_factor(lon, lstm, eot)
 
-    lst = local_time + timedelta(minutes=tc)
+    lst = local_time + dt.timedelta(minutes=tc)
     
     lst = lst.replace(tzinfo=None)
 
@@ -144,6 +143,45 @@ def get_LST_from_GROMORA(dt, lat, lon, print_option=False):
     sza = solar_zenith_angle(ha, doy, lat)
     return lst, ha, sza, night, tc
 
+def mjd2k_date(dates):
+    """
+    % ABSTRACT  | Function to compute the MJD2K time. Taken from GEOMS report 1.0:
+    %           | https://avdc.gsfc.nasa.gov/PDF/GEOMS/geoms-1.0.pdf
+    %           |
+    %           |
+    %           |
+    % ARGUMENTS | INPUTS: a pandas datetime timestamp
+    %           |
+    %           | OUTPUTS: - mjd2k_date: a double number corresponding to the
+    %           | Modified Julian Datetime 2000. It corresponds to the number
+    %           | of day from 01.01.2000. 
+    """
+    mjd2k_date = list()
+    for date in dates:
+        month = date.month
+
+        if month>2:
+            y = date.year
+            m = month-3
+            d = date.day
+        else:
+            y = date.year-1
+            m = month+9
+            d = date.day
+
+        j = int(365.25*(y+4712)) + int(30.6*m+0.5) + 58.5 + d
+        if j < 2299159.5:
+            jd = j
+        else:
+            gn = 38 - int(3*int(49 + y/100)/4)
+            jd = j+gn
+
+        df = (date.hour*3600.0 + date.minute*60.0 + date.second)/86400
+        mjd2k_date.append(jd + df - 2451544.5)
+    
+    return mjd2k_date
+
+
 if __name__ == "__main__":
     #date = spectro_dataset.time.data[0]
     date = np.datetime64('2021-10-20 00:06:00.123456')
@@ -157,11 +195,11 @@ if __name__ == "__main__":
     sza_pysolar_elevation_angle = pysolar_sza(date, lat, lon)
 
     lst, ha, sza, night, tc = get_LST_from_GROMORA(dt, lat, lon)
-    lst_simone = (dt + timedelta(hours=lon*24/360)).replace(tzinfo=None)
+    lst_simone = (dt + dt.timedelta(hours=lon*24/360)).replace(tzinfo=None)
 
-    LT_from_lst = (lst - timedelta(minutes=tc))
+    LT_from_lst = (lst - dt.timedelta(minutes=tc))
 
-    solar_noon = (lst.replace(hour=12, minute=0,second=0, microsecond=0) - timedelta(minutes=tc))
+    solar_noon = (lst.replace(hour=12, minute=0,second=0, microsecond=0) - dt.timedelta(minutes=tc))
 
     print('Local solar time: ',lst)
     print('Local solar time (Simone): ',lst_simone)
@@ -184,12 +222,10 @@ if __name__ == "__main__":
         midnight_lst = lst.replace(hour=0, minute=0,second=0, microsecond=0)
     )
     print('Approx. sunrise (LST): ',sunrise_lst, ' and sunset (LST): ', sunset_lst)
-    print('Approx. sunrise (LT): ',(sunrise_lst - timedelta(minutes=tc)), ' and sunset (LT): ', (sunset_lst- timedelta(minutes=tc)))
+    print('Approx. sunrise (LT): ',(sunrise_lst - dt.timedelta(minutes=tc)), ' and sunset (LT): ', (sunset_lst- dt.timedelta(minutes=tc)))
 
     print('Daylight hours: ',(sunset_lst-sunrise_lst).total_seconds()/3600, 'hours')
     if np.abs(ha) > sunset_ha:
         print('Night !')
     else:
         print('Day !')
-
-    

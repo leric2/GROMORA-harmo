@@ -1,50 +1,39 @@
 # pyretrievals
 
-Building on the great projects [ARTS](http://radiativetransfer.org) and 
-[Typhon](http://www.radiativetransfer.org/misc/typhon/doc/index.html), this library
-provides some tools I use to run simulations and retrievals for the WIRA-C instrument.
+Building on the great projects [ARTS](http://radiativetransfer.org), 
+[Typhon](https://radiativetransfer.org/misc/typhon/doc/index.html) and now relying on [PyARTS](https://pypi.org/project/pyarts/)
+the pyretrieval library provides some tools written by Jonas Hagen to run simulations and retrievals for the WIRA-C instrument.
 
-Currently this projects is probably only usefult for very specific applications in ground based microwave measurements, namely the WIRA-C
-instrument and similar.
-But, possibly with minor adjustments, it might also be useful for other things!
-
-See also the [**Documentation**](http://www.iapmw.unibe.ch/research/projects/pyretrievals/index.html).
-
-## Install
-
-This package requires Python 3.6 and a recent version of [ARTS](http://radiativetransfer.org).
-
-Create an environment using your favourite tool (conda, virtualenv, ...) and activate it. Then first install the
-developement version of [Typhon](http://www.radiativetransfer.org/misc/typhon/doc/index.html) 
-and then this package:
-
-```bash
-$ git clone <this repo>
-$ cd pyretrievals
-$ pip install git+https://github.com/atmtools/typhon.git
-$ pip install -e .
-```
-
-To setup the full environment for testing and development, run:
-
-```bash
-pip install -r requirements.txt
-```
-
-Note: `pygrib` can be a hassle to install.
+The initial library is available on [Github](https://github.com/jonas-hagen/pyretrieval) and was written for a development version of ARTS. 
+Since ARTS has now been updated and Jonas is now gone, the pyretrievals library has been updated and integrated directly within the 
+GROMORA project repository so that it is easier for non-Python specialist to use it.
 
 ## Environment setup
 
-The variables `$ARTS_BUILD_PATH` and `$ARTS_DATA_PATH` should be exported in your shell.
-Example:
+Using conda (recommended), you can build your environment using the environment file provided in scripts: [env_file_GROMORA.txt](../env_file_GROMORA.txt)
+
+To use ARTS, you also need to specify some paths in your environment. 
+The variables `$ARTS_BUILD_PATH` and `$ARTS_DATA_PATH` `ARTS_INCLUDE_PATH` should be either exported in your shell or loaded at the beginning of your scripts.
+
+One way to do it is with the use of dotenv package in python:
+```
+load_dotenv('/opt/anaconda/.env.birg-arts24')
+
+ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
+ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
+ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
+```
+
+Example for the shell export:
 
 ```bash
 ARTS_DATA_PATH=/opt/arts-dev/arts-xml-data/
 ARTS_SRC_PATH=/opt/arts-dev/arts/
 ```
 
-## Examples
+## Examples and tests
 
 The ``examples`` directory contains a ``test_oem.py`` file which is similar to the ARTS cfile
-``controlfiles/artscomponents/test_oem.arts``. 
-It simulates the ozone line at 110 GHz and retrieves ozone VMR, frequency shift and a polynomial baseline.
+``controlfiles/artscomponents/test_oem.arts``. It simulates the ozone line at 110 GHz and retrieves ozone VMR, frequency shift and a polynomial baseline.
+
+This should be used as a test to see if the package works fine.

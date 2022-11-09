@@ -135,7 +135,7 @@ calibrationTool.flip_spectra=@(rawSpectra, calibrationTool) flip_spectra_gromos(
 calibrationTool.numberOfTippingCurveExpected=48;
 calibrationTool.toleranceTippingCurves=2;
 
-calibrationTool.goodFlagLN2Above = 0;
+calibrationTool.goodFlagLN2Above = 1;
 calibrationTool.goodFlagLN2Below = 0;
 
 % Considering the expected number of tipping curve:
@@ -339,11 +339,12 @@ end
 if calibrationTool.timeNumber <= datenum(2010,08,18)
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 1;
-elseif (calibrationTool.timeNumber > datenum(2010,08,18) && calibrationTool.timeNumber < datenum(2012,07,23)) %TOCHECK
+elseif (calibrationTool.timeNumber > datenum(2010,08,18)) && (calibrationTool.timeNumber <= datenum(2012,07,23)) %TOCHECK
     calibrationTool.goodFlagLN2Above = 1;
     calibrationTool.goodFlagLN2Below = 0;
-    
-    
+elseif (calibrationTool.timeNumber > datenum(2012,07,23)) && (calibrationTool.timeNumber <= datenum(2020,06,19)) %TOCHECK
+    calibrationTool.goodFlagLN2Above = 1;
+    calibrationTool.goodFlagLN2Below = 0;  
 elseif calibrationTool.timeNumber > datenum(2020,06,19)
     calibrationTool.goodFlagLN2Above = 0;
     calibrationTool.goodFlagLN2Below = 0;

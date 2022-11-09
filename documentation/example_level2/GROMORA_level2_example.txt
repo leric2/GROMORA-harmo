@@ -1,0 +1,375 @@
+netcdf GROMOS_level2_AC240_2017_01_09_v2.nc {
+  dimensions:
+    o3_p_avk = 47;
+    h2o_continuum_p_avk = 1;
+    oem_diagnostics_idx = 5;
+    o3_p = 47;
+    h2o_continuum_p = 1;
+    poly_order = 3;
+    f_shift_grid = 1;
+    sine_grid = 2;
+    f = 32768;
+    time = UNLIMITED;   // (24 currently)
+  variables:
+    double o3_x(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "ozone_profile";
+      :long_name = "ozone profile volume mixing ratio";
+      :units = "VMR";
+      :description = "Ozone profile retrieved with OEM";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_xa(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_xa";
+      :long_name = "ozone apriori";
+      :units = "VMR";
+      :description = "waccm_monthly";
+      :covariance = "sinefit_optimized";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_mr(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_mr";
+      :long_name = "ozone measurement response";
+      :units = "1";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_eo(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_eo";
+      :long_name = "observation error for ozone";
+      :units = "VMR";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_es(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_es";
+      :long_name = "smoothing error for ozone";
+      :units = "VMR";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_avkm(time=24, o3_p=47, o3_p_avk=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_avkm";
+      :long_name = "averaging kernels for ozone";
+      :units = "1";
+      :_ChunkSizes = 1U, 47U, 47U; // uint
+
+    double o3_p(o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_p";
+      :long_name = "retrieval pressure grid for ozone";
+      :units = "Pa";
+      :description = "Pressure grid for ozone retrievals";
+
+    double o3_z(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :long_name = "geometric altitude for ozone";
+      :units = "m";
+      :standard_name = "o3_z";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_fwhm(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_fwhm";
+      :long_name = "full width at half maximum for ozone";
+      :units = "m";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double o3_offset(time=24, o3_p=47);
+      :_FillValue = NaN; // double
+      :standard_name = "o3_offset";
+      :long_name = "altitude offset for ozone AVKs";
+      :units = "m";
+      :_ChunkSizes = 1U, 47U; // uint
+
+    double h2o_continuum_x(time=24, h2o_continuum_p=1);
+      :_FillValue = NaN; // double
+      :standard_name = "continuum_retrieval";
+      :long_name = "water vapor continuum";
+      :units = "1";
+      :continuum_model = "H2O-PWR98";
+      :description = "ratio to apriori value";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double h2o_continuum_xa(time=24, h2o_continuum_p=1);
+      :standard_name = "h2o_continuum_xa";
+      :long_name = "water vapor continuum apriori";
+      :units = "1";
+      :_FillValue = NaN; // double
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double h2o_continuum_mr(time=24, h2o_continuum_p=1);
+      :_FillValue = NaN; // double
+      :standard_name = "h2o_continuum_mr";
+      :long_name = "continuum measurement response";
+      :units = "1";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double h2o_continuum_eo(time=24, h2o_continuum_p=1);
+      :long_name = "observation error for continuum";
+      :standard_name = "h2o_continuum_eo";
+      :_FillValue = NaN; // double
+      :units = "VMR";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double h2o_continuum_es(time=24, h2o_continuum_p=1);
+      :_FillValue = NaN; // double
+      :standard_name = "h2o_continuum_es";
+      :long_name = "smoothing error for continuum";
+      :units = "VMR";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double h2o_continuum_avkm(time=24, h2o_continuum_p=1, h2o_continuum_p_avk=1);
+      :_FillValue = NaN; // double
+      :standard_name = "h2o_continuum_avkm";
+      :long_name = "averaging kernels for continuum";
+      :units = "1";
+      :_ChunkSizes = 1U, 1U, 1U; // uint
+
+    double h2o_continuum_p(h2o_continuum_p=1);
+      :_FillValue = NaN; // double
+      :standard_name = "h2o_continuum_p";
+      :long_name = "retrieval pressure grid for continuum";
+      :units = "Pa";
+      :description = "Pressure grid for continuum retrievals";
+
+    double poly_fit_x(time=24, poly_order=3);
+      :_FillValue = NaN; // double
+      :standard_name = "polyfit_retrieval";
+      :long_name = "polyfit retrievals";
+      :units = "K";
+      :poly_order = 2L; // long
+      :description = "";
+      :_ChunkSizes = 1U, 3U; // uint
+
+    double poly_fit_xa(time=24, poly_order=3);
+      :_FillValue = NaN; // double
+      :standard_name = "poly_fit_xa";
+      :long_name = "polyfit apriori";
+      :units = "1";
+      :_ChunkSizes = 1U, 3U; // uint
+
+    double poly_fit_mr(time=24, poly_order=3);
+      :long_name = "polyfit measurement response";
+      :_FillValue = NaN; // double
+      :standard_name = "poly_fit_mr";
+      :units = "1";
+      :_ChunkSizes = 1U, 3U; // uint
+
+    long poly_order(poly_order=3);
+      :standard_name = "poly_order";
+      :long_name = "poly_order";
+      :units = "1";
+      :description = "degree order for polyfit";
+
+    double freq_shift_x(time=24, f_shift_grid=1);
+      :_FillValue = NaN; // double
+      :standard_name = "freq_shift_retrieval";
+      :long_name = "frequency shift retrievals";
+      :units = "Hz";
+      :description = "";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double freq_shift_xa(time=24, f_shift_grid=1);
+      :long_name = "frequency shift apriori";
+      :_FillValue = NaN; // double
+      :standard_name = "freq_shift_xa";
+      :units = "Hz";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    double freq_shift_mr(time=24, f_shift_grid=1);
+      :long_name = "frequency shift measurement response";
+      :units = "1";
+      :_FillValue = NaN; // double
+      :standard_name = "freq_shift_mr";
+      :_ChunkSizes = 1U, 1U; // uint
+
+    long f_shift_grid(f_shift_grid=1);
+      :standard_name = "f_shift_grid";
+      :long_name = "f_shift_grid";
+      :units = "1";
+      :description = "";
+
+    double sine_fit_0_x(time=24, sine_grid=2);
+      :_FillValue = NaN; // double
+      :standard_name = "sine_fit_0_x";
+      :long_name = "sinefit_retrieval";
+      :units = "1";
+      :period_MHz = 178.0; // double
+      :description = "Sinusoidal baseline retrieved for this period, first element is sine and second is cosine term";
+      :_ChunkSizes = 1U, 2U; // uint
+
+    long sine_grid(sine_grid=2);
+      :standard_name = "sine_grid";
+      :long_name = "sine_grid";
+      :units = "1";
+      :description = "the grid for the sinefit retrievals, first element is sine and second is cosine term";
+
+    double sine_fit_1_x(time=24, sine_grid=2);
+      :_FillValue = NaN; // double
+      :standard_name = "sine_fit_1_x";
+      :long_name = "sinefit_retrieval";
+      :units = "1";
+      :period_MHz = 240.0; // double
+      :description = "Sinusoidal baseline retrieved for this period, first element is sine and second is cosine term";
+      :_ChunkSizes = 1U, 2U; // uint
+
+    double sine_fit_2_x(time=24, sine_grid=2);
+      :_FillValue = NaN; // double
+      :standard_name = "sine_fit_2_x";
+      :long_name = "sinefit_retrieval";
+      :units = "1";
+      :period_MHz = 360.0; // double
+      :description = "Sinusoidal baseline retrieved for this period, first element is sine and second is cosine term";
+      :_ChunkSizes = 1U, 2U; // uint
+
+    double f(f=32768);
+      :_FillValue = NaN; // double
+      :standard_name = "frequency";
+      :long_name = "measurement_frequency";
+      :units = "Hz";
+      :description = "measurement frequency grid";
+
+    double y(time=24, f=32768);
+      :_FillValue = NaN; // double
+      :standard_name = "brightness_temperature";
+      :long_name = "measurement vector";
+      :units = "K";
+      :description = "integrated brightness temperature for this cycle, corrected for window and troposphere";
+      :_ChunkSizes = 1U, 32768U; // uint
+
+    double yf(time=24, f=32768);
+      :description = "fitted window corrected brightness temperature";
+      :_FillValue = NaN; // double
+      :standard_name = "fitted_measurement";
+      :long_name = "fitted measurement vector";
+      :units = "K";
+      :_ChunkSizes = 1U, 32768U; // uint
+
+    double oem_diagnostics(time=24, oem_diagnostics_idx=5);
+      :_FillValue = NaN; // double
+      :standard_name = "oem_diagnostics";
+      :long_name = "optimal estimation diagnostics";
+      :units = "1";
+      :description = "Vector of retrievals outputs from ARTS used for diagnostics";
+      :diagnosticValue0 = "Convergence status, with coding (0 = converged).";
+      :diagnosticValue1 = "Start value of cost function.";
+      :diagnosticValue2 = "End value of cost function.";
+      :diagnosticValue3 = "End value of y-part of cost function.";
+      :diagnosticValue4 = "Number of iterations used.";
+      :_ChunkSizes = 1U, 5U; // uint
+
+    double median_noise(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "noise_level";
+      :long_name = "radiometric noise level";
+      :units = "K";
+      :description = "noise level used as measurement error";
+      :_ChunkSizes = 24U; // uint
+
+    long bad_channels(time=24, f=32768);
+      :standard_name = "bad_channels";
+      :long_name = "bad channels identified on measurement vector";
+      :units = "-";
+      :description = "a boolean vector identifying the bad channels on the measurement vector";
+      :_ChunkSizes = 1U, 32768U; // uint
+
+    double y_baseline(time=24, f=32768);
+      :_FillValue = NaN; // double
+      :standard_name = "measurement_baseline";
+      :long_name = "baseline measurement vector ";
+      :units = "K";
+      :description = "retrieved baseline for measurement vector";
+      :_ChunkSizes = 1U, 32768U; // uint
+
+    double obs_za(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "sensor_zentih_angle";
+      :long_name = "zenith angle";
+      :units = "degree";
+      :_ChunkSizes = 24U; // uint
+
+    double obs_aa(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "sensor_azimuth_angle";
+      :long_name = "azimuth angle";
+      :units = "degree";
+      :description = "angle measured clockwise positive, 0 deg is northwise";
+      :_ChunkSizes = 24U; // uint
+
+    double lat(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "latitude";
+      :long_name = "station latitude";
+      :units = "degree_north";
+      :description = "latitude defined according to WGS84";
+      :_ChunkSizes = 24U; // uint
+
+    double lon(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "longitude";
+      :long_name = "station longitude";
+      :units = "degree_east";
+      :description = "longitude defined according to WGS84";
+      :_ChunkSizes = 24U; // uint
+
+    double alt(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "altitude";
+      :long_name = "station altitude";
+      :units = "m";
+      :description = "altitude above see level";
+      :_ChunkSizes = 24U; // uint
+
+    double time(time=24);
+      :_FillValue = NaN; // double
+      :standard_name = "time";
+      :timezone = "Z";
+      :description = "mean time recorded at the beginning of all sky measurements during this integration cycle";
+      :units = "days since 2000-01-01";
+      :calendar = "proleptic_gregorian";
+      :_ChunkSizes = 24U; // uint
+
+    double local_solar_time(time=24);
+      :_FillValue = NaN; // double
+      :description = "local solar time computed from the mean measurement time";
+      :units = "days since 2000-01-01";
+      :calendar = "proleptic_gregorian";
+      :_ChunkSizes = 24U; // uint
+
+  // global attributes:
+  :maintag = "AbsSpecies";
+  :subtag = "";
+  :arts_version = "arts-2.4.0 (git: ae092d30) (compiled Thu Jan  6 14:58:28 2022)";
+  :uuid = "18dfa1e6-d7fe-4bdc-9e20-81d98711681a";
+  :date_created = "2022-01-12T18:37:30.036590";
+  :nodename = "birg.mw.iap.unibe.ch";
+  :title = "Ozone retrievals from microwave ground-based radiometer";
+  :location = "BERN";
+  :instrument = "GROMOS";
+  :source = "MWR.O3_UBERN";
+  :name = "Murk;Axel";
+  :featureType = "timeSeries";
+  :contact = "Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland";
+  :references = "";
+  :comment = "";
+  :institution = "Universtiy of Bern;UBERN";
+  :number_of_spectrometer = 1.0; // double
+  :filename_level1a = "/storage/tub/instruments/gromos/level1/GROMORA/v2/2017/GROMOS_level1a_AC240_2017_01_09.nc";
+  :filename_level1b = "/storage/tub/instruments/gromos/level1/GROMORA/v2/2017/GROMOS_level1b_AC240_2017_01_09.nc";
+  :raw_data_software_version = "20170101";
+  :calibration_version = "2.0";
+  :spectroscopy = "/opt/ARTS/arts_data/arts-xml-data-2.4.0/spectroscopy/Perrin_newformat_speciessplit/O3-666.xml.gz";
+  :outlier_detection = "standard";
+  :raw_data_filename = "/storage/lake/instrumentdata/gromos/FFTS/2017/GROMOS09_2017_01_09";
+  :labview_logfile_warning = "check labview log !";
+  :filtering_of_calibrated_spectra = "by flags and transmittance";
+  :data_start_date = "2017-01-09T00:30:09.268410112Z";
+  :data_stop_date = "2017-01-09T23:29:36.451854400Z";
+  :integration_time = 1L; // long
+  :atmosphere = "ecmwf_cira86";
+  :sensor = "FFT_SB";
+  :retrieved_quantities = "o3_h2o_fshift_polyfit_sinefit";
+}

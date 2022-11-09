@@ -36,17 +36,8 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 from dotenv import load_dotenv
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.lines import Line2D
-from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
-                               MultipleLocator)
-from xarray.backends import file_manager
 
-import GROSOM_library
-import mopi5_library
-from utils_GROSOM import save_single_pdf
 
-#from cmcrameri import cm
 plt.rcParams.update({
     "text.usetex": False,
     "font.family": "serif",

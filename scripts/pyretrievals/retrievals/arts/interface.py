@@ -9,7 +9,7 @@ import datetime
 #from dotenv import load_dotenv
 
 #load_dotenv(dotenv_path='./.env')
-
+import matplotlib.pyplot as plt
 #from typhon.arts.workspace import Workspace, arts_agenda
 #from typhon.arts.workspace import Workspace
 from pyarts.workspace import Workspace
@@ -21,6 +21,7 @@ from pyarts.griddedfield import GriddedField3
 from retrievals.arts import boilerplate
 #from retrievals.arts import retrieval
 from retrievals.data import p_interpolate
+from retrievals.data.utils import interpolate
 
 
 def _is_asc(x):
@@ -106,7 +107,7 @@ class ArtsController():
         boilerplate.setup_spectroscopy(self.ws, abs_lines, abs_species, line_shape)
         self.ws.abs_f_interp_order = abs_f_interp_order  # no effect for OnTheFly propmat
     
-    def set_spectroscopy_from_file2(self, abs_lines_file, abs_species,  format='HITRAN', line_shape=None, abs_f_interp_order=3):
+    def set_spectroscopy_from_file_old(self, abs_lines_file, abs_species,  format='HITRAN', line_shape=None, abs_f_interp_order=3):
         """
         Setup absorption species and spectroscopy data from HITRAN catalogue file.
 
@@ -261,15 +262,7 @@ class ArtsController():
             self.ws.AtmFieldsCalc(vmr_zeropadding=vmr_zeropadding)
         else:
             self.ws.AtmFieldsCalcExpand1D(vmr_zeropadding=vmr_zeropadding)
-    """
-    def set_atmosphere_fascod(self, fascod_name, vself.atmosphere_dimmr_zeropadding=0):
-        self.ws.AtmRawRead(basename="planets/Earth/Fascod/{}/{}".format(fascod_name, fascod_name))
-        
-        if self.atmosphere_dim == 1:
-            self.ws.AtmFieldsCalc(vmr_zeropadding=vmr_zeropadding)
-        else:
-            self.ws.AtmFieldsCalcExpand1D(vmr_zeropadding=vmr_zeropadding)
-    """
+
     def apply_hse(self, p_hse=100e2, z_hse_accuracy=0.5):
         """
         Calculate z field from hydrostatic equilibrium. See :arts:method:`z_fieldFromHSE`.
@@ -467,6 +460,7 @@ class ArtsController():
 
         https://pyoptimalestimation.readthedocs.io/en/latest/
 
+        Work in Progress...
 
         """
         from typhon.retrieval.oem import error_covariance_matrix
@@ -487,15 +481,15 @@ class ArtsController():
         self.covmat_ret =  inv(K.T @ inv_Se @ K + inv(Sx))
 
         KSxK = K @ Sx @ K.T
-        KSxK_inv = inv(K @ Sx @ K.T)
-        KSxK_Se = inv(KSxK + Se)
+        #KSxK_inv = inv(K @ Sx @ K.T)
+        #KSxK_Se = inv(KSxK + Se)
 
-        Syd = KSxK @ KSxK_Se @ KSxK
+        #Syd = KSxK @ KSxK_Se @ KSxK
         
         # Testing 12.12 from Rodgers
-        chi2, chi2TestX =  _testChi2(Sx @ K.T @ KSxK_Se @ K @ Sx, deltax, significance=0.05)
+        #chi2, chi2TestX =  _testChi2(Sx @ K.T @ KSxK_Se @ K @ Sx, deltax, significance=0.05)
 
-        chi2, chi2TestX =  _testChi2(Syd, deltay, significance=0.05)
+        #chi2, chi2TestX =  _testChi2(Syd, deltay, significance=0.05)
 
         covmat_diag_ratio = np.sqrt(np.diag(self.covmat_ret) / np.diag(Sx))
 
@@ -529,13 +523,22 @@ class ArtsController():
         # measurement = self.y
         # for i, meas in enumerate(measurement):
         #     measurement[i]  = np.where(bad_channels, np.nan, meas)
+
+        # Saving temperature profile:
+        temperature = self.ws.t_field.value[:,0,0]
+        original_zgrid = self.ws.t_field.value[:,0,0]
+        new_zgrid = ds.o3_z.data
+        interp_temperature = interpolate(new_zgrid, original_zgrid, temperature)
         
         ds['f'] = ('f', f_backend)
         ds['y'] = (('observation', 'f'), np.stack(self.y))
         ds['yf'] = (('observation', 'f'), np.stack(self.yf))
         ds['oem_diagnostics'] = ('oem_diagnostics_idx', self.oem_diagnostics)
         ds['median_noise'] = self.median_noise_level
+        ds['tropospheric_opacity'] = self.tropospheric_opacity
         ds['bad_channels'] = (('observation', 'f'), np.stack(np.split(bad_channels, self.n_obs)))
+
+        #ds['temperature_profile'] = (('o3_p','o3_lat','o3_lon'), interp_temperature[:,np.newaxis,np.newaxis])
 
         y_baseline = self.y_baseline
         if y_baseline is not None:

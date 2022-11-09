@@ -26,13 +26,13 @@ Todo: all
 
 """
 
-import sys
+import sys, os
+from os.path import dirname, abspath, join
 
-sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/retrieval/')
-sys.path.insert(0, '/home/jobuser/scripts/instruments/gromos/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+sys.path.append(join(dirname(sys.path[0]),'retrieval'))
 
 import datetime
-import os
 from abc import ABC
 
 import matplotlib.pyplot as plt
@@ -48,16 +48,16 @@ from matplotlib.ticker import (AutoMinorLocator, FormatStrFormatter,
                                MultipleLocator)
 from xarray.backends import file_manager
 
-import GROSOM_library
+import GROMORA_library
 # import mopi5_library
-from utils_GROSOM import save_single_pdf
+from gromora_utils import save_single_pdf
 
 import matplotlib
 matplotlib.use('pdf')
 
 #from cmcrameri import cm
 plt.rcParams.update({
-    "text.usetex": True,
+    "text.usetex": False,
     "font.family": "serif",
     "font.sans-serif": ["Free sans"]})
 
@@ -65,7 +65,8 @@ plt.rcParams.update({
 # plt.rcParams['ytick.labelsize'] = 24
 # plt.rcParams['axes.titlesize'] = 24
 #load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
-load_dotenv('/opt/arts/.env.stockhorn-arts24')
+#load_dotenv('/opt/anaconda/.env.birg-arts24')
+#load_dotenv('/opt/arts/.env.stockhorn-arts24')
 # ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
 # ARTS_BUILD_PATH = os.environ['ARTS_BUILD_PATH']
 # ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
@@ -78,8 +79,6 @@ instrument_name = "GROMOS"
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
-# date = pd.date_range(start='2019-01-30', end='219-06-18')
-#date = pd.date_range(start='2022-05-25', end='2022-05-29')
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
@@ -127,7 +126,7 @@ classic = np.arange(1, 24)
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
-spectros = ['AC240'] 
+spectros = ['FB'] 
 
 
 ex = 'fascodunbiased_all'
@@ -213,15 +212,25 @@ def read_mls(d1, d2):
 
 
 if instrument_name == "GROMOS":
-    import gromos_classes as gc
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
-    instrument = gc.GROMOS_LvL2(
-        date=date[0],
+    if spectros[0] == 'AC240':
+        import gromos_classes as gromos_cl
+        instrument = gromos_cl.GROMOS_LvL2(
+        date=date,
+        basename_lvl1=basename_lvl1,
+        basename_lvl2=basename_lvl2,
+        integration_strategy=integration_strategy,
+        integration_time=int_time
+        )
+    else:
+        import gromos_FB_classes as gromos_cl
+        instrument = gromos_cl.GROMOS_FB_LvL2(
+        date=date,
         basename_lvl1=basename_lvl1,
         basename_lvl2=basename_lvl2,
         integration_strategy=integration_strategy,
@@ -569,7 +578,7 @@ if compare:
 if plot_all:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + '_plot_all_test_polyfit2'
-    GROSOM_library.plot_O3_all(level2_dataset, outname)
+    GROMORA_library.plot_O3_all(level2_dataset, outname)
 
 if add_L2_flags:
     new_ds = level2_dataset['AC240'] 
@@ -868,7 +877,7 @@ if plot_selected:
             to_ppm = 1e6  
         )
     else:
-        GROSOM_library.plot_O3_all(
+        GROMORA_library.plot_O3_all(
             level2_dataset,
             outname,
             spectro='AC240',
@@ -878,7 +887,7 @@ if plot_selected:
 if plot_selected_nicer:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
         instrument.datestr + ex + '_plot_sel_polyfit2'
-    GROSOM_library.plot_O3_sel_nicer(
+    GROMORA_library.plot_O3_sel_nicer(
         level2_dataset,
         outname,
         spectro='AC240',

@@ -108,7 +108,8 @@ class SensorFFT_Sideband(AbstractSensor):
     """
     Sensor with channel response for an FFT Spectrometer with :math:`\mathrm{sinc}^2` response.
 
-    try to add sideband response
+    In addition, this sensor include a sideband response. 
+
     """
 
     def __init__(self, f_backend, resolution, num_channels, lo_freq, sideband_mode, intermediate_freq, sideband_response):
@@ -116,6 +117,10 @@ class SensorFFT_Sideband(AbstractSensor):
         :param f_backend: The backend frequency vector.
         :param resolution: The frequency resolution of the FFTS in Hz
         :param num_channels: Number of channels with nonzero response, default: 10
+        :param lo_freq: The local oscillator frequency in Hz
+        :param sideband_mode: the type of sideband, upper or lower
+        :param intermediate_freq: the intermediate frequency of the sideband
+        :param sideband_response: the sideband response corresponding to the intermediate frequency
         """
         self._f_backend = f_backend
         self.resolution = resolution
@@ -182,6 +187,39 @@ class SensorGaussian(AbstractSensor):
         ws.FlagOn(ws.sensor_norm)
         ws.f_backend = self.f_backend
         ws.backend_channel_responseGaussian(fwhm=self.fwhm)
+        super().apply(ws)
+
+    @property
+    def sensor_response_agenda(self):
+        @arts_agenda
+        def sensor_response_agenda(ws):
+            ws.AntennaOff()
+            ws.sensor_responseInit()
+            ws.sensor_responseBackend()
+
+        return sensor_response_agenda
+
+    @property
+    def f_backend(self):
+        return self._f_backend
+
+class SensorFB(AbstractSensor):
+    """Sensor with FB Channel response."""
+
+    def __init__(self, f_backend):
+        """
+        :param f_backend: Backend frequencies
+        """
+
+        self._f_backend = f_backend
+        self.bcr = GriddedField1(name='Backend channel response function for FB',
+                                 gridnames=['Frequency'], dataname='Data',
+                                 grids=[f_backend],
+                                 data=np.ones_like(f_backend))
+    def apply(self, ws):
+        ws.FlagOn(ws.sensor_norm)
+        ws.f_backend = self.f_backend
+        ws.backend_channel_response = [self.bcr, ]
         super().apply(ws)
 
     @property

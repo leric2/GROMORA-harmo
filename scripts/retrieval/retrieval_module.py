@@ -18,8 +18,7 @@ import netCDF4
 import matplotlib.pyplot as plt
 import datetime
 
-import apriori_data_GROSOM
-import GROSOM_library
+import gromora_atmosphere
 
 from retrievals import arts
 from retrievals import covmat
@@ -32,10 +31,14 @@ from pyarts.workspace import arts_agenda
 
 
 def make_f_grid(retrieval_param): 
-    '''
-    create simulation frequency grid
+    """Function to create the frequency grid for the retrievals
 
-    '''
+    Args:
+        retrieval_param (dict): main parameters dictionary
+
+    Returns:
+        f_grid: the frequency grid to do the retrievals on.
+    """
     n_f = retrieval_param["number_of_freq_points"]  # Number of points
     bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
     x = np.linspace(-1, 1, n_f)
@@ -57,30 +60,30 @@ def make_f_grid(retrieval_param):
         plt.show()
     return f_grid
 
-def make_f_grid_double_sideband(retrieval_param, usb_grid): 
-    '''
-    create simulation frequency grid
+# def make_f_grid_double_sideband(retrieval_param, usb_grid): 
+#     '''
+#     create simulation frequency grid
 
-    '''
-    n_f = retrieval_param["number_of_freq_points"]  # Number of points
-    bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
-    x = np.linspace(-1, 1, n_f)
-    f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
-    f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
-        retrieval_param['obs_freq']
+#     '''
+#     n_f = retrieval_param["number_of_freq_points"]  # Number of points
+#     bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+#     x = np.linspace(-1, 1, n_f)
+#     f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+#     f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+#         retrieval_param['obs_freq']
 
-    #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
-    f_grid = np.concatenate((f_grid, usb_grid))
-    if retrieval_param["show_f_grid"]:
-        fig = plt.figure()
-        plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
-        # plt.xlim((retrieval_param['obs_freq']-200e6) /
-        #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
-        # plt.ylim(0,300)
-        plt.ylabel(r'$\Delta f$ [kHz]')
-        plt.suptitle('Frequency grid spacing')
-        plt.show()
-    return f_grid
+#     #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+#     f_grid = np.concatenate((f_grid, usb_grid))
+#     if retrieval_param["show_f_grid"]:
+#         fig = plt.figure()
+#         plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+#         # plt.xlim((retrieval_param['obs_freq']-200e6) /
+#         #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+#         # plt.ylim(0,300)
+#         plt.ylabel(r'$\Delta f$ [kHz]')
+#         plt.suptitle('Frequency grid spacing')
+#         plt.show()
+#     return f_grid
 
 
 def plot_FM_comparison(ds_freq, y_FM, y_obs):
@@ -227,7 +230,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
 
     # apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
     if retrieval_param['atm'][0:6] == 'fascod':
-        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        atm = gromora_atmosphere.get_apriori_fascod(retrieval_param)
         ac.set_atmosphere(atm, vmr_zeropadding=True)
     elif retrieval_param['atm'] == 'fascod_2':
         ac.ws.AtmRawRead(
@@ -244,7 +247,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         ecmwf_prefix = f'ecmwf_oper_v{2}_{instrument.location}_%Y%m%d.nc'
         retrieval_param['ecmwf_prefix'] = ecmwf_prefix
 
-        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+        atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
             retrieval_param,
             ecmwf_store,
             cira86_path,
@@ -454,7 +457,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
     #plt.colorbar()
 
     if retrieval_param['o3_apriori_covariance']=='waccm':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=1)
+        ds_waccm = gromora_atmosphere.read_waccm(retrieval_param, extra_day=1)
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
@@ -472,7 +475,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         # plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_smooth_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=10)
+        ds_waccm = gromora_atmosphere.read_waccm(retrieval_param, extra_day=10)
         #smoothed_std = np.convolve(ds_waccm.o3_std.data, np.ones(8)/8, mode ='same')
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 0.8e-6
@@ -488,7 +491,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
+        ds_waccm = gromora_atmosphere.read_waccm_monthly(retrieval_param)
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 1e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
@@ -499,7 +502,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_yearly_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        ds_waccm = gromora_atmosphere.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<2000] = 0.8e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
@@ -512,7 +515,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         # plt.gca().invert_yaxis()
         # plt.semilogy(0.1*1e6*ds_waccm.o3.data, 1e-2*ds_waccm.p.data)
     elif retrieval_param['o3_apriori_covariance']=='low_alt_ratio':
-        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        ds_waccm = gromora_atmosphere.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
         smoothed_std = ds_waccm.o3_std.data
         
         smoothed_std[ds_waccm.p.data>1000] = 0.15*ds_waccm.o3.where(ds_waccm.p>1000, drop=True).data
@@ -527,7 +530,7 @@ def retrieve_cycle(instrument, spectro_dataset, retrieval_param, ac_FM=None, sen
         #sigma_o3 = 1e-6*sigma_o3/max(sigma_o3)
     
     elif retrieval_param['o3_apriori_covariance']=='low_alt_ratio_optimized':
-        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        ds_waccm = gromora_atmosphere.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
         smoothed_std = ds_waccm.o3_std.data
         max_o3_p = ds_waccm.p.where(ds_waccm.o3 == max(ds_waccm.o3), drop=True).data
 
@@ -803,7 +806,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
 
     # apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
     if retrieval_param['atm'][0:6] == 'fascod':
-        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        atm = gromora_atmosphere.get_apriori_fascod(retrieval_param)
         ac.set_atmosphere(atm, vmr_zeropadding=True)
     elif retrieval_param['atm'] == 'fascod_2':
         ac.ws.AtmRawRead(
@@ -820,7 +823,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         ecmwf_prefix = f'ecmwf_oper_v{2}_{instrument.location}_%Y%m%d.nc'
         retrieval_param['ecmwf_prefix'] = ecmwf_prefix
 
-        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+        atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
             retrieval_param,
             ecmwf_store,
             cira86_path,
@@ -910,7 +913,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
     #plt.colorbar()
 
     if retrieval_param['o3_apriori_covariance']=='waccm':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=1)
+        ds_waccm = gromora_atmosphere.read_waccm(retrieval_param, extra_day=1)
         sigma_o3 = p_interpolate(p_grid_retrieval, ds_waccm.p.data, ds_waccm.o3_std.data)
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
@@ -924,7 +927,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         # plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         # plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_smooth_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm(retrieval_param, extra_day=10)
+        ds_waccm = gromora_atmosphere.read_waccm(retrieval_param, extra_day=10)
         #smoothed_std = np.convolve(ds_waccm.o3_std.data, np.ones(8)/8, mode ='same')
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 1e-6
@@ -940,7 +943,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_monthly_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm_monthly(retrieval_param)
+        ds_waccm = gromora_atmosphere.read_waccm_monthly(retrieval_param)
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<100] = 1e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
@@ -951,7 +954,7 @@ def retrieve_daily(instrument, spectro_dataset, retrieval_param):
         #plt.semilogy(1e6*sigma_o3, 1e-2*p_grid_retrieval)
         #plt.gca().invert_yaxis()
     elif retrieval_param['o3_apriori_covariance']=='waccm_yearly_scaled':
-        ds_waccm = apriori_data_GROSOM.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
+        ds_waccm = gromora_atmosphere.read_waccm_yearly(retrieval_param['waccm_file'] , retrieval_param["time"])
         smoothed_std = ds_waccm.o3_std.data
         smoothed_std[ds_waccm.p.data<2000] = 0.8e-6
         smoothed_std[ds_waccm.p.data<1] = 0.4e-6
@@ -1194,7 +1197,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval
         )
 
     if retrieval_param['atm'][0:6] == 'fascod':
-        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        atm = gromora_atmosphere.get_apriori_fascod(retrieval_param)
         ac.set_atmosphere(atm, vmr_zeropadding=True)
     elif retrieval_param['atm'] == 'fascod_2':
         ac.ws.AtmRawRead(
@@ -1211,7 +1214,7 @@ def retrieve_cycle_tropospheric_corrected(instrument, spectro_dataset, retrieval
         ecmwf_prefix = f'ecmwf_oper_v{2}_{instrument.location}_%Y%m%d.nc'
         retrieval_param['ecmwf_prefix'] = ecmwf_prefix
 
-        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+        atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
             retrieval_param,
             ecmwf_store,
             cira86_path,
@@ -1443,13 +1446,13 @@ def forward_model_tropospheric_corrected(spectro_dataset, retrieval_param):
 
     # apriori_data_GROSOM.plot_apriori_cira86(retrieval_param)
     if retrieval_param['atm'] == 'fascod':
-        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        atm = gromora_atmosphere.get_apriori_fascod(retrieval_param)
     elif retrieval_param['atm'] == 'fascod_2':
         ac.ws.AtmRawRead(
             basename="planets/Earth/Fascod/{}/{}".format('midlatitude-winter', 'midlatitude-winter'))
         ac.ws.AtmFieldsCalc()
     elif retrieval_param['atm'] == 'fascod_gromos_o3':
-        atm = apriori_data_GROSOM.get_apriori_fascod(retrieval_param)
+        atm = gromora_atmosphere.get_apriori_fascod(retrieval_param)
     elif retrieval_param['atm'] == 'ecmwf_cira86':
         t1 = pd.to_datetime(retrieval_param['time_start'])
         t2 = pd.to_datetime(retrieval_param['time_stop'])
@@ -1458,7 +1461,7 @@ def forward_model_tropospheric_corrected(spectro_dataset, retrieval_param):
         ecmwf_store = retrieval_param['ecmwf_store_location']
         cira86_path = retrieval_param['cira86_path']
 
-        atm = apriori_data_GROSOM.get_apriori_atmosphere_fascod_ecmwf_cira86(
+        atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
             retrieval_param,
             ecmwf_store,
             cira86_path,
@@ -1471,7 +1474,7 @@ def forward_model_tropospheric_corrected(spectro_dataset, retrieval_param):
 
     ac.set_atmosphere(atm, vmr_zeropadding=True)
 
-    gromos_o3 = apriori_data_GROSOM.read_o3_apriori_ecmwf_mls_gromosOG(
+    gromos_o3 = gromora_atmosphere.read_o3_apriori_ecmwf_mls_gromosOG(
         retrieval_param['apriori_ozone_climatology_GROMOS'])
 
     # Apply HSE, only allowed after setup of the atmosphere, when z is already on simulation grid

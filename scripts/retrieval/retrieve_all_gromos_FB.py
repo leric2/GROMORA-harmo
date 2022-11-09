@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
-import gc as garbage
+import gc
 
 #from utils_GROMORA import save_single_pdf
 
@@ -50,9 +50,6 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
 GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
-
-SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
-SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
 
 def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
@@ -72,10 +69,10 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     int_time = 1
     # Implementation of the instrument class depending on instrument name:
     if instrument_name=="GROMOS":
-        import gromos_classes as gromos
+        import gromos_FB_classes as fb
         basename_lvl1 = os.path.join(GROMOS_L1_BASEFOLDER,str(date.year))
         basename_lvl2 = os.path.join(GROMOS_L2_BASEFOLDER,str(date.year))
-        instrument = gromos.GROMOS_LvL2(
+        instrument = fb.GROMOS_FB_LvL2(
             date,
             basename_lvl1,
             basename_lvl2,
@@ -83,18 +80,8 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
             int_time,
             extra_base=''
             )
-    elif instrument_name=="SOMORA":
-        basename_lvl1 = os.path.join(SOMORA_L1_BASEFOLDER,str(date.year))
-        basename_lvl2 = os.path.join(SOMORA_L2_BASEFOLDER,str(date.year))
-        import somora_classes as somora
-        instrument = somora.SOMORA_LvL2(
-            date=date,
-            basename_lvl1=basename_lvl1,
-            basename_lvl2=basename_lvl2,
-            integration_strategy=integration_strategy,
-            integration_time=int_time,
-            extra_base=''
-        )
+    elif instrument_name == "SOMORA":
+        raise ValueError('Only GROMOS had FB !')
         
     # Reading of integrated (level 1) data:
     if integration_strategy == 'classic':
@@ -131,7 +118,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
     # Select the spectrometer (only AC240 supported at the moment)
-    spectro = 'AC240'
+    spectro = 'FB'
     spectro_dataset = integrated_dataset[spectro]
 
     if retrieve_cycle is None:
@@ -186,11 +173,12 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
 
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_oper.nc')
+        if save_level2:
+            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
-        garbage.collect()
+        gc.collect()
 
 if __name__ == "__main__":
     # Selection of the integration stategy used for the level 1. 
@@ -198,41 +186,38 @@ if __name__ == "__main__":
     integration_strategy = 'classic'
 
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
-    retrieve_cycle =  None #None // [0]
+    retrieve_cycle = None #   #None #None // [0]
 
     instrument_name = ['GROMOS'] # ['GROMOS', 'SOMORA']
 
     # Option to define the retrieval quantities to include
-    retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit' # 'o3_h2o_fshift_polyfit_sinefit' 
+    retrieval_quantities = 'o3_h2o_fshift_polyfit' # 'o3_h2o_fshift_polyfit_sinefit' 
 
     # A selection of days that crash the retrievals for unknown reasons. Not needed in latest version
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
-    date = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))
+    dates = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+    #dates = pd.date_range(start='2008-01-01', end='2008-12-31')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
+    #dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')
-    print('######################################################################################')
-
-    
-    #    if d in void_date_problem :
-    #        print('abort core problem with this day : ',d ,' --> skipping')
-    #    else:
-            # try:
-            #     retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
-            # except:
-            #    pass
-            # print('######################################################################################')
-    print('######################################################################################')
-   # try:
-    retrieve_day(
-        date, 
-        instrument_name='GROMOS',  
-        integration_strategy=integration_strategy,                        
-        retrieve_cycle=retrieve_cycle,
-        retrieval_quantities=retrieval_quantities,
-        save_level2 = True)
-   # except:
-   #     pass
-
+    for day in dates:
+        if day in void_date_problem :
+            print('abort core problem with this day : ',day ,' --> skipping')
+        else:
+            print('######################################################################################')
+            for name in instrument_name:
+                print('######################################################################################')
+                try: 
+                    retrieve_day(
+                        day, 
+                        instrument_name=name,  
+                        integration_strategy=integration_strategy, 
+                        retrieve_cycle=retrieve_cycle,
+                        retrieval_quantities=retrieval_quantities,
+                        save_level2 = True
+                    )
+                except Exception as e:
+                    print(e)
+                    pass
