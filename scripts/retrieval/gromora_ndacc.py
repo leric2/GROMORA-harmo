@@ -342,7 +342,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     int_time = 1
     new_L2 = True 
 
-    measurement_response_limit = 0.8
+    measurement_response_limit = 0.75
 
     spectro = spectros[0]
 
@@ -546,16 +546,17 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             #print(flagD)      
             flag+=1
 
-    data_quality = 'Day OK'
+    data_quality = 'Day is OK'
     if flag>0:
-        data_quality = 'Day Not OK'
+        data_quality = 'Day is not OK'
     # if opacity > 2:
     #     data_quality = data_quality + ', WARNING: high opacity'
 
     ####################################################
     # Global attributes definition
     file_version='001'
-    filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso.lower()+'_'+stop_date_iso.lower()+'_'+file_version
+    #filename = 'groundbased_mwr.o3_'+instrument.affiliation+'_'+instrument.location.lower()+'_'+start_date_iso.lower()+'_'+stop_date_iso.lower()+'_'+file_version
+    filename = 'groundbased_'+instrument.source.lower()+'_'+instrument.location.lower()+'_'+start_date_iso.lower()+'_'+stop_date_iso.lower()+'_'+file_version
     
     file_generation_date = pd.to_datetime(
         dt.datetime.now()
@@ -573,7 +574,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     global_attrs['DATA_FILE_VERSION'] = file_version
     global_attrs['FILE_NAME']=filename+'.hdf'
     global_attrs['FILE_GENERATION_DATE'] = file_generation_date
-    global_attrs['DATA_MODIFICATIONS'] = 'New harmonized retrievals from Swiss MWRs for FFTS time period'
+    global_attrs['DATA_MODIFICATIONS'] = 'New harmonized retrievals from Swiss MWRs for FFTS time period described in: 10.5194/amt-15-6395-2022'
     global_attrs['DATA_CAVEATS'] = 'Ozone profiles are estimated with the Optimal Estimation Method as implemented in the Atmospheric Radiative Transfer Simulator (ARTS)'
     global_attrs['DATA_QUALITY'] = data_quality
     global_attrs['DATA_TEMPLATE'] = 'GEOMS-TE-MWR-003'
@@ -738,15 +739,15 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         axs[0].set_xlim(200,300)
         axs[0].set_ylim(0,95)
 
-        o3_og = ds.o3_x #.where(ds.o3_mr>measurement_response_limit, np.nan)
+        o3_og = ds.o3_x.where(ds.o3_mr>measurement_response_limit, np.nan)
         o3 = new['O3.MIXING.RATIO.VOLUME_EMISSION']
         o3_z = ds.o3_z 
         new_alt = new.ALTITUDE
         o3_p = ds.o3_p
         y_lab = 'Altitude [km]'
 
-        axs[3].plot(1e6*o3_og, o3_z/1e3, label='OG')
-        axs[3].plot(o3, new_alt/1e3, label='NDACC')
+        axs[3].plot(1e6*o3_og, o3_z/1e3, 'o-',label='OG')
+        axs[3].plot(o3, new_alt/1e3,'x-', label='NDACC')
         axs[3].legend()
         axs[3].set_xlim(-0.1,10)
         #axs[1].fill_betweenx(y_axis, (o3-error)*to_ppm,(o3+error)*to_ppm, color=col, alpha=0.5)
@@ -754,7 +755,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         #axs[0].plot(o3_apriori*to_ppm, y_axis, '--', linewidth=1.5, label='apriori',color='k')
         #axs[0].set_title('O$_3$ VMR')
         #axs[0].set_xlim(-0.5,9)
-
+        axs[1].plot(0.25*ds.o3_mr, o3_z/1e3, 'k-') 
         counter=0
         color_count = 0
         for j, avk in enumerate(ds.o3_avkm):
@@ -825,7 +826,7 @@ def GEOMS_2_NDACC(new_ds, outfolder):
 
     #WRITE ALL FILE attributes
     for att5,v in new_ds.attrs.items():
-        print('Writing file attribute %s=%s'%(att5,v))
+        #print('Writing file attribute %s=%s'%(att5,v))
         att4=hdf4id.attr(str(att5))
         if isinstance(v, str): dtype5='|S'
         else: dtype5=v.dtype
@@ -836,7 +837,7 @@ def GEOMS_2_NDACC(new_ds, outfolder):
     
     #WRITE Coordinates + ATTRIBUTES
     for var,v in new_ds.coords.items():
-        print('Writing variable %s with shape %s, dtype %s'%(var,v.shape,v.dtype))
+        #print('Writing variable %s with shape %s, dtype %s'%(var,v.shape,v.dtype))
         v=v.data[...] #get numpy arrays
         if v.shape==(): v=v.reshape(1,)
         vid4=hdf4id.create(str(var),dtype524(v.dtype),v.shape)
@@ -857,7 +858,7 @@ def GEOMS_2_NDACC(new_ds, outfolder):
         vid4.endaccess()
     #WRITE VARIABLES + ATTRIBUTES
     for var,v in new_ds.items():
-        print('Writing variable %s with shape %s, dtype %s'%(var,v.shape,v.dtype))
+        #print('Writing variable %s with shape %s, dtype %s'%(var,v.shape,v.dtype))
         v=v.data[...] #get numpy arrays
         if v.shape==(): v=v.reshape(1,)
         vid4=hdf4id.create(str(var),dtype524(v.dtype),v.shape)
@@ -877,40 +878,41 @@ def GEOMS_2_NDACC(new_ds, outfolder):
             att4.set(dtype524(dtype5),atv)
         vid4.endaccess()
     hdf4id.end()
-
+    print('Written: '+outputfile)
     return
 
 if __name__ == "__main__":
 
     write_new = True
     #instrument_name = 'GROMOS'
-    d = dt.date(2010, 12 , 31)
+    d = dt.date(2019, 12 , 31)
 
     save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2007-01-01",end="2007-01-01")
+    dates = pd.date_range(start="2016-01-01",end="2021-12-31")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
     #xr.open_dataset(filename, engine='pseudonetcdf')
     #test = xr.open_mfdataset(folder+'groundbased_mwr.o3_ubern001_bern_2010*.hdf', concat_dim='DATETIME', combine='nested')
 
-    plot_cycle = [2] # [8]
+    plot_cycle = [8] # [8]
     for d in dates:
         if write_new:
             try:
-                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['FB'] , ex = '_rect_SB', plot_tprofile=plot_cycle, save_nc=False)
+                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v2', plot_tprofile=None, save_nc=False)
                 GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
             except Exception as e:
                 print(e)
+                print('Problem with: ',str(d))
                 pass
-            try:
-                somora = gromora_level2_GEOMS(instrument_name='SOMORA', date=d, spectros = ['AC240'] , ex = '_v2', plot_tprofile=plot_cycle, save_nc=False)
-                GEOMS_2_NDACC(somora,outfolder=save_folder_somora)
-            except Exception as e:
-                print(e)
-                pass
+            # try:
+            #     somora = gromora_level2_GEOMS(instrument_name='SOMORA', date=d, spectros = ['AC240'] , ex = '_v2', plot_tprofile=plot_cycle, save_nc=False)
+            #     GEOMS_2_NDACC(somora,outfolder=save_folder_somora)
+            # except Exception as e:
+            #     print(e)
+            #     pass
         else:
             filename = 'groundbased_mwr.o3_ubern001_bern_20160101t000004z_20160101t235953z_012.nc'
             new_ds = xr.open_dataset(filename, engine='netcdf4')

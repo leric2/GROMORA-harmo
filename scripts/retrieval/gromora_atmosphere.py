@@ -85,6 +85,23 @@ def extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
 
     return ds_ecmwf
 
+def extract_era5_ds(ECMWF_store_path, ecmwf_prefix, t1, t2):
+    '''
+    Extracting ERA5 data as atmospheric background
+    '''
+    ecmwf_levels=137
+
+    ecmwf_store = ECMWFLocationFileStore(ECMWF_store_path, ecmwf_prefix)
+    ds_ecmwf = (
+        ecmwf_store.select_time(t1, t2, n_levels=ecmwf_levels, combine='by_coords')
+        .mean(dim='time')
+        .swap_dims({"level":"pressure"})
+    )
+
+    ds_ecmwf = read_add_geopotential_altitude(ds_ecmwf)
+
+    return ds_ecmwf
+
 def read_o3_apriori_ecmwf_mls_gromosOG_old(filename):
     '''
     read the apriori o3 used in gromos retrieval
@@ -387,6 +404,15 @@ def get_o3_apriori(atm, month, retrieval_param):
         atm.set_vmr_field(
             "O3", ds_waccm["p"].values, ds_waccm['o3'].values
         )
+    elif retrieval_param['o3_apriori'] == 'waccm_monthly_biased':
+        print('Ozone apriori from : WACCM monthly (day/night) climatology with added bias')
+        ds_waccm = read_waccm_monthly(retrieval_param)
+        bias = xr.open_dataarray('/storage/tub/instruments/gromos/mean_bias_FB-FFT.nc')
+         #o3_biased = ds_waccm['o3']
+        o3_biased = ds_waccm['o3'].values + 1e-6*p_interpolate(ds_waccm['p'].values,np.flip(1e2*bias['o3_p'].values),bias.values)  
+        atm.set_vmr_field(
+            "O3", ds_waccm["p"].values, o3_biased
+        )
     elif retrieval_param['o3_apriori'] == 'mls':
         o3_apriori = read_mls(retrieval_param['o3_apriori_file'])
         print('Ozone apriori from : mean MLS profile')
@@ -501,7 +527,12 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # Read ECMWF data (oper for now)
     ECMWF_store_path = ecmwf_store
     ecmwf_prefix = retrieval_param['ecmwf_prefix']
-    ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+
+    if retrieval_param['atm'] == 'ecmwf_cira86':
+        ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+    elif retrieval_param['atm'] == 'era5_cira86':
+        ds_ecmwf = extract_era5_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
+        #print('TAKING ERA5 data !')
 
     if sum(np.isnan(ds_ecmwf.pressure.values)) > 1:
         raise ValueError('no ECMWF data')

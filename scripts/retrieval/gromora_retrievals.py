@@ -398,15 +398,24 @@ class DataRetrieval(ABC):
         retrieval_param['line_file'] = line_file
         ########################################################
         # Atmosphere for the simulation
-        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        if retrieval_param['atm'][0:4] == 'ecmw':  # fascod  ecmwf_cira86
+            # 6-hourly ECMWF operational analysis dataset
+            retrieval_param['extra_time_ecmwf'] = 3.5
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        elif retrieval_param['atm'][0:4] == 'era5':
+            # Hourly era5 dataset
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/Switzerland_era5/'
+            retrieval_param['extra_time_ecmwf'] = 0.5
+        else: 
+            raise ValueError('Atmosphere string definition not recognized !')
         #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
         retrieval_param['cira86_path'] = os.path.join(retrieval_param['ARTS_DATA_PATH'], 'planets/Earth/CIRA86/monthly')
         # time interval [h] around which we collect ECMWF profile
-        retrieval_param['extra_time_ecmwf'] = 3.5
+        
 
         ########################################################
         # A priori and covariances
@@ -1022,6 +1031,33 @@ class DataRetrieval(ABC):
             ac.set_atmosphere(atm, vmr_zeropadding=True)
         elif retrieval_param['atm'] == 'ecmwf_cira86':
             ecmwf_prefix = f'ecmwf_oper_v{2}_{self.location}_%Y%m%d.nc'
+            retrieval_param['ecmwf_prefix'] = ecmwf_prefix
+            try:
+                atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
+            except:
+                # Try again another merging method for PTZ profile
+                retrieval_param['ptz_merge_method'] = 'max_diff_surf'
+                atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
+        elif retrieval_param['atm'] == 'era5_cira86':
+            ecmwf_prefix = f'ecmwf_era5_SwissPlateau_%Y%m%d.nc'
             retrieval_param['ecmwf_prefix'] = ecmwf_prefix
             try:
                 atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
