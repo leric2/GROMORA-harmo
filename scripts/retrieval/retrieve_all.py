@@ -187,7 +187,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
         if save_level2:
-            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v2.nc')
+            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v3.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
@@ -199,9 +199,9 @@ if __name__ == "__main__":
     integration_strategy = 'classic'
 
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
-    retrieve_cycle =  None #None // [0]
+    retrieve_cycle =  [0] #None // [0]
 
-    instrument_name = ['GROMOS'] # ['GROMOS', 'SOMORA']
+    instrument_name = ['SOMORA'] # ['GROMOS', 'SOMORA']
 
     # Option to define the retrieval quantities to include
     retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit' # 'o3_h2o_fshift_polyfit_sinefit' 
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
+    dates = pd.date_range(start='2021-05-25', end='2021-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
     #dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')

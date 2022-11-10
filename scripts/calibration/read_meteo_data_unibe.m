@@ -193,6 +193,35 @@ try
             %             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
             %         end
         end
+    elseif calibrationTool.dateTime < datetime(1997,06,20, 'TimeZone', calibrationTool.timeZone)
+        disp('No Exwi Meteo data, using Bollwerk station.')
+        dateStringMeteo=['bollwerk_' calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
+        baseName = [calibrationTool.meteoFolderBollwerk dateStringMeteo];
+        meteoDataFileLog=[baseName '.txt'];
+        
+        meteoFile=readtable(meteoDataFileLog,'FileType','text','TreatAsEmpty',{'-9999','//','///','////','/////','//////'}, 'HeaderLines', 22);
+
+        dt = minutes(10);
+        meteoData=struct();
+        for i = 1:height(meteoFile)
+            meteoRow = meteoFile(i,:);
+            meteoData(i).dateTime=datetime(meteoRow.Var1,meteoRow.Var2, meteoRow.Var3, meteoRow.Var4, meteoRow.Var5, 0);
+            meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
+            meteoData(i).dateNum=datenum(meteoData(i).dateTime)-calibrationTool.referenceTime;
+            meteoData(i).air_temperature=meteoRow.Var14 + calibrationTool.zeroDegInKelvin;
+            meteoData(i).tod = hours(meteoData(i).dateTime-meteoData(1).dateTime);
+            
+            %rowPrec = find(isbetween(precipitation.dateTime,meteoData(i).dateTime,meteoData(i).dateTime+dt));
+            %meteoData(i).precipitation = sum(precipitation(rowPrec,:).p1,'omitnan');
+            meteoData(i).precipitation = nan;
+            meteoData(i).rel_humidity=meteoRow.Var13;
+            
+            meteoData(i).air_pressure= meteoRow.Var9;
+            %         % TODO Check units
+            %         if i>1
+            %             meteoData(i).precipitation = meteoData(i).rain_accumulation - meteoData(i-1).rain_accumulation;
+            %         end
+        end
     else
         error('No Exwi Meteo data !')
     end

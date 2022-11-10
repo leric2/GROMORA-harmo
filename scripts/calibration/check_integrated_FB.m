@@ -77,7 +77,8 @@ for i = 1:size(integratedSpectra,2)
 
     %integratedSpectra(i).potentialBadChannels = integratedSpectra(i).stdTb > calibrationTool.maxStdDevTb;
     integratedSpectra(i).potentialBadChannels = isnan(integratedSpectra(i).channelsQuality);
-    
+    integratedSpectra(i).stdTb = integratedSpectra(i).stdTbCal;
+
     cleanTb = integratedSpectra(i).Tb;
     cleanTb(integratedSpectra(i).potentialBadChannels)=NaN;
     

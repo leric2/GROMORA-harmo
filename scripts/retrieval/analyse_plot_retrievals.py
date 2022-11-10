@@ -79,7 +79,7 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2009-02-01', end='2009-02-02') 
+date = pd.date_range(start='2022-09-18', end='2022-09-19') 
 #date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
 
 int_time = 1
@@ -105,7 +105,7 @@ plot_polyfit = False
 plot_sinefit = False
 plot_MLS = False
 add_L2_flags = False
-
+compare_spectra = False
 add_opacity=False
 
 extract_fgrid = False
@@ -123,7 +123,7 @@ classic = np.arange(1, 24)
 cycle = 14
 spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
-spectros = ['FB'] 
+spectros = ['AC240'] 
 
 
 ex = 'fascodunbiased_all'
@@ -141,7 +141,8 @@ ex = '_gromosAP_low_alt'
 
 ex = '_sinefit_optimized'
 ex = '_waccm_low_alt_dx10'
-ex = '_v2'
+ex = '_rect_SB'
+ex = '_oper'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
@@ -260,38 +261,40 @@ elif instrument_name == "mopi5":
         integration_time=int_time
     )
 elif instrument_name == "compare":
-    import somora_classes as sm
+    import gromos_FB_classes as gromos_cl_FB
     basename_lvl1 = "/scratch/GROSOM/Level1/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
-    somora = sm.SOMORA_LvL2(
+    #basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
+    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    somora = gromos_cl_FB.GROMOS_FB_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
         basename_lvl2=basename_lvl2,
         integration_strategy=integration_strategy,
         integration_time=int_time
     )
-    import gromos_classes as gc
+    import gromos_classes as gromos_cl
     basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
-    gromos = gc.GROMOS_LvL2(
+    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    import gromos_classes as gromos_cl
+    gromos = gromos_cl.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
         basename_lvl2=basename_lvl2,
         integration_strategy=integration_strategy,
         integration_time=int_time
-    )
+        )
 
 if instrument_name == "compare":
     ex='_waccm_low_alt'
-    level2_somora = somora.read_level2(
-        spectrometers=['AC240'],
-        extra_base='_waccm_low_alt_dx10_v2_SB'
+    level2_FB = somora.read_level2(
+        spectrometers=['FB'],
+        extra_base='_v2'
     )
-    level2_gromos = somora.read_level2(
+    level2_gromos = gromos.read_level2(
         spectrometers=['AC240'],
-        extra_base='_waccm_low_alt_dx10_winCorr'
+        extra_base='_v2'
     )
     F0 = somora.observation_frequency
 
@@ -307,7 +310,15 @@ else:
     # )
     #print(level2_dataset)
     F0 = instrument.observation_frequency
-    
+
+if compare_spectra:
+    fig, axs = plt.subplots(nrows=1, ncols=1,sharex=True, figsize=(15, 10))
+
+    level2_gromos['AC240'].y.mean(dim='time').plot(ax = axs)
+    level2_FB['FB'].y.mean(dim='time').plot(ax = axs)
+    plt.show()
+    fig.savefig(plotfolder+'/'+gromos.basename_plot_level2 +gromos.datestr+ex+'_daily_spectra_FB_FFT.pdf', dpi=500)
+
 if extract_fgrid:
     date = datetime.date(2017, 10, 12)
     import somora_classes as sm
@@ -867,7 +878,7 @@ if plot_selected:
         instrument.plot_ozone_sel(
             level2_dataset,
             outname,
-            spectro='AC240',
+            spectro=spectros[0],
             cycles=[0,8,16],
             altitude = False,
             add_baselines = True, 
@@ -877,7 +888,7 @@ if plot_selected:
         GROMORA_library.plot_O3_all(
             level2_dataset,
             outname,
-            spectro='AC240',
+            spectro=spectros[0],
             cycles=[1,7,13,21]
         )
 
@@ -887,7 +898,7 @@ if plot_selected_nicer:
     GROMORA_library.plot_O3_sel_nicer(
         level2_dataset,
         outname,
-        spectro='AC240',
+        spectro=spectros[0],
         cycles=[1,14,18]#cycles=[1,7,10,13,17,21]
     )
 
