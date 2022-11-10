@@ -546,7 +546,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             #print(flagD)      
             flag+=1
     if RD:
-        data_quality = '.RD.DataNotQualityControlled'
+        data_quality = 'RD;DataNotQualityControlled'
     else:
         data_quality = 'Day is OK'
         if flag>0:
