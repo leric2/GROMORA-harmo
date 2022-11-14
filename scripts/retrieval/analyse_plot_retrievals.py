@@ -57,7 +57,7 @@ matplotlib.use('pdf')
 
 #from cmcrameri import cm
 plt.rcParams.update({
-    "text.usetex": False,
+    "text.usetex": True,
     "font.family": "serif",
     "font.sans-serif": ["Free sans"]})
 
@@ -82,7 +82,7 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4)),pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
+date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=5)),pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
 # pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
 
 int_time = 1
