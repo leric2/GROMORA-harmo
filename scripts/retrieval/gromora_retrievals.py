@@ -1772,7 +1772,7 @@ class DataRetrieval(ABC):
                 ax.tick_params(axis='both', which='major', labelsize=fs)
             fig.suptitle(self.instrument_name+' O$_3$ spectrum: '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'), fontsize=fs+4)
 
-            fig.tight_layout(rect=[0, 0.03, 1, 0.99])
+            #fig.tight_layout(rect=[0, 0.03, 1, 0.99])
             figure_o3_sel.append(fig)
 
 
