@@ -62,7 +62,7 @@ if __name__ == "__main__":
     recheck_channels = False
 
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_pyarts/"
-    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    #basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
@@ -136,6 +136,11 @@ if __name__ == "__main__":
     retrieval_param['plot_opacities'] = False
 
     retrieval_param['plot_o3_apriori_covariance'] = True
+
+
+    # AC240 correction factor
+    retrieval_param['AC240_magic_correction'] = True
+    retrieval_param["AC240_corr_factor"] = 0.08
 
 
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
@@ -257,7 +262,7 @@ if __name__ == "__main__":
                 ac, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 4:
-            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
             retrieval_param["surface_altitude"] = 800
             retrieval_param["observation_altitude"] = 800
             # retrieval_param['atm']='fascod_somora_o3'
@@ -304,42 +309,43 @@ if __name__ == "__main__":
             retrieval_param['o3_apriori'] = 'waccm_monthly'
             retrieval_param['FM_only'] = True
             retrieval_param['sensor']='OFF'
+            retrieval_param['sensor'] = 'FFT_SB'
             ac_sim_FM, retrieval_param, sensor_out = instrument.retrieve_cycle(
                 spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
             # retrieval_param['atm']='fascod_gromos_o3'
             # retrieval_param['atm']='fascod_somora_o3'
-            retrieval_param['o3_apriori'] = 'waccm_monthly_biased'
-            
+            #retrieval_param['o3_apriori'] = 'waccm_monthly_biased'
+            retrieval_param['sensor'] = 'FFT_SB_Antenna'
             ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
                 spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
             #level2_cycle = ac.get_level2_xarray()
             fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True)
-            axs[0].plot(1e-9*ac.ws.f_grid.value, ac_sim_FM.y[0], label='a priori')
-            axs[0].plot(1e-9*ac.ws.f_grid.value, ac.y[0], label='biased')
+            axs[0].plot(1e-9*ac.ws.f_backend.value, ac_sim_FM.y[0], label='No Antenna')
+            axs[0].plot(1e-9*ac.ws.f_backend.value, ac.y[0], label='Antenna')
             axs[0].set_ylabel('TB [K]')
 
             bias= ac.y[0]-  ac_sim_FM.y[0] 
             bias_ds = xr.DataArray(
                 data= bias,
                 dims='frequency',
-                coords={'frequency':ac.ws.f_grid.value}
+                coords={'frequency':ac.ws.f_backend.value}
             )
             bias_ds.rename('bias')
             axin1 = axs[1].inset_axes([0.62, 0.4, 0.35, 0.5])
             inset_ds = bias_ds.where(bias_ds.frequency>142.155*1e9, drop=True).where(bias_ds.frequency<142.195*1e9, drop=True)
             axin1.plot(1e-6*(inset_ds.frequency-instrument.observation_frequency), inset_ds)
             axin1.set_xlabel(r'$\Delta$ f [MHz]')
-            axs[1].plot(1e-9*ac.ws.f_grid.value, bias)
+            axs[1].plot(1e-9*ac.ws.f_backend.value, bias)
             axs[1].set_ylabel(r'$\Delta$ TB [K]')
             axs[1].set_xlabel(r'Frequency [GHz]')
             axs[0].set_title(str(date))
             axs[0].legend()
-            fig.savefig('/home/es19m597/Documents/GROMORA/Data/bias_FB_FFT_'+str(date)+'.pdf')
+            #fig.savefig('/home/es19m597/Documents/GROMORA/Data/bias_FB_FFT_'+str(date)+'.pdf')
 
             plt.show()
-            bias_ds = bias_ds.rename('bias')
-            bias_ds.to_netcdf('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.nc')
-            bias_ds.to_dataframe().to_csv('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.csv')
+            # bias_ds = bias_ds.rename('bias')
+            # bias_ds.to_netcdf('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.nc')
+            # bias_ds.to_dataframe().to_csv('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.csv')
             # import GROMORA_library
 
             exit()
