@@ -498,7 +498,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             # Interpolation of the dataset on the new altitude coordinates:
             t_interp = ptz.t.values #p_interpolate(ds.o3_p.data, ptz.p.values, ptz.t.values)
         else:
-            t_interp = ds['temperature_profile'].data
+            t_interp = interp_ds['temperature_profile'].data
 
         # Clean the dataset for good quality data
         if ds.retrieval_quality.data == 1:
