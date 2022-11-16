@@ -21,6 +21,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
+from scipy.interpolate import interp2d
 import pandas as pd
 import xarray as xr
 from dotenv import load_dotenv
@@ -321,7 +322,7 @@ def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_m
 
     return ds_ptz
 
-def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', plot_tprofile=False, save_nc=True,  outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
+def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), plot_tprofile=False, save_nc=True,  outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
     """
     Function to convert GROMORA level 2 to GEOMS compliant xarray dataset
     As a option, it can save the dataset as netCDF4 file.
@@ -414,9 +415,10 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         dataset = level2_dataset[spectro].drop_dims(['f', 'h2o_continuum_p', 'h2o_continuum_p_avk', 'poly_order', 'f_shift_grid'])
 
     #dataset['o3_p'] = dataset.o3_z.mean(dim='time').data
-    new_z = np.int32(dataset.o3_z.mean(dim='time').data)
+    #new_z = np.int32(dataset.o3_z.mean(dim='time').data)
     
     #.replace(tzinfo=gromora_tz)
+    new_z = np.int32(new_z)
 
     lat = dataset.lat.mean(dim='time').data
     lon = dataset.lon.mean(dim='time').data  
@@ -462,6 +464,23 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             mean_sza.append(sza)
         else:
             mean_sza.append(ds['solar_zenith_angle'].data)
+        
+        # Interpolate all quantities on new altitude grid for NDACC
+        ds.coords['alt'] = ('o3_p', ds.o3_z.data)
+        
+        ds = ds.swap_dims({'o3_p':'alt'})
+        ds.coords['o3_p_avk'] = ('alt', ds.o3_z.data)
+        
+        #ds = ds.coords['o3_p_avk'].rename('alt')
+        #ds=ds.drop_dims(['o3_p_avk'])
+        
+        #ds = ds.swap_dims({'o3_p_avk':'alt'})
+
+        interp_ds = ds.interp(alt=new_z)
+
+        # Specific 2D interpolation for the AVKs
+        f_avkm_interp = interp2d(ds.o3_avkm.alt.data, ds.o3_avkm.o3_p_avk.data, ds.o3_avkm.data)
+        avkm_interp = f_avkm_interp(new_z,new_z)
 
         if not 'temperature_profile' in list(dataset.data_vars.keys()):
             ptz = read_ptz_ecmwf_cira86(
@@ -473,18 +492,13 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
                 merge_method='max_diff',
                 max_T_diff=5,
                 extra_time_ecmwf = 3.5, 
-                z_grid=None)
+                z_grid=new_z)
             #ds['temperature'] = (['time', 'o3_p'], ptz.t.data)
 
             # Interpolation of the dataset on the new altitude coordinates:
-            t_interp = p_interpolate(ds.o3_p.data, ptz.p.values, ptz.t.values)
+            t_interp = ptz.t.values #p_interpolate(ds.o3_p.data, ptz.p.values, ptz.t.values)
         else:
             t_interp = ds['temperature_profile'].data
-        
-        ds.coords['alt'] = ('o3_p',ds.o3_z.data)
-        ds = ds.swap_dims({'o3_p':'alt'})
-
-        interp_ds = ds.interp(alt=new_z)
 
         # Clean the dataset for good quality data
         if ds.retrieval_quality.data == 1:
@@ -497,7 +511,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             o3_total_column.append(tco/DU)
 
             o3.append(1e6*ozone)
-            o3_p.append(1e-2*interp_ds.o3_p)
+            o3_p.append(1e-2*interp_ds.o3_p.data)
             o3_random.append(1e6*interp_ds.o3_eo.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
             o3_sytematic.append(1e6*interp_ds.o3_es.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
             o3_tot.append(1e6*(interp_ds.o3_es+ interp_ds.o3_eo).where(interp_ds.o3_mr>measurement_response_limit, np.nan).data)
@@ -505,18 +519,18 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             o3_resolution.append((interp_ds.o3_fwhm.where(interp_ds.o3_mr>measurement_response_limit, -900000).data))
             o3_apriori_contribution.append(100*(1-interp_ds.o3_mr.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data))
         else:
-            o3_number_density.append(np.ones_like(ds.alt.data)*np.nan)
+            o3_number_density.append(np.ones_like(interp_ds.alt.data)*np.nan)
             o3_total_column.append(np.nan)
-            o3.append(np.ones_like(ds.alt.data)*np.nan)
-            o3_p.append(np.ones_like(ds.alt.data)*np.nan)
-            o3_random.append(np.ones_like(ds.alt.data)*np.nan)
-            o3_sytematic.append(np.ones_like(ds.alt.data)*np.nan)
-            o3_tot.append(np.ones_like(ds.alt.data)*np.nan)
+            o3.append(np.ones_like(interp_ds.alt.data)*np.nan)
+            o3_p.append(np.ones_like(interp_ds.alt.data)*np.nan)
+            o3_random.append(np.ones_like(interp_ds.alt.data)*np.nan)
+            o3_sytematic.append(np.ones_like(interp_ds.alt.data)*np.nan)
+            o3_tot.append(np.ones_like(interp_ds.alt.data)*np.nan)
 
             o3_resolution.append((interp_ds.o3_fwhm.where(interp_ds.o3_mr>measurement_response_limit, -900000).data))
             o3_apriori_contribution.append(100*(1-interp_ds.o3_mr.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data))
 
-        o3_avk.append(interp_ds.o3_avkm.data)
+        o3_avk.append(avkm_interp)
         o3_apriori.append(1e6*interp_ds.o3_xa)
         temperature.append(t_interp)
         #o3_mmr = o3_vmr2mmr(ozone)
@@ -665,10 +679,16 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             avk[avk<valid_min] = fillV
             avk[avk>valid_max] = fillV
             new_ds[s] = (['DATETIME', 'ALTITUDE', 'ALTITUDE'], avk)
+        # elif s == 'O3_MIXING_RATIO_VOLUME_EMISSION_APRIORI':
+        #     new_ds[s] = new_ds[s].where(~np.isinf(new_ds[s].data), fillV)
+        #     new_ds[s] = new_ds[s].where(new_ds[s].data > valid_min, fillV)
+        #     new_ds[s] = new_ds[s].where(new_ds[s].data < valid_max, fillV)
+        #     new_ds[s] = new_ds[s].fillna(fillV) 
         else:
-            new_ds[s].where(new_ds[s].data < valid_min, np.nan)
-            new_ds[s].where(new_ds[s].data > valid_max, np.nan)
-            new_ds[s] = new_ds[s].fillna(fillV)
+            new_ds[s] = new_ds[s].where(~np.isinf(new_ds[s].data), fillV)
+            new_ds[s] = new_ds[s].where(new_ds[s].data > valid_min, fillV)
+            new_ds[s] = new_ds[s].where(new_ds[s].data < valid_max, fillV)
+            new_ds[s] = new_ds[s].fillna(fillV) 
         
         new_ds[s].attrs['VAR_NAME'] = SDS_Name_List[n]
         new_ds[s].attrs['VAR_DESCRIPTION'] = VAR_DESCRIPTION_List[n]
@@ -890,18 +910,18 @@ if __name__ == "__main__":
     save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2016-01-01",end="2021-12-31")
+    dates = pd.date_range(start="2010-01-01",end="2021-12-31")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
     #xr.open_dataset(filename, engine='pseudonetcdf')
     #test = xr.open_mfdataset(folder+'groundbased_mwr.o3_ubern001_bern_2010*.hdf', concat_dim='DATETIME', combine='nested')
 
-    plot_cycle = [8] # [8]
+    plot_cycle = None # [8]
     for d in dates:
         if write_new:
             try:
-                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v2', plot_tprofile=None, save_nc=False)
+                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(4, 92, 2), plot_tprofile=plot_cycle, save_nc=False)
                 GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
             except Exception as e:
                 print(e)
