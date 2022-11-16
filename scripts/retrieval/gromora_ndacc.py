@@ -916,7 +916,7 @@ if __name__ == "__main__":
 
     if write_new:
         try:
-            gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(4, 92, 2), plot_tprofile=None, save_nc=False, RD=True)
+            gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_oper', new_z=1e3*np.arange(4, 92, 2), plot_tprofile=None, save_nc=False, RD=True)
             GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
         except Exception as e:
             print(e)
