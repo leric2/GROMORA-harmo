@@ -337,6 +337,10 @@ class DataRetrieval(ABC):
         retrieval_param['sensor'] = 'FFT_SB'
         retrieval_param['SB_bias'] = 0
         retrieval_param['FWHM'] = self.antenna_fwhm
+
+        # AC240 correction factor
+        retrieval_param['AC240_magic_correction'] = False
+        retrieval_param["AC240_corr_factor"] = 0.08
         
         retrieval_param['sideband_response'] = 'theory'
         retrieval_param['use_all_channels'] = True
@@ -399,7 +403,7 @@ class DataRetrieval(ABC):
         retrieval_param['line_file'] = line_file
         ########################################################
         # Atmosphere for the simulation
-        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86
+        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5

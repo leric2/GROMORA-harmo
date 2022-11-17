@@ -152,6 +152,9 @@ class GROMOS_FB_LvL2(DataRetrieval):
         retrieval_param['window_corrected_spectrum'] = True
         retrieval_param["f_shift"] = 0
 
+        retrieval_param['AC240_magic_correction'] = False
+        retrieval_param["AC240_corr_factor"] = 0.08
+
         # # Frequency grid for the simulation:
         # retrieval_param["number_of_freq_points"] = 4*1201
         # retrieval_param["irregularity_f_grid"] = 5000

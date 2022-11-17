@@ -55,14 +55,14 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "SOMORA"
-    date = datetime.date(2018, 6 , 20)
+    instrument_name = "GROMOS"
+    date = datetime.date(2022, 2, 20)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
 
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_pyarts/"
-    #basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
@@ -136,12 +136,6 @@ if __name__ == "__main__":
     retrieval_param['plot_opacities'] = False
 
     retrieval_param['plot_o3_apriori_covariance'] = True
-
-
-    # AC240 correction factor
-    retrieval_param['AC240_magic_correction'] = True
-    retrieval_param["AC240_corr_factor"] = 0.08
-
 
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
