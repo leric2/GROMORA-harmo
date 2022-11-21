@@ -211,19 +211,7 @@ if __name__ == "__main__":
     # Date range on which to perform the retrievals
     #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
     date = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))
-    print('######################################################################################')
-    print('######################################################################################')
-    print('######################################################################################')
 
-    
-    #    if d in void_date_problem :
-    #        print('abort core problem with this day : ',d ,' --> skipping')
-    #    else:
-            # try:
-            #     retrieve_day(d, instrument_name='SOMORA', integration_strategy=integration_strategy)
-            # except:
-            #    pass
-            # print('######################################################################################')
     print('######################################################################################')
    # try:
     retrieve_day(
