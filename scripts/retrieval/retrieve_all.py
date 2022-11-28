@@ -38,7 +38,7 @@ import gc as garbage
 
 # For ARTS, you need to specify some paths in your shell. 
 # If this is not already done, you can import them now with dotenv:
-#load_dotenv('/opt/arts/.env.stockhorn-arts24')
+load_dotenv('/opt/arts/.env.stockhorn-arts24')
 #load_dotenv('/opt/anaconda/.env.birg-arts24')
 
 ARTS_DATA_PATH = os.environ['ARTS_DATA_PATH']
