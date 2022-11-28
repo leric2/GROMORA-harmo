@@ -36,7 +36,7 @@ import fnmatch,shutil,glob,scipy
 from ndacc_parameters import *
 
 # # For ARTS, we need to specify some paths
-#load_dotenv('/opt/arts/.env.stockhorn-arts24')
+load_dotenv('/opt/arts/.env.stockhorn-arts24')
 # load_dotenv('/opt/anaconda/.env.birg-arts24')
 # load_dotenv('/home/esauvageat/Documents/ARTS/.env.moench-arts2.4')
 
