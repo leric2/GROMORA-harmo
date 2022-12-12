@@ -79,7 +79,7 @@ instrument_name = "GROMOS"
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2022-09-18', end='2022-09-19') 
+date = pd.date_range(start='2010-01-18', end='2010-01-19') 
 #date = [pd.to_datetime(datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.now()-datetime.timedelta(days=6))]
 
 int_time = 1
@@ -142,14 +142,14 @@ ex = '_gromosAP_low_alt'
 ex = '_sinefit_optimized'
 ex = '_waccm_low_alt_dx10'
 ex = '_rect_SB'
-ex = '_oper'
+ex = '_v3'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
 
 if new_L2:
     plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+    #plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
     cont_name = 'h2o_continuum_x' 
 else:
     cont_name = 'h2o_pwr98_x'
@@ -213,7 +213,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectros[0] == 'AC240':
