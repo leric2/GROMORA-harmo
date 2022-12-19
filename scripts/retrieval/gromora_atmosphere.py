@@ -529,8 +529,10 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     ecmwf_prefix = retrieval_param['ecmwf_prefix']
 
     if retrieval_param['atm'] == 'ecmwf_cira86':
+        print('Atmospheric state defined with: ECMWF oper v2, CIRA86')
         ds_ecmwf = extract_ecmwf_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
     elif retrieval_param['atm'] == 'era5_cira86':
+        print('Atmospheric state defined with: ECMWF ERA5, CIRA86')
         ds_ecmwf = extract_era5_ds(ECMWF_store_path, ecmwf_prefix, ecmwf_time1, ecmwf_time2)
         #print('TAKING ERA5 data !')
 
@@ -582,9 +584,6 @@ def get_apriori_atmosphere_fascod_ecmwf_cira86(retrieval_param, ecmwf_store, cir
     # Adding humidity profile
     atm = get_h2o_apriori(atm, retrieval_param, fascod_clim=fascod_clim, ds_ecmwf=ds_ecmwf)
    # compare_o3_apriori_OG(o3_apriori_GROMOS.p.data, o3_apriori_GROMOS.o3, pressure_atm.data, o3_apriori_h)
-        
-    print('Atmospheric state defined with: ECMWF oper v2, CIRA86')
-
     return atm
 
 def read_mls(filename):

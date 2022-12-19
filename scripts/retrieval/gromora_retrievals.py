@@ -334,14 +334,7 @@ class DataRetrieval(ABC):
 
         ########################################################
         # Sensor related parameter:
-        retrieval_param['sensor'] = 'FFT_SB'
-        retrieval_param['SB_bias'] = 0
-        retrieval_param['FWHM'] = self.antenna_fwhm
-
-        # AC240 correction factor
-        retrieval_param['AC240_magic_correction'] = False
-        retrieval_param["AC240_corr_factor"] = 0.08
-        
+       
         retrieval_param['sideband_response'] = 'theory'
         retrieval_param['use_all_channels'] = True
         retrieval_param['window_corrected_spectrum'] = True
@@ -403,7 +396,7 @@ class DataRetrieval(ABC):
         retrieval_param['line_file'] = line_file
         ########################################################
         # Atmosphere for the simulation
-        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5
@@ -797,16 +790,28 @@ class DataRetrieval(ABC):
                     intermediate_freq= intermediate_freq,
                     sideband_response=sideband_response
                 )
-        elif retrieval_param['sensor']=='FB_SB':
+        elif 'FB_SB' in retrieval_param['sensor']:
             channel_width_measured = retrieval_param['channel_width_measured']
             channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
-            sensor = arts.SensorRectSB(
-                ds_freq+retrieval_param["f_shift"], 
-                channel_width=channel_width_measured,                
-                lo_freq = lo, 
-                sideband_mode='lower', 
-                intermediate_freq= intermediate_freq,
-                sideband_response=sideband_response )
+            if 'Antenna' in retrieval_param['sensor']:
+                sensor = arts.SensorRectSB_Antenna(
+                    ds_freq+retrieval_param["f_shift"], 
+                    channel_width=channel_width_measured,                
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response,
+                    fwhm=retrieval_param['FWHM']
+                    )
+            else:
+                sensor = arts.SensorRectSB(
+                    ds_freq+retrieval_param["f_shift"], 
+                    channel_width=channel_width_measured,                
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response
+                    )
         elif retrieval_param['sensor']=='FB':
             channel_width_measured = retrieval_param['channel_width_measured']
             channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
@@ -866,6 +871,34 @@ class DataRetrieval(ABC):
         return f_grid
 
     ############################################################################################################################
+    def make_f_grid_double_sideband(self, retrieval_param): 
+        '''
+        Create simulation frequency grid when the sideband response is included.
+
+        '''
+        usb_grid = self.usb_grid
+
+        n_f = retrieval_param["number_of_freq_points"]  # Number of points
+        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+        x = np.linspace(-1, 1, n_f)
+        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+            retrieval_param['obs_freq']
+
+        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+        f_grid = np.concatenate((f_grid, usb_grid))
+        if retrieval_param["show_f_grid"]:
+            fig = plt.figure()
+            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+            # plt.xlim((retrieval_param['obs_freq']-200e6) /
+            #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+            # plt.ylim(0,300)
+            plt.ylabel(r'$\Delta f$ [kHz]')
+            plt.suptitle('Frequency grid spacing')
+            plt.show()
+        return f_grid
+
+    ############################################################################################################################
     # Retrievals grid:
     def set_pgrids(self, retrieval_param):
         """Function to define the pressure grid for ozone and continuum retrievals
@@ -905,7 +938,7 @@ class DataRetrieval(ABC):
     ############################################################################################################################
     # The retrieval function
     ############################################################################################################################
-    def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None):
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None, ds_y=None):
         """ Retrieval of a single integration cycle defined in retrieval_param
 
         Args:
@@ -979,7 +1012,7 @@ class DataRetrieval(ABC):
                     #f_grid = self.make_f_grid(retrieval_param)
                     f_grid = np.insert(ds_freq, 0, 140.875e9) # 141e9
                     f_grid = np.append(f_grid, 142.875e9) #143e9
-                    if retrieval_param['sensor'] == 'FB_SB':
+                    if 'FB_SB' in retrieval_param['sensor']:
                         f_grid = np.concatenate((f_grid, self.usb_grid))
                 else:
                     f_grid = self.make_f_grid(retrieval_param)
@@ -988,8 +1021,8 @@ class DataRetrieval(ABC):
         else:
             print("Retrieval of Ozone and H20 providing simulated measurement vector")
             ds_freq = ac_sim_FM.ws.f_backend.value
-            ds_y = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ds_freq)) + 0 + 1e-9*(
-                ds_freq-ds_freq[0])*(0)  # Gaussian noise + linear baseline possible
+            # ds_y = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ds_freq)) + 0 + 1e-9*(
+            #     ds_freq-ds_freq[0])*(0)  # Gaussian noise + linear baseline possible
             ds_num_of_channel = len(ds_freq)
             #ds_Tb = Tb[cycle].values
 
@@ -998,7 +1031,10 @@ class DataRetrieval(ABC):
             ds_df = ds_bw/(ds_num_of_channel-1)
 
             retrieval_param["bandwidth"] = self.bandwidth[0]+100e6
-            f_grid = self.make_f_grid(retrieval_param)
+            if 'SB' in retrieval_param['sensor']:
+                f_grid = self.make_f_grid_double_sideband(retrieval_param)
+            else:
+                f_grid = self.make_f_grid(retrieval_param)
 
         ############################################################################################ 
         # Iniializing ArtsController object
@@ -1260,8 +1296,14 @@ class DataRetrieval(ABC):
         # Defining measurement covariance matrix: 
         if ac_sim_FM is None:
             if retrieval_param['noise_covariance']  == 'noise_level':
-                y_var = retrieval_param['increased_var_factor']*np.square(
-                    spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+                if retrieval_param['AC240_magic_correction']:
+                    # y_var = (1+retrieval_param["AC240_corr_factor"])*retrieval_param['increased_var_factor']*np.square(
+                    #     spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+                    # print(f'Noise from var scaled: {np.sqrt(np.median(y_var)):.2f} K')
+                    y_var = np.square((np.std(np.diff(ds_y[good_channels])))* np.ones_like(ds_y)/np.sqrt(2))
+                else:
+                    y_var = retrieval_param['increased_var_factor']*np.square(
+                        spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
                 #y_var = retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
                 if len(y_var) == len(bad_channels):
                     # increase variance for spurious channels by some factor

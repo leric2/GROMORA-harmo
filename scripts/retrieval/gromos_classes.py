@@ -193,11 +193,14 @@ class GROMOS_LvL2(DataRetrieval):
             plt.show()
         return f_grid
     
-    def cost_threshold(self, year):
+    def cost_threshold(self, year, version=3):
         '''
         Cost threshold over which we flag the level 2
         '''
-        return 0.1 
+        if version ==3:
+            return 0.1
+        else:
+            return 0.1 
 
     @property
     def day2flag_level2(self):

@@ -949,15 +949,25 @@ def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og
         DESCRIPTION.
 
     '''
-    if len( ac.retrieval_quantities) > 1:
-        if retrieval_param['retrieval_quantities'] == 'o3_h2o':
-            ozone_ret, h2o_ret = ac.retrieval_quantities
-        elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
-            #ozone_ret, h2o_ret, o2_ret, n2_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
-            ozone_ret, h2o_ret, fshift_ret = ac.retrieval_quantities
-        elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
-            ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
-            print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+    fshift_ret = None
+    if retrieval_param['retrieval_quantities'] == 'o3_h2o':
+        ozone_ret, h2o_ret = ac.retrieval_quantities
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift':
+        ozone_ret, h2o_ret, fshift_ret = ac.retrieval_quantities
+        #print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_polyfit':
+        ozone_ret, h2o_ret, polyfit_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit':
+        ozone_ret, h2o_ret, polyfit_ret, fshift_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+    elif retrieval_param['retrieval_quantities'] == 'o3_h2o_fshift_polyfit_sinefit':
+        ozone_ret, h2o_ret, polyfit_ret, fshift_ret, sinefit_ret = ac.retrieval_quantities
+        print('Poly coefficients: ' + ', '.join(['{:.2f}'.format(x[0]) for x in polyfit_ret.x]))
+        print('fshift fit: {:g} kHz'.format(fshift_ret.x[0]/1e3))
+        print('Sinefit : ', sinefit_ret.x)
     else:
         ozone_ret,  = ac.retrieval_quantities
 
@@ -967,7 +977,7 @@ def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og
     #y = ac.y[0]
     yf = ac.yf[0]
     r = y - yf
-    r_smooth = np.convolve(r, np.ones((128,)) / 128, mode="same")
+
 
     figures = list()
 
@@ -977,7 +987,6 @@ def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og
     axs[0].set_xlim(-0.5,15)
     axs[0].legend()
     axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r, label="residuals")
-    axs[1].plot((f_backend - retrieval_param['obs_freq']) / 1e6, r_smooth, label="residuals smooth")
     #axs[1].set_ylim(-2, 2)
     axs[1].legend()
     axs[1].set_xlabel("f - {:.3f} GHz [MHz]".format(retrieval_param['obs_freq'] / 1e9))
@@ -989,7 +998,9 @@ def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     figures.append(fig)
 
-    fig, axs = plt.subplots(1, 2, sharey=True)
+    fig, axs = plt.subplots(1, 3, sharey=True)
+    from retrievals.data import p_interpolate
+    diff = 100*(ozone_ret.x - p_interpolate(ozone_ret.z_grid, z_og, og_ozone))/ozone_ret.x
     axs[0].plot(
         ozone_ret.x * 1e6, ozone_ret.z_grid / 1e3, label="retrieved", marker="x"
     )
@@ -1002,8 +1013,13 @@ def plot_level2_test_retrieval(ac, ac_FM, retrieval_param, title="", z_og=[], og
     axs[1].plot(ozone_ret.mr, ozone_ret.z_grid / 1e3)
     axs[1].set_xlabel("Measurement response")
 
+    axs[2].plot( diff, ozone_ret.z_grid / 1e3)
+    axs[2].set_xlim(-25,25)
+    axs[2].set_xlabel("Ret - OG")
+
     axs[0].grid(True)
     axs[1].grid(True)
+    axs[2].grid(True)
     figures.append(fig)
 
     fig, axs = plt.subplots(1, 2, sharey=True)    

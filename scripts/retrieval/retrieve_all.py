@@ -49,7 +49,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
@@ -127,6 +127,15 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     # Function to define the default retrieval_param dictionary.
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
+    # Sensor related parameter:
+    retrieval_param['sensor'] = 'FFT_SB_Antenna'
+    retrieval_param['SB_bias'] = 0
+    retrieval_param['FWHM'] = instrument.antenna_fwhm
+
+    # AC240 correction factor
+    retrieval_param['AC240_magic_correction'] = True
+    retrieval_param["AC240_corr_factor"] = 0.08
+
     # Quick test on instrument name
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -199,9 +208,9 @@ if __name__ == "__main__":
     integration_strategy = 'classic'
 
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
-    retrieve_cycle =  [0] #None // [0]
+    retrieve_cycle =  None #None // [0]
 
-    instrument_name = ['SOMORA'] # ['GROMOS', 'SOMORA']
+    instrument_name = ['GROMOS'] # ['GROMOS', 'SOMORA']
 
     # Option to define the retrieval quantities to include
     retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit' # 'o3_h2o_fshift_polyfit_sinefit' 
@@ -210,7 +219,8 @@ if __name__ == "__main__":
     void_date_problem = []
 
     # Date range on which to perform the retrievals
-    dates = pd.date_range(start='2021-05-25', end='2021-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
+    dates = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+    #dates = pd.date_range(start='2009-07-01', end='2009-12-31')#.append(pd.date_range(start='2010-01-01', end='2010-01-03'))
     #dates = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(weeks=1))
     print('######################################################################################')
     print('######################################################################################')
