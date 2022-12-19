@@ -236,7 +236,7 @@ class SensorFFT_Sideband_Antenna(AbstractSensor):
     def sensor_response_agenda(self):
         @arts_agenda
         def sensor_response_agenda(ws):
-            ws.AntennaConstantGaussian1D(n_za_grid=2, fwhm=self.fmhw, xwidth_si=3, dx_si=1)
+            ws.AntennaConstantGaussian1D(n_za_grid=2, fwhm=self.fmhw, xwidth_si=3, dx_si=0.5)
             #ws.antenna_responseGaussian(fwhm=self.fmhw, xwidth_si=3, dx_si=0.5)
             #ws.mblock_dlos_grid = np.array([-2,2])
             #ws.AntennaConstantGaussian1D(n_za_grid=1, fwhm=1.5)
@@ -284,6 +284,64 @@ class SensorGaussian(AbstractSensor):
             ws.sensor_responseBackend()
 
         return sensor_response_agenda
+
+    @property
+    def f_backend(self):
+        return self._f_backend
+
+class SensorRectSB_Antenna(AbstractSensor):
+    """Sensor with rectangular Channel response, now including gaussian Antenna patter. Used for FB retrievals"""
+
+    def __init__(self, f_backend, channel_width, lo_freq, sideband_mode, intermediate_freq, sideband_response, fwhm):
+        """
+        :param f_backend: Backend frequencies
+        """
+        # Compute the backend channel response
+        self._f_backend = f_backend
+        self._channel_width = channel_width
+        self.lo_freq = lo_freq
+        self.sideband_mode = sideband_mode
+        self.bcr = []
+        self.fmhw = fwhm
+        for i, df in enumerate(channel_width):
+            self.bcr.append(
+                GriddedField1(
+                    name='Backend channel response function for FB',
+                    gridnames=['Frequency'], 
+                    dataname='Data',
+                    grids=[np.array((-df/2 , df/2))],
+                    data=np.array((1,1))))
+        
+        self.sideband_response= GriddedField1(
+                    name='Sideband response function for mixer',
+                    gridnames=['Frequency'], 
+                    dataname='Data',
+                    grids=[intermediate_freq],
+                    data=sideband_response)
+
+    def apply(self, ws):
+        ws.FlagOn(ws.sensor_norm)
+        ws.f_backend = self.f_backend
+        ws.backend_channel_response = self.bcr
+        ws.lo = self.lo_freq
+        ws.sideband_mode = self.sideband_mode
+        ws.sideband_response = self.sideband_response
+        
+        super().apply(ws)
+
+    @property
+    def sensor_response_agenda(self):
+        @arts_agenda
+        def sensor_response_agenda(ws):
+            ws.AntennaConstantGaussian1D(n_za_grid=2, fwhm=self.fmhw, xwidth_si=3, dx_si=0.5)
+            ws.sensor_responseInit()
+            ws.sensor_responseAntenna()
+            ws.sensor_responseMixer(lo=self.lo_freq)
+            ws.sensor_responseIF2RF(sideband_mode=self.sideband_mode)
+            ws.sensor_responseBackend()
+
+        return sensor_response_agenda
+
 
     @property
     def f_backend(self):

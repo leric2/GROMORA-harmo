@@ -31,7 +31,8 @@ from .sensors import (
     SensorFFT_Sideband,
     SensorFFT_Sideband_Antenna,
     SensorRect,
-    SensorRectSB
+    SensorRectSB,
+    SensorRectSB_Antenna
 )
 
 
