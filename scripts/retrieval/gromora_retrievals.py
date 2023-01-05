@@ -136,7 +136,7 @@ class DataRetrieval(ABC):
                     self.filename_level1b[s].append(os.path.join(
                         self.level1_folder,
                         self.instrument_name + "_level1b_"+ self.integration_strategy + '_' +
-                        s + "_" + self.datestr + extra_base
+                        s + "_" + self.datestr + sensor
                         ))
 
     def correct_troposphere(self, spectrometers, dim, method='Ingold_v1'):
@@ -336,6 +336,11 @@ class DataRetrieval(ABC):
         # Sensor related parameter:
         retrieval_param['sensor'] = 'FFT_SB'
         retrieval_param['SB_bias'] = 0
+        retrieval_param['FWHM'] = self.antenna_fwhm
+
+        # AC240 correction factor
+        retrieval_param['AC240_magic_correction'] = False
+        retrieval_param["AC240_corr_factor"] = 0.08
         
         retrieval_param['sideband_response'] = 'theory'
         retrieval_param['use_all_channels'] = True
@@ -402,11 +407,20 @@ class DataRetrieval(ABC):
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        if retrieval_param['atm'][0:4] == 'ecmw':  # fascod  ecmwf_cira86
+            # 6-hourly ECMWF operational analysis dataset
+            retrieval_param['extra_time_ecmwf'] = 3.5
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        elif retrieval_param['atm'][0:4] == 'era5':
+            # Hourly era5 dataset
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/Switzerland_era5/'
+            retrieval_param['extra_time_ecmwf'] = 0.5
+        else: 
+            raise ValueError('Atmosphere string definition not recognized !')
         #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
         retrieval_param['cira86_path'] = os.path.join(retrieval_param['ARTS_DATA_PATH'], 'planets/Earth/CIRA86/monthly')
         # time interval [h] around which we collect ECMWF profile
-        retrieval_param['extra_time_ecmwf'] = 3.5
+        
 
         ########################################################
         # A priori and covariances
@@ -638,19 +652,21 @@ class DataRetrieval(ABC):
         Returns:
             arts.Sensor(): the sensor
         """
-        # Defining our sensors
-        if retrieval_param['sensor']=='FFT': 
-            sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
-        elif retrieval_param['sensor']=='FFT_SB': #np.concatenate((ds_freq,np.arange(148.974e9,149.977e9,1e6)))
-            #intermediate_freq = 1e9*np.array([-4.101, -3.7,-3.1,3.1, 3.7,4.101])
+        if 'SB' in retrieval_param['sensor']:
             lo = self.lo
             if self.instrument_name == 'GROMOS':
                 deltaZ = (20.04e-3 - 0.1e-3) - retrieval_param['SB_bias']
                 #deltaZ1 = 20.95e-3
                 lsb = 1e9*np.array([-4.101, -3.7,-3.1])
                 usb= -np.flip(lsb)
-                lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
-                usb_all = -np.flip(lsb_all)
+                if 'FFT_SB' in retrieval_param['sensor']:
+                    lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
+                    usb_all = -np.flip(lsb_all)
+                elif 'FB_SB' in retrieval_param['sensor']:
+                    lsb_all = np.arange(-4.4e9, -3e9, 10e6)
+                    usb_all = -np.flip(lsb_all)
+                else:
+                    ValueError('Specify valid sideband combination')
                 plot_freq = np.arange(-4.101e9, +4.101e9, 10e6)
             elif self.instrument_name == 'SOMORA':
                 deltaZ = 11.5e-3 - retrieval_param['SB_bias']
@@ -662,7 +678,7 @@ class DataRetrieval(ABC):
                 plot_freq = np.arange(-7.601e9, +6.6e9, 10e6)
             else:
                 print('SB ratio not implement for this instrument !')
-
+            
             if retrieval_param['sideband_response']=='constant':
                 lsb_response = np.array([1,1,1])
                 usb_response = np.array([0.05,0.05,0.05])
@@ -694,6 +710,63 @@ class DataRetrieval(ABC):
                 sideband_response = np.concatenate((lower_sideband_response,upper_sideband_response))
             else: 
                 print('select SB response type')
+        # Defining our sensors
+        if retrieval_param['sensor']=='FFT': 
+            sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
+        elif 'FFT_SB' in retrieval_param['sensor']:
+            #np.concatenate((ds_freq,np.arange(148.974e9,149.977e9,1e6)))
+            #intermediate_freq = 1e9*np.array([-4.101, -3.7,-3.1,3.1, 3.7,4.101])
+            # lo = self.lo
+            # if self.instrument_name == 'GROMOS':
+            #     deltaZ = (20.04e-3 - 0.1e-3) - retrieval_param['SB_bias']
+            #     #deltaZ1 = 20.95e-3
+            #     lsb = 1e9*np.array([-4.101, -3.7,-3.1])
+            #     usb= -np.flip(lsb)
+            #     lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
+            #     usb_all = -np.flip(lsb_all)
+            #     plot_freq = np.arange(-4.101e9, +4.101e9, 10e6)
+            # elif self.instrument_name == 'SOMORA':
+            #     deltaZ = 11.5e-3 - retrieval_param['SB_bias']
+            #     #deltaZ1 = 20.95e-3
+            #     lsb = 1e9*np.array([-7.601, -7.1 ,-6.6])
+            #     usb= -np.flip(lsb)
+            #     lsb_all = np.arange(-7.601e9, -6.6e9, 10e6)
+            #     usb_all = -np.flip(lsb_all)
+            #     plot_freq = np.arange(-7.601e9, +6.6e9, 10e6)
+            # else:
+            #     print('SB ratio not implement for this instrument !')
+
+            # if retrieval_param['sideband_response']=='constant':
+            #     lsb_response = np.array([1,1,1])
+            #     usb_response = np.array([0.05,0.05,0.05])
+            #     intermediate_freq = np.concatenate((lsb,usb))
+            #     sideband_response = np.concatenate((lsb_response,usb_response))
+            # elif retrieval_param['sideband_response']=='constant_normalized':
+            #     lsb_response = np.array([1,1,1])
+            #     usb_response = np.array([0.05,0.05,0.05])
+            #     lsb_response = lsb_response / (usb_response+lsb_response)
+            #     usb_response = usb_response / (usb_response+lsb_response)
+            #     intermediate_freq = np.concatenate((lsb,usb))
+            #     sideband_response = np.concatenate((lsb_response,usb_response))
+            # elif retrieval_param['sideband_response']=='quad':
+            #     lsb_coeff= np.polyfit(lsb, np.array([1,1,1]), deg=1)
+            #     lsb_response = np.polyval(lsb_coeff, lsb_all)
+            #     usb_coeff = np.polyfit(usb, np.array([0.01,0.01,0.01]), deg=1)
+            #     usb_response = np.polyval(usb_coeff, usb_all)
+            #     intermediate_freq = np.concatenate((lsb_all,usb_all))
+            #     sideband_response = np.concatenate((lsb_response,usb_response))
+            # elif retrieval_param['sideband_response']=='theory':          
+            #     intermediate_freq = np.concatenate((lsb_all,usb_all))
+            #     sideband_response = sideband_response_theory(deltaZ, lo + intermediate_freq, polarisation_change=True)
+            # elif retrieval_param['sideband_response']=='theory_normalized':
+            #     lower_sideband_response = sideband_response_theory(deltaZ, lo + lsb_all, polarisation_change=True)
+            #     upper_sideband_response = sideband_response_theory(deltaZ, lo + usb_all, polarisation_change=True)
+            #     lower_sideband_response = lower_sideband_response/(lower_sideband_response+upper_sideband_response)
+            #     upper_sideband_response = upper_sideband_response/(lower_sideband_response+upper_sideband_response)
+            #     intermediate_freq = np.concatenate((lsb_all,usb_all))
+            #     sideband_response = np.concatenate((lower_sideband_response,upper_sideband_response))
+            # else: 
+            #     print('select SB response type')
 
             #sideband_response =  np.array([1,1,1,0,0,0])
             #
@@ -705,14 +778,47 @@ class DataRetrieval(ABC):
             # plt.grid()
             # plt.title('MPI transmission, '+retrieval_param['sideband_response']+', '+instrument.instrument_name)
 
-            sensor = arts.SensorFFT_Sideband(ds_freq,
-                ds_df, 
-                num_channels=10,
+            if 'Antenna' in retrieval_param['sensor']:
+                sensor = arts.SensorFFT_Sideband_Antenna(ds_freq,
+                    ds_df, 
+                    num_channels=10,
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response,
+                    fwhm=retrieval_param['FWHM']
+                )
+            else:    
+                sensor = arts.SensorFFT_Sideband(ds_freq,
+                    ds_df, 
+                    num_channels=10,
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response
+                )
+        elif retrieval_param['sensor']=='FB_SB':
+            channel_width_measured = retrieval_param['channel_width_measured']
+            channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
+            sensor = arts.SensorRectSB(
+                ds_freq+retrieval_param["f_shift"], 
+                channel_width=channel_width_measured,                
                 lo_freq = lo, 
                 sideband_mode='lower', 
                 intermediate_freq= intermediate_freq,
-                sideband_response=sideband_response
-            )
+                sideband_response=sideband_response )
+        elif retrieval_param['sensor']=='FB':
+            channel_width_measured = retrieval_param['channel_width_measured']
+            channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
+            sensor = arts.SensorRect(
+                ds_freq+retrieval_param["f_shift"], 
+                channel_width=channel_width_measured)
+
+            #sensor = arts.SensorRect(ds_freq+retrieval_param["f_shift"], channel_width=np.ones_like(channel_width_measured)*1e5) #np.ones_like(channel_width_measured)*100e6)
+        elif retrieval_param['sensor']=='FB_GAUSSIAN':
+            channel_width_measured = retrieval_param['channel_width_measured']
+            channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
+            sensor = arts.SensorGaussian(ds_freq+retrieval_param["f_shift"], fwhm=channel_width_measured) #2.4  
         elif retrieval_param['sensor']=='OFF':
             sensor = arts.SensorOff()
         else:
@@ -825,20 +931,24 @@ class DataRetrieval(ABC):
             
             good_channels = spectro_dataset.good_channels[cycle].data == 1
             bad_channels = spectro_dataset.good_channels[cycle].data == 0
-
-            if retrieval_param['use_all_channels']:
-                ds_freq = spectro_dataset.frequencies[cycle].values
-            else:
-                ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
             
             if retrieval_param['window_corrected_spectrum']:
                 print('Using window corrected spectrum interpolated for bad channels')
                 ds_y = spectro_dataset.Tb_win_corr[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
             else:
                 print('Using non window corrected spectrum')
-                ds_y = spectro_dataset.Tb[cycle].values[good_channels]
+                ds_y = spectro_dataset.Tb[cycle].where(good_channels).interpolate_na(dim='channel_idx', method='nearest', fill_value="extrapolate").values
                 #ds_y = spectro_dataset.Tb_win_corr[cycle].values[good_channels]
                 #ds_y = spectro_dataset.intensity_planck_win_corr[cycle].values[good_channels]  
+            
+            if retrieval_param['AC240_magic_correction']:
+                ds_y = (1/(1-retrieval_param["AC240_corr_factor"]))*(ds_y - retrieval_param["AC240_corr_factor"]*np.mean(ds_y))
+
+            if retrieval_param['use_all_channels']:
+                ds_freq = spectro_dataset.frequencies[cycle].values
+            else:
+                ds_freq = spectro_dataset.frequencies[cycle].values[good_channels]
+                ds_y = ds_y[good_channels]
 
             ds_num_of_channel = len(ds_freq)
             #ds_Tb = Tb[cycle].values
@@ -860,8 +970,17 @@ class DataRetrieval(ABC):
 
                 retrieval_param["bandwidth"] = self.bandwidth[0]
             else:
-                if retrieval_param['sensor'] == 'FFT_SB':
+                if 'FFT_SB' in retrieval_param['sensor']:
                     f_grid = self.make_f_grid_double_sideband(retrieval_param)
+                elif 'FB' in retrieval_param['sensor']:
+                    retrieval_param['good_channels'] = good_channels
+                    ds_freq = np.flip(ds_freq)
+                    ds_y = np.flip(ds_y)
+                    #f_grid = self.make_f_grid(retrieval_param)
+                    f_grid = np.insert(ds_freq, 0, 140.875e9) # 141e9
+                    f_grid = np.append(f_grid, 142.875e9) #143e9
+                    if retrieval_param['sensor'] == 'FB_SB':
+                        f_grid = np.concatenate((f_grid, self.usb_grid))
                 else:
                     f_grid = self.make_f_grid(retrieval_param)
 
@@ -957,6 +1076,46 @@ class DataRetrieval(ABC):
                     z_grid
                 )
                 ac.set_atmosphere(atm, vmr_zeropadding=True)
+        elif retrieval_param['atm'] == 'era5_cira86':
+            ecmwf_prefix = f'ecmwf_era5_SwissPlateau_%Y%m%d.nc'
+            retrieval_param['ecmwf_prefix'] = ecmwf_prefix
+            try:
+                atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
+            except:
+                # Try again another merging method for PTZ profile
+                retrieval_param['ptz_merge_method'] = 'max_diff_surf'
+                atm = gromora_atmosphere.get_apriori_atmosphere_fascod_ecmwf_cira86(
+                    retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+                ac.set_atmosphere(atm, vmr_zeropadding=True)
+        elif retrieval_param['atm'] == 'fascod_cira86':
+            ecmwf_prefix = f'ecmwf_oper_v{2}_{self.location}_%Y%m%d.nc'
+            retrieval_param['ecmwf_prefix'] = ecmwf_prefix
+            atm = gromora_atmosphere.get_apriori_fascod_cira86(
+                retrieval_param,
+                    retrieval_param['ecmwf_store_location'],
+                    retrieval_param['cira86_path'],
+                    pd.to_datetime(retrieval_param['time_start']),
+                    pd.to_datetime(retrieval_param['time_stop']),
+                    retrieval_param['extra_time_ecmwf'],
+                    z_grid
+                )
+            ac.set_atmosphere(atm, vmr_zeropadding=True)
         else:
             raise ValueError('Atmosphere type not recognized')
         
@@ -984,7 +1143,6 @@ class DataRetrieval(ABC):
             alt=retrieval_param["observation_altitude"],
             time=retrieval_param["time"]
         )
-
         ac.set_observations([obs])
 
         ##################################################
@@ -1025,6 +1183,7 @@ class DataRetrieval(ABC):
         # Setup the retrieval
         # Set measurement vector
         ac.set_y([ds_y])
+        #ac.set_y([np.concatenate((ds_y,ds_y))])
 
         # if len(ds_y) < 1000:
         #     ac.oem_converged = False
@@ -1081,7 +1240,7 @@ class DataRetrieval(ABC):
 
         ################################################
         # Frequency shift
-        fshift_ret = arts.FreqShift(100e3, df=50e3)
+        fshift_ret = arts.FreqShift(100e3, df=40e3)
 
         ################################################
         # Sinefit
@@ -1111,6 +1270,8 @@ class DataRetrieval(ABC):
             elif retrieval_param['noise_covariance']  == 'stdTb':
                 y_var = retrieval_param['increased_var_factor']*np.square(
                     spectro_dataset.mean_std_Tb[cycle].data) * np.ones_like(ds_y)
+            elif isinstance(retrieval_param['noise_covariance'], float):
+                y_var = np.square(retrieval_param['noise_covariance'])* np.ones_like(ds_y)
             else:
                 raise ValueError('Please select an existing noise covariance type !')
         else:
@@ -1120,9 +1281,12 @@ class DataRetrieval(ABC):
 
         if retrieval_param['verbose'] > 0:
             print(f'Noise level for meas. cov: {np.sqrt(np.median(y_var)):.2f} K')
-        
         ac.noise_variance_vector = y_var
         ac.tropospheric_opacity = spectro_dataset.tropospheric_opacity[cycle].values
+        print('Tropospheric opacity = ', ac.tropospheric_opacity)
+        ac.number_of_spectra = spectro_dataset.number_of_sky_spectra[cycle].values
+        ac.first_sky_time = spectro_dataset.first_sky_time[cycle].values
+        ac.last_sky_time = spectro_dataset.last_sky_time[cycle].values
 
         ##################################################################################################################### 
         # Apply the retrievals quantites defined by the user: 
@@ -1239,16 +1403,27 @@ class DataRetrieval(ABC):
         # level2.time.attrs['units'] = 'days since 2000-01-01 00:00:00'
         level2.time.encoding['units'] = 'days since 2000-01-01 00:00:00'
         level2.time.encoding['calendar'] = 'proleptic_gregorian'
-        level2.time.attrs['timezone'] = 'Z'
+        level2.time.attrs['timezone'] = self.timezone
         level2.time.attrs['description'] = 'mean time recorded at the beginning of all sky measurements during this integration cycle'
 
-        # adding local solar time and MJD2K 
-        julian_dates = mjd2k_date(pd.to_datetime(level2.time.data))
+        if self.spectrometers[0] == 'FB':
+            # FB measured in CET ! 
+            # level2['time'] = level2['time'] - pd.Timedelta(1, 'hour')
+
+            # adding local solar time and MJD2K 
+            julian_dates = mjd2k_date(pd.to_datetime(level2.time.data)- pd.Timedelta(1, 'hour'))
+        else:
+            julian_dates = mjd2k_date(pd.to_datetime(level2.time.data))
 
         local_solar_time = list()
         solar_zenith_angle = list()
         for t in level2.time.values:
-            lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+            if self.timezone == 'Z':
+                lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+            elif self.timezone == 'CET':
+                lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+            else:
+                ValueError('Timezone not recognized !')
             local_solar_time.append(lst)
             solar_zenith_angle.append(sza)
         
@@ -1281,7 +1456,7 @@ class DataRetrieval(ABC):
         level2.attrs['raw_data_software_version'] = self.raw_data_software_version
         level2.attrs['calibration_version'] = self.calibration_version
 
-        level2.attrs['spectroscopy'] = retrieval_param['line_file']
+        level2.attrs['spectrometer'] = self.spectrometers[0]
 
         level2.attrs['outlier_detection'] = self.outlier_detection
 
@@ -1476,6 +1651,26 @@ class DataRetrieval(ABC):
             level2.tropospheric_opacity.attrs['long_name'] = 'tropospheric_opacity computed with Ingold method during calibration'
             level2.tropospheric_opacity.attrs['units'] = 'Np'
 
+        if 'number_of_spectra' in list(level2.keys()):
+            level2.number_of_spectra.attrs['standard_name'] = 'number_of_spectra'
+            level2.number_of_spectra.attrs['long_name'] = 'number of sky spectra used during integration'
+            level2.number_of_spectra.attrs['units'] = '-'
+
+        if 'first_sky_time' in list(level2.keys()):
+            level2.first_sky_time.attrs['standard_name'] = 'first_sky_time'
+            level2.first_sky_time.attrs['long_name'] = 'first measurement time'
+            level2.first_sky_time.encoding['units'] = 'days since 2000-01-01 00:00:00'
+            level2.first_sky_time.encoding['calendar'] = 'proleptic_gregorian'
+            level2.first_sky_time.attrs['timezone'] = 'Z'
+            level2.first_sky_time.attrs['description'] = 'time of first sky measurements during this integration cycle'
+
+            level2.last_sky_time.attrs['standard_name'] = 'last_sky_time'
+            level2.last_sky_time.attrs['long_name'] = 'last measurement time'
+            level2.last_sky_time.encoding['units'] = 'days since 2000-01-01 00:00:00'
+            level2.last_sky_time.encoding['calendar'] = 'proleptic_gregorian'
+            level2.last_sky_time.attrs['timezone'] = 'Z'
+            level2.last_sky_time.attrs['description'] = 'time of last sky measurements during this integration cycle'
+
         level2['solar_zenith_angle'] =  ('time', solar_zenith_angle)
         level2.solar_zenith_angle.attrs['standard_name'] = 'solar_zenith_angle'
         level2.solar_zenith_angle.attrs['long_name'] = 'solar zenith angle'
@@ -1552,6 +1747,7 @@ class DataRetrieval(ABC):
         F0 = self.observation_frequency
 
         col = self.basecolor
+        obs_color = col
 
         figure_o3_sel=list()
         fs=28
@@ -1567,20 +1763,21 @@ class DataRetrieval(ABC):
             r = y - yf
             r = np.where(np.isnan(r), 0, r)
             fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(18,12))
-            if self.instrument_name == 'GROMOS':
+            if (self.instrument_name == 'GROMOS') & (spectro=='AC240'):
                 print('Binning spectra for similar resolution as SOMORA')
                 r = np.convolve(r, np.ones(2) / 2, mode="same")
                 axs[0].plot((np.convolve(f_backend, np.ones(2)/2, mode='same') - F0) / 1e6, np.convolve(y, np.ones(2)/2, mode='same'), color='silver', label="observed", alpha=.75)
             else:
-                axs[0].plot((f_backend - F0) / 1e6, y, color='silver', label="observed", alpha=.75)
+                axs[0].plot((f_backend - F0) / 1e6, y, color=obs_color, label="observed", alpha=.75)
             r_smooth = np.convolve(r, np.ones(128) / 128, mode="same")
             axs[0].plot((f_backend - F0) / 1e6, yf, color='k', label="fitted")
             axs[0].set_ylabel("$T_B$ [K]", fontsize=fs)
-            axs[0].set_ylim(np.nanmedian(yf)-4, np.nanmedian(yf)+20)
+            axs[0].set_ylim(np.nanmedian(yf)-20, np.nanmedian(yf)+20)
            # axs[0].set_xlim(-0.5,15)
             axs[0].legend(fontsize=fs)
-            axs[1].plot((f_backend - F0) / 1e6, r, color='silver', label="residuals", alpha=.75)
-            axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
+            axs[1].plot((f_backend - F0) / 1e6, r, color=obs_color, label="residuals", alpha=.75)
+            if spectro != 'FB':
+                axs[1].plot((f_backend - F0) / 1e6, r_smooth, color='k', label="residuals smooth")
             if add_baselines:
                 axs[1].plot((f_backend - F0) / 1e6, bl, label="baseline")
 
@@ -1645,7 +1842,7 @@ class DataRetrieval(ABC):
             axs[0].text(
             0.9,
             0.01,
-            'a)',
+            r'a)',
             transform=axs[0].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1684,7 +1881,7 @@ class DataRetrieval(ABC):
             axs[1].text(
             0.9,
             0.01,
-            'b)',
+            r'b)',
             transform=axs[1].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1704,7 +1901,7 @@ class DataRetrieval(ABC):
             axs[2].text(
             0.9,
             0.01,
-            'c)',
+            r'c)',
             transform=axs[2].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1723,7 +1920,7 @@ class DataRetrieval(ABC):
             axs[3].text(
             0.9,
             0.01,
-            'd)',
+            r'd)',
             transform=axs[3].transAxes,
             verticalalignment="bottom",
             horizontalalignment="left",
@@ -1755,7 +1952,7 @@ class DataRetrieval(ABC):
                 a.grid(which='both', axis='x', linewidth=0.5)
                 a.tick_params(axis='both', which='major', labelsize=fs)
             fig.suptitle('O$_3$ retrievals: '+pd.to_datetime(level2_data[spectro].time[i].data).strftime('%Y-%m-%d %H:%M'), fontsize=fs+4)
-            fig.tight_layout(rect=[0, 0.01, 1, 0.99])
+            #fig.tight_layout(rect=[0, 0.01, 1, 0.99])
             figure_o3_sel.append(fig)
 
         save_single_pdf(outName+'.pdf',figure_o3_sel)    

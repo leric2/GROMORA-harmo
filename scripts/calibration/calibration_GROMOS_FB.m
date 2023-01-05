@@ -26,7 +26,8 @@
 %           | run_calibration(calibrationTool)
 %           |
 %           |
-%==========================================================================
+%==========================================================================htop
+
 
 clear all; close all; clc; clear functions; %clear mex;
 
@@ -42,10 +43,10 @@ readLabviewLog = false;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
 % 12.05.2010
-
+warning off backtrace
 % Define the dates for the calibration:
 %dates=datenum('2009_01_01','yyyy_mm_dd'):datenum('2009_01_01','yyyy_mm_dd');
-dates=datenum('1995_03_06','yyyy_mm_dd'):datenum('1995_03_06','yyyy_mm_dd');
+dates=datenum('1995_05_15','yyyy_mm_dd'):datenum('1995_05_15','yyyy_mm_dd');
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
 %      datenum('2010_08_02','yyyy_mm_dd'):datenum('2010_08_02','yyyy_mm_dd'),...

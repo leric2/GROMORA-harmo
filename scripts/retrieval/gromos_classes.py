@@ -106,20 +106,25 @@ class GROMOS_LvL2(DataRetrieval):
         self.bandwidth = [1e9]
         spectrometers = ["AC240"]
 
-        
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
+        self.antenna_fwhm = 1.9
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
         
         self.institution = 'University of Bern;UBERN'
         self.affiliation = 'ubern001'
-        self.source = 'MWR.O3_UBERN'
+        self.source = 'MWR.O3_UBERN001_HARMON.2022'
+        self.location = 'BERN'
         self.longitude = 7.44
         self.latitude = 46.95
         self.altitude = 560
-        
+        self.timezone = 'Z'
+
+        self.name_PI = 'Murk;Axel'
+        self.contact = 'Sidlerstrasse 5, University of Bern;3012 Bern;Switzerland'
+
         # Can be used for plotting names (GROMOS_AC240_...)
         self.basename_plot_level2 = instrument_name+'_'+spectrometers[0]+'_'
 
@@ -194,20 +199,19 @@ class GROMOS_LvL2(DataRetrieval):
         '''
         return 0.1 
 
-    # @property
-    # def day2flag_level2(self):
-    #     '''
-    #     A selection of days to flags for the level2 GROMOS data. 
-    #     These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
+    @property
+    def day2flag_level2(self):
+        '''
+        A selection of days to flags for the level2 GROMOS data. 
+        These days have been identified in the GROMORA time series detailed analysis that can be found in the GROMORA retrievals UG.
 
-    #     '''
-    #     date2flag_gromos =  [
-    #         datetime.date(2015,8,26), datetime.date(2015,8,27), datetime.date(2015,8,28),
-    #         pd.date_range('2012-07-24', '2012-08-07'),
-    #         pd.date_range('2019-01-14', '2019-02-12'),
-
-    #     ]
-    #     return date2flag_gromos
+        '''
+        date2flag =  [
+            slice('2015-08-26','2015-08-29')
+        ]
+        date2flag.append(slice('2012-07-24','2012-08-08'))
+        date2flag.append(slice('2019-01-14','2019-02-12'))
+        return date2flag
 
     @property
     def usb_grid(self):
@@ -232,8 +236,6 @@ class GROMOS_LvL2(DataRetrieval):
     @property
     def cycle_duration(self):
         return 7/3600
-    
-
 
     @property
     def global_attributes_ndacc(self):

@@ -24,6 +24,7 @@ Attributes:
 Todo: all
 
 """
+from multiprocessing.sharedctypes import Value
 import sys, os
 from os.path import dirname, abspath, join
 
@@ -55,13 +56,13 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 if __name__ == "__main__":
     start = time.time()
     instrument_name = "GROMOS"
-    date = datetime.date(2018, 10 , 9)
+    date = datetime.date(2021, 2, 20)
     int_time = 1
     integration_strategy = 'classic'
     recheck_channels = False
 
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_pyarts/"
-    basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
+    #basename_lvl2 = "/home/es19m597/Documents/GROMORA/Data/"
 
     # Dictionnary containing all EXTERNAL retrieval parameters
     retrieval_param = dict()
@@ -72,14 +73,13 @@ if __name__ == "__main__":
 
     if instrument_name == "GROMOS":
         import gromos_classes as gc
-        basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
+        basename_lvl1 = os.path.join('/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
         instrument = gc.GROMOS_LvL2(
             date,
             basename_lvl1,
             basename_lvl2,
-            integration_strategy,
-            int_time,
+            integration_strategy=integration_strategy,
+            integration_time=int_time,
             extra_base=''
             )
         retrieval_param['increased_var_factor'] = 1  # 15
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         raise NotImplementedError(
             'TODO, implement reading level1b in non classical cases !')
 
-    cycles = np.arange(7, 8)
+    cycles = np.arange(13, 14)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # 3. test retrieving the FM
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
     retrieval_param['verbose'] = 3
-    retrieval_param["retrieval_type"] = 2
+    retrieval_param["retrieval_type"] = 17
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
     retrieval_param['date'] = date
@@ -136,7 +136,6 @@ if __name__ == "__main__":
     retrieval_param['plot_opacities'] = False
 
     retrieval_param['plot_o3_apriori_covariance'] = True
-
 
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
@@ -257,7 +256,7 @@ if __name__ == "__main__":
                 ac, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
         elif retrieval_param["retrieval_type"] == 4:
-            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
             retrieval_param["surface_altitude"] = 800
             retrieval_param["observation_altitude"] = 800
             # retrieval_param['atm']='fascod_somora_o3'
@@ -268,7 +267,7 @@ if __name__ == "__main__":
             retrieval_param['ref_elevation_angle'] = 90
             retrieval_param['FM_only'] = True
             ac_sim_FM, retrieval_param, sensor_out = instrument.retrieve_cycle(
-                spectro_dataset, retrieval_param, f_bin=None, tb_bin=None)
+                spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
             retrieval_param['FM_only'] = False
             # retrieval_param['atm']='fascod_gromos_o3'
             # retrieval_param['atm']='fascod_somora_o3'
@@ -278,7 +277,7 @@ if __name__ == "__main__":
             retrieval_param["retrieval_h2o_grid_type"] = 'pressure'
             retrieval_param["h2o_pressure"] = [500e2]
             ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
-                spectro_dataset, retrieval_param, f_bin=None, tb_bin=None, ac=ac_sim_FM)
+                spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
             level2_cycle = ac.get_level2_xarray()
             import GROMORA_library
             figure_list1 = GROMORA_library.plot_level2_test_retrieval(
@@ -296,7 +295,87 @@ if __name__ == "__main__":
             # level2_cycle = ac2.get_level2_xarray()
             # figure_list2 = GROSOM_library.plot_level2_test_retrieval(ac2, retrieval_param, title ='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:,0,0], og_ozone=ac_sim_FM.ws.vmr_field.value[0,:,0,0])
             # save_single_pdf(instrument.filename_level2[spectro]+'_'+str(c)+'h'+'_H2O-ContMPM93'+'.pdf', figure_list2)
+        elif retrieval_param["retrieval_type"] == 17:
+            # To check noise addition from correction factor
+            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+            retrieval_param["surface_altitude"] = 1000
+            retrieval_param["observation_altitude"] = 1000
+            retrieval_param['o3_apriori'] = 'waccm_monthly'
+            retrieval_param['FM_only'] = True
+            retrieval_param['sensor']='OFF'
+            retrieval_param['sensor'] = 'FFT_SB'
+            ac_sim_FM, retrieval_param, sensor_out = instrument.retrieve_cycle(
+                spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
+            
+            factors = np.arange(0, 0.52, 0.02)
+            y_noisy = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ac_sim_FM.ws.f_backend.value))
+            print(f'Initial noise (0.2): {np.std(np.diff(y_noisy))/np.sqrt(2):.2f} K')
+            noise_increase = []
+            for f in factors:
+                y_noisy_corr = (1/(1-f))*(y_noisy - f*np.mean(y_noisy))
+                noise_increase.append((np.std(np.diff(y_noisy_corr))/np.sqrt(2)-np.std(np.diff(y_noisy)/np.sqrt(2)))/np.std(np.diff(y_noisy))/np.sqrt(2))
+                #noise_increase.append(np.std(np.diff(y_noisy_corr)/np.sqrt(2)))
+            #print(f'Noise after correction: {np.median(np.std(np.diff(y_noisy_corr))/np.sqrt(2)):.2f} K')
+            plt.plot(factors, noise_increase)
+            plt.show()
+            exit()
+        
+        elif retrieval_param["retrieval_type"] == 18:
+            # To compare the FB and the FFT bias
+            retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
+            retrieval_param["surface_altitude"] = 1000
+            retrieval_param["observation_altitude"] = 1000
+            retrieval_param['o3_apriori'] = 'waccm_monthly'
+            retrieval_param['FM_only'] = True
+            retrieval_param['sensor']='OFF'
+            retrieval_param['sensor'] = 'FFT_SB'
+            ac_sim_FM, retrieval_param, sensor_out = instrument.retrieve_cycle(
+                spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
+            
+            # retrieval_param['atm']='fascod_gromos_o3'
+            # retrieval_param['atm']='fascod_somora_o3'
+            #retrieval_param['o3_apriori'] = 'waccm_monthly_biased'
+            retrieval_param['sensor'] = 'FFT_SB'
+            retrieval_param['AC240_magic_correction'] = False
+            ac, retrieval_param, sensor_out = instrument.retrieve_cycle(
+                spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
 
+
+            #level2_cycle = ac.get_level2_xarray()
+            fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True)
+            axs[0].plot(1e-9*ac.ws.f_backend.value, ac_sim_FM.y[0], label='No Antenna')
+            axs[0].plot(1e-9*ac.ws.f_backend.value, ac.y[0], label='Antenna')
+            axs[0].set_ylabel('TB [K]')
+
+            bias= ac.y[0]-  ac_sim_FM.y[0] 
+            bias_ds = xr.DataArray(
+                data= bias,
+                dims='frequency',
+                coords={'frequency':ac.ws.f_backend.value}
+            )
+            bias_ds.rename('bias')
+            axin1 = axs[1].inset_axes([0.62, 0.4, 0.35, 0.5])
+            inset_ds = bias_ds.where(bias_ds.frequency>142.155*1e9, drop=True).where(bias_ds.frequency<142.195*1e9, drop=True)
+            axin1.plot(1e-6*(inset_ds.frequency-instrument.observation_frequency), inset_ds)
+            axin1.set_xlabel(r'$\Delta$ f [MHz]')
+            axs[1].plot(1e-9*ac.ws.f_backend.value, bias)
+            axs[1].set_ylabel(r'$\Delta$ TB [K]')
+            axs[1].set_xlabel(r'Frequency [GHz]')
+            axs[0].set_title(str(date))
+            axs[0].legend()
+            #fig.savefig('/home/es19m597/Documents/GROMORA/Data/bias_FB_FFT_'+str(date)+'.pdf')
+
+            plt.show()
+            # bias_ds = bias_ds.rename('bias')
+            # bias_ds.to_netcdf('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.nc')
+            # bias_ds.to_dataframe().to_csv('/storage/tub/instruments/gromos/spectral_bias_FB-FFT_summer.csv')
+            # import GROMORA_library
+
+            exit()
+            # figure_list1 = GROMORA_library.plot_level2_test_retrieval(
+            #     ac, ac_sim_FM, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
+            # save_single_pdf(instrument.filename_level2[spectro]+'_'+str(
+            #     c)+'h'+'ecmwf_finer_fgrid'+'.pdf', figure_list1)
         elif retrieval_param["retrieval_type"] == 5:
             retrieval_param["surface_altitude"] = 1200
             retrieval_param["observation_altitude"] = 15e3

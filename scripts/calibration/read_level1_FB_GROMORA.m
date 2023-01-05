@@ -325,7 +325,7 @@ if calibrationTool.doTippingCurve
 
 % if the file is not found, it should go to the next one
   if fid < 0
-   error( ['file ' file ' not found']);
+   error( ['file ' file_TC ' not found']);
   end
 
   entriesTC = 1;
