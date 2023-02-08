@@ -70,7 +70,22 @@ for h = 1:length(timeThresh)-1
         integratedSpectra(h).tropospheric_opacity_tc = -9999;
         meanAngleAT = -9999;
         tod = nanmean([calibratedSpectra(indSpectra).time_of_day]);
-        dateTime=nanmean([calibratedSpectra(indSpectra).dateTime]);
+        dateTime=nanmean([timeThresh(h)+dt/2]);
+
+        integratedSpectra(h).intermediate_freq=-9999*ones(1,calibrationTool.numberOfChannels);
+        integratedSpectra(h).frequencies=-9999*ones(1,calibrationTool.numberOfChannels);
+        integratedSpectra(h).time_min= -9999;
+    
+        integratedSpectra(h).first_sky_time= -9999;
+        integratedSpectra(h).last_sky_time= -9999;
+    
+        integratedSpectra(h).year = calibrationTool.Year;
+        integratedSpectra(h).month= calibrationTool.Month;
+        integratedSpectra(h).day=calibrationTool.Day;
+    
+        integratedSpectra(h).calibration_time= -9999;
+        integratedSpectra(h).integration_time=calibrationTool.integrationTime*60;
+
     else
         integratedSpectra(h).numberOfAveragedSpectra=length(goodSpectra);
         % Averaging the good spectra together
@@ -99,6 +114,20 @@ for h = 1:length(timeThresh)-1
         meanAngleAT = nanmean([calibratedSpectra(goodSpectra).mean_sky_elevation_angle]);
         tod = nanmean([calibratedSpectra(goodSpectra).time_of_day]);
         dateTime=nanmean([calibratedSpectra(goodSpectra).dateTime]);
+           
+        integratedSpectra(h).intermediate_freq=calibratedSpectra(indSpectra(1)).intermediate_freq;
+        integratedSpectra(h).frequencies=calibratedSpectra(indSpectra(1)).frequencies;
+        integratedSpectra(h).time_min=calibratedSpectra(indSpectra(1)).time_min;
+    
+        integratedSpectra(h).first_sky_time=calibratedSpectra(indSpectra(1)).first_sky_time;
+        integratedSpectra(h).last_sky_time=calibratedSpectra(indSpectra(end)).last_sky_time;
+    
+        integratedSpectra(h).year=calibratedSpectra(indSpectra(1)).year;
+        integratedSpectra(h).month=calibratedSpectra(indSpectra(1)).month;
+        integratedSpectra(h).day=calibratedSpectra(indSpectra(1)).day;
+    
+        integratedSpectra(h).calibration_time=calibratedSpectra(1).calibration_time;
+        integratedSpectra(h).integration_time=calibrationTool.integrationTime*60;
     end
     
     integratedSpectra(h).TNoise=nanmean([calibratedSpectra(goodSpectra).TNoise]);
@@ -127,20 +156,6 @@ for h = 1:length(timeThresh)-1
     else
         integratedSpectra(h).TOut = -9999;
     end
-
-    integratedSpectra(h).intermediate_freq=calibratedSpectra(indSpectra(1)).intermediate_freq;
-    integratedSpectra(h).frequencies=calibratedSpectra(indSpectra(1)).frequencies;
-    integratedSpectra(h).time_min=calibratedSpectra(indSpectra(1)).time_min;
-    
-    integratedSpectra(h).first_sky_time=calibratedSpectra(indSpectra(1)).first_sky_time;
-    integratedSpectra(h).last_sky_time=calibratedSpectra(indSpectra(end)).last_sky_time;
-    
-    integratedSpectra(h).year=calibratedSpectra(indSpectra(1)).year;
-    integratedSpectra(h).month=calibratedSpectra(indSpectra(1)).month;
-    integratedSpectra(h).day=calibratedSpectra(indSpectra(1)).day;
-    
-    integratedSpectra(h).calibration_time=calibratedSpectra(1).calibration_time;
-    integratedSpectra(h).integration_time=calibrationTool.integrationTime*60;
     
     % variable that we want to integrate with good spectra if exist
     integratedSpectra(h).Tb=integratedTb;
