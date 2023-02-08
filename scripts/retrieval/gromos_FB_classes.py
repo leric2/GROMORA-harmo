@@ -145,7 +145,11 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         ########################################################
         # Sensor related parameter:       
-        retrieval_param['sideband_response'] = 'theory'
+        if self.date <  datetime.date(1994, 10 , 1):
+            retrieval_param['sideband_response'] = 'constant' #''
+        else:
+            # Installation of MPI-> SSB from 11.1994
+            retrieval_param['sideband_response'] = 'theory' #'constant'
         retrieval_param['use_all_channels'] = False
         retrieval_param['window_corrected_spectrum'] = True
         retrieval_param["f_shift"] = 0
@@ -216,7 +220,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
             retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
         elif retrieval_param['atm'][0:4] == 'era5':
             # Hourly era5 dataset
-            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/Switzerland_era5/'
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/SwissPlateau/'
             retrieval_param['extra_time_ecmwf'] = 0.5
         else: 
             raise ValueError('Atmosphere string definition not recognized !')

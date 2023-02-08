@@ -45,7 +45,7 @@ instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2011-01-01', end='2011-12-31') 
+date = pd.date_range(start='1993-01-01', end='1993-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -53,6 +53,7 @@ date = pd.date_range(start='2011-01-01', end='2011-12-31')
 # Concatenation of the daily files to single netCDF file for the period provided 
 concatenate_and_add_L2_flags = True
 save_residuals=False
+save_level2 = True
 
 # Base diagnostic plot for the day provided.
 plot_selected = False
@@ -67,7 +68,7 @@ plot_sinefit = False
 add_opacity=False
 
 integration_strategy = 'classic'
-spectros = ['AC240']
+spectros = ['FB']
 spectro = spectros[0]
 int_time = 1
 ex = '_v3'
@@ -182,7 +183,8 @@ if concatenate_and_add_L2_flags:
     
     # If not, we remove the observation vector from the concatenated level 2 (for space)
     ozone = new_ds.drop_dims(['f']) #drop_vars(['y', 'yf', 'bad_channels', 'y_baseline'])
-    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_'+spectro+ex+'.nc' , format='NETCDF4', unlimited_dims='time')
+    if save_level2:
+        ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_'+spectro+ex+'.nc' , format='NETCDF4', unlimited_dims='time')
 
 #############################################################################
 #############################################################################
