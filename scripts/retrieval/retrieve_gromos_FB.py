@@ -144,7 +144,9 @@ if __name__ == "__main__":
     # for i,s in enumerate(instrument.spectrometer):
     spectro = 'FB'
     spectro_dataset = instrument.integrated_data[spectro]
-
+    if date <  datetime.date(1994, 10 , 1):
+        spectro_dataset['mean_sky_elevation_angle'] = ('time',55*np.ones_like(spectro_dataset.mean_sky_elevation_angle.data))
+    
     figure_list = []
 
     # bin_vector = instrument.create_binning(

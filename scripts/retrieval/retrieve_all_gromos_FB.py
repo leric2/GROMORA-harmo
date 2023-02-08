@@ -130,6 +130,9 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     spectro = 'FB'
     spectro_dataset = integrated_dataset[spectro]
 
+    if date <  datetime.date(1994, 10 , 1):
+        spectro_dataset['mean_sky_elevation_angle'] = ('time',55*np.ones_like(spectro_dataset.mean_sky_elevation_angle.data))
+
     if retrieve_cycle is None:
         # Retrieve only the integration cycles with sufficient number of calibrated spectra.
         cycles=np.where(flags[spectro].calibration_flags.data[:,0]==1)[0]
