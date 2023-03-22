@@ -406,7 +406,7 @@ class DataRetrieval(ABC):
             retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
         elif retrieval_param['atm'][0:4] == 'era5':
             # Hourly era5 dataset
-            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/Switzerland_era5/'
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/SwissPlateau/'
             retrieval_param['extra_time_ecmwf'] = 0.5
         else: 
             raise ValueError('Atmosphere string definition not recognized !')
@@ -650,12 +650,15 @@ class DataRetrieval(ABC):
             if self.instrument_name == 'GROMOS':
                 deltaZ = (20.04e-3 - 0.1e-3) - retrieval_param['SB_bias']
                 #deltaZ1 = 20.95e-3
-                lsb = 1e9*np.array([-4.101, -3.7,-3.1])
-                usb= -np.flip(lsb)
+
                 if 'FFT_SB' in retrieval_param['sensor']:
+                    lsb = 1e9*np.array([-4.101, -3.7,-3.1])
+                    usb= -np.flip(lsb)
                     lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
                     usb_all = -np.flip(lsb_all)
                 elif 'FB_SB' in retrieval_param['sensor']:
+                    lsb = 1e9*np.array([-4.4, -3.7,-3])
+                    usb= -np.flip(lsb)
                     lsb_all = np.arange(-4.4e9, -3e9, 10e6)
                     usb_all = -np.flip(lsb_all)
                 else:
@@ -673,8 +676,8 @@ class DataRetrieval(ABC):
                 print('SB ratio not implement for this instrument !')
             
             if retrieval_param['sideband_response']=='constant':
-                lsb_response = np.array([1,1,1])
-                usb_response = np.array([0.05,0.05,0.05])
+                lsb_response = np.array([1.53, 1.53, 1.53])
+                usb_response = np.array([1,1,1])
                 intermediate_freq = np.concatenate((lsb,usb))
                 sideband_response = np.concatenate((lsb_response,usb_response))
             elif retrieval_param['sideband_response']=='constant_normalized':
@@ -1296,7 +1299,7 @@ class DataRetrieval(ABC):
         # Defining measurement covariance matrix: 
         if ac_sim_FM is None:
             if retrieval_param['noise_covariance']  == 'noise_level':
-                if retrieval_param['AC240_magic_correction']:
+                if (retrieval_param['AC240_magic_correction'] & ('FFT' in retrieval_param['sensor'])):
                     # y_var = (1+retrieval_param["AC240_corr_factor"])*retrieval_param['increased_var_factor']*np.square(
                     #     spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
                     # print(f'Noise from var scaled: {np.sqrt(np.median(y_var)):.2f} K')
@@ -1304,7 +1307,10 @@ class DataRetrieval(ABC):
                 else:
                     y_var = retrieval_param['increased_var_factor']*np.square(
                         spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
-                #y_var = retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
+                    # integration_time = spectro_dataset.integration_time[cycle].data/3
+                    # Ci = 0.02
+                    # y_var = np.square((Ci + (spectro_dataset.noise_temperature[cycle].data / np.sqrt(integration_time*spectro_dataset.channel_width[cycle].data[good_channels])))/spectro_dataset.tropospheric_transmittance[cycle].data) 
+                    # retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
                 if len(y_var) == len(bad_channels):
                     # increase variance for spurious channels by some factor
                     y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)

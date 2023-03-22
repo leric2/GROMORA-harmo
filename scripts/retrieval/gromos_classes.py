@@ -139,7 +139,9 @@ class GROMOS_LvL2(DataRetrieval):
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
 
         ''' 
-        if (retrieval_param['date'] >= datetime.date(2009,1,1)) & (retrieval_param['date'] < datetime.date(2015,2,23)):
+        if (retrieval_param['date'] >= datetime.date(2009,7,1)) & (retrieval_param['date'] < datetime.date(2010,3,15)):#& (retrieval_param['date'] < datetime.date(2015,2,23)):
+            baseline_periods = np.array([178e6, 216e6, 275e6, 400e6, 533e6])
+        elif  (retrieval_param['date'] >= datetime.date(2010,3,15)) & (retrieval_param['date'] < datetime.date(2015,2,23)):
             baseline_periods = np.array([178e6, 240e6, 360e6])
         elif  (retrieval_param['date'] >= datetime.date(2015,2,23)) & (retrieval_param['date'] < datetime.date(2015,8,31)):
             baseline_periods = np.array([140e6, 240e6, 400e6])
