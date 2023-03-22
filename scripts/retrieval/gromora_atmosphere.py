@@ -679,7 +679,7 @@ def read_waccm_monthly(retrieval_param):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    lst, ha, sza, night, tc = utc2lst_NOAA(datetime, retrieval_param['lat'], retrieval_param['lon'])
 
     if night:
         tod = 'night'
