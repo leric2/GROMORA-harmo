@@ -459,11 +459,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     for t in dataset.time.data:
         ds = dataset.sel(time=t)
-        if not 'solar_zenith_angle' in list(dataset.data_vars.keys()):
-            lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon, check_format=False)
-            mean_sza.append(sza)
-        else:
-            mean_sza.append(ds['solar_zenith_angle'].data)
+        #if not 'solar_zenith_angle' in list(dataset.data_vars.keys()):
+        #lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon, check_format=False)
+        lst, ha, sza, night, tc = utc2lst_NOAA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon)
+        mean_sza.append(sza)
+        #else:
+        #    mean_sza.append(ds['solar_zenith_angle'].data)
         #print('DOF before interpolation = ', np.trace(ds.o3_avkm.data))
         # Interpolate all quantities on new altitude grid for NDACC
         ds.coords['alt'] = ('o3_p', ds.o3_z.data)
@@ -935,7 +936,7 @@ if __name__ == "__main__":
     save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2022-04-17",end="2022-04-17")
+    dates = pd.date_range(start="2023-02-16",end="2023-02-17")
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
@@ -946,7 +947,7 @@ if __name__ == "__main__":
     for d in dates:
         if write_new:
             try:
-                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, plot_tprofile=plot_cycle, save_nc=False)
+                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_oper', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, plot_tprofile=plot_cycle, save_nc=False)
                 GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
             except Exception as e:
                 print(e)

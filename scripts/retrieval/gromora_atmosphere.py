@@ -28,7 +28,7 @@ from retrievals.data.ecmwf import levels
 from retrievals.data import interpolate
 from retrievals.data import p_interpolate
 
-from gromora_time import pysolar_sza, get_LST_from_GROMORA
+from gromora_time import pysolar_sza, get_LST_from_GROMORA, utc2lst_NOAA
 
 #from typhon.arts.xml import load
 from pyarts.xml import load
@@ -610,7 +610,7 @@ def read_waccm(retrieval_param, extra_day=0):
         )
 
     # Introduce the solar zenith angle to decide for the apriori:
-    lst, ha, sza, night = get_LST_from_GROMORA(datetime, retrieval_param['lat'], retrieval_param['lon'])
+    lst, ha, sza, night = utc2lst_NOAA(datetime, retrieval_param['lat'], retrieval_param['lon'])
     
     #(sza,day,night) = solar_zenith_angle(datetime,retrieval_param)
     if night:

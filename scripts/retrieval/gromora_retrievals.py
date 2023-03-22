@@ -26,7 +26,7 @@ from matplotlib.ticker import (MultipleLocator, FuncFormatter, AutoMinorLocator,
 import gromora_atmosphere
 import GROMORA_library 
 
-from gromora_time import get_LST_from_GROMORA, mjd2k_date
+from gromora_time import get_LST_from_GROMORA, mjd2k_date, utc2lst_NOAA
 from gromora_utils import save_single_pdf, sideband_response_theory
 
 from retrievals import arts
@@ -1467,9 +1467,11 @@ class DataRetrieval(ABC):
         solar_zenith_angle = list()
         for t in level2.time.values:
             if self.timezone == 'Z':
-                lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+                #lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+                lst, ha, sza, night, tc = utc2lst_NOAA(t, retrieval_param['lat'], retrieval_param['lon'])
             elif self.timezone == 'CET':
-                lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+                #lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+                lst, ha, sza, night, tc = utc2lst_NOAA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
             else:
                 ValueError('Timezone not recognized !')
             local_solar_time.append(lst)

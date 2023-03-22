@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
+#from pysolar as solar
+
 # local time zone for GROMOS and SOMORA:
 local_timezone = timezone('Europe/Zurich')
 
@@ -325,43 +327,59 @@ if __name__ == "__main__":
 
     ds_mls = xr.open_dataset(os.path.join('/storage/tub/atmosphere/AuraMLS/Level2_v5/locations/', 'AuraMLS_L2GP-O3_v5_200-400_BERN.nc'))
     mls = ds_mls.isel(time=178)
+    
     date = mls.time.data #np.datetime64('2021-10-20 00:06:00.123456')
+    date = np.datetime64('2023-02-17 08:30:52')
+
     mls_lst =  pd.to_datetime(date).replace(hour=0, minute=0,second=0, microsecond=0)+ timedelta(hours=mls.local_solar_time.item())
+    print('Time (UTC):', date)
 
     dt = datetime64_2_datetime(date).replace(tzinfo=gromora_tz)
+    print('Time (LT):', dt)
     doy= pd.to_datetime(date).dayofyear
 
     declination = -23.44 * np.cos((doy-1 + 10) * 2*np.pi / 365)
+    print('#######################################################')
+
     print('Sun declination (approx):', declination)
     print('Sun declination (NOAA):', declination_NOAA(pd.to_datetime(date))/RPD)
 
     time_of_day=(dt - dt.replace(hour=0, minute=0,second=0, microsecond=0)).total_seconds()/(24*3600)
 
     print('Equation of time (NOAA): ', equation_of_time_NOAA(pd.to_datetime(date)))
+    print('#######################################################')
 
     lat = np.array(46.95)
     lon = np.array(7.44)
 
     local_solar_time_NOAA, ha_NOAA, sza_NOAA, night, time_offset  = utc2lst_NOAA(date, lat, lon, print_option=True)
 
-    lst, ha, sza, night, tc = get_LST_from_UTC(date, lat, lon, print_option=True)
+    lst, ha, sza, night, tc = get_LST_from_GROMORA(date, lat, lon, print_option=True)
     lst_simone = (dt + timedelta(hours=lon*24/360)).replace(tzinfo=None)
 
     LT_from_lst = (lst - timedelta(minutes=tc))
 
     solar_noon = (lst.replace(hour=12, minute=0,second=0, microsecond=0) - timedelta(minutes=tc))
-    
+    print('#######################################################')
     print('Local solar time: ',lst)
     print('Local solar time (NOAA): ', local_solar_time_NOAA)
     print('Local solar time (MLS): ', mls_lst)
     print('Local solar time (Simone): ',lst_simone)
     sza_simone = solar_zenith_angle(hour_angle(lst_simone), doy, lat)
 
+    print('#######################################################')
     print('Solar zenith angle (corrected) = ', sza)
+    #print('Solar zenith angle (pysolar) = ', pysolar_sza(date, lat, lon))
     print('Solar zenith angle (NOAA) = ', sza_NOAA)
     print('Solar zenith angle (MLS) = ', mls.solar_zenith_angle.data)
     print('Solar zenith angle (Simone) = ', sza_simone)
-
+    
+    print('#######################################################')
+    print('Solar elevation angle (corrected) = ', 90-sza[0])
+    print('Solar elevation angle (NOAA) = ', 90-sza_NOAA)
+    print('Solar elevation angle (MLS) = ', 90-mls.solar_zenith_angle.data)
+    print('Solar elevation angle (Simone) = ', 90-sza_simone[0])
+    print('#######################################################')
     print('LST diff:', (lst-lst_simone.replace(tzinfo=None)).total_seconds()/60, 'min')
     print('LST diff with MLS:', (lst-mls_lst.replace(tzinfo=None)).total_seconds()/60, 'min')
     if night:
