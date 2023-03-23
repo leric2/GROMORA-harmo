@@ -322,7 +322,7 @@ def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_m
 
     return ds_ptz
 
-def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), avk_corr = True, plot_tprofile=False, save_nc=True,  outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
+def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), avk_corr = True, plot_tprofile=False, save_nc=True, RD=False, outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
     """
     Function to convert GROMORA level 2 to GEOMS compliant xarray dataset
     As a option, it can save the dataset as netCDF4 file.
@@ -580,10 +580,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         if len(dataset.time.sel(time=flagD))>0:     
             #print(flagD)      
             flag+=1
-
-    data_quality = 'Day is OK'
-    if flag>0:
-        data_quality = 'Day is not OK'
+    if RD:
+        data_quality = 'RD;DataNotQualityControlled'
+    else:
+        data_quality = 'Day is OK'
+        if flag>0:
+            data_quality = 'Day is not OK'
     # if opacity > 2:
     #     data_quality = data_quality + ', WARNING: high opacity'
 
