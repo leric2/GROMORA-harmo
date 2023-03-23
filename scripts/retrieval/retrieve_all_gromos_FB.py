@@ -49,7 +49,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 
 def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
@@ -94,7 +94,6 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     # Some main parameters for the retrievals to perform
     # Type:
     retrieval_param["retrieval_type"] = 2
-    retrieval_param['sensor'] = 'FB_SB'
     # Retrieval quantities:
     retrieval_param['retrieval_quantities'] = retrieval_quantities
     # Verbosity:
@@ -115,12 +114,24 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     # Function to define the default retrieval_param dictionary.
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
+    # Sensor related parameter:
+    retrieval_param['sensor'] = 'FB_SB_Antenna'
+    retrieval_param['SB_bias'] = 0
+    retrieval_param['FWHM'] = instrument.antenna_fwhm
+
+    # AC240 correction factor
+    retrieval_param['AC240_magic_correction'] = False
+    retrieval_param["AC240_corr_factor"] = 0
+
     # Quick test on instrument name
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
     # Select the spectrometer (only AC240 supported at the moment)
     spectro = 'FB'
     spectro_dataset = integrated_dataset[spectro]
+
+    if date <  datetime.date(1994, 10 , 1):
+        spectro_dataset['mean_sky_elevation_angle'] = ('time',55*np.ones_like(spectro_dataset.mean_sky_elevation_angle.data))
 
     if retrieve_cycle is None:
         # Retrieve only the integration cycles with sufficient number of calibrated spectra.
@@ -175,7 +186,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
         if save_level2:
-            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_rect_SB.nc')
+            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v3.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle

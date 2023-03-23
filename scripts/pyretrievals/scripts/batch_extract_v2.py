@@ -24,7 +24,7 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 
 if __name__ == '__main__':
-    dateRange = pd.date_range(start='2022-06-05', end='2022-06-05')
+    dateRange = pd.date_range(start='2022-09-23', end='2022-09-23')
     output = '/storage/tub/atmosphere/ecmwf/locations/'
     loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations.json'
 

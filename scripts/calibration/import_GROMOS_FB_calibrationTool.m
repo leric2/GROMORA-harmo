@@ -249,7 +249,7 @@ calibrationTool.transmittanceWindow=0.99;
 % Corrections
 calibrationTool.troposphericCorrection.type = 'Ingold_v1_fit';
 calibrationTool.troposphericCorrection.useWings = 'both';
-calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 0;
+calibrationTool.troposphericCorrection.numberOfChannelsTropCorr = 24;
 calibrationTool.troposphericCorrection.skipFraction = 0.05;
 calibrationTool.troposphericCorrection.deltaT = 10.4;
 
@@ -320,6 +320,8 @@ calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_FB(calibrat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (calibrationTool.timeNumber > datenum(1996,12,31)) && (calibrationTool.timeNumber < datenum(1998,01,01))
     %Not working for now before 2010-03-10
+    calibrationTool.doTippingCurve = false;
+elseif (calibrationTool.timeNumber > datenum(1980,12,31)) && (calibrationTool.timeNumber < datenum(1994,10,18))
     calibrationTool.doTippingCurve = false;
 end
 

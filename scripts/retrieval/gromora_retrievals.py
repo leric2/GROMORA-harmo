@@ -26,7 +26,7 @@ from matplotlib.ticker import (MultipleLocator, FuncFormatter, AutoMinorLocator,
 import gromora_atmosphere
 import GROMORA_library 
 
-from gromora_time import get_LST_from_GROMORA, mjd2k_date
+from gromora_time import get_LST_from_GROMORA, mjd2k_date, utc2lst_NOAA
 from gromora_utils import save_single_pdf, sideband_response_theory
 
 from retrievals import arts
@@ -334,9 +334,7 @@ class DataRetrieval(ABC):
 
         ########################################################
         # Sensor related parameter:
-        retrieval_param['sensor'] = 'FFT_SB'
-        retrieval_param['SB_bias'] = 0
-        
+       
         retrieval_param['sideband_response'] = 'theory'
         retrieval_param['use_all_channels'] = True
         retrieval_param['window_corrected_spectrum'] = True
@@ -408,7 +406,7 @@ class DataRetrieval(ABC):
             retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
         elif retrieval_param['atm'][0:4] == 'era5':
             # Hourly era5 dataset
-            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/Switzerland_era5/'
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/SwissPlateau/'
             retrieval_param['extra_time_ecmwf'] = 0.5
         else: 
             raise ValueError('Atmosphere string definition not recognized !')
@@ -652,12 +650,15 @@ class DataRetrieval(ABC):
             if self.instrument_name == 'GROMOS':
                 deltaZ = (20.04e-3 - 0.1e-3) - retrieval_param['SB_bias']
                 #deltaZ1 = 20.95e-3
-                lsb = 1e9*np.array([-4.101, -3.7,-3.1])
-                usb= -np.flip(lsb)
-                if retrieval_param['sensor'] == 'FFT_SB':
+
+                if 'FFT_SB' in retrieval_param['sensor']:
+                    lsb = 1e9*np.array([-4.101, -3.7,-3.1])
+                    usb= -np.flip(lsb)
                     lsb_all = np.arange(-4.101e9, -3.1e9, 10e6)
                     usb_all = -np.flip(lsb_all)
-                elif retrieval_param['sensor'] == 'FB_SB':
+                elif 'FB_SB' in retrieval_param['sensor']:
+                    lsb = 1e9*np.array([-4.4, -3.7,-3])
+                    usb= -np.flip(lsb)
                     lsb_all = np.arange(-4.4e9, -3e9, 10e6)
                     usb_all = -np.flip(lsb_all)
                 else:
@@ -675,8 +676,8 @@ class DataRetrieval(ABC):
                 print('SB ratio not implement for this instrument !')
             
             if retrieval_param['sideband_response']=='constant':
-                lsb_response = np.array([1,1,1])
-                usb_response = np.array([0.05,0.05,0.05])
+                lsb_response = np.array([1.53, 1.53, 1.53])
+                usb_response = np.array([1,1,1])
                 intermediate_freq = np.concatenate((lsb,usb))
                 sideband_response = np.concatenate((lsb_response,usb_response))
             elif retrieval_param['sideband_response']=='constant_normalized':
@@ -708,7 +709,8 @@ class DataRetrieval(ABC):
         # Defining our sensors
         if retrieval_param['sensor']=='FFT': 
             sensor = arts.SensorFFT(ds_freq+retrieval_param["f_shift"], ds_df)
-        elif retrieval_param['sensor']=='FFT_SB': #np.concatenate((ds_freq,np.arange(148.974e9,149.977e9,1e6)))
+        elif 'FFT_SB' in retrieval_param['sensor']:
+            #np.concatenate((ds_freq,np.arange(148.974e9,149.977e9,1e6)))
             #intermediate_freq = 1e9*np.array([-4.101, -3.7,-3.1,3.1, 3.7,4.101])
             # lo = self.lo
             # if self.instrument_name == 'GROMOS':
@@ -772,24 +774,47 @@ class DataRetrieval(ABC):
             # plt.grid()
             # plt.title('MPI transmission, '+retrieval_param['sideband_response']+', '+instrument.instrument_name)
 
-            sensor = arts.SensorFFT_Sideband(ds_freq,
-                ds_df, 
-                num_channels=10,
-                lo_freq = lo, 
-                sideband_mode='lower', 
-                intermediate_freq= intermediate_freq,
-                sideband_response=sideband_response
-            )
-        elif retrieval_param['sensor']=='FB_SB':
+            if 'Antenna' in retrieval_param['sensor']:
+                sensor = arts.SensorFFT_Sideband_Antenna(ds_freq,
+                    ds_df, 
+                    num_channels=10,
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response,
+                    fwhm=retrieval_param['FWHM']
+                )
+            else:    
+                sensor = arts.SensorFFT_Sideband(ds_freq,
+                    ds_df, 
+                    num_channels=10,
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response
+                )
+        elif 'FB_SB' in retrieval_param['sensor']:
             channel_width_measured = retrieval_param['channel_width_measured']
             channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
-            sensor = arts.SensorRectSB(
-                ds_freq+retrieval_param["f_shift"], 
-                channel_width=channel_width_measured,                
-                lo_freq = lo, 
-                sideband_mode='lower', 
-                intermediate_freq= intermediate_freq,
-                sideband_response=sideband_response )
+            if 'Antenna' in retrieval_param['sensor']:
+                sensor = arts.SensorRectSB_Antenna(
+                    ds_freq+retrieval_param["f_shift"], 
+                    channel_width=channel_width_measured,                
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response,
+                    fwhm=retrieval_param['FWHM']
+                    )
+            else:
+                sensor = arts.SensorRectSB(
+                    ds_freq+retrieval_param["f_shift"], 
+                    channel_width=channel_width_measured,                
+                    lo_freq = lo, 
+                    sideband_mode='lower', 
+                    intermediate_freq= intermediate_freq,
+                    sideband_response=sideband_response
+                    )
         elif retrieval_param['sensor']=='FB':
             channel_width_measured = retrieval_param['channel_width_measured']
             channel_width_measured = channel_width_measured[retrieval_param['good_channels']]
@@ -849,6 +874,34 @@ class DataRetrieval(ABC):
         return f_grid
 
     ############################################################################################################################
+    def make_f_grid_double_sideband(self, retrieval_param): 
+        '''
+        Create simulation frequency grid when the sideband response is included.
+
+        '''
+        usb_grid = self.usb_grid
+
+        n_f = retrieval_param["number_of_freq_points"]  # Number of points
+        bw = 1.3*retrieval_param["bandwidth"]  # Bandwidth
+        x = np.linspace(-1, 1, n_f)
+        f_grid = x ** 3 + x / retrieval_param["irregularity_f_grid"]
+        f_grid = f_grid * bw / (max(f_grid) - min(f_grid)) + \
+            retrieval_param['obs_freq']
+
+        #f_grid = np.linspace(retrieval_param["f_min"]-10, retrieval_param["f_max"]+10, n_f)
+        f_grid = np.concatenate((f_grid, usb_grid))
+        if retrieval_param["show_f_grid"]:
+            fig = plt.figure()
+            plt.semilogy(f_grid[1:]/1e9, np.diff(f_grid)/1e3, '.')
+            # plt.xlim((retrieval_param['obs_freq']-200e6) /
+            #          1e9, (retrieval_param['obs_freq']+200e6)/1e9)
+            # plt.ylim(0,300)
+            plt.ylabel(r'$\Delta f$ [kHz]')
+            plt.suptitle('Frequency grid spacing')
+            plt.show()
+        return f_grid
+
+    ############################################################################################################################
     # Retrievals grid:
     def set_pgrids(self, retrieval_param):
         """Function to define the pressure grid for ozone and continuum retrievals
@@ -888,7 +941,7 @@ class DataRetrieval(ABC):
     ############################################################################################################################
     # The retrieval function
     ############################################################################################################################
-    def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None):
+    def retrieve_cycle(self, spectro_dataset, retrieval_param, ac_sim_FM=None, sensor = None, ds_y=None):
         """ Retrieval of a single integration cycle defined in retrieval_param
 
         Args:
@@ -924,6 +977,9 @@ class DataRetrieval(ABC):
                 #ds_y = spectro_dataset.Tb_win_corr[cycle].values[good_channels]
                 #ds_y = spectro_dataset.intensity_planck_win_corr[cycle].values[good_channels]  
             
+            if retrieval_param['AC240_magic_correction']:
+                ds_y = (1/(1-retrieval_param["AC240_corr_factor"]))*(ds_y - retrieval_param["AC240_corr_factor"]*np.mean(ds_y))
+
             if retrieval_param['use_all_channels']:
                 ds_freq = spectro_dataset.frequencies[cycle].values
             else:
@@ -950,7 +1006,7 @@ class DataRetrieval(ABC):
 
                 retrieval_param["bandwidth"] = self.bandwidth[0]
             else:
-                if retrieval_param['sensor'] == 'FFT_SB':
+                if 'FFT_SB' in retrieval_param['sensor']:
                     f_grid = self.make_f_grid_double_sideband(retrieval_param)
                 elif 'FB' in retrieval_param['sensor']:
                     retrieval_param['good_channels'] = good_channels
@@ -959,7 +1015,7 @@ class DataRetrieval(ABC):
                     #f_grid = self.make_f_grid(retrieval_param)
                     f_grid = np.insert(ds_freq, 0, 140.875e9) # 141e9
                     f_grid = np.append(f_grid, 142.875e9) #143e9
-                    if retrieval_param['sensor'] == 'FB_SB':
+                    if 'FB_SB' in retrieval_param['sensor']:
                         f_grid = np.concatenate((f_grid, self.usb_grid))
                 else:
                     f_grid = self.make_f_grid(retrieval_param)
@@ -968,8 +1024,8 @@ class DataRetrieval(ABC):
         else:
             print("Retrieval of Ozone and H20 providing simulated measurement vector")
             ds_freq = ac_sim_FM.ws.f_backend.value
-            ds_y = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ds_freq)) + 0 + 1e-9*(
-                ds_freq-ds_freq[0])*(0)  # Gaussian noise + linear baseline possible
+            # ds_y = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ds_freq)) + 0 + 1e-9*(
+            #     ds_freq-ds_freq[0])*(0)  # Gaussian noise + linear baseline possible
             ds_num_of_channel = len(ds_freq)
             #ds_Tb = Tb[cycle].values
 
@@ -978,7 +1034,10 @@ class DataRetrieval(ABC):
             ds_df = ds_bw/(ds_num_of_channel-1)
 
             retrieval_param["bandwidth"] = self.bandwidth[0]+100e6
-            f_grid = self.make_f_grid(retrieval_param)
+            if 'SB' in retrieval_param['sensor']:
+                f_grid = self.make_f_grid_double_sideband(retrieval_param)
+            else:
+                f_grid = self.make_f_grid(retrieval_param)
 
         ############################################################################################ 
         # Iniializing ArtsController object
@@ -1123,7 +1182,6 @@ class DataRetrieval(ABC):
             alt=retrieval_param["observation_altitude"],
             time=retrieval_param["time"]
         )
-
         ac.set_observations([obs])
 
         ##################################################
@@ -1164,6 +1222,7 @@ class DataRetrieval(ABC):
         # Setup the retrieval
         # Set measurement vector
         ac.set_y([ds_y])
+        #ac.set_y([np.concatenate((ds_y,ds_y))])
 
         # if len(ds_y) < 1000:
         #     ac.oem_converged = False
@@ -1240,9 +1299,18 @@ class DataRetrieval(ABC):
         # Defining measurement covariance matrix: 
         if ac_sim_FM is None:
             if retrieval_param['noise_covariance']  == 'noise_level':
-                y_var = retrieval_param['increased_var_factor']*np.square(
-                    spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
-                #y_var = retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
+                if (retrieval_param['AC240_magic_correction'] & ('FFT' in retrieval_param['sensor'])):
+                    # y_var = (1+retrieval_param["AC240_corr_factor"])*retrieval_param['increased_var_factor']*np.square(
+                    #     spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+                    # print(f'Noise from var scaled: {np.sqrt(np.median(y_var)):.2f} K')
+                    y_var = np.square((np.std(np.diff(ds_y[good_channels])))* np.ones_like(ds_y)/np.sqrt(2))
+                else:
+                    y_var = retrieval_param['increased_var_factor']*np.square(
+                        spectro_dataset.noise_level[cycle].data) * np.ones_like(ds_y)
+                    # integration_time = spectro_dataset.integration_time[cycle].data/3
+                    # Ci = 0.02
+                    # y_var = np.square((Ci + (spectro_dataset.noise_temperature[cycle].data / np.sqrt(integration_time*spectro_dataset.channel_width[cycle].data[good_channels])))/spectro_dataset.tropospheric_transmittance[cycle].data) 
+                    # retrieval_param['increased_var_factor']*np.square(np.std(np.diff(ds_y)/np.sqrt(2))) * np.ones_like(ds_y)
                 if len(y_var) == len(bad_channels):
                     # increase variance for spurious channels by some factor
                     y_var[bad_channels] = 1e5*np.square(spectro_dataset.noise_level[cycle].data)
@@ -1261,7 +1329,6 @@ class DataRetrieval(ABC):
 
         if retrieval_param['verbose'] > 0:
             print(f'Noise level for meas. cov: {np.sqrt(np.median(y_var)):.2f} K')
-        
         ac.noise_variance_vector = y_var
         ac.tropospheric_opacity = spectro_dataset.tropospheric_opacity[cycle].values
         print('Tropospheric opacity = ', ac.tropospheric_opacity)
@@ -1400,9 +1467,11 @@ class DataRetrieval(ABC):
         solar_zenith_angle = list()
         for t in level2.time.values:
             if self.timezone == 'Z':
-                lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+                #lst, ha, sza, night, tc = get_LST_from_GROMORA(t, retrieval_param['lat'], retrieval_param['lon'])
+                lst, ha, sza, night, tc = utc2lst_NOAA(t, retrieval_param['lat'], retrieval_param['lon'])
             elif self.timezone == 'CET':
-                lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+                #lst, ha, sza, night, tc = get_LST_from_GROMORA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
+                lst, ha, sza, night, tc = utc2lst_NOAA(t-np.timedelta64(1,'h'), retrieval_param['lat'], retrieval_param['lon'])
             else:
                 ValueError('Timezone not recognized !')
             local_solar_time.append(lst)

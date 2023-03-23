@@ -1,26 +1,16 @@
 function [data, meteoData, calibrationTool] = read_level1_FB_GROMORA(calibrationTool)
 %==========================================================================
-% NAME          | read_level1_GROSOM.m
+% NAME          | read_level1_FB_GROMORA.m
 % TYPE          | function
 % AUTHOR(S)     | Eric Sauvageat
-% CREATION      | 01.2020
+% CREATION      | 01.2023
 %               |
-% ABSTRACT      | Function to read a level1 file from the GROSOM project 
-%               | previously saved.
+% ABSTRACT      | Function to read a level1 calibrated file from the old FB
+%               | data. 
 %               |
-%               |
-% ARGUMENTS     | INPUTS:   1. calibrationTool:
-%               |               - filenameLevel1a or filenameLevel1b
-%               |               - referenceTime
-%               |               - timeZone
-%               |           2. sublevel: boolean to read level 1a (=1) or
-%               |               1b (another number) 
+% ARGUMENTS     | INPUTS:   
 %               |  
-%               | OUTPUTS: - data: all spectrometer data read as a standard
-%               |               structure
-%               |          - meteoData: all meteo data in this file
-%               |          - calibrationTool: completed with logFile fields
-%               |               and some additional metadata.
+%               | OUTPUTS:
 %               |
 %==========================================================================
 
@@ -32,13 +22,16 @@ meteoData= struct();
 
 % checking if the Year and month are valid for GROMOS series
 % 
-if (calibrationTool.Year < 1994) | (calibrationTool.Year > 2012) | (calibrationTool.Month < 1) | (calibrationTool.Month > 12)
+if (calibrationTool.Year < 1989) | (calibrationTool.Year > 2012) | (calibrationTool.Month < 1) | (calibrationTool.Month > 12)
   error('Invalid year or month!');
 end
 
 % go to folder where data-files are
-
-folder = ['/storage/tub/instruments/gromos/level1/spectra/o3', num2str( calibrationTool.Year )];
+if (calibrationTool.Year < 1994)
+    folder = '/storage/tub/instruments/gromos/level1/spectra/old_spectra';
+else
+    folder = ['/storage/tub/instruments/gromos/level1/spectra/o3', num2str( calibrationTool.Year )];
+end
 %eval( sprintf('cd %s', folder) );
 data = struct();
 
@@ -119,7 +112,8 @@ i = calibrationTool.Day;
   if exist( file )
     fid = fopen( file );
   else
-    fid = fopen( upper(file) );
+    file = [folder '/' upper(strcat('o3', mon , ye, '.d', day))];
+    fid = fopen( file );
   end
 
 % filename:
@@ -182,7 +176,7 @@ calibrationTool.filenameLevel1a = file;
       data(entries).THot            = x(4);
       data(entries).Tcold           = x(5);
       data(entries).mean_sky_elevation_angle  = x(6);
-      data(entries).keinIdee           = x(7);
+      data(entries).opacity           = x(7);
       data(entries).flags           = 1*[str2num(head(34))==0 str2num(head(35))==0];
       if channels_ready
         if (mean(data(entries).Tb) < 5) | (data(entries).TNoise > 5000) | (data(entries).TNoise < 1000)

@@ -323,7 +323,7 @@ def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_m
 
     return ds_ptz
 
-def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), plot_tprofile=False, save_nc=True, RD=False,  outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
+def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), avk_corr = True, plot_tprofile=False, save_nc=True,  outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
     """
     Function to convert GROMORA level 2 to GEOMS compliant xarray dataset
     As a option, it can save the dataset as netCDF4 file.
@@ -460,12 +460,13 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
     for t in dataset.time.data:
         ds = dataset.sel(time=t)
-        if not 'solar_zenith_angle' in list(dataset.data_vars.keys()):
-            lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon, check_format=False)
-            mean_sza.append(sza)
-        else:
-            mean_sza.append(ds['solar_zenith_angle'].data)
-        
+        #if not 'solar_zenith_angle' in list(dataset.data_vars.keys()):
+        #lst, ha, sza, night, tc = get_LST_from_GROMORA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon, check_format=False)
+        lst, ha, sza, night, tc = utc2lst_NOAA(datetime64_2_datetime(t).replace(tzinfo=gromora_tz),  lat, lon)
+        mean_sza.append(sza)
+        #else:
+        #    mean_sza.append(ds['solar_zenith_angle'].data)
+        #print('DOF before interpolation = ', np.trace(ds.o3_avkm.data))
         # Interpolate all quantities on new altitude grid for NDACC
         ds.coords['alt'] = ('o3_p', ds.o3_z.data)
         
@@ -477,11 +478,29 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         
         #ds = ds.swap_dims({'o3_p_avk':'alt'})
 
+        #f = np.interp(new_z, ds.o3_z.data[1:], np.diff(ds.o3_z.data))/np.median(np.diff(new_z))
+
         interp_ds = ds.interp(alt=new_z)
 
         # Specific 2D interpolation for the AVKs
         f_avkm_interp = interp2d(ds.o3_avkm.alt.data, ds.o3_avkm.o3_p_avk.data, ds.o3_avkm.data)
         avkm_interp = f_avkm_interp(new_z,new_z)
+
+        # Correction factor for the AVKs interpolation
+        # Initial sum of the AVKs and interpolation on new grid:
+        slri = interp_ds.o3_mr.data #ds.o3_avkm.sum(axis=1).interp(alt=new_z) # Same as MR interpolated ! .where(ds.alt>new_z[0]).where(ds.alt<new_z[-1])
+
+        shr = np.sum(avkm_interp, axis=1)
+        factor =slri/shr
+
+        avkm_interp_corr = np.ones_like(avkm_interp)*np.nan
+        for h in range(len(avkm_interp)):
+            avkm_interp_corr[h,:] = avkm_interp[h,:]*factor[h].data
+            #avkm_interp_corr[h,:] = avkm_interp[h,:]*interp_ds.o3_mr.data[h]/np.sum(avkm_interp[h,:])
+
+        # print('DOF after interpolation = ', np.trace(avkm_interp))
+        # print('DOF difference = ', np.nansum(np.diag(ds.o3_avkm.where(ds.alt>new_z[0]).where(ds.alt<new_z[-1]).data))-np.trace(avkm_interp))
+        # print('DOF difference (with corr) = ',np.nansum(np.diag(ds.o3_avkm.where(ds.alt>new_z[0]).where(ds.alt<new_z[-1]).data))-np.nansum(np.diag(avkm_interp_corr)))
 
         if not 'temperature_profile' in list(dataset.data_vars.keys()):
             ptz = read_ptz_ecmwf_cira86(
@@ -530,8 +549,10 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
             o3_resolution.append((interp_ds.o3_fwhm.where(interp_ds.o3_mr>measurement_response_limit, -900000).data))
             o3_apriori_contribution.append(100*(1-interp_ds.o3_mr.where(interp_ds.o3_mr>measurement_response_limit, np.nan).data))
-
-        o3_avk.append(avkm_interp)
+        if avk_corr:
+            o3_avk.append(avkm_interp_corr)
+        else:
+            o3_avk.append(avkm_interp)
         o3_apriori.append(1e6*interp_ds.o3_xa)
         temperature.append(t_interp)
         #o3_mmr = o3_vmr2mmr(ozone)
@@ -756,8 +777,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
 
         z_interp = p_interpolate(p_grid, ptz.p.values, ptz.z.values )
         t_interp = p_interpolate(p_grid, ptz.p.values, ptz.t.values)
-        axs[0].plot(ptz.t.values, ptz.z.values/1e3, 'x')
-        axs[0].plot(t_interp, z_interp/1e3, 'o')
+
+        if not 'temperature_profile' in list(dataset.data_vars.keys()):
+            axs[0].plot(ptz.t.values, ptz.z.values/1e3, 'x')
+            axs[0].plot(t_interp, z_interp/1e3, 'o')
+        else:
+            axs[0].plot(ds.temperature_profile.data, ds.o3_z.values/1e3, 'x')
         axs[0].plot(new.TEMPERATURE_INDEPENDENT, new.ALTITUDE/1e3)
         axs[0].set_xlim(200,300)
         axs[0].set_ylim(0,95)
@@ -805,11 +830,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
                     axs[2].plot(avk_ndacc,new_alt/1e3, color='silver', label='AVKs')
                 else:
                     axs[2].plot(avk_ndacc, new_alt/1e3, color='silver')
-
+        
+        axs[2].plot(0.0025*(100-new['O3.MIXING.RATIO.VOLUME_EMISSION_APRIORI.CONTRIBUTION'].data), new_alt/1e3, color='black')
         #axs[1].set_ylim(5,85)
-        axs[1].set_xlim(-0.1,0.3)
+        axs[1].set_xlim(-0.1,0.35)
         axs[1].set_title('Original GROMORA')
-        axs[2].set_xlim(-0.1,0.3)
+        axs[2].set_xlim(-0.1,0.35)
         axs[2].set_title('NDACC')
         axs[1].set_ylabel(y_lab)
 

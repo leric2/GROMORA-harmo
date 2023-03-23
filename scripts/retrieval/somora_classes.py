@@ -96,6 +96,7 @@ class SOMORA_LvL2(DataRetrieval):
 
         self.lo = 1.49275e11
         self.reference_elevation_angle = 90
+        self.antenna_fwhm = 2.5
         
         level1_folder = basename_lvl1#  os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2#  os.path.join(basename_lvl2, instrument_name)^

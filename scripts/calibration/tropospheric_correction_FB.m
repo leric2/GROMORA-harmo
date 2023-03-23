@@ -78,13 +78,15 @@ for t = 1:length(spectra)
         %Tb(isnan(spectra(t).channelsQuality))=NaN;
         
         Tb_temp = Tb;
-        Tb_temp(isnan(spectra(t).channelsQuality)) = [];
-        f_temp(isnan(spectra(t).channelsQuality)) = [];
-        
-        if length(Tb_temp) < 10*calibrationTool.troposphericCorrection.numberOfChannelsTropCorr
+        if ~isempty(Tb_temp)
+            Tb_temp(isnan(spectra(t).channelsQuality)) = [];
+            f_temp(isnan(spectra(t).channelsQuality)) = [];
+        end
+        if (length(Tb_temp) < calibrationTool.troposphericCorrection.numberOfChannelsTropCorr) || (median(Tb_temp) < 0)
             spectra(t).TbTroposphericWindowCorr = -9999*ones(1,length(spectra(1).intermediate_freq));
             spectra(t).troposphericTransmittance = -9999;
             spectra(t).troposphericOpacity=-9999;
+            spectra(t).troposphericOpacityTC = -9999;
             continue
         end 
         N = length(Tb_temp);

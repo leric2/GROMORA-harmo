@@ -99,7 +99,6 @@ if __name__ == "__main__":
     # 1. tropospheric corrected
     # 2. with h20
     # 3. test retrieving the FM
-    retrieval_param['sensor'] = 'FB_SB'
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit'
     retrieval_param['verbose'] = 3
     retrieval_param["retrieval_type"] = 2
@@ -115,6 +114,15 @@ if __name__ == "__main__":
     retrieval_param['plot_o3_apriori_covariance'] = True
 
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
+
+    # Sensor related parameter:
+    retrieval_param['sensor'] = 'FB_SB_Antenna'
+    retrieval_param['SB_bias'] = 0
+    retrieval_param['FWHM'] = instrument.antenna_fwhm
+
+    # AC240 correction factor
+    retrieval_param['AC240_magic_correction'] = False
+    retrieval_param["AC240_corr_factor"] = 0
 
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 
@@ -136,7 +144,9 @@ if __name__ == "__main__":
     # for i,s in enumerate(instrument.spectrometer):
     spectro = 'FB'
     spectro_dataset = instrument.integrated_data[spectro]
-
+    if date <  datetime.date(1994, 10 , 1):
+        spectro_dataset['mean_sky_elevation_angle'] = ('time',55*np.ones_like(spectro_dataset.mean_sky_elevation_angle.data))
+    
     figure_list = []
 
     # bin_vector = instrument.create_binning(
@@ -216,6 +226,46 @@ if __name__ == "__main__":
             figure_list = GROMORA_library.plot_level2_test_retrieval(
                 ac, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
             #save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'Perrin_with_h2o.pdf', figure_list)
+        elif retrieval_param["retrieval_type"] == 4:
+            retrieval_param["surface_altitude"] = 800
+            retrieval_param["observation_altitude"] = 1000
+            retrieval_param['atm'] = 'era5_cira86'
+            retrieval_param['o3_apriori'] = 'gromos'
+            retrieval_param['sensor'] = 'FB_SB_Antenna'
+            # Frequency grid for the simulation: (only for simulated spectra)
+            retrieval_param["number_of_freq_points"] = 1201
+            retrieval_param["irregularity_f_grid"] = 45
+            # retrieval_param['atm']='fascod_gromos_o3'
+            retrieval_param['FM_only'] = True
+            ac_sim_FM, retrieval_param, sensor_out  = instrument.retrieve_cycle(
+                    spectro_dataset, retrieval_param, ac_sim_FM=None, sensor=None)
+            y_noisy = ac_sim_FM.ws.y.value + np.random.normal(0, 0.2, len(ac_sim_FM.ws.f_backend.value))
+            retrieval_param['FM_only'] = False
+            retrieval_param['sensor'] = 'FB_SB'
+            retrieval_param['o3_apriori'] = 'waccm_monthly'
+            ac, retrieval_param, sensor_out  = instrument.retrieve_cycle(
+                    spectro_dataset, retrieval_param, ac_sim_FM=ac_sim_FM, sensor=None, ds_y= y_noisy)
+            level2_cycle = ac.get_level2_xarray()
+            retrieval_param['sensor'] = 'FB_SB_Antenna'
+            ac2, retrieval_param, sensor_out  = instrument.retrieve_cycle(
+                    spectro_dataset, retrieval_param, ac_sim_FM=ac_sim_FM, sensor=None, ds_y= y_noisy)
+            import GROMORA_library
+            figure_list = GROMORA_library.plot_level2_test_retrieval(
+                ac, ac_sim_FM, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
+            #plt.show()
+            save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'generic_no_antenna.pdf', figure_list)
+            figure_list2 = GROMORA_library.plot_level2_test_retrieval(
+                ac2, ac_sim_FM, retrieval_param, title='test_retrieval_o3', z_og=ac_sim_FM.ws.z_field.value[:, 0, 0], og_ozone=ac_sim_FM.ws.vmr_field.value[0, :, 0, 0])
+            save_single_pdf(instrument.filename_level2[spectro]+'_'+str(retrieval_param["integration_cycle"])+'generic_antenna.pdf', figure_list2)
+
+            ozone_ret, h2o_ret, polyfit_ret, fshift_ret  = ac.retrieval_quantities
+            ozone_ret2, h2o_ret, polyfit_ret, fshift_ret  = ac2.retrieval_quantities
+            fig, axs = plt.subplots(nrows=1, ncols=1)
+            axs.plot(100*(ozone_ret2.x-ozone_ret.x)/ozone_ret2.x, 1e-3*ozone_ret.z_grid)
+            axs.set_xlabel('AT - noAT, [%]')
+            axs.set_ylabel('altitude [km]')
+            axs.grid()
+            fig.savefig('/home/es19m597/Documents/GROMORA/Data/bias_antenna_'+str(date)+'.pdf')
         else:
             level2_cycle = xr.Dataset()
 

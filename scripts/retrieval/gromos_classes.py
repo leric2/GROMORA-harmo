@@ -108,6 +108,7 @@ class GROMOS_LvL2(DataRetrieval):
 
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
+        self.antenna_fwhm = 1.9
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
@@ -138,7 +139,9 @@ class GROMOS_LvL2(DataRetrieval):
         Depending on the dates, function to apply the appropriate baseline periods for the GROMOS retrievals
 
         ''' 
-        if (retrieval_param['date'] >= datetime.date(2009,1,1)) & (retrieval_param['date'] < datetime.date(2015,2,23)):
+        if (retrieval_param['date'] >= datetime.date(2009,7,1)) & (retrieval_param['date'] < datetime.date(2010,3,15)):#& (retrieval_param['date'] < datetime.date(2015,2,23)):
+            baseline_periods = np.array([178e6, 216e6, 275e6, 400e6, 533e6])
+        elif  (retrieval_param['date'] >= datetime.date(2010,3,15)) & (retrieval_param['date'] < datetime.date(2015,2,23)):
             baseline_periods = np.array([178e6, 240e6, 360e6])
         elif  (retrieval_param['date'] >= datetime.date(2015,2,23)) & (retrieval_param['date'] < datetime.date(2015,8,31)):
             baseline_periods = np.array([140e6, 240e6, 400e6])
@@ -192,11 +195,14 @@ class GROMOS_LvL2(DataRetrieval):
             plt.show()
         return f_grid
     
-    def cost_threshold(self, year):
+    def cost_threshold(self, year, version=3):
         '''
         Cost threshold over which we flag the level 2
         '''
-        return 0.1 
+        if version ==3:
+            return 0.1
+        else:
+            return 0.1 
 
     @property
     def day2flag_level2(self):

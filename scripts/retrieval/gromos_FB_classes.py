@@ -110,6 +110,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
         
         self.lo = 1.45875e11
         self.reference_elevation_angle = 90
+        self.antenna_fwhm = 1.9
         
         level1_folder = basename_lvl1 # os.path.join(basename_lvl1, instrument_name)
         level2_folder = basename_lvl2# os.path.join(basename_lvl2, instrument_name)
@@ -143,11 +144,12 @@ class GROMOS_FB_LvL2(DataRetrieval):
         retrieval_param["obs_freq"] = self.observation_frequency
 
         ########################################################
-        # Sensor related parameter:
-        
-        retrieval_param['SB_bias'] = 0
-        
-        retrieval_param['sideband_response'] = 'theory'
+        # Sensor related parameter:       
+        if self.date <  datetime.date(1994, 10 , 1):
+            retrieval_param['sideband_response'] = 'constant' #''
+        else:
+            # Installation of MPI-> SSB from 11.1994
+            retrieval_param['sideband_response'] = 'theory' #'constant'
         retrieval_param['use_all_channels'] = False
         retrieval_param['window_corrected_spectrum'] = True
         retrieval_param["f_shift"] = 0
@@ -205,17 +207,27 @@ class GROMOS_FB_LvL2(DataRetrieval):
         #line_file = '/home/eric/Documents/PhD/GROSOM/InputsRetrievals/Hitran_all_species.par'
         #line_file = '/home/es19m597/Documents/GROMORA/InputsRetrievals/Hitran_f_modified.xml'
         retrieval_param['line_file'] = line_file
+
         ########################################################
         # Atmosphere for the simulation
-        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod  ecmwf_cira86
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5
-        retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        if retrieval_param['atm'][0:4] == 'ecmw':  # fascod  ecmwf_cira86
+            # 6-hourly ECMWF operational analysis dataset
+            retrieval_param['extra_time_ecmwf'] = 3.5
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+        elif retrieval_param['atm'][0:4] == 'era5':
+            # Hourly era5 dataset
+            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/SwissPlateau/'
+            retrieval_param['extra_time_ecmwf'] = 0.5
+        else: 
+            raise ValueError('Atmosphere string definition not recognized !')
         #retrieval_param['ecmwf_store_location'] ='/home/eric/Documents/PhD/ECMWF'
         retrieval_param['cira86_path'] = os.path.join(retrieval_param['ARTS_DATA_PATH'], 'planets/Earth/CIRA86/monthly')
         # time interval [h] around which we collect ECMWF profile
-        retrieval_param['extra_time_ecmwf'] = 3.5
+
 
         ########################################################
         # A priori and covariances
@@ -238,7 +250,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
         # Type of noise covariance to use
         retrieval_param['noise_covariance']  = 'noise_level' #float(0.15)//'noise_level'  // 'stdTb'
         # factor to increase the noise variance
-        retrieval_param['increased_var_factor'] = 0.3# 0.3
+        retrieval_param['increased_var_factor'] = 0.3 # 0.3
         
         ########################################################
         # Variable related to channel response of FB
@@ -256,14 +268,14 @@ class GROMOS_FB_LvL2(DataRetrieval):
         retrieval_param['stop_dx'] = 1
         retrieval_param['lm_ga_setting']=[10, 2.0, 2.0, 100, 1, 99]
 
-        #if self.date <  datetime.date(1999, 10 , 12):
-        if self.date <  datetime.date(2006, 2 , 1):
-            retrieval_param['atm'] = 'fascod_cira86' 
-            retrieval_param['h2o_apriori'] = 'fascod_extended'  # 'ecmwf' # 'fascod_extended'
-            #retrieval_param['noise_covariance']  = float(0.5)#float(0.16)
-            #retrieval_param['increased_var_factor'] =  0.5# 0.3
-            retrieval_param["z_top_sim_grid"] = 100e3
-            #retrieval_param['increased_var_factor'] =  0.04
+        # #if self.date <  datetime.date(1999, 10 , 12):
+        # if self.date <  datetime.date(2006, 2 , 1):
+        #     retrieval_param['atm'] = 'fascod_cira86' 
+        #     retrieval_param['h2o_apriori'] = 'fascod_extended'  # 'ecmwf' # 'fascod_extended'
+        #     #retrieval_param['noise_covariance']  = float(0.5)#float(0.16)
+        #     #retrieval_param['increased_var_factor'] =  0.5# 0.3
+        #     retrieval_param["z_top_sim_grid"] = 100e3
+        #     #retrieval_param['increased_var_factor'] =  0.04
 
 
         return retrieval_param
@@ -573,7 +585,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
 
         return date2flag_gromos_FB
 
-    def cost_threshold(self, year):
+    def cost_threshold(self, year, version=3):
         '''
         Cost threshold over which we flag the level 2
         '''

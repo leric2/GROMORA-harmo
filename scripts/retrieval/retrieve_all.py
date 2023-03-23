@@ -127,6 +127,15 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     # Function to define the default retrieval_param dictionary.
     retrieval_param = instrument.define_retrieval_param(retrieval_param)
 
+    # Sensor related parameter:
+    retrieval_param['sensor'] = 'FFT_SB_Antenna'
+    retrieval_param['SB_bias'] = 0
+    retrieval_param['FWHM'] = instrument.antenna_fwhm
+
+    # AC240 correction factor
+    retrieval_param['AC240_magic_correction'] = True
+    retrieval_param["AC240_corr_factor"] = 0.08
+
     # Quick test on instrument name
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
 

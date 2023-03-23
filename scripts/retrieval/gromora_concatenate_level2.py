@@ -45,7 +45,7 @@ instrument_name = "GROMOS"
 
 #date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='2000-01-01', end='2000-12-31') 
+date = pd.date_range(start='1993-01-01', end='1993-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -53,6 +53,7 @@ date = pd.date_range(start='2000-01-01', end='2000-12-31')
 # Concatenation of the daily files to single netCDF file for the period provided 
 concatenate_and_add_L2_flags = True
 save_residuals=False
+save_level2 = True
 
 # Base diagnostic plot for the day provided.
 plot_selected = False
@@ -70,16 +71,16 @@ integration_strategy = 'classic'
 spectros = ['FB']
 spectro = spectros[0]
 int_time = 1
-ex = '_rect_SB'
+ex = '_v3'
 # ex = '_waccm_low_alt'
 
 new_L2 = True
 
-# Deal with CET now ?
-change2UTC=True
+# Deal with CET now ? Only for FB relevant
+change2UTC = True
 
 #plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 cont_name = 'h2o_continuum_x' 
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -90,7 +91,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectro == 'AC240':
@@ -142,7 +143,7 @@ if concatenate_and_add_L2_flags:
 
     #############################################################################
     # Adding the retrieval_quality flags to the concatenated level 2:
-    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0]) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
+    good_data = xr.where((np.abs(new_ds.oem_diagnostics[:, 2] - 1) < instrument.cost_threshold(date.year[0], version=3) ) & (np.abs(new_ds.poly_fit_x[:,0].data)<instrument.polyfit_threshold), True, False)
 
     if (spectro == 'FB') and change2UTC:
         # FB measured in CET ! 
@@ -182,7 +183,8 @@ if concatenate_and_add_L2_flags:
     
     # If not, we remove the observation vector from the concatenated level 2 (for space)
     ozone = new_ds.drop_dims(['f']) #drop_vars(['y', 'yf', 'bad_channels', 'y_baseline'])
-    ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_FB_SB'+'.nc' , format='NETCDF4', unlimited_dims='time')
+    if save_level2:
+        ozone.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr+'_'+spectro+ex+'.nc' , format='NETCDF4', unlimited_dims='time')
 
 #############################################################################
 #############################################################################
