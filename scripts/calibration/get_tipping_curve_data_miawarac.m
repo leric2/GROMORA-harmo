@@ -1,6 +1,6 @@
-
 function TC_data = get_tipping_curve_data_miawarac(rawSpectra, logFile, calibrationTool)
 
+disp('tipping curve miawara c')
 % idx hot
 idx_hot = find(logFile.Mirror_pos == 1);
 
@@ -13,6 +13,7 @@ f = load(calibrationTool.channel_freqs);
 N        = calibrationTool.numberOfChannels;
 freq     = interp1(f(:,1)',f(:,2)',1:N/2);
 idx_freq = find (freq > 22.135e9 & freq < 22.335e9);
+disp(length(idx_hot))
 
 % cycle through hot measurements, the hot measurement is always the first
 % measurement
@@ -21,6 +22,8 @@ counter = 1;
 clear TC_data
 %%
 for k= 1:length(idx_hot)
+    disp('starting loop')
+
     
     % find tipping curve measurements within 3min of the hot
     tk =  logFile.time(idx_hot(k));
@@ -88,6 +91,7 @@ for k= 1:length(idx_hot)
     
     
     % find Thot and Tamb
+    disp('finding thot and tamb')
     
     Thot_in_tmp = [logFile.THot0;logFile.THot1;logFile.THot2;logFile.THot3;logFile.THot4;logFile.THot5;logFile.THot6;logFile.THot7;logFile.THot8;logFile.THot9];
     Thot_in     =  Thot_in_tmp(:,idx_hot(k))';
@@ -96,7 +100,8 @@ for k= 1:length(idx_hot)
     Tamb_time   = logFile.meteo.time;
 
     [TC_data{counter}.Thot, TC_data{counter}.Tamb] = check_Thot_and_Tamb(Thot_time, Thot_in, Tamb_time, Tamb_in); 
-        
+    
+    
     
     % clear variables
     

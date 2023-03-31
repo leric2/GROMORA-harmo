@@ -36,8 +36,7 @@ try
     if calibrationTool.dateTime >= datetime(2017,08,10, 'TimeZone', calibrationTool.timeZone)
         % First reading the Meteo dataset for this day
         dateStringMeteo=[calibrationTool.dateStr(1:4) '-' calibrationTool.dateStr(6:7) '-' calibrationTool.dateStr(9:10)];
-        meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv'];
-        
+        meteoDataFile=[calibrationTool.meteoFolder 'meteo_' dateStringMeteo '.csv']
         % Transforming it into matlab structure
         T=readtable(meteoDataFile);
         meteoData=table2struct(T);
@@ -45,7 +44,7 @@ try
         meteoData(1).precipitation = meteoData(1).rain_accumulation;
         for i = 1:length(meteoData)
             dateN = datenum(meteoData(i).time,'yyyy-mm-ddTHH:MM:SS.FFFZ');
-            meteoData(i).dateNum=dateN-calibrationTool.referenceTime;
+            meteoData(i).dateNum=dateN;
             meteoData(i).dateTime=datetime(dateN,'ConvertFrom','datenum');
             meteoData(i).dateTime.TimeZone = calibrationTool.timeZone;
             %meteoData(i).dateTime=datetime(meteoData(i).time,'InputFormat','yyyy-MM-dd''T''hh:mm:ss.SSSSSSSZ');

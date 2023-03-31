@@ -15,7 +15,6 @@
 %           | user and launch run_calibration() for each specific
 %           | day.
 %           |
-%           |
 % ARGUMENTS | INPUTS: - instrumentName
 %           |         - dates: range of date for calibration
 %           |
@@ -25,15 +24,15 @@
 % CALLS     | import_default_calibrationTool(instrumentName,dateStr)
 %           | run_calibration(calibrationTool)
 %           |
-%           |
 %==========================================================================
 
 clear all; close all; clc; clear functions; %clear mex;
 
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
-instrumentName='MIAWARA-C';
+instrumentName='MIAWARA';
 
 % Type of calibration to do: standard or debug
+%calibrationType='LN2';
 calibrationType='standard';
 
 calibrate = true;
@@ -44,8 +43,8 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-dates=datenum('2015_08_13','yyyy_mm_dd'):datenum('2015_08_13','yyyy_mm_dd');
-%dates=datenum('2010_12_08','yyyy_mm_dd'):datenum('2010_12_13','yyyy_mm_dd');
+dates=datenum('2023_03_05','yyyy_mm_dd'):datenum('2023_03_05','yyyy_mm_dd');
+%dates=datenum('2010_12_08','yyyy_mm_dd'):datenum('2010_12_13','yyyy_mm_dd')
 
 % dates=[datenum('2009_08_22','yyyy_mm_dd'):datenum('2009_08_23','yyyy_mm_dd'),...
 %      datenum('2009_09_21','yyyy_mm_dd'):datenum('2009_09_21','yyyy_mm_dd')];
@@ -69,7 +68,6 @@ dates=datenum('2015_08_13','yyyy_mm_dd'):datenum('2015_08_13','yyyy_mm_dd');
 %     datenum('2019_04_25','yyyy_mm_dd'):datenum('2019_05_04','yyyy_mm_dd'),...
 %     datenum('2019_06_11','yyyy_mm_dd'):datenum('2019_06_18','yyyy_mm_dd')];
 
-
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
     labviewLogFolder = '/home/esauvageat/Documents/GROMORA/Analysis/InputsCalibration/';
     labviewLogFolder = '/storage/tub/instruments/gromos/level1/GROMORA/InputsCalibration/';
@@ -92,7 +90,7 @@ for d = 1:numel(dates)
     
     % Import default tools for running a calibration or integration for a 
     % given instrument
-    calibrationTool=import_default_calibrationTool(dateStr);
+    calibrationTool = import_default_calibrationTool(dateStr);
     
     calibrationTool.instrumentName=instrumentName;
     calibrationTool.calibrationVersion = '2.0';
@@ -111,7 +109,7 @@ for d = 1:numel(dates)
     calibrationTool.hotSpectraNumberOfStdDev=3;
     calibrationTool.coldSpectraNumberOfStdDev=3;
     calibrationTool.skySpectraNumberOfStdDev=6;
-    
+    calibrationTool.refSpectraNumberOfStdDev=6; %added for MIAWARA
     calibrationTool.labviewLog = labviewLog;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,7 +118,7 @@ for d = 1:numel(dates)
     
     % Option for outlier detection during calibration (only with standard
     % calibration type):
-    % 'standard', 'noFFT', 'none'
+    % 'standard', 'noFFT', 'none', 'noAngleRemoval'(MW)
     calibrationTool.outlierDectectionType = 'standard';
     
     calibrationTool.rawSpectraPlot = false;
@@ -219,7 +217,19 @@ for d = 1:numel(dates)
         calibrationTool = import_MOPI5_calibrationTool(calibrationTool);
     elseif strcmp(instrumentName,'MIAWARA-C')
         % FOR MIAWARA-C:
+        calibrationTool.dateStr=dateStr;
         calibrationTool = import_MIAWARAC_calibrationTool(calibrationTool);
+    elseif strcmp(instrumentName,'MIAWARA')
+        % FOR MIAWARA:
+
+        if strcmp(calibrationTool.calType ,'LN2')
+          calibrationTool = import_MIAWARA_LN2_calibrationTool(calibrationTool);
+
+        else    
+          calibrationTool = import_MIAWARA_calibrationTool(calibrationTool);
+          calibrationTool.outlierDectectionType = 'standard';
+        end
+
      elseif strcmp(instrumentName,'WIRAC')
         % Time interval for doing the calibration
         calibrationTool.calibrationTime=10;
@@ -252,7 +262,6 @@ for d = 1:numel(dates)
         calibrationTool.saveLevel1a = true;
         calibrationTool.integratedSpectraPlot = true;
         calibrationTool.saveLevel1b = true;
-
         calibrationTool.savePlanckIntensity = true;
         calibrationTool.check_deltaTC = true;
     end
@@ -263,14 +272,25 @@ for d = 1:numel(dates)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For now, we keep the number of spectrometer as condition for separating 
 % between GROSOM and mopi5.
-    if calibrationTool.numberOfSpectrometer==1
+
+
+    if strcmp(instrumentName,'MIAWARA')
+        if calibrate
+%              try
+              calibrationTool = run_calibration(calibrationTool);
+%              catch ME
+%                 warning(['Problem with the calibration of day: ', calibrationTool.dateStr]);
+%                 disp(ME.message)
+%              end
+        end
+    elseif calibrationTool.numberOfSpectrometer==1
         % Performing calibration
         if calibrate
             try
                 calibrationTool = run_calibration(calibrationTool);
             catch ME
-                warning(['Problem with the calibration of day: ', calibrationTool.dateStr]);
-                disp(ME.message)
+               warning(['Problem with the calibration of day: ', calibrationTool.dateStr]);
+               disp(ME.message)
             end
         end
         % Performing integration

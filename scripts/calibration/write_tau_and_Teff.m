@@ -1,11 +1,16 @@
-
 function write_tau_and_Teff(date,instrumentName)
 
 dateStr=datestr(date,'yyyy_mm_dd');
     
 % Import default tools for running a retrieval for a given instrument
-calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
+if strcmpi(instrumentName, 'MIAWARA')
+    calibrationTool = import_default_calibrationTool(dateStr);
+    calibrationTool.instrumentName='MIAWARA';
+    calibrationTool = import_MIAWARA_calibrationTool(calibrationTool);
 
+else
+    calibrationTool=import_default_calibrationTool(instrumentName,dateStr);
+end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reading and formatting the raw spectra for this day
@@ -52,7 +57,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % get_meteo_data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
 
 %%

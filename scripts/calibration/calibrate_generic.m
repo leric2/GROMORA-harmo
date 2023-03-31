@@ -84,14 +84,17 @@ if strcmp(calType,'debug')
     % Now we read complete half cycle Up (c-a-h) and Down (h-a-c) separately
     [firstIndHalfUp,firstIndHalfDown] = find_up_down_cycle(logFile,calibrationTool);
 end
+%firstIndHalfUp = first indices of a complete half up cycle - equal to one
+%when true
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Building the drift structure, inspired from Axel
 % Variations of mean amplitude and TNoise with time
 % need equal number of cycles !
 
 for i=1:length(initialIndices)
-    initialIndices{i}(initialIndices{i}>size(rawSpectra,1))=[];
-    cn(i) = length(initialIndices{i}); 
+    initialIndices{i}(initialIndices{i}>size(rawSpectra,1))=[];%removal of any indices which dont match raw spectra index
+    cn(i) = length(initialIndices{i});%number of hot/antenna/cold spectra
 end
 
 % TODO in case the order of the cycle changes ! (for instance, if we have 2
@@ -148,7 +151,6 @@ drift.outlierDrift = [];
 
 % Threshold for the separation, calibTime has to be in [min]
 dt = hours(calibTime/60);
-
 timeThresh = datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day, 'TimeZone', calibrationTool.timeZone):dt:datetime(calibrationTool.Year,calibrationTool.Month,calibrationTool.Day+1, 'TimeZone', calibrationTool.timeZone);
 
 % Starting time for the complete cycle (will be the basis for separating
@@ -273,40 +275,40 @@ for i=1:nCalibrationCycles
     switch calibrationTool.outlierDectectionType
         case {'RFI_removal','RFI'}
                 % RFI filtering (in progress)
-    % problematic channel
-    RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
-    % Using the cycle median and stddev to check for spurious sky
-    % spectra during this cycle:
-
-
+        % problematic channel
+        RFI_bad_channels = (calibratedSpectra(i).if>301) & (calibratedSpectra(i).if<499);
+        % Using the cycle median and stddev to check for spurious sky
+        % spectra during this cycle:
     
-    mm = 100;
-    %calibratedSpectra(i).ColdSpectraRFI = rawSpectra(ic,:)-drift.dailyMedianColdSpectra;
-    %calibratedSpectra(i).ColdSpectraRFI = movmean(rawSpectra(ic,:)-drift.dailyMedianColdSpectra,mm,2);
-    calibratedSpectra(i).ColdSpectraRFI = movmean(rawSpectra(ic,:)-medianColdSpectra,mm,2);
-    calibratedSpectra(i).HotSpectraRFI = movmean(rawSpectra(ih,:)-medianHotSpectra,mm,2);
     
-    %calibratedSpectra(i).ColdSpectraRFI2 =  calibratedSpectra(i).ColdSpectraRFI - median(calibratedSpectra(i).ColdSpectraRFI(RFI_bad_channels),2);
-    %calibratedSpectra(i).ColdSpectraRFI2 =  calibratedSpectra(i).ColdSpectraRFI - movmean(calibratedSpectra(i).ColdSpectraRFI,10*mm,2);
-    %diff_daily = movmean(drift.dailyMedianColdSpectra-median(drift.dailyMedianColdSpectra),mm,2);
+        
+        mm = 100;
+        %calibratedSpectra(i).ColdSpectraRFI = rawSpectra(ic,:)-drift.dailyMedianColdSpectra;
+        %calibratedSpectra(i).ColdSpectraRFI = movmean(rawSpectra(ic,:)-drift.dailyMedianColdSpectra,mm,2);
+        calibratedSpectra(i).ColdSpectraRFI = movmean(rawSpectra(ic,:)-medianColdSpectra,mm,2);
+        calibratedSpectra(i).HotSpectraRFI = movmean(rawSpectra(ih,:)-medianHotSpectra,mm,2);
+        
+        %calibratedSpectra(i).ColdSpectraRFI2 =  calibratedSpectra(i).ColdSpectraRFI - median(calibratedSpectra(i).ColdSpectraRFI(RFI_bad_channels),2);
+        %calibratedSpectra(i).ColdSpectraRFI2 =  calibratedSpectra(i).ColdSpectraRFI - movmean(calibratedSpectra(i).ColdSpectraRFI,10*mm,2);
+        %diff_daily = movmean(drift.dailyMedianColdSpectra-median(drift.dailyMedianColdSpectra),mm,2);
+        
+        mean_smoothed_diff_to_median_cold = abs(median(calibratedSpectra(i).ColdSpectraRFI(:,RFI_bad_channels),2));
+        mean_smoothed_diff_to_median_hot = abs(median(calibratedSpectra(i).HotSpectraRFI(:,RFI_bad_channels),2));
     
-    mean_smoothed_diff_to_median_cold = abs(median(calibratedSpectra(i).ColdSpectraRFI(:,RFI_bad_channels),2));
-    mean_smoothed_diff_to_median_hot = abs(median(calibratedSpectra(i).HotSpectraRFI(:,RFI_bad_channels),2));
-
-    mean_smoothed_diff_to_median_cold(mean_smoothed_diff_to_median_cold<0.5) = 1 ;
-    mean_smoothed_diff_to_median_hot(mean_smoothed_diff_to_median_hot<0.5) = 1 ;
-
-    calibratedSpectra(i).freqRFI = calibratedSpectra(i).if + 3300;
-    outlierRFICold = reshape(sum(abs(calibratedSpectra(i).ColdSpectraRFI(:,RFI_bad_channels)) > 10*mean_smoothed_diff_to_median_cold,2) > 10,[],1);
-    outlierRFIHot = reshape(sum(abs(calibratedSpectra(i).HotSpectraRFI(:,RFI_bad_channels)) > 10*mean_smoothed_diff_to_median_hot,2) > 10,[],1);
-        otherwise
+        mean_smoothed_diff_to_median_cold(mean_smoothed_diff_to_median_cold<0.5) = 1 ;
+        mean_smoothed_diff_to_median_hot(mean_smoothed_diff_to_median_hot<0.5) = 1 ;
+    
+        calibratedSpectra(i).freqRFI = calibratedSpectra(i).if + 3300;
+        outlierRFICold = reshape(sum(abs(calibratedSpectra(i).ColdSpectraRFI(:,RFI_bad_channels)) > 10*mean_smoothed_diff_to_median_cold,2) > 10,[],1);
+        outlierRFIHot = reshape(sum(abs(calibratedSpectra(i).HotSpectraRFI(:,RFI_bad_channels)) > 10*mean_smoothed_diff_to_median_hot,2) > 10,[],1);
+            otherwise
     end
     %outlierRFICold2 = reshape(sum(abs(ColdRFI_removed) > 10*mean_smoothed_diff_to_median_cold,2) > 10,[],1);
     % Depending on the defined outlier detection technique for this
     % calibration, we use the identified outliers to remove the spurious
     % hot and cold individual spectra 
     switch calibrationTool.outlierDectectionType
-        case 'standard' 
+        case 'standard'
             outlierHot = (outlierDetectHot | hotAngleOutlier | FFT_adc_overload_hot);
             outlierCold = (outlierDetectCold | coldAngleOutlier | FFT_adc_overload_cold);
         case 'RFI_removal'
@@ -322,8 +324,8 @@ for i=1:nCalibrationCycles
             rawSpectra(ih,:) = hotSpectra;
             rawSpectra(ic,:) = coldSpectra;
 
-                calibratedSpectra(i).outlierDetectHotRFI = sum(outlierRFIHot);
-    calibratedSpectra(i).outlierDetectColdRFI = sum(outlierRFICold);
+            calibratedSpectra(i).outlierDetectHotRFI = sum(outlierRFIHot);
+            calibratedSpectra(i).outlierDetectColdRFI = sum(outlierRFICold);
             %RFI_cold_channels_2_remove = find(abs(movmean(rawSpectra(ic,RFI_bad_channels)-medianColdSpectra(RFI_bad_channels),100,2)) > 10*mean_smoothed_diff_to_median_cold);
             %RFI_hot_channels_2_remove=  find(abs(movmean(rawSpectra(ih,RFI_bad_channels)-medianHotSpectra(RFI_bad_channels),100,2)) > 10*mean_smoothed_diff_to_median_hot,);
             %[row, colum] = rawSpectra(abs(movmean(rawSpectra(ic,:)-medianColdSpectra,100,2)) > 10);

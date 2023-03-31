@@ -34,7 +34,7 @@ function [logFile_out, rawSpectra_out] = read_level0_missing(calibrationTool,raw
 
 
 file=calibrationTool.file;
-% initialize return value
+%initialize return value
 log.file = file;
 log.comment = [];
 
@@ -80,10 +80,46 @@ fclose(fid);
 for n = 1:N
     name = header{n}; 
     name(name=='.')='_'; 
-    name(name==' ')='_'; 
+    name(name==' ')='_';
+    name(name=='[')='_';
+    name(name==']')='_';
+    name(name=='}')='_';
+    name(name=='{')='_';
+    name(name=='\')='_';
+    name(name=='/')='_';
     if length(name)<2 continue; end; 
     %disp(name)
     log = setfield(log, name, x(n,:));
+end
+
+if isfield(log, 'hour')
+    log.Hour = log.hour;
+end
+
+if isfield(log, 'minute')
+    log.Minute = log.minute;
+end
+
+if isfield(log, 'second')
+    log.Second = log.second;
+end
+
+if isfield(log, 'year')
+    log.Year = log.year;
+end
+
+if isfield(log, 'month')
+    log.Month = log.month;
+end
+
+if isfield(log, 'day')
+    log.Day = log.day;
+end
+
+disp('mirror elevation')
+if isfield(log, 'elevation_stop_deg_') && isfield(log, 'elevation_start_deg_')
+    disp('found elevation field')
+    log.Mirror_elevation = (log.elevation_stop_deg_ + log.elevation_start_deg_)/2;
 end
 
 % calculate time in [h]
@@ -111,6 +147,7 @@ if nargout>1
     rawSpectra = fread(fid ,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
     fclose(fid);
 end
+
 
 % we want a line vector for the following
 rawSpectra=rawSpectra';
@@ -157,7 +194,6 @@ if exist(file2,'file')
 
     else
         header = textscan(s, '%s'); 
-
         header = header{1}; % cell array with all header parameters
         N = length(header); % number of header parameters
         % x = fscanf(fid, '%f;', [N, inf]);  % data array
@@ -209,7 +245,6 @@ if exist(file2,'file')
 
     % we want a line vector for the following
     rawSpectra_pre=rawSpectra_pre';
-
     log2.x = x; 
     log2.header = header; 
 
@@ -223,9 +258,4 @@ else
     rawSpectra_out = rawSpectra;
     logFile_out    = log;
 end
-
-
-
-
-
 

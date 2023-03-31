@@ -3,8 +3,7 @@
 % correction for the reference absorber and the troposphere.
 % 
 % input:
-% 
-% data.S_line: the line signal
+%  % data.S_line: the line signal
 % data.S_ref:  the reference signal
 % data.S_hot:  the hotload signal
 % data.S_cold: the coldload signal
@@ -35,6 +34,8 @@
 % airmass factors. July 2008, A.Haefele
 % - v5: bases on v4 and accounts for antenna pattern
 % - v6: bases on v5, for two polarisations (OMT)
+% - v7: two positions are always taken and averaged to minimise effects of 
+%       standing waves, 2022, A. Bell
 
 function [Tb,T_COLD,T_rec,A,a, deltaTb]=counts2kelvin(data)
 error=0;
@@ -52,11 +53,9 @@ data.S_line=data.S_line(nonzero_index);
 data.S_ref=data.S_ref(nonzero_index);
 data.S_hot=data.S_hot(nonzero_index);
 data.S_cold=data.S_cold(nonzero_index);
-%  OFFSET=OFFSET(nonzero_index);
-
 
 %===== calculate the airmass factor
-antenna= load('antenna.txt');
+antenna= load('/home/alistair/MIAWARA_ret/MIAWARA_pyarts/GROMORA-harmo/files/miawarac_antenna.txt');
 norm=sum(antenna(:,2));
 antenna_pat=antenna(:,2)/norm;
 
@@ -83,7 +82,7 @@ s2_line=sqrt((RE+H+h)^2-RE^2*sin(za_line/180*pi).^2)-RE*cos(za_line/180*pi);
 s1_line=sqrt(  (RE+h)^2-RE^2*sin(za_line/180*pi).^2)-RE*cos(za_line/180*pi);
 AM_line_trop1=s1_line/h.*antenna_pat;
 AM_line_ma1=(s2_line-s1_line)/H.*antenna_pat;
-%  figure(1),hold on,plot(za_line,AM_line_trop1)
+%figure(1),hold on,plot(za_line,AM_line_trop1)
 AM_line_trop=sum(AM_line_trop1);
 AM_line_ma=sum(AM_line_ma1);
 
@@ -103,7 +102,6 @@ AM_cold_trop=sum(AM_cold_trop1);
 
 %===== calculate T_COLD
 T_COLD=data.T0*exp(-data.tau*AM_cold_trop)+data.Teff*(1-exp(-data.tau*AM_cold_trop));
-
 
 %===== calculate the brightness temperature of the reference signal by means of calibration
 Tb_ref(nonzero_index)=(data.S_ref-data.S_hot)./(data.S_hot-data.S_cold).*(data.Thot-T_COLD)+data.Thot;
@@ -136,7 +134,32 @@ if A>1 || A<0
    disp('WARNING: A is out of range!')
 end
 
-%===== calculate the receiver temperature using the y-method
-nonzero_index=find(data.S_cold~=0);
-y=(data.S_hot(nonzero_index))./(data.S_cold(nonzero_index));
-T_rec(nonzero_index)=(data.Thot-y*T_COLD)./(y-1);
+
+if isfield(data, 'errorMax')
+    if error>=data.errorMax
+        ErrMaxTrue = true;
+    else
+        ErrMaxTrue = false;
+    end
+else
+    ErrMaxTrue = false;
+end
+
+if ErrMaxTrue
+    disp('WARNING: data excluded from calibration cycle')
+    %if errors more than specified, do not include data in calibration
+    Tb = ones(size(Tb)) * nan;
+    T_COLD = nan;
+    T_rec = ones(size(Tb)) * nan;
+    a =  nan;
+    A = nan;
+    deltaTb = ones(size(Tb)) * nan;
+else 
+    if (~isfield(data, 'errorMax') ||  error<data.errorMax)
+        %===== calculate the receiver noise temperature using the y-method
+        nonzero_index=find(data.S_cold~=0);
+        y=(data.S_hot(nonzero_index))./(data.S_cold(nonzero_index));
+        T_rec(nonzero_index)=(data.Thot-y*T_COLD)./(y-1);
+    end
+end
+end

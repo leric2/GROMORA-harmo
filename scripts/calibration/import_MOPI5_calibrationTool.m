@@ -103,8 +103,6 @@ calibrationTool.cycleDurationHot = 2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Raw File and Log
 
-%calibrationTool.numberOfCyclesExpected=3940;
-%calibrationTool.toleranceNumberCycles=0.01*calibrationTool.numberOfCyclesExpected;
 calibrationTool.checkLevel0=true;
 calibrationTool.tippingSize=27;
 calibrationTool.flipped_spectra=false;

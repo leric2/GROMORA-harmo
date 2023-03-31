@@ -49,7 +49,6 @@ function [log,rawSpectra] = read_level0_generic(calibrationTool, rawFileReading)
 %==========================================================================
 
 file=calibrationTool.file;
-% initialize return value
 log.file = file;
 log.comment = [];
 
@@ -133,12 +132,14 @@ if rawFileReading
     % read complete binary data in one vector
     if nargout>1
         fid = fopen( [file calibrationTool.binaryDataExtension], 'r', calibrationTool.binaryType);
-        rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32');
+        rawSpectra = fread(fid,calibrationTool.numberOfChannels*theoreticalNumberDataEntries,'float32=>float32'); 
         %rawSpectra = fread(fid,[theoreticalNumberDataEntries, calibrationTool.numberOfChannels],'float32=>float32');
         %rawSpectra = fread(fid,[calibrationTool.numberOfChannels, theoreticalNumberDataEntries],'float32=>float32');
         fclose(fid);
     end
     
+    disp('raw spectra read')
+
     % we want a line vector for the following
     if (size(rawSpectra,2)==1)
         rawSpectra=rawSpectra';

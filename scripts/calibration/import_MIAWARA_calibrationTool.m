@@ -19,7 +19,6 @@ function calibrationTool = import_MIAWARA_calibrationTool(calibrationTool)
 % Check that instrument name corresponds to this function
 assert(strcmp(calibrationTool.instrumentName, 'MIAWARA'),'Wrong instrument toolbox !')
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Meta data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,7 +42,8 @@ calibrationTool.dateTime.TimeZone = calibrationTool.timeZone;
 
 % Observation frequency
 calibrationTool.observationFreq=22.235;
-calibrationTool.calibrationTime=60;
+%length of calibration cycle in minutes
+calibrationTool.calibrationTime=6*60;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spectrometer data:
@@ -61,7 +61,7 @@ if datenum(calibrationTool.dateStr) < datenum(2022,10,17)
     calibrationTool.IQProcessing = false;
 
 else
-    calibrationTool.numberOfSpectrometer=2;
+    calibrationTool.numberOfSpectrometer=1;
     calibrationTool.spectrometer='AC240';
     calibrationTool.numberOfChannels = 49152;
     calibrationTool.IQProcessing = false;
@@ -91,25 +91,31 @@ calibrationTool.logFileDataExtension = '.txt';
 
 calibrationTool.bytesPerValue=4;
 calibrationTool.binaryType='ieee-be';
-
 calibrationTool.positionIndAsName = false;
 
 %Paths
 calibrationTool.extraFileFolder='/export/data/miawara/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.rawFileFolder=['/mnt/lake/instrumentdata/miawara/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%AB
-calibrationTool.level1Folder = '//home/alistair/export/data/miawara/MIA_calibration_GROSOM-harmo/';%'/export/data/miawarac/MIAC_calibration_GROSOM-harmo/'
+calibrationTool.rawFileFolder=['/mnt/lake/instrumentdata/miawara/' calibrationTool.dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%['/mnt/instrumentdata/miawarac/' dateStr(1:4) '/'];%AB
+calibrationTool.level1Folder = '/home/alistair/export/data/miawara/L1_nc_Caibration_6hr/';%'/export/data/miawarac/MIAC_calibration_GROSOM-harmo/'
 calibrationTool.TippingFilename=[calibrationTool.instrumentName,'_','Tipping','_' calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10),'.txt'];
 calibrationTool.filename=[calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) '_' calibrationTool.dateStr(6:7) '_' calibrationTool.dateStr(9:10)];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
-calibrationTool.meteoFolder=['/mnt/lake/instrumentdata/meteo/zimm/Meteo/' dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';%AB
+calibrationTool.meteoFolder=['/mnt/lake/instrumentdata/meteo/zimm/Meteo/' calibrationTool.dateStr(1:4) '/'];%['/storage/lake/instrumentdata/miawarac/' dateStr(1:4) '/'];%'/home/franziska/Documents/MW/play_MIA-C_calibration/';%AB
 calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_zimmerwald(calibrationTool);
+calibrationTool.filenameLookup = '/home/alistair/MIAWARA_ret/extra_files/netCDF_fields_LN2.csv';
+calibrationTool.filenameMeteoLookup = '/home/alistair/MIAWARA_ret/extra_files/netCDF_meteo_fields.csv';
+calibrationTool.plot_directory = '/home/alistair/export/data/miawara/L1_nc_plots/';
+
+% files for the calibration
+calibrationTool.elcorr_file   = '/home/alistair/MIAWARA_ret/MIAWARA_pyarts/GROMORA-harmo/files/miawarac_elcorr.mat';
+calibrationTool.antenna_file  = '/home/alistair/MIAWARA_ret/MIAWARA_pyarts/GROMORA-harmo/files/miawarac_antenna.txt';
 
 % Defining level1a filename to read (to be adapted for other users)
 calibrationTool.filenameLevel1a=[calibrationTool.level1Folder 'MIAWARA_level1a_' calibrationTool.spectrometer '_' calibrationTool.dateStr '.nc'];
-calibrationTool.checkLevel0=true;
+calibrationTool.checkLevel0=false;
 
 % Log file
-calibrationTool.delimiter_logfile = '\t';
+calibrationTool.delimiter_logfile = ';';
 calibrationTool.THotUnit='degreeC';
 
 % Function for the harmonization of the log
@@ -136,6 +142,9 @@ calibrationTool.flipped_spectra=false;
 %calibrationTool.flipAroundChannel = 16384;
 %calibrationTool.flip_spectra=@(rawSpectra, calibrationTool) flip_spectra_gromos(rawSpectra, calibrationTool);
 
+
+%Other checks
+calibrationTool.check_positions = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flags parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,7 +167,7 @@ calibrationTool.toleranceTippingCurves=12;
 % 
 % calibrationTool.THotTh=313.9;
 % calibrationTool.THotAbsThresh=2;
-% 
+ 
 calibrationTool.hotTemperatureStdThreshold=0.05;
 
 % Calibration
@@ -170,10 +179,8 @@ calibrationTool.adcOverloadThresh = 0;
 calibrationTool.minNumberOfIndicePerCycle=12;
 calibrationTool.threshNumRawSpectraHot=0.1*calibrationTool.numberOfChannels;
 calibrationTool.threshNumRawSpectraCold=0.1*calibrationTool.numberOfChannels;
-calibrationTool.threshNumRawSpectraAnt = 0.1*calibrationTool.numberOfChannels;
-
-%calibrationTool.maxProportionOfIndLN2LevelOutlier = 0.2;
-%calibrationTool.maxProportionOfIndLN2SensorOutlier = 0.2;
+calibrationTool.threshNumRawSpectraLine = 0.1*calibrationTool.numberOfChannels;
+calibrationTool.threshNumRawSpectraRef = 0.1*calibrationTool.numberOfChannels;
 
 calibrationTool.frequencyBandAroundCenterTNoise = 200e6;
 
@@ -207,19 +214,13 @@ calibrationTool.filter2.boxCarThresh=2;
 % Tipping curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO
+
+calibrationTool.DoColdCal = false;
 calibrationTool.TippingCurveBasicOnly = false;%AB for verification of usrp
 calibrationTool.doTippingCurve = true;
 calibrationTool.run_tipping_curve = @(rawSpectra, log, calibrationTool) run_tipping_curve_miawarac(rawSpectra,log, calibrationTool);
 calibrationTool.get_tipping_curve_data = @(rawSpectra, log, calibrationTool) get_tipping_curve_data_miawara(rawSpectra,log, calibrationTool);
 
-% %calibrationTool.TC.type = 'SkyLoads';
-% calibrationTool.TC.numberOfChannelsTropCorr = 500;
-% calibrationTool.TC.skipFraction = 0.05;
-% calibrationTool.TC.useWings = 'both';
-% calibrationTool.TC.deltaT = 10.4;
-% calibrationTool.TC.tauInitTC = 0.3;
-% calibrationTool.TC.maxIterTC = 500;
-% calibrationTool.TC.offsetTC = 5e-2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Corrections
@@ -251,12 +252,17 @@ calibrationTool.reformat_spectra=@(rawSpectra,log,calibrationTool) reformat_spec
 % Plotting some raw spectra:
 calibrationTool.plot_raw_spectra=@(rawSpectra,lowerLim,upperLim,N) plot_raw_spectra_generic(rawSpectra,lowerLim,upperLim,N);
 
+calibrationTool.plottingFunct = @(calibratedSpectra,calibrationTool) calibrationPlotting(calibratedSpectra,calibrationTool);
+calibrationTool.plotSettingsMetaData.mode = "testing";
+calibrationTool.plotSettingsMetaData.version = "2.0";
+
 % TODO
 % Find the sky temperature at zenith with a tipping curve
-%    calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
+% calibrationTool.find_T_sky_with_tipping_curve=@(rawSpectra,log,calibrationTool,calType) find_T_sky_with_tipping_curve_generic()
 
 % Function to use for doing the calibration:
 calibrationTool.calibrate=@(rawSpectra,log,calibrationTool,calType) run_balancing_calibration(rawSpectra,log,calibrationTool,calType);
+calibrationTool.calibrateBalancing=@(rawSpectra,log,calibrationTool,calType) balancing_calibration_miawara(rawSpectra,log,calibrationTool,calType);
 
 % Plot some calibrated spectra:
 calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calibratedSpectra,N) plot_spectra_generic(calibrationTool,drift,meteoData, calibratedSpectra,N);
@@ -265,13 +271,44 @@ calibrationTool.plot_calibrated_spectra=@(calibrationTool,drift,meteoData, calib
 calibrationTool.check_calibrated=@(log,calibrationTool,calibratedSpectra) check_calibrated_miawara(log,calibrationTool,calibratedSpectra);
 
 % Function saving the calibrated spectra into netCDF file
-dat  = datenum(dateStr);
-if dat > datenum('2022-10-17')
+cal_upgradeDONE = false;
+
+dat  = datenum(calibrationTool.dateStr);
+if datenum(calibrationTool.dateStr) < datenum(2022,10,17)
+    disp('date is before USRP installed')
+    calibrationTool.spectrometerQuantity = 1; 
+    calibrationTool.numberOfSpectrometer=1;
+    calibrationTool.spectrometer='AC240';
+    calibrationTool.numberOfChannels = 16384;
+    calibrationTool.channel_freqs = '/home/alistair/MIAWARA_ret/MIAWARA_FREQ_TST.txt';
+    %calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily_miawara_c(calibrationTool,log,calibratedSpectra,warningLevel0);
+    calibrationTool.save_level1a = @(calibrationTool, log, calibratedSpectra, warningLevel0) save_l1a_MIAWARA_UD(calibrationTool, log, calibratedSpectra, warningLevel0);
+elseif cal_upgradeDONE
+    calibrationTool.spectrometerQuantity = 2;
     calibrationTool.channel_freqs = '/home/alistair/MIAWARA_ret/MIAWARA_pyarts/GROMORA-harmo/files/duel_spectrometer_freqs.dat';
-    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily_miawara_ac240_usrp(calibrationTool,log,calibratedSpectra,warningLevel0);
-else
-    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily_miawara_c(calibrationTool,log,calibratedSpectra,warningLevel0);
+    calibrationTool.spectrometer1.spectrometer='AC240';
+    calibrationTool.spectrometer1.numberOfSpectrometer=1;
+    calibrationTool.spectrometer1.numberOfChannels = 16384;
+    calibrationTool.spectrometer2.spectrometer='USRP';
+    calibrationTool.spectrometer2.numberOfChannels = 32768;
+    calibrationTool.spectrometer2.numberOfSpectrometer = 2;
+    %calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily(calibrationTool,log,calibratedSpectra,warningLevel0);
+    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_l1a_MIAWARA_UD(calibrationTool,log,calibratedSpectra,warningLevel0);
+else 
+    calibrationTool.spectrometerQuantity = 3;
+    calibrationTool.numberOfChannels = 49152;
+    calibrationTool.numberOfSpectrometer=1;
+    calibrationTool.spectroSubChan = [16384 16384 16384];
+    calibrationTool.spectrometer=['AC240' 'USRP1' 'USRP2'];
+    calibrationTool.channel_freqs = '/home/alistair/MIAWARA_ret/MIAWARA_pyarts/GROMORA-harmo/files/duel_spectrometer_freqs.dat';
+    %calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_level1a_daily_miawara_ac240_usrp(calibrationTool,log,calibratedSpectra,warningLevel0);
+    calibrationTool.save_level1a=@(calibrationTool,log,calibratedSpectra,warningLevel0) save_l1a_MIAWARA_UD(calibrationTool,log,calibratedSpectra,warningLevel0);
+
 end
+
+
+%Use frequencies directly from the import file
+calibrationTool.read_freq_direct = true;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Level1a -> Level1b functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,6 +339,4 @@ calibrationTool.save_level1b=@(calibrationTool,level1b) save_level1b_daily(calib
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameter varying with time for the instruments:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 end

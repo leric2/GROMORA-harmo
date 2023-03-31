@@ -63,6 +63,7 @@ toc
 % The raw log file from each instrument is different and we should try to
 % harmonize it as much as possible (different function for each
 % instrument).
+%disp(logFile.fieldnames)
 logFile = calibrationTool.harmonize_log(calibrationTool, logFile);
 
 % Reformat the raw spectra from vector to matrix
@@ -79,7 +80,7 @@ end
 
 % this function should be integrated to reformat_spectra()
 if calibrationTool.flipped_spectra
-    rawSpectra = calibrationTool.flip_spectra(rawSpectra, calibrationTool);
+    rawSpectra = calibrationTool.flip_spectra(rawSpectra);
 end
 
 % Option for plotting spectra (to be improved...)
@@ -92,6 +93,17 @@ end
 % Reading meteo data and doing tipping curve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logFile.meteo = calibrationTool.read_meteo_data(calibrationTool);
+%second_vartodelete = calibrationTool.read_meteo_data(calibrationTool);
+
+%if calibrationTool.check_positions == true
+%     [difference_hot, difference_reference] = differences_signal_positions(rawSpectra, calibrationTool, logFile);
+%     save_difference_data_miawara(calibrationTool, difference_hot, difference_reference)
+% end
+
+var_to_delete     = [logFile.meteo.pressure];
+disp('logfile.meteo length')
+disp(length(var_to_delete))
+disp(length([logFile.meteo.temperature]))
 
 if calibrationTool.doTippingCurve
     % Tipping Curve
@@ -118,6 +130,13 @@ disp('Calibrating...')
 % - debug
 % - time
 % - all
+%new perform difference calibration
+
+if calibrationTool.check_positions == true
+    mirror_displacement_diff(rawSpectra,logFile,calibrationTool,calibrationTool.calType);
+    disp('finished writing mirror displacement differences')
+end
+
 [drift,calibratedSpectra] = calibrationTool.calibrate(rawSpectra, ...
     logFile, calibrationTool, calibrationTool.calType);
 
@@ -125,13 +144,12 @@ disp('Calibrating...')
 % Also computing some additional metadata from the log file and storing
 % everything in calibrated spectra
 
-if strcmp(calibrationTool.instrumentName, 'MIAWARA-C')%AB
-    calibratedSpectra= calibrationTool.check_calibrated(logFile, ...
+if (strcmp(calibrationTool.instrumentName, 'MIAWARA-C') || strcmp(calibrationTool.instrumentName, 'MIAWARA'))%AB
+    calibratedSpectra = calibrationTool.check_calibrated(logFile, ...
     calibrationTool, calibratedSpectra);
 else    
     [calibratedSpectra, logFile] = calibrationTool.check_calibrated(logFile, ...
     calibrationTool, calibratedSpectra);
-
 end
 
 %%
@@ -149,15 +167,20 @@ if calibrationTool.calibratedSpectraPlot
 end
 
 % Saving calibrated spectra (level 1a) into NetCDF-4 file
-%CANNOT FIND THE SAVELEVEL1A BOOLEAN ANYWHERE - SEEMS LIKE AN ERROR
-%if calibrationTool.saveLevel1a
-%    disp('Saving Level 1a...')
- %   calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
- %      calibratedSpectra, warningLevel0);
-%end
+% CANNOT FIND THE SAVELEVEL1A BOOLEAN ANYWHERE - SEEMS LIKE AN ERROR
+% if calibrationTool.saveLevel1a
+%   disp('Saving Level 1a...')
+%   calibrationTool = calibrationTool.save_level1a(calibrationTool, logFile,...
+%   calibratedSpectra, warningLevel0);
+% end
 
-disp('Saving Level 1a...')
+disp('Saving Level 1a... as:')
+%calibrationTool =  save_level1a_daily_miawara_ac240_usrp(calibrationTool,logFile,calibratedSpectra,warningLevel0);
 calibrationTool = calibrationTool.save_level1a(calibrationTool,logFile,calibratedSpectra,warningLevel0);
+
+if isfield(calibrationTool, 'plottingFunct')
+    calibrationTool.plottingFunct(calibratedSpectra,calibrationTool)
+end
 
 disp('Warning Level0-1a :')
 disp(warningLevel0)

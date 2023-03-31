@@ -1,16 +1,30 @@
 function TC = run_tipping_curve_miawarac(rawSpectra, logFile, calibrationTool)
 
-
 %% get tipping curve data
-
 TC_data = calibrationTool.get_tipping_curve_data(rawSpectra,logFile, calibrationTool);
 
-
-
 %% find opacity (tau)
+disp(['TC len: ' num2str(length(TC_data))])
+
+if calibrationTool.TippingCurveBasicOnly == true
+    disp('performing basic tipping curve calibration')
+    Tb_tipping = ones(size(TC_data,2),2, size(TC_data{1}.s_tipping,2));
+    for k = 1:length(TC_data)
+        disp('k');
+        disp(k);
+        Tb_tipping(k,:,:) = two_angle_tipping(TC_data{k}, calibrationTool);
+        disp('finished tipping')
+    end
+    Tb_tipped = reshape(mean(Tb_tipping, 1), 2, size(Tb_tipping,3));
+    disp('saving tipping curve data')
+    save_tipping_data_miawara(calibrationTool, TC_data{1}.frequency,  TC_data{1}.za_tipping([1,end]), Tb_tipped)
+    disp('finished saving file')
+end
+disp('next part')
 
 for k = 1:length(TC_data)
-    k
+    disp('k');
+    disp(k);
     % check if tipping calibration needs to be done for 2 polarisations
     if isfield(TC_data{1}  ,'s_tipping_pol1')
         [TC(1).tau(k), TC(1).Teff(k), TC(1).Trec_median(k), TC(1).quality(k), TC(1).offset(k), TC(1).niter(k), TC(1).time(k)] = find_tau_iteratively(TC_data{k},calibrationTool, TC_data{k}.s_tipping_pol1, TC_data{k}.s_hot_pol1, TC_data{k}.s_cold_pol1 );
@@ -20,14 +34,11 @@ for k = 1:length(TC_data)
     end
 end
 
-
-
 %% write tau and Teff into a txt file
 
 if length(TC)==1
     T = table(TC.time', TC.tau',TC.Teff','VariableNames',{'time','tau','Teff'});
     writetable(T,[calibrationTool.level1Folder calibrationTool.instrumentName '_tau_and_Teff_' calibrationTool.dateStr '_1']);
-
 else
     T = table(TC(1).time',TC(1).tau',TC(1).Teff','VariableNames',{'time','tau','Teff'});
     writetable(T,[calibrationTool.level1Folder calibrationTool.instrumentName '_tau_and_Teff_' calibrationTool.dateStr '_1']);
@@ -36,3 +47,5 @@ else
     writetable(T,[calibrationTool.level1Folder calibrationTool.instrumentName '_tau_and_Teff_' calibrationTool.dateStr '_2']);
 end
 
+
+end

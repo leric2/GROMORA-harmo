@@ -39,7 +39,7 @@ function logFile = harmonize_log_miawarac(calibrationTool, logFile)
 %   Data_file_size	SW_version	IWV
 %   
 % For MIAWARA-C
-
+disp(bitand(2,2))
 % Add variable time
 logFile.time = datenum(logFile.Year,logFile.Month,logFile.Day,logFile.Hour,logFile.Minute,logFile.Second);
 
@@ -109,7 +109,7 @@ end
 %         balancing_mode=2;
 %     elseif logFile.Mode_nr(k) == 15 && logFile.program(k) == 7
 %         status(k)= 1;   %'dual_balancing_right'; %dual balancing, search sky, balancing right
-%         balancing_mode=1;
+%         balancing_mode=1;6
 %     elseif logFile.Mode_nr(k) == 16 && logFile.program(k) == 8
 %         status(k)= 1;   %'dual_balancing_right'; %dual balancing, search sky with auto-ref, balancing right
 %         balancing_mode=2;  

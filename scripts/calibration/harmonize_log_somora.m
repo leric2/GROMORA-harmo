@@ -55,7 +55,6 @@ if length(logFile.Freq_Lock)==1
 end
 if length(logFile.FFT_Nr_of_acq)==1
     logFile.FFT_Nr_of_acq = ones(length(logFile.t),1)*logFile.FFT_Nr_of_acq;
-
 end
 if length(logFile.LN2_Level_OK)==1
     logFile.LN2_Level_OK = ones(length(logFile.t),1)*logFile.LN2_Level_OK;

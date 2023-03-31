@@ -17,7 +17,11 @@ if length(unique(logFile.dir))>1
 else
     0
     calType = '0';
-    calibratedSpectra = balancing_calibration_generic(rawSpectra,logFile,calibrationTool,calType);
+    if isfield(calibrationTool, 'calibrateBalancing' )
+        calibratedSpectra = calibrationTool.calibrateBalancing(rawSpectra,logFile,calibrationTool,calType);
+    else
+        calibratedSpectra = balancing_calibration_generic(rawSpectra,logFile,calibrationTool,calType);
+    end
 end
     
 

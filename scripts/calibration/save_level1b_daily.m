@@ -232,10 +232,8 @@ end
 % Tropospheric correction data:
 ncwrite(filename,'/spectrometer1/tropospheric_transmittance',[integratedSpectra.troposphericTransmittance]);
 ncwriteatt(filename,'/spectrometer1/tropospheric_transmittance','method',integratedSpectra(1).troposphericCorrType);
-
 ncwrite(filename,'/spectrometer1/tropospheric_opacity',[integratedSpectra.troposphericOpacity]);
 ncwriteatt(filename,'/spectrometer1/tropospheric_opacity','method',integratedSpectra(1).troposphericCorrType);
-
 ncwrite(filename,'/spectrometer1/tropospheric_opacity_tc',[integratedSpectra.tropospheric_opacity_tc]);
 
 if isfield(integratedSpectra,'noiseLevel')
