@@ -54,7 +54,7 @@ GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
 
-def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
+def retrieve_day(date, instrument_name, integration_strategy='classic', retrieval_strategy='consolidated', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
     Function performing daily retrieval of GROMOS or SOMORA ozone profiles.
 
@@ -115,6 +115,14 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
 
+    # Parameters changing for oper vs consolidated retrievals
+    if retrieval_strategy == 'consolidated':
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
+    elif retrieval_strategy == 'oper':
+        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod   era5_cira86
+    else:
+        raise ValueError('Atmosphere string definition not recognized !')
+    
     # The date:
     retrieval_param['date'] = date
 
@@ -207,6 +215,9 @@ if __name__ == "__main__":
     # Currently only 'classic' supported for GROMOS and SOMORA.
     integration_strategy = 'classic'
 
+    # Selection of the retrieval stategy: oper or consolidated
+    retrieval_strategy = 'consolidated'
+
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
     retrieve_cycle =  None #None // [0]
 
@@ -236,6 +247,7 @@ if __name__ == "__main__":
                         day, 
                         instrument_name=name,  
                         integration_strategy=integration_strategy, 
+                        retrieval_strategy=retrieval_strategy,
                         retrieve_cycle=retrieve_cycle,
                         retrieval_quantities=retrieval_quantities,
                         save_level2 = True

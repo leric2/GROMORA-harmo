@@ -396,7 +396,7 @@ class DataRetrieval(ABC):
         retrieval_param['line_file'] = line_file
         ########################################################
         # Atmosphere for the simulation
-        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
+        # retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
         # max_diff, simple_stack_corr, simple, max_diff_surf
         retrieval_param['ptz_merge_method'] = 'max_diff'
         retrieval_param['ptz_merge_max_Tdiff'] = 5

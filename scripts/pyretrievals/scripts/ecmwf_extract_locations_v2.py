@@ -160,7 +160,7 @@ def extract_from_grib(grib_files, locations, output_prefix):
             logging.info('Write ' + out_fn)
             ds.to_netcdf(out_fn, unlimited_dims=['time',])
 
-def extract_from_nc(nc_files, locations, output_prefix, levels_n=137):
+def extract_from_nc(nc_files, locations, output_prefix, prefix, levels_n=137):
     '''
     Main function to extract ECMWF data at specified locations. Write 1 netCDF file per location.
     No interpolation done, only take the nearest existing datapoint using lat and lon.
@@ -244,7 +244,7 @@ def extract_from_nc(nc_files, locations, output_prefix, levels_n=137):
             ds = xr.Dataset(data_vars, coords, attrs=attrs)
             ds['time'].encoding['units'] = 'seconds since 1970-01-01 00:00:00'
             day_str = pd.Timestamp(ds['time'].values[0]).strftime('%Y%m%d')
-            out_fn = output_prefix + loc_name + '/ecmwf_oper_v2_' + loc_name + '_' + day_str + '.nc'
+            out_fn = output_prefix + loc_name + prefix + loc_name + '_' + day_str + '.nc'
             logging.info('Write ' + out_fn)
             ds.to_netcdf(out_fn, unlimited_dims=['time',])
 

@@ -55,10 +55,11 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 
 if __name__ == "__main__":
     start = time.time()
-    instrument_name = "GROMOS"
-    date = datetime.date(2021, 2, 20)
+    instrument_name = "SOMORA"
+    date = datetime.date(2017, 1, 10)
     int_time = 1
     integration_strategy = 'classic'
+    retrieval_strategy='consolidated'
     recheck_channels = False
 
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_pyarts/"
@@ -117,7 +118,7 @@ if __name__ == "__main__":
         raise NotImplementedError(
             'TODO, implement reading level1b in non classical cases !')
 
-    cycles = np.arange(13, 14)
+    cycles = np.arange(9, 10)
 
     # type of retrieval to do:
     # 1. tropospheric corrected
@@ -125,14 +126,23 @@ if __name__ == "__main__":
     # 3. test retrieving the FM
     retrieval_param['retrieval_quantities'] = 'o3_h2o_fshift_polyfit_sinefit'
     retrieval_param['verbose'] = 3
-    retrieval_param["retrieval_type"] = 17
+    retrieval_param["retrieval_type"] = 2
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
+
+    # Parameters changing for oper vs consolidated retrievals
+    if retrieval_strategy == 'consolidated':
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
+    elif retrieval_strategy == 'oper':
+        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod   era5_cira86
+    else:
+        raise ValueError('Atmosphere string definition not recognized !')
+    
     retrieval_param['date'] = date
 
     retrieval_param["plot_meteo_ds"] = False
 
-    retrieval_param["show_f_grid"] = False
+    retrieval_param["show_f_grid"] = True
     retrieval_param['plot_opacities'] = False
 
     retrieval_param['plot_o3_apriori_covariance'] = True
@@ -225,6 +235,16 @@ if __name__ == "__main__":
                     ac, spectro_dataset, retrieval_param, title='retrieval_o3', figure_list=figure_list)
                # level2_cycle = xr.Dataset()
                 #ac.level2_diagnostics()
+                save_jacobian=True
+                if save_jacobian:
+                    jacobian = ac.ws.jacobian.value
+                    import pickle
+                    f = open('/home/es19m597/Documents/GROMOS_jacobian.pkl', 'wb')
+                    pickle.dump(jacobian, f)
+                    f.close()
+                    f2 = open('/home/es19m597/Documents/SOMORA_gain.pkl', 'wb')
+                    pickle.dump(ac.ws.dxdy.value, f2)
+                    f2.close()                
                 level2_cycle = ac.get_level2_xarray()
             else:
                 level2_cycle = xr.Dataset()
