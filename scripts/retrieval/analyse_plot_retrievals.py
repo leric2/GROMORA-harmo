@@ -80,11 +80,14 @@ instrument_name = "GROMOS"
 # meanTb_chunks = [95, 100, 110, 120, 130, 140, 180]
 # lowerBound = [0, 95, 100, 110, 120, 130, 140, 180]
 
-#date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+#ate = pd.date_range(start=sys.argv[1], end=sys.argv[1])
 #date = pd.date_range(start='2011-01-01', end='2011-12-31')
 #date = datetime.date(2016,1,2)
-date = [pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4)),pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))]
-# pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
+date = [pd.to_datetime(sys.argv[1]),pd.to_datetime(sys.argv[1])]
+#pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=3))]
+
+
+retrieval_strategy = sys.argv[2]
 
 int_time = 1
 
@@ -129,36 +132,22 @@ spectros = ['U5303','AC240','USRP-A'] #
 spectros = ['USRP-A','U5303'] 
 spectros = ['AC240'] 
 
-
-ex = 'fascodunbiased_all'
-ex = '_fascod_fix_noise_3'
-
-ex=''
-
-ex = '_waccm_monthly_continuum'
-ex = '_waccm_cov_yearly_sza' #
-ex = '_waccm_continuum'
-ex = '_waccm_monthly_scaled_h2o'
-ex = '_gromosAP_scaled_h2o'
-ex = '_waccm_low_alt_dx10_nonWinCorr'
-ex = '_gromosAP_low_alt'
-
-ex = '_sinefit_optimized'
-ex = '_waccm_low_alt_dx10'
-ex = '_rect_SB'
-ex = '_oper'
-# ex = '_waccm_low_alt'
+if retrieval_strategy=='consolidated':
+    ex = '_v3'
+    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/plots/'
+elif retrieval_strategy == 'oper':
+    ex = '_oper'  
+    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+else:
+    raise ValueError('Retrieval strategy not valid !')
+    
 
 new_L2 = True
 
 if new_L2:
-    plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
     cont_name = 'h2o_continuum_x' 
 else:
     cont_name = 'h2o_pwr98_x'
-    plotfolder = '/scratch/GROSOM/Level2/GROMORA_waccm/'
-# %%
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
 
@@ -217,7 +206,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectros[0] == 'AC240':
@@ -876,7 +865,7 @@ if compare_MLS:
 
 if plot_selected:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
-        instrument.datestr + ex + '_plot_sel_polyfit2'
+        instrument.datestr + ex + '_plot'
     
     if new_L2:
         instrument.plot_ozone_sel(
@@ -898,7 +887,7 @@ if plot_selected:
 
 if plot_selected_nicer:
     outname = plotfolder+'/'+instrument.basename_plot_level2 + \
-        instrument.datestr + ex + '_plot_sel_polyfit2'
+        instrument.datestr + ex + '_plot'
     GROMORA_library.plot_O3_sel_nicer(
         level2_dataset,
         outname,

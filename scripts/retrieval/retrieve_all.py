@@ -49,7 +49,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
@@ -117,11 +117,13 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
 
     # Parameters changing for oper vs consolidated retrievals
     if retrieval_strategy == 'consolidated':
+        suffix = '_v3.nc'
         retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
     elif retrieval_strategy == 'oper':
         retrieval_param['atm'] = 'ecmwf_cira86'  # fascod   era5_cira86
+        suffix = '_oper.nc'
     else:
-        raise ValueError('Atmosphere string definition not recognized !')
+        raise ValueError('Retrieval strategy not valid !')
     
     # The date:
     retrieval_param['date'] = date
@@ -203,7 +205,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
 
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
-        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_oper.nc')
+        level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+suffix)
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle

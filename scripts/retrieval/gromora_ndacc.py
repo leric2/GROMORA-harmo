@@ -949,10 +949,9 @@ if __name__ == "__main__":
         save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/RapidDelivery/'
         suffix = '_oper'
     else:
-        raise ValueError('Atmosphere string definition not recognized !')
-
+        raise ValueError('Retrieval strategy not valid !')
     
-    save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
+    #save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
     #dates = pd.date_range(start="2017-01-01",end="2017-01-01")
 

@@ -60,11 +60,11 @@ save_level2 = True
 plot_selected = False
 
 # raw plot of o3 time series and other diagnostics quantities
-plot_o3_ts = False
-plot_fshift = False
-plot_cost = False
-plot_polyfit = False
-plot_sinefit = False
+plot_o3_ts = True
+plot_fshift = True
+plot_cost = True
+plot_polyfit = True
+plot_sinefit = True
 
 add_opacity=False
 
@@ -75,19 +75,20 @@ int_time = 1
 
 if retrieval_strategy=='consolidated':
     ex = '_v3'
+    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
 elif retrieval_strategy == 'oper':
     ex = '_oper'  
+    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
 else:
-    raise ValueError('Atmosphere string definition not recognized !')
+    raise ValueError('Retrieval strategy not valid !')
     
-
 new_L2 = True
 
 # Deal with CET now ? Only for FB relevant
 change2UTC = True
 
 #plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
+
 cont_name = 'h2o_continuum_x' 
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
