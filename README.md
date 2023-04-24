@@ -52,6 +52,16 @@ With a few adaptations (?), it should work with Matlab 2019, 2020 and 2022 as we
 * Python 3.8
 * A list of required package listed in the [specifications](scripts/env_file_GROMORA.txt). 
 
+## Operational retrievals
+
+As all other instruments (at least until Summer 2023...), GROMOS operational retrievals are done on Stockhorn in the framework defined by Jonas (see [stockhorn-scripts](https://git.iap.unibe.ch/MW/stockhorn-scripts)). 
+
+GROMOS provides both for radid delivery (RD) and the consolidated data to NDACC and therefore, each day is retrieved 2 times. The first time is done a few day after measurements using the operational ECMWF analysis data and a second time 6 month later using the ERA5 reanalysis. In principle, the RD data obtained after the first retrievals are sent directly to NDACC. After the second retrieval though, a human check should be performed before sending the consolidated data to NDACC.
+
+As this will likely not happen in the future, this second retrieval and upload of the consolidated data has been automatize as well on Stockhorn. What happens is that there are two bash scripts running daily GROMOS retrievals and providing different retrieval date (few days ago or 6 months ago) and retrieval type (RD or consolidated) and both will upload directly the data to NDACC (once to the RD and once to the normal server).
+
+Note that the calibration will be performed again after the 6 months, for the sake of space, we will only keep the latest calibrated data for each day.
+
 ## Results and data
 
 The results of the first part of harmonization of the GROMORA time series have been submitted and will be linked here in due course.

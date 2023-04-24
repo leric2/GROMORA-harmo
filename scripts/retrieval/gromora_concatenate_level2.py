@@ -43,9 +43,10 @@ plt.rcParams.update({
 
 instrument_name = "GROMOS"
 
-#date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
+retrieval_strategy = sys.argv[3]
 #date = datetime.date(2016,1,2)
-date = pd.date_range(start='1993-01-01', end='1993-12-31') 
+#date = pd.date_range(start='2023-01-01', end='2023-01-01') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -68,11 +69,17 @@ plot_sinefit = False
 add_opacity=False
 
 integration_strategy = 'classic'
-spectros = ['FB']
+spectros = ['AC240']
 spectro = spectros[0]
 int_time = 1
-ex = '_v3'
-# ex = '_waccm_low_alt'
+
+if retrieval_strategy=='consolidated':
+    ex = '_v3'
+elif retrieval_strategy == 'oper':
+    ex = '_oper'  
+else:
+    raise ValueError('Atmosphere string definition not recognized !')
+    
 
 new_L2 = True
 

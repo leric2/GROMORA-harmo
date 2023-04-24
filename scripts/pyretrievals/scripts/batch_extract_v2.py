@@ -3,10 +3,11 @@ Batch procesing for extracting ECMWF data
 
 
 """
-import os
-import sys
+import sys, os
+from os.path import dirname, abspath, join
 
 sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
+sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
 
 #from retrievals.data.ecmwf import grib as ecmwf_grib
 from retrievals.data.ecmwf import levels as ecmwf_levels
@@ -24,9 +25,10 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 
 if __name__ == '__main__':
-    dateRange = pd.date_range(start='2022-09-23', end='2022-09-23')
+    dateRange = pd.date_range(start='2023-04-10', end='2023-04-10')
     output = '/storage/tub/atmosphere/ecmwf/locations/'
     loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations.json'
+    prefix = '/ecmwf_oper_v2_'
 
     if dateRange[0]> datetime(2013,6,24):
         number_of_ECMWF_levels=137
@@ -44,5 +46,5 @@ if __name__ == '__main__':
     with open(loc_file) as f:
         locations = json.load(f)
 
-    extract_from_nc(fileList, locations, output, number_of_ECMWF_levels)
+    extract_from_nc(fileList, locations, output, prefix, number_of_ECMWF_levels)
 

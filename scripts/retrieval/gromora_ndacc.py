@@ -934,16 +934,31 @@ if __name__ == "__main__":
 
     write_new = True
     #instrument_name = 'GROMOS'
-    d = pd.to_datetime(dt.datetime.now()-dt.timedelta(days=4))
+    d = pd.to_datetime(sys.argv[1])
 
-    save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/RapidDelivery/'
+    # Selection of the retrieval stategy: oper or consolidated
+    retrieval_strategy = sys.argv[2] # 'consolidated'
+
+    # Parameters changing for oper vs consolidated retrievals
+    if retrieval_strategy == 'consolidated':
+        rapid_delivery = False
+        save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/Consolidated/'
+        suffix = '_v3'
+    elif retrieval_strategy == 'oper':
+        rapid_delivery = True  # fascod   era5_cira86
+        save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/RapidDelivery/'
+        suffix = '_oper'
+    else:
+        raise ValueError('Atmosphere string definition not recognized !')
+
+    
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
     #dates = pd.date_range(start="2017-01-01",end="2017-01-01")
 
     if write_new:
         try:
-            gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_oper', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, plot_tprofile=None, save_nc=False, RD=True)
+            gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = suffix, new_z=1e3*np.arange(4, 92, 2), avk_corr=False, plot_tprofile=None, save_nc=False, RD=rapid_delivery)
             GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
         except Exception as e:
             print(e)

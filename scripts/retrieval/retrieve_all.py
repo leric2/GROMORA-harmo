@@ -54,7 +54,7 @@ GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
 
-def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
+def retrieve_day(date, instrument_name, integration_strategy='classic', retrieval_strategy='consolidated', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
     Function performing daily retrieval of GROMOS or SOMORA ozone profiles.
 
@@ -115,6 +115,14 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieve
     retrieval_param['FM_only'] = False
     retrieval_param['show_FM'] = False
 
+    # Parameters changing for oper vs consolidated retrievals
+    if retrieval_strategy == 'consolidated':
+        retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
+    elif retrieval_strategy == 'oper':
+        retrieval_param['atm'] = 'ecmwf_cira86'  # fascod   era5_cira86
+    else:
+        raise ValueError('Atmosphere string definition not recognized !')
+    
     # The date:
     retrieval_param['date'] = date
 
@@ -206,6 +214,9 @@ if __name__ == "__main__":
     # Currently only 'classic' supported for GROMOS and SOMORA.
     integration_strategy = 'classic'
 
+    # Selection of the retrieval stategy: oper or consolidated
+    retrieval_strategy = sys.argv[2] # 'consolidated'
+
     # Option to retrieve only certain cycle. Default is None -> all non-flagged cycles are retrieved.
     retrieve_cycle =  None #None // [0]
 
@@ -219,14 +230,15 @@ if __name__ == "__main__":
 
     # Date range on which to perform the retrievals
     #dates = pd.date_range(start='2022-05-25', end='2022-05-25')#.append(pd.date_range(start='2010-01-01', end='2010-01-03')).append(pd.date_range(start='2015-01-01', end='2015-01-04'))#.append(pd.date_range(start='2012-11-26', end='2012-12-31'))#).append(pd.date_range(start='2016-12-31', end='2017-01-01'))
-    date = pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=4))
+    date = pd.to_datetime(sys.argv[1])
 
     print('######################################################################################')
    # try:
     retrieve_day(
         date, 
         instrument_name='GROMOS',  
-        integration_strategy=integration_strategy,                        
+        integration_strategy=integration_strategy,     
+        retrieval_strategy=retrieval_strategy,                   
         retrieve_cycle=retrieve_cycle,
         retrieval_quantities=retrieval_quantities,
         save_level2 = True)
