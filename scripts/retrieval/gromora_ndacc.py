@@ -355,7 +355,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
         #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
         if new_L2:
-            basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date.year)
+            basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date.year)
         else:
             basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date.year)
 
