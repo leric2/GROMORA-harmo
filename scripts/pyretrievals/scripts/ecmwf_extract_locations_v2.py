@@ -247,6 +247,7 @@ def extract_from_nc(nc_files, locations, output_prefix, prefix, levels_n=137):
             out_fn = output_prefix + loc_name + prefix + loc_name + '_' + day_str + '.nc'
             logging.info('Write ' + out_fn)
             ds.to_netcdf(out_fn, unlimited_dims=['time',])
+            print('ECMWF extraction for '+loc_name+' on '+day_str+' succeeded.')
 
 def get_dims(grib_file):
     ge = ecmwf_grib.GribECMWF(grib_file)
