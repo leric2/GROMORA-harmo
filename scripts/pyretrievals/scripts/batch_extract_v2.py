@@ -5,9 +5,8 @@ Batch procesing for extracting ECMWF data
 """
 import sys, os
 from os.path import dirname, abspath, join
-
-sys.path.insert(0, '/home/es19m597/Documents/GROMORA/GROMORA-harmo/scripts/pyretrievals/')
-sys.path.append(join(dirname(sys.path[0]),'pyretrievals'))
+# Adding the paths to pyretrievals folder
+sys.path.append(dirname(sys.path[0]))
 
 #from retrievals.data.ecmwf import grib as ecmwf_grib
 from retrievals.data.ecmwf import levels as ecmwf_levels
@@ -25,7 +24,7 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 
 if __name__ == '__main__':
-    dateRange = pd.date_range(start='2023-04-10', end='2023-04-10')
+    dateRange = pd.date_range(start=sys.argv[1], end=sys.argv[1])
     output = '/storage/tub/atmosphere/ecmwf/locations/'
     loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations.json'
     prefix = '/ecmwf_oper_v2_'
