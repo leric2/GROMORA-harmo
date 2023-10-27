@@ -44,9 +44,9 @@ plt.rcParams.update({
 instrument_name = "GROMOS"
 
 date = pd.date_range(start=sys.argv[1], end=sys.argv[2])
-retrieval_strategy = sys.argv[3]
+retrieval_strategy = 'consolidated'#sys.argv[3] #
 #date = datetime.date(2016,1,2)
-#date = pd.date_range(start='2023-01-01', end='2023-01-01') 
+#date = pd.date_range(start='2009-01-01', end='2009-12-31') 
 #[pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=7)), pd.to_datetime(datetime.datetime.now()-datetime.timedelta(days=6))]
 
 
@@ -74,7 +74,7 @@ spectro = spectros[0]
 int_time = 1
 
 if retrieval_strategy=='consolidated':
-    ex = '_v3'
+    ex = '_v21'
 elif retrieval_strategy == 'oper':
     ex = '_oper'  
 else:
@@ -87,7 +87,7 @@ new_L2 = True
 change2UTC = True
 
 #plotfolder = '/scratch/GROSOM/Level2/GROMORA_retrievals_v2/'
-plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
+plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
 cont_name = 'h2o_continuum_x' 
 
 colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
@@ -98,7 +98,7 @@ if instrument_name == "GROMOS":
     basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
+        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     else:
         basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectro == 'AC240':

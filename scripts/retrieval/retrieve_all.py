@@ -49,7 +49,7 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
 GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
+GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v2/'
 
 SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
 SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
@@ -141,8 +141,8 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
     retrieval_param['FWHM'] = instrument.antenna_fwhm
 
     # AC240 correction factor
-    retrieval_param['AC240_magic_correction'] = True
-    retrieval_param["AC240_corr_factor"] = 0.08
+    retrieval_param['AC240_magic_correction'] = False
+    retrieval_param["AC240_corr_factor"] = 0#0.08
 
     # Quick test on instrument name
     assert instrument.instrument_name == instrument_name, 'Wrong instrument definition'
@@ -204,7 +204,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
     if counter > 0:
         #save_single_pdf(instrument.filename_level2[spectro]+'_'+save_str, figure_list)
         if save_level2:
-            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v3.nc')
+            level2 = instrument.write_level2_gromora(level2, retrieval_param, full_name = instrument.filename_level2[spectro]+'_v21.nc')
         level2.close()
         level2_cycle.close()
         del level2, level2_cycle
