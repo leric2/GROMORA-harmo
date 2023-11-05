@@ -117,7 +117,7 @@ class GROMOS_FB_LvL2(DataRetrieval):
         
         self.institution = 'University of Bern;UBERN'
         self.affiliation = 'ubern001'
-        self.source = 'MWR.O3_UBERN'
+        self.source = 'MWR.O3_UBERN001_HARMON.2023'
         self.location = 'BERN'
         self.longitude = 7.44
         self.latitude = 46.95
