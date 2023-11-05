@@ -322,7 +322,7 @@ def read_ptz_ecmwf_cira86(time, lat, location, ecmwf_store, cira86_path, merge_m
 
     return ds_ptz
 
-def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), avk_corr = True, plot_tprofile=False, save_nc=True, RD=False, outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
+def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27), spectros = ['AC240'] , ex = '_v2', new_z=1e3*np.arange(10, 90, 2), avk_corr = True, bias_corr= None, plot_tprofile=False, save_nc=True, RD=False, outfolder = '/home/es19m597/Documents/GROMORA/NDACC/'):
     """
     Function to convert GROMORA level 2 to GEOMS compliant xarray dataset
     As a option, it can save the dataset as netCDF4 file.
@@ -369,6 +369,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
                 integration_time=int_time
             )
         elif spectro == 'FB':
+            basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date.year)
             import gromos_FB_classes as gromos
             instrument = gromos.GROMOS_FB_LvL2(
                 date=date,
@@ -413,6 +414,9 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
         dataset = level2_dataset[spectro].drop_dims(['f', 'h2o_continuum_p', 'h2o_continuum_p_avk', 'poly_order', 'f_shift_grid', 'sine_grid'])
     elif spectro == 'FB':
         dataset = level2_dataset[spectro].drop_dims(['f', 'h2o_continuum_p', 'h2o_continuum_p_avk', 'poly_order', 'f_shift_grid'])
+    
+    if bias_corr is not None:
+        dataset['o3_x'] = dataset['o3_x'] - bias_corr*1e-6
 
     #dataset['o3_p'] = dataset.o3_z.mean(dim='time').data
     #new_z = np.int32(dataset.o3_z.mean(dim='time').data)
@@ -611,7 +615,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     global_attrs['DATA_FILE_VERSION'] = file_version
     global_attrs['FILE_NAME']=filename+'.hdf'
     global_attrs['FILE_GENERATION_DATE'] = file_generation_date
-    global_attrs['DATA_MODIFICATIONS'] = 'New harmonized retrievals from Swiss MWRs for FFTS time period described in: 10.5194/amt-15-6395-2022'
+    global_attrs['DATA_MODIFICATIONS'] = 'Harmonzed time series from Swiss MWRs as described in: 10.5194/amt-15-6395-2022, essentially similar to HARMON.2022 but reprocessed in 2023 and extending to 1994. Data before 01.01.2010 recorded with FB spectrometer and data after 2010 with FFT spectrometer. Data are homogenized with simple correction scheme based on 2 years of parralel measuements between FB and FFT.'
     global_attrs['DATA_CAVEATS'] = 'Ozone profiles are estimated with the Optimal Estimation Method as implemented in the Atmospheric Radiative Transfer Simulator (ARTS)'
     global_attrs['DATA_QUALITY'] = data_quality
     global_attrs['DATA_TEMPLATE'] = 'GEOMS-TE-MWR-003'
@@ -935,21 +939,26 @@ if __name__ == "__main__":
     #instrument_name = 'GROMOS'
     d = dt.date(2019, 12 , 31)
 
-    save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/'
+    save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/v21/FB/'
     save_folder_somora = '/storage/tub/instruments/somora/NDACC/'
 
-    dates = pd.date_range(start="2023-02-16",end="2023-02-17")
+    dates = pd.date_range(start="2009-01-01",end="2009-12-31")
+
+    mean_bias_fb_fft = xr.open_dataarray('/storage/tub/instruments/gromos/level3/v21/mean_bias_FB-FFT_v21.nc')
+    mean_bias_fb_fft['o3_p'] = mean_bias_fb_fft['o3_p']*1e2
 
     #folder = '/home/es19m597/Documents/GROMORA/NDACC/GROMOS/'
     #filename= folder+'groundbased_mwr.o3_ubern001_bern_20100101T000122z_20100101T235953z_012.hdf'
     #xr.open_dataset(filename, engine='pseudonetcdf')
     #test = xr.open_mfdataset(folder+'groundbased_mwr.o3_ubern001_bern_2010*.hdf', concat_dim='DATETIME', combine='nested')
 
-    plot_cycle = [8]  # None
+    plot_cycle = None#[8]  # None
     for d in dates:
         if write_new:
             try:
-                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_oper', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, plot_tprofile=plot_cycle, save_nc=False)
+                #gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['AC240'] , ex = '_v21', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, bias_corr=None, plot_tprofile=plot_cycle, save_nc=False)
+                gromos = gromora_level2_GEOMS(instrument_name='GROMOS', date=d, spectros = ['FB'] , ex = '_v3', new_z=1e3*np.arange(4, 92, 2), avk_corr=False, bias_corr=mean_bias_fb_fft, plot_tprofile=plot_cycle, save_nc=False)
+
                 GEOMS_2_NDACC(gromos,outfolder=save_folder_gromos)
             except Exception as e:
                 print(e)
