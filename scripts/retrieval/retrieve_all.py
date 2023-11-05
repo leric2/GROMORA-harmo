@@ -117,7 +117,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
 
     # Parameters changing for oper vs consolidated retrievals
     if retrieval_strategy == 'consolidated':
-        suffix = '_v3.nc'
+        suffix = '_v21.nc'
         retrieval_param['atm'] = 'era5_cira86'  # fascod  ecmwf_cira86 era5_cira86
     elif retrieval_strategy == 'oper':
         retrieval_param['atm'] = 'ecmwf_cira86'  # fascod   era5_cira86
@@ -143,7 +143,7 @@ def retrieve_day(date, instrument_name, integration_strategy='classic', retrieva
     retrieval_param['FWHM'] = instrument.antenna_fwhm
 
     # AC240 correction factor
-    retrieval_param['AC240_magic_correction'] = True
+    retrieval_param['AC240_magic_correction'] = False
     retrieval_param["AC240_corr_factor"] = 0.08
 
     # Quick test on instrument name
