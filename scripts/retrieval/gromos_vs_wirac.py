@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     basename_lvl2 = "/home/esauvageat/Documents/WIRAC/Level1/"
     basename_lvl1 = os.path.join(
-        '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
+        '/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/', str(date.year))
     instrument = gc.GROMOS_LvL2(
         date,
         basename_lvl1,
