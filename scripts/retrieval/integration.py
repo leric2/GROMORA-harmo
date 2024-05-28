@@ -90,7 +90,7 @@ def integrate(date, integration_strategy):
         calibration = sm.IntegrationSOMORA(date, basename_lvl1, integration_strategy, int_time)
     elif instrument_name=="mopi5":
         import mopi5_classes as mc
-        basename_lvl1 = "/storage/tub/instruments/mopi5/level1"
+        basename_lvl1 = "/storage/atmosphere/instruments/mopi5/level1"
         basename_lvl2 = "/scratch/MOPI5/Level2/"
         # basename_lvl1 = "/home/eric/Documents/PhD/MOPI/Data/Level1a/"
         # basename_lvl2 = "/home/eric/Documents/PhD/DATA/"
