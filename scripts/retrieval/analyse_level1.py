@@ -61,9 +61,9 @@ int_time = 1
 
 if instrument_name == "GROMOS":
     import gromos_classes as gc
-    basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date.year)
+    basename_lvl1 = "/storage/atmosphere/instruments/gromos/level1/GROMORA/"+str(date.year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date.year)
+    basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v1/"+str(date.year)
     instrument = gc.GROMOS_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -73,9 +73,9 @@ if instrument_name == "GROMOS":
     )
 elif instrument_name == "SOMORA":
     import somora_classes as sm
-    basename_lvl1 = "/storage/tub/instruments/somora/level1/v1/"+str(date.year)
+    basename_lvl1 = "/storage/atmosphere/instruments/somora/level1/v1/"+str(date.year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date.year)
+    basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v1/"+str(date.year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
