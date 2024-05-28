@@ -134,10 +134,10 @@ spectros = ['AC240']
 
 if retrieval_strategy=='consolidated':
     ex = '_v3'
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/plots/'
+    plotfolder = '/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/plots/'
 elif retrieval_strategy == 'oper':
     ex = '_oper'  
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+    plotfolder = '/storage/atmosphere/instruments/gromos/level2/GROMORA/oper/'
 else:
     raise ValueError('Retrieval strategy not valid !')
     
@@ -203,12 +203,12 @@ def read_mls(d1, d2):
 
 
 if instrument_name == "GROMOS":
-    basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
+    basename_lvl1 = "/storage/atmosphere/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
     else:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectros[0] == 'AC240':
         import gromos_classes as gromos_cl
         instrument = gromos_cl.GROMOS_LvL2(
@@ -232,9 +232,9 @@ elif instrument_name == "SOMORA":
     basename_lvl1 = "/scratch/GROSOM/Level1/"
     if new_L2:
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-        basename_lvl2 = "/storage/tub/instruments/somora/level2/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v2/"+str(date[0].year)
     else:
-        basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v1/"+str(date[0].year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -244,8 +244,8 @@ elif instrument_name == "SOMORA":
     )
 elif instrument_name == "mopi5":
     import mopi5_classes as mp
-    basename_lvl1 = "/storage/tub/instruments/mopi5/level1"
-    basename_lvl2 = "/storage/tub/instruments/mopi5/level2"
+    basename_lvl1 = "/storage/atmosphere/instruments/mopi5/level1"
+    basename_lvl2 = "/storage/atmosphere/instruments/mopi5/level2"
     instrument = mp.MOPI5_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -258,7 +258,7 @@ elif instrument_name == "compare":
     basename_lvl1 = "/scratch/GROSOM/Level1/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     #basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     somora = gromos_cl_FB.GROMOS_FB_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -269,7 +269,7 @@ elif instrument_name == "compare":
     import gromos_classes as gromos_cl
     basename_lvl1 = "/scratch/GROSOM/Level1/GROMOS/"
     basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
+    basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v2/"+str(date[0].year)
     import gromos_classes as gromos_cl
     gromos = gromos_cl.GROMOS_LvL2(
         date=date,
@@ -315,9 +315,9 @@ if compare_spectra:
 if extract_fgrid:
     date = datetime.date(2017, 10, 12)
     import somora_classes as sm
-    basename_lvl1 = "/storage/tub/instruments/somora/level1/v1/"+str(date.year)
+    basename_lvl1 = "/storage/atmosphere/instruments/somora/level1/v1/"+str(date.year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-    basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date.year)
+    basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v1/"+str(date.year)
     instrument = sm.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
@@ -917,7 +917,7 @@ if plot_fshift:
         fshift.to_netcdf(plotfolder+'/'+instrument_name+'_'+instrument.datestr[0:4]+'_fshift.nc')
 
 if compare_MERRA2:
-    merra2_basename = '/storage/tub/atmosphere/MERRA2/BRN/'
+    merra2_basename = '/storage/atmosphere/atmosphere/MERRA2/BRN/'
     filename_merra2 = [
         # os.path.join(merra2_basename,'MERRA2_BRN_2016_01_diagnostic.h5'),
         os.path.join(merra2_basename, 'MERRA2_BRN_2017_08_diagnostic.h5'),
