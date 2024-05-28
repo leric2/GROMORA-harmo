@@ -48,11 +48,11 @@ ARTS_INCLUDE_PATH = os.environ['ARTS_INCLUDE_PATH']
 # Some important global paths that might vary based on the computer
 # It always assumes that the data are separated in different folders for each years 
 # within these basefolder.
-GROMOS_L1_BASEFOLDER = '/storage/tub/instruments/gromos/level1/GROMORA/v2/'
-GROMOS_L2_BASEFOLDER = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
+GROMOS_L1_BASEFOLDER = '/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/'
+GROMOS_L2_BASEFOLDER = '/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/'
 
-SOMORA_L1_BASEFOLDER = '/storage/tub/instruments/somora/level1/v2/'
-SOMORA_L2_BASEFOLDER = '/storage/tub/instruments/somora/level2/oper/'
+SOMORA_L1_BASEFOLDER = '/storage/atmosphere/instruments/somora/level1/v2/'
+SOMORA_L2_BASEFOLDER = '/storage/atmosphere/instruments/somora/level2/oper/'
 
 def retrieve_day(date, instrument_name, integration_strategy='classic', retrieval_strategy='consolidated', retrieve_cycle=None, retrieval_quantities = 'o3_h2o_fshift_polyfit_sinefit', save_level2 = True):
     '''
