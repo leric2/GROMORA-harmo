@@ -86,7 +86,7 @@ calibrationTool.rawFileFolder=['/media/somora_data/RAW_DATA/' calibrationTool.da
 
 %calibrationTool.rawFileFolder='/home/eric/Documents/PhD/GROSOM/Data/rawData/';
 calibrationTool.extraFileFolder='/home/es19m597/Documents/GROMORA/extra_raw_data/SOMORA/'; % no write permission on the IAP lake
-calibrationTool.level1Folder=['/storage/tub/instruments/somora/level1/v2/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.level1Folder=['/storage/atmosphere/instruments/somora/level1/v2/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.filename];
 
@@ -185,7 +185,7 @@ calibrationTool.filter2.boxCarThresh=2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Read meteo data
 %calibrationTool.meteoFolder=['/scratch/GROSOM/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
-calibrationTool.meteoFolder=['/storage/tub/instruments/somora/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoFolder=['/storage/atmosphere/instruments/somora/MeteoDataSOMORA/METEO_DATA_' calibrationTool.dateStr(1:4) '/'];
 
 % Function specific to this instrument
 % meteo Data
@@ -194,7 +194,7 @@ calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_payerne(cali
 calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
 
 % Backup reading of MCH ground station data (ANETZ)
-calibrationTool.meteoAnetzFolder = ['/storage/tub/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoAnetzFolder = ['/storage/atmosphere/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.anetzStnName = 'PAY';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
