@@ -75,10 +75,10 @@ int_time = 1
 
 if retrieval_strategy=='consolidated':
     ex = '_v3'
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/v3/'
+    plotfolder = '/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/'
 elif retrieval_strategy == 'oper':
     ex = '_oper'  
-    plotfolder = '/storage/tub/instruments/gromos/level2/GROMORA/oper/'
+    plotfolder = '/storage/atmosphere/instruments/gromos/level2/GROMORA/oper/'
 else:
     raise ValueError('Retrieval strategy not valid !')
     
@@ -96,12 +96,12 @@ colormap = 'cividis'  # 'viridis' #, batlow_map cmap_crameri cividis
 #############################################################################
 #############################################################################
 if instrument_name == "GROMOS":
-    basename_lvl1 = "/storage/tub/instruments/gromos/level1/GROMORA/"+str(date[0].year)
+    basename_lvl1 = "/storage/atmosphere/instruments/gromos/level1/GROMORA/"+str(date[0].year)
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
     if new_L2:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/"+str(date[0].year)
     else:
-        basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v1/"+str(date[0].year)
     if spectro == 'AC240':
         import gromos_classes as gromos_cl
         instrument = gromos_cl.GROMOS_LvL2(
@@ -125,9 +125,9 @@ elif instrument_name == "SOMORA":
     basename_lvl1 = "/scratch/GROSOM/Level1/"
     if new_L2:
     #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-        basename_lvl2 = "/storage/tub/instruments/somora/level2/v2/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v2/"+str(date[0].year)
     else:
-        basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date[0].year)
+        basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v1/"+str(date[0].year)
     instrument = somora.SOMORA_LvL2(
         date=date,
         basename_lvl1=basename_lvl1,
