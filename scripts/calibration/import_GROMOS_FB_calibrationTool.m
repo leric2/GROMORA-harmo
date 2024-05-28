@@ -96,8 +96,8 @@ calibrationTool.binaryType='ieee-be';
 
 calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/gromos/FFTS/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.rawFileFolder=['/home/eric/Documents/PhD/GROSOM/Data/rawData/'];
-calibrationTool.extraFileFolder='/storage/tub/instruments/gromos/level1/GROMORA/ExtraRawFiles/'; % no write permission on the IAP lake
-calibrationTool.level1Folder=['/storage/tub/instruments/gromos/level1/GROMORA/v2/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.extraFileFolder='/storage/atmosphere/instruments/gromos/level1/GROMORA/ExtraRawFiles/'; % no write permission on the IAP lake
+calibrationTool.level1Folder=['/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.level1Folder='/home/eric/Documents/PhD/GROSOM/Data/Level1/';
 
 calibrationTool.filename=[calibrationTool.instrumentName,'09_', calibrationTool.dateStr];
@@ -221,7 +221,7 @@ calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra)
 calibrationTool.meteoTimeExtension = 10;
 
 % Backup reading of MCH ground station data (ANETZ)
-calibrationTool.meteoAnetzFolder = ['/storage/tub/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoAnetzFolder = ['/storage/atmosphere/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.anetzStnName = 'BER';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
