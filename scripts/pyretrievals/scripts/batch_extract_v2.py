@@ -25,8 +25,8 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 if __name__ == '__main__':
     dateRange = pd.date_range(start=sys.argv[1], end=sys.argv[1])
-    output = '/storage/tub/atmosphere/ecmwf/locations/'
-    loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations.json'
+    output = '/storage/atmosphere/atmosphere/ecmwf/locations/'
+    loc_file = '/storage/atmosphere/atmosphere/ecmwf/locations/locations.json'
     prefix = '/ecmwf_oper_v2_'
 
     if dateRange[0]> datetime(2013,6,24):
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     fileList = []
     for d in dateRange:
         date = datetime.strftime(d, '%Y%m%d')
-        basepath_location = os.path.join('/storage/tub/atmosphere/ecmwf/oper/',date[0:4])
+        basepath_location = os.path.join('/storage/atmosphere/atmosphere/ecmwf/oper/',date[0:4])
         
         filename = basepath_location+'/ECMWF_OPER_v2_'+date+'.nc'
         fileList.append(filename)
