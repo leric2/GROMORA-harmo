@@ -28,9 +28,9 @@ end
 
 % go to folder where data-files are
 if (calibrationTool.Year < 1994)
-    folder = '/storage/tub/instruments/gromos/level1/spectra/old_spectra';
+    folder = '/storage/atmosphere/instruments/gromos/level1/spectra/old_spectra';
 else
-    folder = ['/storage/tub/instruments/gromos/level1/spectra/o3', num2str( calibrationTool.Year )];
+    folder = ['/storage/atmosphere/instruments/gromos/level1/spectra/o3', num2str( calibrationTool.Year )];
 end
 %eval( sprintf('cd %s', folder) );
 data = struct();
