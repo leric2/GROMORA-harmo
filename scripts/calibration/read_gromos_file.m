@@ -8,7 +8,7 @@ end;
 
 % go to folder where data-files are
 
-folder = ['/storage/tub/instruments/gromos/level1/spectra/o3', num2str( year )];
+folder = ['/storage/atmosphere/instruments/gromos/level1/spectra/o3', num2str( year )];
 %eval( sprintf('cd %s', folder) );
 data = struct();
 meteoData= struct();
