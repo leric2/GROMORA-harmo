@@ -74,7 +74,7 @@ if __name__ == "__main__":
     if instrument_name == "GROMOS":
         import gromos_FB_classes as fb
         basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
+            '/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/', str(date.year))
         instrument = fb.GROMOS_FB_LvL2(
             date,
             basename_lvl1,
