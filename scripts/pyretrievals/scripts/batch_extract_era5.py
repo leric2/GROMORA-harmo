@@ -21,16 +21,16 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 
 if __name__ == '__main__':
     dateRange = pd.date_range(start='2022-12-01', end='2022-12-31')
-    output_folder = '/storage/tub/atmosphere/ecmwf/locations/'
+    output_folder = '/storage/atmosphere/atmosphere/ecmwf/locations/'
     prefix = '/ecmwf_era5_'
-    loc_file = '/storage/tub/atmosphere/ecmwf/locations/locations_GROMORA_era5.json'
+    loc_file = '/storage/atmosphere/atmosphere/ecmwf/locations/locations_GROMORA_era5.json'
 
     fileList = []
     for d in dateRange:
         number_of_ECMWF_levels=137
 
         date = datetime.strftime(d, '%Y%m%d')
-        basepath_location = os.path.join('/storage/tub/atmosphere/ecmwf/era5/europe/',date[0:4])
+        basepath_location = os.path.join('/storage/atmosphere/atmosphere/ecmwf/era5/europe/',date[0:4])
         
         filename = basepath_location+'/ECMWF_ERA5_'+date+'.nc'
         fileList.append(filename)
