@@ -352,12 +352,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     #############################################################################
     if instrument_name == "GROMOS":
         basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
+            '/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/', str(date.year))
         #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
         if new_L2:
-            basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v3/"+str(date.year)
+            basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/"+str(date.year)
         else:
-            basename_lvl2 = "/storage/tub/instruments/gromos/level2/GROMORA/v1/"+str(date.year)
+            basename_lvl2 = "/storage/atmosphere/instruments/gromos/level2/GROMORA/v1/"+str(date.year)
 
         if spectro == 'AC240':
             import gromos_classes as gromos
@@ -384,12 +384,12 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
     elif instrument_name == "SOMORA":
         import somora_classes as somora
         basename_lvl1 = os.path.join(
-            '/storage/tub/instruments/somora/level1/v2/', str(date.year))
+            '/storage/atmosphere/instruments/somora/level1/v2/', str(date.year))
         if new_L2:
         #basename_lvl2 = "/scratch/GROSOM/Level2/GROMORA_retrievals_polyfit2/"
-            basename_lvl2 = "/storage/tub/instruments/somora/level2/v2/"+str(date.year)
+            basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v2/"+str(date.year)
         else:
-            basename_lvl2 = "/storage/tub/instruments/somora/level2/v1/"+str(date.year)
+            basename_lvl2 = "/storage/atmosphere/instruments/somora/level2/v1/"+str(date.year)
         instrument = somora.SOMORA_LvL2(
             date=date,
             basename_lvl1=basename_lvl1,
@@ -507,7 +507,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
                 time=pd.to_datetime(ds.time.data), 
                 lat=instrument.latitude, 
                 location=loc, 
-                ecmwf_store='/storage/tub/atmosphere/ecmwf/locations/'+loc, 
+                ecmwf_store='/storage/atmosphere/atmosphere/ecmwf/locations/'+loc, 
                 cira86_path=os.path.join(ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly'), 
                 merge_method='max_diff',
                 max_T_diff=5,
@@ -763,7 +763,7 @@ def gromora_level2_GEOMS(instrument_name= "GROMOS", date= dt.date(2021, 6 , 27),
             time=pd.to_datetime(ds.time.data), 
             lat=instrument.latitude, 
             location=loc, 
-            ecmwf_store='/storage/tub/atmosphere/ecmwf/locations/'+loc, 
+            ecmwf_store='/storage/atmosphere/atmosphere/ecmwf/locations/'+loc, 
             cira86_path=os.path.join(ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly'), 
             merge_method='max_diff',
             max_T_diff=5,
@@ -942,11 +942,11 @@ if __name__ == "__main__":
     # Parameters changing for oper vs consolidated retrievals
     if retrieval_strategy == 'consolidated':
         rapid_delivery = False
-        save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/Consolidated/'
+        save_folder_gromos = '/storage/atmosphere/instruments/gromos/NDACC/Consolidated/'
         suffix = '_v3'
     elif retrieval_strategy == 'oper':
         rapid_delivery = True  # fascod   era5_cira86
-        save_folder_gromos = '/storage/tub/instruments/gromos/NDACC/RapidDelivery/'
+        save_folder_gromos = '/storage/atmosphere/instruments/gromos/NDACC/RapidDelivery/'
         suffix = '_oper'
     else:
         raise ValueError('Retrieval strategy not valid !')
