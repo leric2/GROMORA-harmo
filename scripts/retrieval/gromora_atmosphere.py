@@ -335,7 +335,7 @@ def read_merra2_data(retrieval_param, merra_location, t1, t2):
     phony_dim_4 = ??
 
     '''
-    merra_location = '/mnt/tub/atmosphere/MERRA2/'
+    merra_location = '/mnt/atmosphere/atmosphere/MERRA2/'
     t1 = datetime.date(2017,1,6)
     #merra_global_filename = merra_location + t1.strftime('%Y')+ '_' + t1.strftime('%m') +'/' + 'MERRA2_400.inst3_3d_asm_Nv.'+t1.strftime('%Y%m%d')+'.nc4'
     merra_BRN_filename = merra_location + 'BRN/'+ 'MERRA2_BRN_'+t1.strftime('%Y_%m')+'_diagnostic.h5'
@@ -372,7 +372,7 @@ def read_merra2_data(retrieval_param, merra_location, t1, t2):
 
 def get_o3_apriori(atm, month, retrieval_param):
     if retrieval_param['o3_apriori'] == 'somora':
-        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/tub/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
+        retrieval_param['apriori_ozone_climatology_SOMORA'] = '/storage/atmosphere/instruments/gromos/InputsRetrievals/AP_ML_CLIMATO_SOMORA.csv'
         o3_apriori_SOMORA = read_o3_apriori_OG_SOMORA(retrieval_param['apriori_ozone_climatology_SOMORA'], month)
         o3_apriori_h = interpolate(
             atm.z_field.data[:,0,0], 
@@ -386,7 +386,7 @@ def get_o3_apriori(atm, month, retrieval_param):
             "O3", pressure_atm, o3_apriori_h
         )       
     elif retrieval_param['o3_apriori'] == 'gromos':
-        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/tub/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
+        retrieval_param['apriori_ozone_climatology_GROMOS'] = '/storage/atmosphere/instruments/gromos/InputsRetrievals/apriori_ECMWF_MLS/'
         o3_apriori_GROMOS = read_o3_apriori_ecmwf_mls_gromosOG(retrieval_param['apriori_ozone_climatology_GROMOS'], month)
         print('Ozone apriori from : old GROMOS retrievals')
         atm.set_vmr_field(
@@ -407,7 +407,7 @@ def get_o3_apriori(atm, month, retrieval_param):
     elif retrieval_param['o3_apriori'] == 'waccm_monthly_biased':
         print('Ozone apriori from : WACCM monthly (day/night) climatology with added bias')
         ds_waccm = read_waccm_monthly(retrieval_param)
-        bias = xr.open_dataarray('/storage/tub/instruments/gromos/mean_bias_FB-FFT.nc')
+        bias = xr.open_dataarray('/storage/atmosphere/instruments/gromos/mean_bias_FB-FFT.nc')
          #o3_biased = ds_waccm['o3']
         o3_biased = ds_waccm['o3'].values + 1e-6*p_interpolate(ds_waccm['p'].values,np.flip(1e2*bias['o3_p'].values),bias.values)  
         atm.set_vmr_field(
@@ -1336,7 +1336,7 @@ if __name__ == "__main__":
         time=pd.to_datetime(date), 
         lat=46, 
         location='BERN', 
-        ecmwf_store='/storage/tub/atmosphere/ecmwf/locations/'+str(date.year), 
+        ecmwf_store='/storage/atmosphere/atmosphere/ecmwf/locations/'+str(date.year), 
         cira86_path=os.path.join(ARTS_DATA_PATH, 'planets/Earth/CIRA86/monthly'), 
         merge_method='max_diff',
         max_T_diff=5,
