@@ -71,8 +71,8 @@ calibrationTool.DCChannel=1; %=Nchannel/2 ??
 calibrationTool.rawFileFolder=['/storage/lake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
 %calibrationTool.rawFileFolder=['smb://resstore.unibe.ch/iap_mwlake/instrumentdata/mopi5/' calibrationTool.dateStr(1:4) '/'];
 
-calibrationTool.level1Folder='/storage/tub/instruments/mopi5/level1/';
-calibrationTool.extraFileFolder='/storage/tub/instruments/mopi5/extraRawFiles/'; % no write permission on the IAP lake
+calibrationTool.level1Folder='/storage/atmosphere/instruments/mopi5/level1/';
+calibrationTool.extraFileFolder='/storage/atmosphere/instruments/mopi5/extraRawFiles/'; % no write permission on the IAP lake
 %calibrationTool.level1Folder='/home/eric/Documents/PhD/DATA/MOPI5/';
 
 calibrationTool.file=[calibrationTool.rawFileFolder,calibrationTool.instrumentName,'_', calibrationTool.dateStr(1:4) calibrationTool.dateStr(6:7) calibrationTool.dateStr(9:10)];
@@ -172,7 +172,7 @@ calibrationTool.read_meteo_data =@(calibrationTool) read_meteo_data_unibe(calibr
 calibrationTool.add_meteo_data = @(calibrationTool, meteoData, correctedSpectra) add_meteo_data_generic(calibrationTool, meteoData, correctedSpectra);
 
 % Backup reading of MCH ground station data (ANETZ)
-calibrationTool.meteoAnetzFolder = ['/storage/tub/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
+calibrationTool.meteoAnetzFolder = ['/storage/atmosphere/MeteoSchweiz/' calibrationTool.dateStr(1:4) '/'];
 calibrationTool.anetzStnName = 'BER';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
