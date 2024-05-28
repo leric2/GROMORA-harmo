@@ -217,10 +217,10 @@ class GROMOS_FB_LvL2(DataRetrieval):
         if retrieval_param['atm'][0:4] == 'ecmw':  # fascod  ecmwf_cira86
             # 6-hourly ECMWF operational analysis dataset
             retrieval_param['extra_time_ecmwf'] = 3.5
-            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
+            retrieval_param['ecmwf_store_location'] = '/storage/atmosphere/atmosphere/ecmwf/locations/'+self.location #+str(retrieval_param['date'].year)
         elif retrieval_param['atm'][0:4] == 'era5':
             # Hourly era5 dataset
-            retrieval_param['ecmwf_store_location'] = '/storage/tub/atmosphere/ecmwf/locations/SwissPlateau/'
+            retrieval_param['ecmwf_store_location'] = '/storage/atmosphere/atmosphere/ecmwf/locations/SwissPlateau/'
             retrieval_param['extra_time_ecmwf'] = 0.5
         else: 
             raise ValueError('Atmosphere string definition not recognized !')
