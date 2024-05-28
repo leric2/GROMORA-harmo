@@ -67,7 +67,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
         if instrument_name == "GROMOS":
             import gromos_classes as gc
             basename_lvl1 = os.path.join(
-                '/storage/tub/instruments/gromos/level1/GROMORA/v2/', str(date.year))
+                '/storage/atmosphere/instruments/gromos/level1/GROMORA/v2/', str(date.year))
             instrument = gc.GROMOS_LvL2(
                 date,
                 basename_lvl1,
@@ -79,7 +79,7 @@ def sensitivity_analysis(instrument_name, date, param, cycles):
             retrieval_param['increased_var_factor'] = 1  # 15
         elif instrument_name == "SOMORA":
             basename_lvl1 = os.path.join(
-                '/storage/tub/instruments/somora/level1/v2/', str(date.year))
+                '/storage/atmosphere/instruments/somora/level1/v2/', str(date.year))
             import somora_classes as sm
             instrument = sm.SOMORA_LvL2(
                 date=date,
