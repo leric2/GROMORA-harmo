@@ -72,7 +72,7 @@ dates=datenum('1995_05_15','yyyy_mm_dd'):datenum('1995_05_15','yyyy_mm_dd');
 
 if (strcmp(instrumentName,'GROMOS') | strcmp(instrumentName,'SOMORA')) & readLabviewLog
     labviewLogFolder = '/home/esauvageat/Documents/GROMORA/Analysis/InputsCalibration/';
-    labviewLogFolder = '/storage/tub/instruments/gromos/level1/GROMORA/InputsCalibration/';
+    labviewLogFolder = '/storage/atmosphere/instruments/gromos/level1/GROMORA/InputsCalibration/';
     labviewLog = read_labview_log_generic(instrumentName, labviewLogFolder);
 else
     labviewLog = struct();
@@ -165,7 +165,7 @@ for d = 1:numel(dates)
         calibrationTool = import_GROMOS_FB_calibrationTool(calibrationTool);
 
         % an extra folder where we copy missing anetz data (from STARTWAVE)
-        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+        calibrationTool.meteoAnetzExtraFolder = '/storage/atmosphere/MeteoSchweiz/extra/';
 
     elseif strcmp(instrumentName, 'SOMORA')
         % Time interval for doing the calibration
@@ -192,7 +192,7 @@ for d = 1:numel(dates)
         calibrationTool = import_SOMORA_calibrationTool(calibrationTool);
 
         % an extra folder where we copy missing anetz data (from STARTWAVE)
-        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+        calibrationTool.meteoAnetzExtraFolder = '/storage/atmosphere/MeteoSchweiz/extra/';
 
     elseif strcmp(instrumentName,'mopi5')
         % FOR MOPI:
@@ -244,7 +244,7 @@ for d = 1:numel(dates)
         % Import specific parameter and functions for this instrument
         calibrationTool = import_WIRAC_calibrationTool(calibrationTool);        
         % an extra folder where we copy missing anetz data (from STARTWAVE)
-        calibrationTool.meteoAnetzExtraFolder = '/storage/tub/MeteoSchweiz/extra/';
+        calibrationTool.meteoAnetzExtraFolder = '/storage/atmosphere/MeteoSchweiz/extra/';
 
         % Specific to WIRAC:
         calibrationTool.outlierDectectionType = 'noFFT';
