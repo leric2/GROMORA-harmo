@@ -325,7 +325,7 @@ def utc2lst_NOAA(date, latitude, longitude, print_option=False):
 if __name__ == "__main__":
     #date = spectro_dataset.time.data[0]
 
-    ds_mls = xr.open_dataset(os.path.join('/storage/tub/atmosphere/AuraMLS/Level2_v5/locations/', 'AuraMLS_L2GP-O3_v5_200-400_BERN.nc'))
+    ds_mls = xr.open_dataset(os.path.join('/storage/atmosphere/atmosphere/AuraMLS/Level2_v5/locations/', 'AuraMLS_L2GP-O3_v5_200-400_BERN.nc'))
     mls = ds_mls.isel(time=178)
     
     date = mls.time.data #np.datetime64('2021-10-20 00:06:00.123456')
