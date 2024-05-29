@@ -44,18 +44,8 @@ readLabviewLog = true;
 % 12.05.2010
 
 % Define the dates for the calibration:
-%dates=datenum('2019_02_14','yyyy_mm_dd'):datenum('2019_02_14','yyyy_mm_dd');
-% Check if a custom date is passed as an argument
-if nargin > 0
-    % Convert the first argument to a date number
-    % Take the first input argument as the date
-    customDateStr = varargin{1};
-    customDate = datenum(customDateStr, 'yyyy_mm_dd');
-    dates = customDate : customDate;
-else
-    % Default date, e.g., 4 days ago if no date is provided
-    dates = datenum(daysadd(datetime('now'), -4)) : datenum(daysadd(datetime('now'), -4));
-end
+dates = datenum(daysadd(datetime('now'), -4)) : datenum(daysadd(datetime('now'), -4));
+
 
 % good_date mopi5
 % dates=[datenum('2019_01_03','yyyy_mm_dd'):datenum('2019_01_09','yyyy_mm_dd'),...
