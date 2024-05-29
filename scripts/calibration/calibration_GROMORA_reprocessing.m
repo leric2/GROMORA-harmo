@@ -14,8 +14,6 @@ function calibration_GROMORA_reprocessing(dateStr)
 % USAGE     | Call with a date stringe, e.g.: 'calibration_GROMORA_reprocessing('2024_05_29')'.
 
 
-clear all; close all; clc; clear functions; %clear mex;
-
 % 'GROMOS' // 'SOMORA' // 'mopi5' // 'MIAWARA-C' // 'WIRAC' //
 instrumentName='GROMOS';
 
