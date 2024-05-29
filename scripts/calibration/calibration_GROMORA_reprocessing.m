@@ -27,7 +27,7 @@ integrate = true;
 readLabviewLog = true;
 
 % GROMOS from 10.03.2010 only (after change in SW, see logfile), meteo from
-if nargin < 1 || isempty(dateStr)
+if nargin < 1
     % Default date, e.g., 4 days ago if no date is provided
     dateStr = datestr(daysadd(datetime('now'), -4), 'yyyy_mm_dd');
 end
