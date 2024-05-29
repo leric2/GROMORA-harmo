@@ -48,7 +48,9 @@ readLabviewLog = true;
 % Check if a custom date is passed as an argument
 if nargin > 0
     % Convert the first argument to a date number
-    customDate = datenum(argv(){1}, 'yyyy_mm_dd');
+    % Take the first input argument as the date
+    customDateStr = varargin{1};
+    customDate = datenum(customDateStr, 'yyyy_mm_dd');
     dates = customDate : customDate;
 else
     % Default date, e.g., 4 days ago if no date is provided
