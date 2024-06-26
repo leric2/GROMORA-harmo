@@ -38,7 +38,7 @@ if __name__ == '__main__':
     fileList = []
     for d in dateRange:
         date = datetime.strftime(d, '%Y%m%d')
-        basepath_location = os.path.join('/storage/tub/atmosphere/ecmwf/oper/',date[0:4])
+        basepath_location = os.path.join('/storage/atmosphere/atmosphere/ecmwf/oper/',date[0:4])
         
         filename = basepath_location+'/ECMWF_OPER_v2_'+date+'.nc'
         fileList.append(filename)
