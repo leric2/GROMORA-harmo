@@ -26,7 +26,7 @@ from ecmwf_extract_locations_v2 import extract_from_nc, find_files
 if __name__ == '__main__':
     dateRange = pd.date_range(start=sys.argv[1], end=sys.argv[1])
     output = '/storage/atmosphere/atmosphere/ecmwf/locations/'
-    loc_file = '/storage/atmosphere/atmosphere/ecmwf/locations/locations.json'
+    loc_file = '/storage/atmosphere/atmosphere/ecmwf/locations/locations_all.json'
     prefix = '/ecmwf_oper_v2_'
 
     if dateRange[0]> datetime(2013,6,24):
