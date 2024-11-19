@@ -943,7 +943,7 @@ if __name__ == "__main__":
     if retrieval_strategy == 'consolidated':
         rapid_delivery = False
         save_folder_gromos = '/storage/atmosphere/instruments/gromos/NDACC/Consolidated/'
-        suffix = '_v3'
+        suffix = '_v21'
     elif retrieval_strategy == 'oper':
         rapid_delivery = True  # fascod   era5_cira86
         save_folder_gromos = '/storage/atmosphere/instruments/gromos/NDACC/RapidDelivery/'
