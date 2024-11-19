@@ -74,7 +74,7 @@ spectro = spectros[0]
 int_time = 1
 
 if retrieval_strategy=='consolidated':
-    ex = '_v3'
+    ex = '_v21'
     plotfolder = '/storage/atmosphere/instruments/gromos/level2/GROMORA/v3/'
 elif retrieval_strategy == 'oper':
     ex = '_oper'  
